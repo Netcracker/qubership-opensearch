@@ -1,0 +1,119 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    component: opensearch-monitoring
+    name: {{ template "opensearch.fullname" . }}-monitoring
+  name: {{ template "opensearch.fullname" . }}-monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+{{ include "opensearch.labels.selector" . | indent 6 }}
+      component: opensearch-monitoring
+      name: {{ template "opensearch.fullname" . }}-monitoring
+  template:
+    metadata:
+      labels:
+{{ include "opensearch.labels.standard" . | indent 8 }}
+        component: opensearch-monitoring
+        name: {{ template "opensearch.fullname" . }}-monitoring
+      annotations:
+        {{/* This forces a restart if the secret or config has changed */}}
+        checksum/config: {{ include (print .Template.BasePath "/monitoring/configuration.yaml") . | sha256sum | trunc 63 }}
+    spec:
+      containers:
+        - env:
+            - name: OS_PROJECT
+              valueFrom:
+                fieldRef:
+                  fieldPath: "metadata.namespace"
+            - name: ELASTICSEARCH_HOST
+              value: {{ .Values.monitoring.opensearchHost | default (include "opensearch.fullname" .) }}
+            - name: ELASTICSEARCH_PORT
+              value: "{{ .Values.monitoring.opensearchPort | default 9200 }}"
+            - name: ELASTICSEARCH_DBAAS_ADAPTER_HOST
+              value: {{ .Values.monitoring.opensearchDbaasAdapterHost | default (include "dbaas-adapter.name" .) }}
+            - name: ELASTICSEARCH_DBAAS_ADAPTER_PORT
+              value: "{{ .Values.monitoring.opensearchDbaasAdapterPort | default 8080 }}"
+            - name: ELASTICSEARCH_TOTAL_NODES_COUNT
+              value: "{{ include "opensearch.nodes.count" . }}"
+            - name: ELASTICSEARCH_DATA_NODES_COUNT
+              value: "{{ include "opensearch.dataNodes.count" . }}"
+            - name: ELASTICSEARCH_EXEC_PLUGIN_TIMEOUT
+              value: {{ .Values.monitoring.opensearchExecPluginTimeout | default "15s" }}
+            - name: ELASTICSEARCH_PROTOCOL
+              value: "http"
+          {{- if (eq .Values.monitoring.monitoringType "influxdb") }}
+            - name: SM_DB_HOST
+              value: {{ .Values.monitoring.smDbHost }}
+            - name: SM_DB_NAME
+              value: {{ .Values.monitoring.smDbName }}
+            - name: SM_DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-monitoring-secret
+                  key: sm-db-username
+            - name: SM_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-monitoring-secret
+                  key: sm-db-password
+          {{- end }}
+            - name: ELASTICSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ template "opensearch.fullname" . }}-secret
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ template "opensearch.fullname" . }}-secret
+            - name: ELASTICSEARCH_CREDENTIALS
+              value: "$(ELASTICSEARCH_USERNAME):$(ELASTICSEARCH_PASSWORD)"
+          image: {{ template "monitoring.image" . }}
+          imagePullPolicy: {{ .Values.monitoring.imagePullPolicy | default "Always" | quote }}
+          resources:
+{{ toYaml .Values.monitoring.resources | indent 12 }}
+          name: {{ template "opensearch.fullname" . }}-monitoring
+          volumeMounts:
+            - mountPath: "/etc/telegraf"
+              name: config
+          ports:
+            - protocol: TCP
+              containerPort: 8125
+            - protocol: TCP
+              containerPort: 8094
+            - protocol: UDP
+              containerPort: 8092
+          {{- if (ne .Values.monitoring.monitoringType "influxdb") }}
+            - protocol: TCP
+              containerPort: 8096
+          {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ template "opensearch.fullname" . }}-monitoring-configuration
+            items:
+              - key: config
+                path: telegraf.conf
+    {{- with .Values.monitoring.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.monitoring.securityContext }}
+      securityContext:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.monitoring.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.monitoring.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+{{ end }}

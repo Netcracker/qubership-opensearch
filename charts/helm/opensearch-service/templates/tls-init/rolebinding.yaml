@@ -1,0 +1,19 @@
+{{ if and .Values.global.rbac.enabled (not .Values.opensearch.ssl.transport.existingCertSecret) }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "opensearch.fullname" . }}-tls-init
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ template "opensearch.fullname" . }}-tls-init
+subjects:
+  - kind: ServiceAccount
+    name: {{ template "opensearch.fullname" . }}-tls-init
+{{- end }}

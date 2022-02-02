@@ -1,0 +1,30 @@
+{{- if and .Values.opensearch.master.enabled .Values.opensearch.master.persistence.enabled (not (empty .Values.opensearch.master.persistence.persistentVolumes)) }}
+{{- if not (eq (len .Values.opensearch.master.persistence.persistentVolumes) (.Values.opensearch.master.replicas | int)) }}
+{{ fail "Number of persistent volumes ('.Values.opensearch.master.persistence.persistentVolumes') must be equal to replicas ('.Values.opensearch.master.replicas'). " }}
+{{- end }}
+{{- $master_fullname := printf "%s" (include "master-nodes" .) }}
+{{- $size := .Values.opensearch.master.persistence.size }}
+{{- range $index, $pvName := .Values.opensearch.master.persistence.persistentVolumes }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-{{ $master_fullname }}-{{ $index }}
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ $size }}
+  volumeName: {{ $pvName }}
+  {{- if $.Values.opensearch.master.persistence.storageClass }}
+  {{- if (eq "-" $.Values.opensearch.master.persistence.storageClass) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: "{{ $.Values.opensearch.master.persistence.storageClass }}"
+  {{- end }}
+  {{- end }}
+---
+{{- end }}
+{{- end }}

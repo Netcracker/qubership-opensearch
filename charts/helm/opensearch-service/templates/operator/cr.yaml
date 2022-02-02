@@ -1,0 +1,60 @@
+apiVersion: netcracker.com/v1
+kind: OpenSearchService
+metadata:
+  name: {{ template "opensearch.fullname" . }}
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    name: {{ template "opensearch.fullname" . }}
+    component: opensearch-service
+spec:
+  opensearch:
+    dedicatedClientPod: {{ .Values.opensearch.client.dedicatedPod.enabled }}
+    dedicatedDataPod: {{ .Values.opensearch.data.dedicatedPod.enabled }}
+    {{- if .Values.opensearch.snapshots.enabled }}
+    snapshots:
+      repositoryName: {{ coalesce .Values.opensearch.snapshots.repositoryName .Values.curator.snapshotRepositoryName | default "snapshots" }}
+      {{- if .Values.opensearch.snapshots.s3.enabled }}
+      s3:
+        enabled: {{ .Values.opensearch.snapshots.s3.enabled }}
+        pathStyleAccess: {{ .Values.opensearch.snapshots.s3.pathStyleAccess }}
+        url: {{ default "" .Values.opensearch.snapshots.s3.url | quote  }}
+        bucket: {{ default "" .Values.opensearch.snapshots.s3.bucket | quote }}
+        basePath: {{ default "" .Values.opensearch.snapshots.s3.basePath | quote }}
+        region: {{ default "" .Values.opensearch.snapshots.s3.region | quote }}
+        secretName: {{ template "opensearch.fullname" . }}-s3-secret
+      {{- end }}
+    {{- end }}
+    {{- if and .Values.opensearch.securityConfig.config.securityConfigSecret .Values.opensearch.securityConfig.config.data }}
+    securityConfigurationName: {{ .Values.opensearch.securityConfig.config.securityConfigSecret }}
+    {{- else }}
+    securityConfigurationName: {{ template "opensearch.fullname" . }}-security-configuration
+    {{- end }}
+  {{- if .Values.dashboards.enabled }}
+  dashboards:
+    name: {{ template "opensearch.fullname" . }}-dashboards
+    {{- if .Values.dashboards.config }}
+    secretName: {{ template "opensearch.fullname" . }}-dashboards-config
+    {{- end }}
+  {{- end }}
+  {{- if .Values.monitoring.enabled }}
+  monitoring:
+    name: {{ template "opensearch.fullname" . }}-monitoring
+    {{- if eq .Values.monitoring.monitoringType "influxdb" }}
+    secretName: {{ template "opensearch.fullname" . }}-monitoring-secret
+    {{- end }}
+  {{- end }}
+  {{- if .Values.dbaasAdapter.enabled }}
+  dbaasAdapter:
+    name: {{ template "dbaas-adapter.name" . }}
+    secretName: {{ template "dbaas-adapter.name" . }}-secret
+  {{- end }}
+  {{- if .Values.curator.enabled }}
+  curator:
+    name: {{ template "opensearch.fullname" . }}-curator
+    secretName: {{ template "opensearch.fullname" . }}-curator-secret
+  {{- end }}
+  {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}
+  disasterRecovery:
+    configMapName: {{ template "opensearch.fullname" . }}-replication-configuration
+    mode: {{ .Values.global.disasterRecovery.mode }}
+  {{- end }}

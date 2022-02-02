@@ -1,0 +1,18 @@
+{{- if .Values.curator.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    name: {{ template "opensearch.fullname" . }}-curator
+    component: opensearch-curator
+  annotations:
+    "helm.sh/resource-policy": keep
+  name: {{ template "opensearch.fullname" . }}-indices-cleaner-configuration
+data:
+  config: |
+    {{ .Values.curator.indicesCleanerConfigurationKey }}:
+    {{- if .Values.curator.indicesCleanerConfiguration }}
+{{ toYaml .Values.curator.indicesCleanerConfiguration | indent 4 }}
+    {{- end }}
+{{- end }}

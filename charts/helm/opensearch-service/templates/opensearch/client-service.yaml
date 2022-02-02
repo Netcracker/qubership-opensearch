@@ -1,0 +1,27 @@
+kind: Service
+apiVersion: v1
+metadata:
+  annotations:
+{{ toYaml .Values.opensearch.client.service.annotations | indent 4 }}
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    role: client
+  name: {{ template "opensearch.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+    - name: http
+      port: 9200
+    - name: transport
+      port: 9300
+    - name: metrics
+      port: 9600
+    - name: rca
+      port: 9650
+  selector:
+  {{- if .Values.opensearch.client.dedicatedPod.enabled }}
+    role: client
+  {{- else }}
+    role: master
+  {{- end }}
+  type: {{ .Values.opensearch.client.service.type }}

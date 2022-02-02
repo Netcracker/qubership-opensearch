@@ -1,0 +1,13 @@
+{{- if and .Values.dashboards.enabled .Values.dashboards.config -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "opensearch.fullname" . }}-dashboards-config
+  labels:
+{{ include "opensearch.labels.standard" . | nindent 4 }}
+data:
+{{- range $configName, $configYaml := .Values.dashboards.config }}
+  {{ $configName }}: |
+    {{- toYaml $configYaml | nindent 4 }}
+{{- end }}
+{{- end -}}

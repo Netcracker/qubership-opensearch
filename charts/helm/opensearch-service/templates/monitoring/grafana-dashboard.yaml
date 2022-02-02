@@ -1,0 +1,12 @@
+{{- if (and .Values.monitoring.enabled (ne .Values.monitoring.monitoringType "influxdb") .Values.monitoring.installDashboard) }}
+apiVersion: integreatly.org/v1alpha1
+kind: GrafanaDashboard
+metadata:
+  name: {{ template "opensearch.fullname" . }}-grafana-dashboard
+  labels:
+    app: grafana
+spec:
+  name: opensearch-dashboard.json
+  json: >
+{{ .Files.Get "monitoring/opensearch-dashboard.json" | indent 4 }}
+{{- end }}

@@ -1,0 +1,56 @@
+service:
+  name: opensearch-integration-tests
+
+secret:
+  opensearch:
+    username: ""
+    password: ""
+  idp:
+    username: ""
+    password: ""
+    registrationToken: ""
+  dbaasAdapter:
+    username: ""
+    password: ""
+  curator:
+    username: ""
+    password: ""
+
+integrationTests:
+  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests
+  tags: "smoke"
+  opensearchHost: "opensearch"
+  opensearchPort: 9200
+  opensearchMasterNodesName: "opensearch"
+  identityProviderUrl: ""
+  opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"
+  opensearchDbaasAdapterPort: 8080
+  opensearchDbaasAdapterRepository: "snapshots"
+  opensearchCuratorHost: "opensearch-curator"
+  opensearchCuratorPort: 8080
+
+  prometheusUrl: ""
+
+  statusWritingEnabled: true
+  isShortStatusMessage: true
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 200m
+    limits:
+      memory: 256Mi
+      cpu: 400m
+
+  affinity: {}
+#    podAffinity:
+#      preferredDuringSchedulingIgnoredDuringExecution:
+#        - podAffinityTerm:
+#            labelSelector:
+#              matchExpressions:
+#                - key: component
+#                  operator: In
+#                  values:
+#                    - opensearch
+#            topologyKey: "kubernetes.io/hostname"
+#          weight: 100

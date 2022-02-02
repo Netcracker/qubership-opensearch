@@ -1,0 +1,87 @@
+{{- if (eq (include "pod-scheduler-enabled" .) "true") }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    component: opensearch-pod-scheduler
+  name: {{ template "opensearch.fullname" . }}-pod-scheduler
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: opensearch-pod-scheduler
+      name: {{ template "opensearch.fullname" . }}-pod-scheduler
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        component: opensearch-pod-scheduler
+        name: {{ template "opensearch.fullname" . }}-pod-scheduler
+    spec:
+      containers:
+        - name: pod-scheduler
+          image: {{ template "kubectl.image" . }}
+          command:
+            - "/bin/bash"
+            - "-c"
+            - |
+              kube_url=$(echo "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}")
+              while true; do
+                {{- if and .Values.opensearch.master.enabled .Values.opensearch.master.persistence.enabled }}
+                {{- if not (eq (.Values.opensearch.master.replicas | int) (len .Values.opensearch.master.persistence.nodes) ) }}
+                {{ fail printf "Number of nodes ('.Values.opensearch.master.persistence.nodes') must be equal to replicas ('.Values.opensearch.master.replicas'). %s != %s" (.Values.opensearch.master.replicas | int) (len .Values.opensearch.master.persistence.nodes) }}
+                {{- end }}
+                for podname in $(kubectl get pods -o json -l 'app={{ template "opensearch.fullname" . }},role=master,!arbiter' -n {{ .Release.Namespace }} | jq '.items[] | select(.spec.schedulerName == "{{ template "opensearch.fullname" . }}-pod-scheduler") | select(.spec.nodeName == null) | .metadata.name' | tr -d '"'); do
+                  nodes=({{- range .Values.opensearch.master.persistence.nodes }}{{ printf "%s " . }}{{- end }})
+                  podnumber=$(echo $podname | rev | cut -d '-' -f 1 | rev)
+                  nodename=${nodes[$podnumber]}
+                  curl -k --header "Content-Type:application/json" --header "Authorization:Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" --request POST --data '{"apiVersion":"v1", "kind": "Binding", "metadata": {"name": "'$podname'"}, "target": {"apiVersion": "v1", "kind": "Node", "name": "'$nodename'"}}' $kube_url/api/v1/namespaces/{{ .Release.Namespace }}/pods/$podname/binding/
+                  echo "Assigned $podname to $nodename"
+                done
+                {{- end }}
+                {{- if and .Values.opensearch.arbiter.enabled .Values.opensearch.arbiter.persistence.enabled }}
+                {{- if not (eq (.Values.opensearch.arbiter.replicas | int) (len .Values.opensearch.arbiter.persistence.nodes) ) }}
+                {{ fail printf "Number of nodes ('.Values.opensearch.arbiter.persistence.nodes') must be equal to replicas ('.Values.opensearch.arbiter.replicas'). %s != %s" (.Values.opensearch.arbiter.replicas | int) (len .Values.opensearch.arbiter.persistence.nodes) }}
+                {{- end }}
+                for podname in $(kubectl get pods -o json -l 'app={{ template "opensearch.fullname" . }},role=master,arbiter=arbiter' -n {{ .Release.Namespace }} | jq '.items[] | select(.spec.schedulerName == "{{ template "opensearch.fullname" . }}-pod-scheduler") | select(.spec.nodeName == null) | .metadata.name' | tr -d '"'); do
+                  nodes=({{- range .Values.opensearch.arbiter.persistence.nodes }}{{ printf "%s " . }}{{- end }})
+                  podnumber=$(echo $podname | rev | cut -d '-' -f 1 | rev)
+                  nodename=${nodes[$podnumber]}
+                  curl -k --header "Content-Type:application/json" --header "Authorization:Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" --request POST --data '{"apiVersion":"v1", "kind": "Binding", "metadata": {"name": "'$podname'"}, "target": {"apiVersion": "v1", "kind": "Node", "name": "'$nodename'"}}' $kube_url/api/v1/namespaces/{{ .Release.Namespace }}/pods/$podname/binding/
+                  echo "Assigned $podname to $nodename"
+                done
+                {{- end }}
+                {{- if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled .Values.opensearch.data.persistence.enabled }}
+                {{- if not (eq (.Values.opensearch.data.replicas | int) (len .Values.opensearch.data.persistence.nodes) ) }}
+                {{ fail "Number of nodes ('.Values.opensearch.data.persistence.nodes') must be equal to number of replicas ('.Values.opensearch.data.replicas'). %s != %s" (.Values.opensearch.data.replicas | int) (len .Values.opensearch.data.persistence.nodes) }}
+                {{- end }}
+                for podname in $(kubectl get pods -o json -l 'app={{ template "opensearch.fullname" . }},role=data,!arbiter' -n {{ .Release.Namespace }} | jq '.items[] | select(.spec.schedulerName == "{{ template "opensearch.fullname" . }}-pod-scheduler") | select(.spec.nodeName == null) | .metadata.name' | tr -d '"'); do
+                  nodes=({{- range .Values.opensearch.data.persistence.nodes }}{{ printf "%s " . }}{{- end}})
+                  podnumber=$(echo $podname | rev | cut -d '-' -f 1 | rev)
+                  nodename=${nodes[$podnumber]}
+                  curl -k --header "Content-Type:application/json" --header "Authorization:Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" --request POST --data '{"apiVersion":"v1", "kind": "Binding", "metadata": {"name": "'$podname'"}, "target": {"apiVersion": "v1", "kind": "Node", "name": "'$nodename'"}}' $kube_url/api/v1/namespaces/{{ .Release.Namespace }}/pods/$podname/binding/
+                  echo "Assigned $podname to $nodename"
+                done
+                {{- end }}
+                sleep 10
+              done
+          {{- with .Values.podScheduler.resources }}
+          resources:
+            {{ . | toYaml | indent 12 | trim }}
+          {{- end }}
+      serviceAccountName: {{ template "opensearch.fullname" . }}-pod-scheduler
+      {{- with .Values.podScheduler.affinity }}
+      affinity:
+        {{ toYaml . | indent 8 | trim }}
+      {{- end }}
+      {{- with .Values.podScheduler.nodeSelector }}
+      nodeSelector:
+        {{ toYaml . | indent 8 | trim }}
+      {{- end }}
+      {{- with .Values.podScheduler.securityContext }}
+      securityContext:
+        {{ toYaml . | indent 8 | trim }}
+      {{- end }}
+  {{- end }}

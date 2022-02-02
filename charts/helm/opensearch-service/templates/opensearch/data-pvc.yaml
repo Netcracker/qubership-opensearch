@@ -1,0 +1,30 @@
+{{- if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled .Values.opensearch.data.persistence.enabled (not (empty .Values.opensearch.data.persistence.persistentVolumes)) }}
+{{- if not (eq (len .Values.opensearch.data.persistence.persistentVolumes) (.Values.opensearch.data.replicas | int)) }}
+{{ fail "Number of persistent volumes ('.Values.opensearch.data.persistence.persistentVolumes') must be equal to replicas ('.Values.opensearch.data.replicas'). " }}
+{{- end }}
+{{- $data_fullname := printf "%s-data" (include "opensearch.fullname" .) }}
+{{- $size := .Values.opensearch.data.persistence.size }}
+{{- range $index, $pvName := .Values.opensearch.data.persistence.persistentVolumes }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-{{ $data_fullname }}-{{ $index }}
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ $size }}
+  volumeName: {{ $pvName }}
+  {{- if $.Values.opensearch.data.persistence.storageClass }}
+  {{- if (eq "-" $.Values.opensearch.data.persistence.storageClass) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: "{{ $.Values.opensearch.data.persistence.storageClass }}"
+  {{- end }}
+  {{- end }}
+---
+{{- end }}
+{{- end }}

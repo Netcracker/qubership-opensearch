@@ -1,0 +1,9 @@
+{
+  "statusPolling":{
+    "resourceType": "deployment.apps",
+    "resourceName": "opensearch-integration-tests",
+    "statusPath": "$.status.conditions[?(@.type=='Successful')]",
+    "statusPathFail": "$.status.conditions[?(@.type=='Failed')]",
+    "timeout": "${ CUSTOM_TIMEOUT_MIN ? CUSTOM_TIMEOUT_MIN : '20' }"
+  }
+}

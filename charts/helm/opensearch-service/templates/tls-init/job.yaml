@@ -1,0 +1,42 @@
+{{ if not .Values.opensearch.ssl.transport.existingCertSecret }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "opensearch.fullname" . }}-tls-init
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+spec:
+  template:
+    metadata:
+      name: {{ template "opensearch.fullname" . }}-tls-init
+      labels:
+{{ include "opensearch.labels.standard" . | indent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ template "opensearch.fullname" . }}-tls-init
+      containers:
+        - name: tls-init
+          image: {{ template "opensearch.image" . }}
+          imagePullPolicy: "{{ .Values.opensearch.imagePullPolicy | default "Always" }}"
+          env:
+            - name: OPENSEARCH_FULLNAME
+              value: {{ template "opensearch.fullname" . }}
+            - name: CLIENT_INGRESSES
+              value: "{{ range .Values.opensearch.client.ingress.hosts }}{{ . }} {{ end }}"
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: TRANSPORT_CERTIFICATES_SECRET_NAME
+              value: {{ template "opensearch.transport-cert-secret-name" . }}
+            - name: ADMIN_CERTIFICATES_SECRET_NAME
+              value: {{ template "opensearch.admin-cert-secret-name" . }}
+          command:
+            - "/bin/sh"
+            - "-ec"
+            - "bin/generate-certificates.sh"
+{{- end }}

@@ -1,0 +1,348 @@
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+- [Deployment](#deployment)
+    - [Configuration](#configuration)
+        - [OpenSearch Service Integration Tests Parameters](#opensearch-service-integration-tests-parameters)
+    - [Manual Deployment](#manual-deployment)
+    - [Deployment via DP Deployer Job](#deployment-via-dp-deployer-job)
+    - [Deployment via Groovy Deployer Job](#deployment-via-groovy-deployer-job)
+
+# Introduction
+
+This guide covers the necessary steps to install and execute an OpenSearch tests on OpenShift/Kubernetes using Helm.
+The chart installs OpenSearch service integration tests deployment and secret in OpenShift/Kubernetes.
+
+# Prerequisites
+
+* Kubernetes 1.11+ or OpenShift 3.11+
+* `kubectl` 1.11+ or `oc` 3.11+ CLI
+* Helm 3.0+
+
+# Deployment
+
+OpenSearch service integration tests installation is based on Helm Chart. Helm Chart is placed in [integration-tests](../../charts/helm/opensearch-integration-tests)
+directory.
+
+## Environment
+
+OpenSearch Service Integration Tests can only be performed in environment with installed OpenSearch Service.
+
+OpenSearch Service Integration Tests service may conflict with already presented OpenSearch Service Integrations Tests resources if integration tests were enabled on deploy job.
+If you want to perform integration tests as separated job on environment where integration tests pod is already presented firstly, you need
+to run upgrade OpenSearch Service job with disabled execution of integration tests (`integrationTests.enabled: false`) and then run integration tests job.
+
+## Configuration
+
+This section provides the list of parameters required for OpenSearch Service Integration Tests installation and execution.
+
+### OpenSearch Service Integration Tests Parameters
+
+The `service.name` parameter specifies the name of OpenSearch integration tests service.
+
+The `secret.opensearch.username` parameter specifies the username for OpenSearch authentication.
+
+The `secret.opensearch.password` parameter specifies the password for OpenSearch authentication.
+
+The `secret.idp.username` parameter specifies the name of the user for Identity Provider.
+This parameter must be specified if you want to run integration tests with `authentication` tag.
+
+The `secret.idp.password` parameter specifies the password for Identity Provider.
+This parameter must be specified if you want to run integration tests with `authentication` tag.
+
+The `secret.idp.registrationToken` parameter specifies the registration token for Identity Provider.
+This parameter must be specified if you want to run integration tests with `authentication` tag.
+
+The `secret.dbaasAdapter.username` parameter specifies the name of the DBaaS adapter user.
+
+The `secret.dbaasAdapter.password` parameter specifies the password of the DBaaS adapter user.
+
+The `secret.curator.username` parameter specifies the username of the OpenSearch Curator API user.
+It can be empty if authentication is disabled for OpenSearch Curator.
+
+The `secret.curator.password` parameter specifies the password of the OpenSearch Curator API user.
+It can be empty if authentication is disabled for OpenSearch Curator.
+
+The `integrationTests.dockerImage` parameter specifies the docker image of OpenSearch Service integration tests.
+The default value is `artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests`.
+
+The `integrationTests.tags` parameter specifies the tags combined with `AND`, `OR` and `NOT` operators that select test cases to run.
+You can use `smoke`, `authentication`, `backup`, `dbaas` and `ha` tags to run appropriate tests. The default value is `smoke`.
+
+The `integrationTests.opensearchHost` parameter specifies the host name of OpenSearch. The default value is `OpenSearch`.
+
+The `integrationTests.opensearchPort` parameter specifies the OpenSearch port. The default value is `9200`.
+
+The `integrationTests.opensearchMasterNodesName` parameter specifies the name of OpenSearch master nodes.
+The default value is `opensearch`.
+
+The `integrationTests.identityProviderUrl` parameter specifies the URL of Identity Provider.
+This parameter must be specified if you want to run integration tests with `authentication` tag.
+
+The `integrationTests.opensearchDbaasAdapterHost` parameter specifies the host name of DBaaS OpenSearch adapter.
+The default value is `dbaas-opensearch-adapter`.
+
+The `integrationTests.opensearchDbaasAdapterPort` parameter specifies the DBaaS OpenSearch adapter port.
+The default value is `8080`.
+
+The `integrationTests.opensearchDbaasAdapterRepository` parameter the name of snapshot repository in OpenSearch.
+The default value is `snapshots`.
+
+The `integrationTests.opensearchCuratorHost` parameter specifies the host name of OpenSearch Curator.
+The default value is `opensearch-curator`.
+
+The `integrationTests.opensearchCuratorPort` parameter specifies the OpenSearch Curator port. The default value is
+`8080`.
+
+The `integrationTests.prometheusUrl` parameter specifies the URL (with schema and port) to Prometheus.
+For example, `http://prometheus.cloud.openshift.sdntest.example.com:80`. This parameter must be
+specified if you want to run integration tests with `prometheus` tag.
+
+The `integrationTests.statusWritingEnabled` parameter specifies whether status of Integration tests execution is to be
+writen to deployment or not. The default value is `true`.
+
+The `integrationTests.isShortStatusMessage` parameter specifies whether status message contains only first line of
+`result.txt` file or not. The parameter makes no sense if `statusWritingEnabled` parameter is not set to `true`.
+The default value is `true`.
+
+The `integrationTests.resources.requests.cpu` parameter specifies the minimum number of CPUs the container should use.
+The default value is `200m`.
+
+The `integrationTests.resources.requests.memory` parameter specifies the minimum amount of memory the container should use.
+The value can be specified with SI suffixes (E, P, T, G, M, K, m) or their power-of-two-equivalents (Ei, Pi, Ti, Gi, Mi, Ki).
+The default value is `256Mi`.
+
+The `integrationTests.resources.limits.cpu` parameter specifies the maximum number of CPUs the container can use.
+The default value is `400m`.
+
+The `integrationTests.resources.limits.memory` parameter specifies the maximum amount of memory the container can use.
+The value can be specified with SI suffixes (E, P, T, G, M, K, m) or their power-of-two-equivalents (Ei, Pi, Ti, Gi, Mi, Ki).
+The default value is `256Mi`.
+
+The `integrationTests.affinity` parameter specifies the affinity scheduling rules. The value should be specified in json
+format. The parameter can be empty.
+
+## Manual Deployment
+
+### Installation
+
+To deploy OpenSearch service integration tests with Helm you need to customize the `values.yaml` file. For example:
+
+```
+service:
+  name: opensearch-integration-tests
+
+secret:
+  opensearch:
+    username: "admin"
+    password: "admin"
+  idp:
+    username: "admin"
+    password: "admin"
+    registrationToken: "jyK2ztNwKMlO0fHKocPQW2glUC0Tg"
+  dbaasAdapter:
+    username: "admin"
+    password: "admin"
+  curator:
+    username: "admin"
+    password: "admin"
+
+integrationTests:
+  dockerImage: "artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests"
+  tags: "smoke"
+  opensearchHost: "opensearch"
+  opensearchPort: 9200
+  opensearchMasterNodesName: "opensearch"
+  identityProviderUrl: "http://identity-management.security-services-ci.svc:8080"
+  opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"
+  opensearchDbaasAdapterPort: 8080
+  opensearchDbaasAdapterRepository: "snapshots"
+  opensearchCuratorHost: "opensearch-curator"
+  opensearchCuratorPort: 8080
+
+  prometheusUrl: "http://prometheus.cloud.openshift.sdntest.example.com:80"
+
+  statusWritingEnabled: true
+  isShortStatusMessage: true
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 256Mi
+      cpu: 400m
+```
+
+To deploy the service you need to execute the following command:
+
+```
+helm install ${RELEASE_NAME} ./opensearch-integration-tests -n ${NAMESPACE}
+```
+
+where:
+
+* `${RELEASE_NAME}` is the release name of Helm Chart for OpenSearch service integration tests.
+  For example, `opensearch-integration-tests`.
+* `${NAMESPACE}` is the OpenShift/Kubernetes project/namespace to deploy OpenSearch service integration tests.
+  For example, `opensearch-service`.
+
+You can monitor the deployment process in the OpenShift/Kubernetes dashboard or using `kubectl` in the command line:
+
+```
+kubectl get pods
+```
+
+### Uninstalling
+
+To uninstall OpenSearch service integration tests from OpenShift/Kubernetes you need to execute the following command:
+
+```
+helm delete ${RELEASE_NAME} -n ${NAMESPACE}
+```
+
+where:
+
+* `${RELEASE_NAME}` is the release name of existing Helm Chart for OpenSearch service integration tests.
+  For example, `opensearch-integration-tests`.
+* `${NAMESPACE}` is the OpenShift/Kubernetes project/namespace where OpenSearch service integration tests
+  is deployed. For example, `opensearch-service`.
+
+The command uninstalls all the Kubernetes/OpenShift resources associated with the chart and deletes the release.
+
+## Deployment via DP Deployer Job
+
+Navigate to the Jenkins job `DP.Pub.Helm_deployer` and then click **Build with parameters**.
+
+The job parameters are predefined and described as follows:
+
+The `CLOUD_URL` parameter specifies the URL of the OpenShift/Kubernetes server. For example, `https://search.openshift.sdntest.example.com:8443`.
+
+The `CLOUD_NAMESPACE` parameter specifies the name of the existing OpenShift project/Kubernetes namespace. For example,
+`opensearch-service`.
+
+The `CLOUD_USER` parameter specifies the name of the user on behalf of whom the deployment process in
+OpenShift/Kubernetes starts. The parameter should be specified with `CLOUD_PASSWORD` parameter if `CLOUD_TOKEN` parameter
+is not filled.
+
+The `CLOUD_PASSWORD` parameter specifies the password for the user on behalf of whom the deployment process in
+OpenShift/Kubernetes starts. The parameter should be specified with `CLOUD_USER` parameter if `CLOUD_TOKEN` parameter
+is not filled.
+
+The `CLOUD_TOKEN` parameter specifies the token for the user on behalf of whom the deployment process in
+OpenShift/Kubernetes starts. The parameter should be specified if `CLOUD_USER` and `CLOUD_PASSWORD` parameters are not
+filled.
+
+The `DESCRIPTOR_URL` parameter specifies the link to the OpenSearch Service Application Manifest.
+
+The `DEPLOYMENT_PARAMETERS` parameter specifies the yaml that contains all parameters for installation. For example,
+
+```
+service:
+  name: opensearch-integration-tests
+
+secret:
+  opensearch:
+    username: "admin"
+    password: "admin"
+  idp:
+    username: "admin"
+    password: "admin"
+    registrationToken: "jyK2ztNwKMlO0fHKocPQW2glUC0Tg"
+  dbaasAdapter:
+    username: "admin"
+    password: "admin"
+  curator:
+    username: "admin"
+    password: "admin"
+
+integrationTests:
+  tags: "smoke"
+  opensearchHost: "opensearch"
+  opensearchPort: 9200
+  opensearchMasterNodesName: "opensearch"
+  identityProviderUrl: "http://identity-management.security-services-ci.svc:8080"
+  opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"
+  opensearchDbaasAdapterPort: 8080
+  opensearchDbaasAdapterRepository: "snapshots"
+  opensearchCuratorHost: "opensearch-curator"
+  opensearchCuratorPort: 8080
+
+  prometheusUrl: "http://prometheus.cloud.openshift.sdntest.example.com:80"
+
+  statusWritingEnabled: true
+  isShortStatusMessage: true
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 256Mi
+      cpu: 400m
+```
+
+The `DEPLOYMENT_MODE` parameter specifies the mode of the deployment. The possible values are `install`, `upgrade`, `auto`,
+`reinstall`, `clean`, `rollback` and `kubectl apply`.
+
+The `ADDITIONAL_OPTIONS` parameter specifies the additional options for Helm install/upgrade commands. For example,
+`--skip-crds` can be used in case of installation with restricted rights.
+
+Click *Build*.
+
+## Deployment via Groovy Deployer Job
+
+Navigate to the Jenkins job `groovy.deploy.v3` and then click **Build with parameters**.
+
+The job parameters are predefined and described as follows:
+
+The `PROJECT` parameter specifies the name of the existing OpenShift project/Kubernetes namespace. For example,
+`opensearch-service`.
+
+The `OPENSHIFT_CREDENTIALS` parameter specifies the credentials of the user on behalf of whom the deployment process in
+OpenShift/Kubernetes starts.
+
+The `DEPLOY_MODE` parameter specifies the mode of the deployment. The possible values are `Clean Install` and
+`Rolling Upgrade`. The `Clean Install` mode removes everything from the project before deployment.
+
+The `ARTIFACT_DESCRIPTOR_VERSION` parameter specifies the version of maven artifact in the format `artifactId:artifactVersion`.
+For example, `opensearch-service-integration-tests:opensearch_service_integration_tests_v01`.
+
+The `CUSTOM_PARAMS` parameter specifies the list of parameters for OpenSearch service installation. All parameters
+should be divided by `;`. For example,
+
+```
+service.name=opensearch-integration-tests;
+
+secret.opensearch.username=admin;
+secret.opensearch.password=admin;
+secret.idp.username=admin;
+secret.idp.password=admin;
+secret.idp.registrationToken=jyK2ztNwKMlO0fHKocPQW2glUC0Tg;
+secret.dbaasAdapter.username=admin;
+secret.dbaasAdapter.password=admin;
+secret.curator.username=admin;
+secret.curator.password=admin;
+
+integrationTests.tags=smoke;
+integrationTests.opensearchHost=opensearch;
+integrationTests.opensearchPort=9200;
+integrationTests.opensearchMasterNodesName=opensearch;
+integrationTests.identityProviderUrl=http://identity-management.security-services-ci.svc:8080;
+integrationTests.opensearchDbaasAdapterHost=dbaas-opensearch-adapter;
+integrationTests.opensearchDbaasAdapterPort=8080;
+integrationTests.opensearchDbaasAdapterRepository=snapshots;
+integrationTests.opensearchCuratorHost=opensearch-curator;
+integrationTests.opensearchCuratorPort=8080;
+
+integrationTests.prometheusUrl=http://prometheus.cloud.openshift.sdntest.example.com:80;
+
+integrationTests.statusWritingEnabled=true;
+integrationTests.isShortStatusMessage=true;
+
+integrationTests.resources.requests.memory=256Mi;
+integrationTests.resources.requests.cpu=100m;
+integrationTests.resources.limits.memory=256Mi;
+integrationTests.resources.limits.cpu=400m;
+```
+
+Click *Build*.
