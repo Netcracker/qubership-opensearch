@@ -1,0 +1,90 @@
+{{- if (and .Values.monitoring.enabled (ne .Values.monitoring.monitoringType "influxdb") .Values.monitoring.installDashboard) }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/component: monitoring
+    prometheus: OpenSearch-rules
+    role: alert-rules
+  name: prometheus-opensearch-service-rules
+spec:
+  groups:
+    - name: opensearch.rules
+      rules:
+        - alert: OpenSearch_CPU_Load_Alert
+          annotations:
+            description: 'OpenSearch CPU usage is above 95%.'
+            summary: OpenSearch's CPU usage is above 95%
+          expr: max(opensearch_process_cpu_percent{namespace="{{ .Release.Namespace }}"}) > 95
+          for: 3m
+          labels:
+            severity: high
+        - alert: OpenSearch_Disk_Usage_Alert
+          annotations:
+            description: 'OpenSearch disk usage is above 90%'
+            summary: OpenSearch's disk usage is above 90%
+          expr: 1 - sum(opensearch_fs_total_free_in_bytes{namespace="{{ .Release.Namespace }}"}) / sum(opensearch_fs_total_total_in_bytes{namespace="{{ .Release.Namespace }}"}) > 0.90
+          for: 3m
+          labels:
+            severity: high
+        - alert: OpenSearch_Disk_Too_Much_Usage_Alert
+          annotations:
+            description: 'OpenSearch disk usage is above 98%'
+            summary: OpenSearch's disk usage is above 98%
+          expr: 1 - sum(opensearch_fs_total_free_in_bytes{namespace="{{ .Release.Namespace }}"}) / sum(opensearch_fs_total_total_in_bytes{namespace="{{ .Release.Namespace }}"}) > 0.98
+          for: 3m
+          labels:
+            severity: disaster
+        - alert: OpenSearch_Memory_Usage_Alert
+          annotations:
+            description: 'OpenSearch memory usage is above 95%.'
+            summary: OpenSearch's memory usage is above 95%
+          expr: max(opensearch_os_mem_used_percent{namespace="{{ .Release.Namespace }}"}) > 95
+          for: 3m
+          labels:
+            severity: high
+        - alert: OpenSearch_Heap_Memory_Usage_Alert
+          annotations:
+            description: 'OpenSearch heap memory usage is above 95%.'
+            summary: OpenSearch's heap memory usage is above 95%
+          expr: max(opensearch_jvm_mem_heap_used_percent{namespace="{{ .Release.Namespace }}"}) > 95
+          for: 3m
+          labels:
+            severity: high
+        - alert: OpenSearch_Is_Degraded_Alert
+          annotations:
+            description: 'OpenSearch is Degraded.'
+            summary: Some of OpenSearch Service pods are down
+          expr: opensearch_cluster_health_status_code{namespace="{{ .Release.Namespace }}"} == 6
+          for: 3m
+          labels:
+            severity: high
+        - alert: OpenSearch_Is_Down_Alert
+          annotations:
+            description: 'OpenSearch is Down.'
+            summary: All of OpenSearch Service pods are down
+          expr: opensearch_cluster_health_status_code{namespace="{{ .Release.Namespace }}"} == 10
+          for: 3m
+          labels:
+            severity: high
+        {{- if .Values.dbaasAdapter.enabled }}
+        - alert: OpenSearch_DBaaS_Is_Down_Alert
+          annotations:
+            description: 'OpenSearch DBaaS agent is Down.'
+            summary: OpenSearch DBaaS agent is Down
+          expr: opensearch_dbaas_health_status{namespace="{{ .Release.Namespace }}"} == 1
+          for: 3m
+          labels:
+            severity: high
+        {{- end }}
+        {{- if .Values.curator.enabled }}
+        - alert: OpenSearch_Last_Backup_Has_Failed_Alert
+          annotations:
+            description: 'OpenSearch Last Backup Has Failed.'
+            summary: OpenSearch Last Backup Has Failed
+          expr: opensearch_backups_metric_last_backup_status{namespace="{{ .Release.Namespace }}"} != 1
+          for: 3m
+          labels:
+            severity: high
+        {{- end }}
+{{- end }}

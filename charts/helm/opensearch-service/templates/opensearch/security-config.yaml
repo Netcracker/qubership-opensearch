@@ -1,0 +1,14 @@
+{{- if and .Values.opensearch.securityConfig.config.securityConfigSecret .Values.opensearch.securityConfig.config.data }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.opensearch.securityConfig.config.securityConfigSecret }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+type: Opaque
+data:
+{{- range $key, $val := .Values.opensearch.securityConfig.config.data }}
+  {{ $key }}: {{ $val | b64enc | quote }}
+{{- end }}
+{{- end}}

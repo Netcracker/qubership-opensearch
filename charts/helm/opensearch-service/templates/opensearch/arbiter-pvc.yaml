@@ -1,0 +1,30 @@
+{{- if and .Values.opensearch.arbiter.enabled .Values.opensearch.arbiter.persistence.enabled (not (empty .Values.opensearch.arbiter.persistence.persistentVolumes)) }}
+{{- if not (eq (len .Values.opensearch.arbiter.persistence.persistentVolumes) (.Values.opensearch.arbiter.replicas | int)) }}
+{{ fail "Number of persistent volumes ('.Values.opensearch.arbiter.persistence.persistentVolumes') must be equal to replicas ('.Values.opensearch.arbiter.replicas'). " }}
+{{- end }}
+{{- $arbiter_fullname := printf "%s-arbiter" (include "opensearch.fullname" .) }}
+{{- $size := .Values.opensearch.arbiter.persistence.size }}
+{{- range $index, $pvName := .Values.opensearch.arbiter.persistence.persistentVolumes }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-{{ $arbiter_fullname }}-{{ $index }}
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ $size }}
+  volumeName: {{ $pvName }}
+  {{- if $.Values.opensearch.arbiter.persistence.storageClass }}
+  {{- if (eq "-" $.Values.opensearch.arbiter.persistence.storageClass) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: "{{ $.Values.opensearch.arbiter.persistence.storageClass }}"
+  {{- end }}
+  {{- end }}
+---
+{{- end }}
+{{- end }}

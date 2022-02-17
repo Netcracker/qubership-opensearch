@@ -1,0 +1,389 @@
+{{- if .Values.opensearch.master.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    role: master
+  name: {{ template "master-nodes" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.opensearch.master.replicas }}
+  serviceName: {{ template "master-nodes" . }}
+  selector:
+    matchLabels:
+{{ include "opensearch.labels.selector" . | indent 6 }}
+      role: master
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: {{ .Values.opensearch.master.updateStrategy }}
+  serviceName: {{ template "opensearch.fullname" . }}-discovery
+  template:
+    metadata:
+      labels:
+{{ include "opensearch.labels.standard" . | indent 8 }}
+        role: master
+      annotations:
+{{- if .Values.opensearch.master.podAnnotations }}
+{{ toYaml .Values.opensearch.master.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+      {{- if and .Values.podScheduler.enabled (eq (include "master-nodes-volumes-enabled" .) "true") }}
+      schedulerName: {{ template "opensearch.fullname" . }}-pod-scheduler
+      {{- end }}
+      {{- if .Values.opensearch.master.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.opensearch.master.imagePullSecrets | indent 8 }}
+      {{- end }}
+      serviceAccountName: {{ template "opensearch.serviceAccountName" . }}
+    {{- with .Values.opensearch.master.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.opensearch.master.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.opensearch.master.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      initContainers:
+{{- if .Values.opensearch.sysctl.enabled }}
+        - name: init-sysctl
+          image: {{ template "busybox.image" . }}
+          command:
+            - sysctl
+            - -w
+            - vm.max_map_count={{ .Values.opensearch.maxMapCount }}
+          securityContext:
+            privileged: true
+{{- end }}
+{{- if .Values.opensearch.fixmount.enabled }}
+        - name: fixmount
+        {{- if .Values.opensearch.snapshots.enabled }}
+          command: [ 'sh', '-c', 'chown -R 1000:1000 /usr/share/opensearch/data && chown -R 1000:1000 /usr/share/opensearch/snapshots' ]
+        {{- else }}
+          command: [ 'sh', '-c', 'chown -R 1000:1000 /usr/share/opensearch/data' ]
+        {{- end }}
+          image: {{ template "busybox.image" . }}
+        {{- if .Values.opensearch.fixmount.securityContext }}
+          securityContext:
+{{ .Values.opensearch.fixmount.securityContext | toYaml | indent 12 | trim}}
+        {{- end }}
+          volumeMounts:
+            - mountPath: /usr/share/opensearch/data
+              name: pvc
+              subPath: {{ .Values.opensearch.master.persistence.subPath }}
+            - mountPath: /usr/share/opensearch/snapshots
+              name: snapshots-repository
+{{- end }}
+{{- if .Values.opensearch.extraInitContainers }}
+{{ toYaml .Values.opensearch.extraInitContainers| indent 8 }}
+{{- end }}
+{{- if .Values.opensearch.master.extraInitContainers }}
+{{ toYaml .Values.opensearch.master.extraInitContainers| indent 8 }}
+{{- end }}
+{{- with .Values.opensearch.securityContextCustom }}
+      securityContext:
+{{ toYaml . | indent 8 }}
+{{- end }}
+      containers:
+        - name: opensearch
+{{- if .Values.opensearch.sys_chroot.enabled }}
+          securityContext:
+            capabilities:
+              add: ["SYS_CHROOT"]
+{{- end }}
+          env:
+            - name: cluster.name
+              value: {{ .Values.global.clusterName }}
+            - name: cluster.initial_master_nodes
+              value: {{ template "initial-master-nodes" . }}
+            - name: node.master
+              value: "true"
+            - name: node.ingest
+        {{- if .Values.opensearch.client.dedicatedPod.enabled }}
+              value: "false"
+        {{- else }}
+              value: "true"
+        {{- end }}
+            - name: node.data
+        {{- if .Values.opensearch.data.dedicatedPod.enabled }}
+              value: "false"
+        {{- else }}
+              value: "true"
+        {{- end }}
+            - name: network.host
+              value: "0.0.0.0"
+    {{- if .Values.opensearch.transportKeyPassphrase.enabled}}
+            - name: TRANSPORT_KEY_PASSPHRASE
+              value: {{ .Values.opensearch.transportKeyPassphrase.passPhrase }}
+    {{- end }}
+    {{- if .Values.opensearch.transportKeyPassphrase.enabled}}
+            - name: SSL_KEY_PASSPHRASE
+              value: {{ .Values.opensearch.sslKeyPassphrase.passPhrase }}
+    {{- end }}
+            - name: node.name
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: discovery.seed_hosts
+              value: {{ template "opensearch.fullname" . }}-discovery
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: PROCESSORS
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.cpu
+            - name: OPENSEARCH_JAVA_OPTS
+              value: {{ .Values.opensearch.master.javaOpts }}
+            - name: OPENSEARCH_SECURITY_CONFIG_PATH
+              value: {{ .Values.opensearch.securityConfig.path }}
+            - name: OPENSEARCH_CONFIG_PATH
+              value: {{ .Values.opensearch.configDirectory }}
+            - name: OPENSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ template "opensearch.fullname" . }}-secret
+            - name: OPENSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ template "opensearch.fullname" . }}-secret
+{{- if .Values.opensearch.extraEnvs }}
+{{ toYaml .Values.opensearch.extraEnvs | indent 12 }}
+{{- end }}
+          resources:
+{{ toYaml .Values.opensearch.master.resources | indent 12 }}
+          readinessProbe:
+        {{- if .Values.opensearch.master.readinessProbe }}
+{{ toYaml .Values.opensearch.master.readinessProbe | indent 12 }}
+        {{- else }}
+{{ include "opensearch.readiness.probe" . | indent 12 }}
+        {{- end }}
+    {{- with .Values.opensearch.master.livenessProbe}}
+          livenessProbe:
+{{ toYaml . | indent 12 }}
+    {{- end }}
+    {{- with .Values.opensearch.master.startupProbe}}
+          startupProbe:
+{{ toYaml . | indent 12 }}
+    {{- end }}
+          image: {{ template "opensearch.image" . }}
+          imagePullPolicy: {{ .Values.opensearch.imagePullPolicy | default "Always" | quote }}
+          ports:
+            - containerPort: 9300
+              name: transport
+            - containerPort: 9200
+              name: http
+            - containerPort: 9600
+              name: metrics
+            - containerPort: 9650
+              name: rca
+          volumeMounts:
+            - mountPath: /usr/share/opensearch/data
+              name: pvc
+              subPath: {{ .Values.opensearch.master.persistence.subPath }}
+            - mountPath: /usr/share/opensearch/snapshots
+              name: snapshots-repository
+        {{- if .Values.opensearch.config }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/opensearch.yml
+              name: config
+              subPath: opensearch.yml
+        {{- end }}
+        {{- if .Values.opensearch.log4jConfig }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/log4j2.properties
+              name: config
+              subPath: log4j2.properties
+        {{- end }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/logging.yml
+              name: config
+              subPath: logging.yml
+            - mountPath: {{ .Values.opensearch.configDirectory }}/transport-crt.pem
+              name: transport-certs
+              subPath: {{ template "opensearch.transport-cert-path" . }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/transport-key.pem
+              name: transport-certs
+              subPath: {{ template "opensearch.transport-key-path" . }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/transport-root-ca.pem
+              name: transport-certs
+              subPath: {{ template "opensearch.transport-root-ca-path" . }}
+        {{- if and .Values.opensearch.ssl.rest.enabled .Values.opensearch.ssl.rest.existingCertSecret }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/rest-crt.pem
+              name: rest-certs
+              subPath: {{ .Values.opensearch.ssl.rest.existingCertSecretCertSubPath }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/rest-key.pem
+              name: rest-certs
+              subPath: {{ .Values.opensearch.ssl.rest.existingCertSecretKeySubPath }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/rest-root-ca.pem
+              name: rest-certs
+              subPath: {{ .Values.opensearch.ssl.rest.existingCertSecretRootCASubPath }}
+        {{- end }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/admin-crt.pem
+              name: admin-certs
+              subPath: {{ template "opensearch.admin-cert-path" . }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/admin-key.pem
+              name: admin-certs
+              subPath: {{ template "opensearch.admin-key-path" . }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/admin-root-ca.pem
+              name: admin-certs
+              subPath: {{ template "opensearch.admin-root-ca-path" . }}
+        {{- if .Values.opensearch.securityConfig.enabled }}
+        {{- if and .Values.opensearch.securityConfig.config.securityConfigSecret .Values.opensearch.securityConfig.config.data }}
+            - mountPath: {{ .Values.opensearch.securityConfig.path }}
+              name: security-config
+        {{- else }}
+            - mountPath: {{ .Values.opensearch.securityConfig.path }}/action_groups.yml
+              name: action-groups
+              subPath: action_groups.yml
+            - mountPath: {{ .Values.opensearch.securityConfig.path }}/config.yml
+              name: security-config
+              subPath: config.yml
+            - mountPath: {{ .Values.opensearch.securityConfig.path }}/roles.yml
+              name: roles
+              subPath: roles.yml
+            - mountPath: {{ .Values.opensearch.securityConfig.path }}/roles_mapping.yml
+              name: role-mapping
+              subPath: roles_mapping.yml
+            - mountPath: {{ .Values.opensearch.securityConfig.path }}/tenants.yml
+              name: tenants
+              subPath: tenants.yml
+        {{- end }}
+        {{- end }}
+{{- if .Values.opensearch.extraVolumeMounts }}
+{{ toYaml .Values.opensearch.extraVolumeMounts | indent 8 }}
+{{- end }}
+{{- if .Values.opensearch.master.extraContainers }}
+{{ toYaml .Values.opensearch.master.extraContainers | indent 6 }}
+{{- end }}
+      volumes:
+        - name: config
+          secret:
+            secretName: {{ template "opensearch.fullname" . }}-config
+        - name: transport-certs
+          secret:
+            secretName: {{ template "opensearch.transport-cert-secret-name" . }}
+      {{- if and .Values.opensearch.ssl.rest.enabled .Values.opensearch.ssl.rest.existingCertSecret }}
+        - name: rest-certs
+          secret:
+            secretName: {{ .Values.opensearch.ssl.rest.existingCertSecret }}
+      {{- end }}
+        - name: admin-certs
+          secret:
+            secretName: {{ template "opensearch.admin-cert-secret-name" . }}
+      {{- if and .Values.opensearch.securityConfig.config.securityConfigSecret .Values.opensearch.securityConfig.config.data }}
+        - name: security-config
+          secret:
+            secretName: {{ .Values.opensearch.securityConfig.config.securityConfigSecret }}
+      {{- else }}
+      {{- if .Values.opensearch.securityConfig.actionGroupsSecret }}
+        - name: action-groups
+          secret:
+            secretName: {{ .Values.opensearch.securityConfig.actionGroupsSecret }}
+      {{- else }}
+        - name: action-groups
+          secret:
+            secretName: {{ template "opensearch.fullname" . }}-security-configuration
+            items:
+              - key: action_groups.yml
+                path: action_groups.yml
+      {{- end }}
+      {{- if .Values.opensearch.securityConfig.configSecret }}
+        - name: security-config
+          secret:
+            secretName: {{ .Values.opensearch.securityConfig.configSecret }}
+      {{- else }}
+        - name: security-config
+          secret:
+            secretName: {{ template "opensearch.fullname" . }}-security-configuration
+            items:
+              - key: config.yml
+                path: config.yml
+      {{- end }}
+      {{- if .Values.opensearch.securityConfig.rolesSecret }}
+        - name: roles
+          secret:
+            secretName: {{ .Values.opensearch.securityConfig.rolesSecret }}
+      {{- else }}
+        - name: roles
+          secret:
+            secretName: {{ template "opensearch.fullname" . }}-security-configuration
+            items:
+              - key: roles.yml
+                path: roles.yml
+      {{- end }}
+      {{- if .Values.opensearch.securityConfig.rolesMappingSecret }}
+        - name: role-mapping
+          secret:
+            secretName: {{ .Values.opensearch.securityConfig.rolesMappingSecret }}
+      {{- else }}
+        - name: role-mapping
+          secret:
+            secretName: {{ template "opensearch.fullname" . }}-security-configuration
+            items:
+              - key: roles_mapping.yml
+                path: roles_mapping.yml
+      {{- end -}}
+      {{- if .Values.opensearch.securityConfig.tenantsSecret }}
+        - name: tenants
+          secret:
+            secretName: {{ .Values.opensearch.securityConfig.tenantsSecret }}
+        {{- else }}
+        - name: tenants
+          secret:
+            secretName: {{ template "opensearch.fullname" . }}-security-configuration
+            items:
+              - key: tenants.yml
+                path: tenants.yml
+      {{- end }}
+      {{- end }}
+      {{- if not .Values.opensearch.master.persistence.enabled }}
+        - name: pvc
+          emptyDir: {}
+      {{- else }}
+      {{- if .Values.opensearch.master.persistence.existingClaim }}
+        - name: pvc
+          persistentVolumeClaim:
+            claimName: {{ .Values.opensearch.master.persistence.existingClaim }}
+      {{- end }}
+      {{- end }}
+      {{- if or (not .Values.opensearch.snapshots.enabled) .Values.opensearch.snapshots.s3.enabled }}
+        - name: snapshots-repository
+          emptyDir: {}
+      {{- else }}
+        - name: snapshots-repository
+          persistentVolumeClaim:
+            claimName: {{ .Values.opensearch.snapshots.persistentVolumeClaim | default (printf "pvc-%s-snapshots" (include "opensearch.fullname" .))  }}
+      {{- end }}
+{{- if .Values.opensearch.extraVolumes }}
+{{ toYaml .Values.opensearch.extraVolumes | indent 6 }}
+{{- end }}
+  {{- if and .Values.opensearch.master.persistence.enabled (not .Values.opensearch.master.persistence.existingClaim) }}
+  volumeClaimTemplates:
+    - metadata:
+        name: pvc
+        annotations:
+      {{- range $key, $value := .Values.opensearch.master.persistence.annotations }}
+        {{ $key }}: {{ $value }}
+      {{- end }}
+      spec:
+        accessModes:
+      {{- range .Values.opensearch.master.persistence.accessModes }}
+          - {{ . | quote }}
+      {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.opensearch.master.persistence.size | quote }}
+    {{- if .Values.opensearch.master.persistence.storageClass }}
+    {{- if (eq "-" .Values.opensearch.master.persistence.storageClass) }}
+        storageClassName: ""
+    {{- else }}
+        storageClassName: "{{ .Values.opensearch.master.persistence.storageClass }}"
+    {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

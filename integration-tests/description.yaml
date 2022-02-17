@@ -1,0 +1,9 @@
+build:
+  networkRules: nc.product.dtrust
+  env:
+    type: microservice
+    version: generic-1.0
+publication:
+  docker:
+    - latest
+    - timestamp

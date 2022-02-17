@@ -1,0 +1,10 @@
+JOB_NAME: DP.Pub.Microservice_builder_v2
+SERVER: https://git.netcracker.com
+JENKINS_URL: https://cisrvrecn.netcracker.com
+REPOSITORY_NAME: PROD.Platform.ElasticStack/opensearch-service
+# Build Params
+LOCATION: ${CI_COMMIT_REF_NAME}
+PREFIX: integration-tests
+# Deploy Params
+ENABLE_DEPLOY: 'false'
+ENABLE_VALIDATION: 'true'

@@ -1,0 +1,192 @@
+{{- if and .Values.opensearch.client.enabled .Values.opensearch.client.dedicatedPod.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    role: client
+  name: {{ template "opensearch.fullname" . }}-client
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.opensearch.client.replicas }}
+  selector:
+    matchLabels:
+{{ include "opensearch.labels.selector" . | indent 6 }}
+      role: client
+  template:
+    metadata:
+      labels:
+{{ include "opensearch.labels.standard" . | indent 8 }}
+        role: client
+      annotations:
+{{- if .Values.opensearch.client.podAnnotations }}
+{{ toYaml .Values.opensearch.client.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+      {{- if .Values.opensearch.client.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.opensearch.client.imagePullSecrets | indent 8 }}
+      {{- end }}
+      serviceAccountName: {{ template "opensearch.serviceAccountName" . }}
+    {{- with .Values.opensearch.client.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.opensearch.client.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.opensearch.client.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      initContainers:
+{{- if .Values.opensearch.sysctl.enabled }}
+        - name: init-sysctl
+          image: {{ template "busybox.image" . }}
+          command:
+            - sysctl
+            - -w
+            - vm.max_map_count={{ .Values.opensearch.maxMapCount }}
+          securityContext:
+            privileged: true
+{{- end }}
+{{- if .Values.opensearch.extraInitContainers }}
+{{ toYaml .Values.opensearch.extraInitContainers| indent 8 }}
+{{- end }}
+{{- with .Values.opensearch.securityContextCustom }}
+      securityContext:
+{{ toYaml . | indent 8 }}
+{{- end }}
+      containers:
+        - name: opensearch
+          securityContext:
+{{- if .Values.opensearch.sys_chroot.enabled }}
+            capabilities:
+              add: ["SYS_CHROOT"]
+{{- end }}
+          env:
+            - name: cluster.name
+              value: {{ .Values.global.clusterName }}
+            - name: node.master
+              value: "false"
+            - name: node.ingest
+              value: "true"
+            - name: node.data
+              value: "false"
+            - name: network.host
+              value: "0.0.0.0"
+            - name: node.name
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: discovery.seed_hosts
+              value: {{ template "opensearch.fullname" . }}-discovery
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: PROCESSORS
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.cpu
+            - name: OPENSEARCH_JAVA_OPTS
+              value: {{ .Values.opensearch.client.javaOpts }}
+{{- if .Values.opensearch.extraEnvs }}
+{{ toYaml .Values.opensearch.extraEnvs | indent 12 }}
+{{- end }}
+          resources:
+{{ toYaml .Values.opensearch.client.resources | indent 12 }}
+          image: {{ template "opensearch.image" . }}
+          imagePullPolicy: {{ .Values.opensearch.imagePullPolicy | default "Always" | quote }}
+          ports:
+            - containerPort: 9200
+              name: http
+            - containerPort: 9300
+              name: transport
+            - containerPort: 9600
+              name: metrics
+            - containerPort: 9650
+              name: rca
+          readinessProbe:
+        {{- if .Values.opensearch.client.readinessProbe }}
+{{ toYaml .Values.opensearch.client.readinessProbe | indent 12 }}
+        {{- else }}
+            tcpSocket:
+              port: transport
+            initialDelaySeconds: 60
+            periodSeconds: 10
+        {{- end }}
+    {{- with .Values.opensearch.client.livenessProbe}}
+          livenessProbe:
+{{ toYaml . | indent 12 }}
+    {{- end }}
+    {{- with .Values.opensearch.client.startupProbe}}
+          startupProbe:
+{{ toYaml . | indent 12 }}
+    {{- end }}
+          volumeMounts:
+        {{- if .Values.opensearch.config }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/opensearch.yml
+              name: config
+              subPath: opensearch.yml
+        {{- end }}
+        {{- if .Values.opensearch.log4jConfig }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/log4j2.properties
+              name: config
+              subPath: log4j2.properties
+        {{- end }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/logging.yml
+              name: config
+              subPath: logging.yml
+            - mountPath: {{ .Values.opensearch.configDirectory }}/transport-crt.pem
+              name: transport-certs
+              subPath: {{ template "opensearch.transport-cert-path" . }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/transport-key.pem
+              name: transport-certs
+              subPath: {{ template "opensearch.transport-key-path" . }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/transport-root-ca.pem
+              name: transport-certs
+              subPath: {{ template "opensearch.transport-root-ca-path" . }}
+         {{- if and .Values.opensearch.ssl.rest.enabled .Values.opensearch.ssl.rest.existingCertSecret }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/rest-crt.pem
+              name: rest-certs
+              subPath: {{ .Values.opensearch.ssl.rest.existingCertSecretCertSubPath }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/rest-key.pem
+              name: rest-certs
+              subPath: {{ .Values.opensearch.ssl.rest.existingCertSecretKeySubPath }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/rest-root-ca.pem
+              name: rest-certs
+              subPath: {{ .Values.opensearch.ssl.rest.existingCertSecretRootCASubPath }}
+        {{- end }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/admin-crt.pem
+              name: admin-certs
+              subPath: {{ template "opensearch.admin-cert-path" . }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/admin-key.pem
+              name: admin-certs
+              subPath: {{ template "opensearch.admin-key-path" . }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/admin-root-ca.pem
+              name: admin-certs
+              subPath: {{ template "opensearch.admin-root-ca-path" . }}
+{{- if .Values.opensearch.extraVolumeMounts }}
+{{ toYaml .Values.opensearch.extraVolumeMounts | indent 12 }}
+{{- end }}
+      volumes:
+        - name: config
+          secret:
+            secretName: {{ template "opensearch.fullname" . }}-config
+        - name: transport-certs
+          secret:
+            secretName: {{ template "opensearch.transport-cert-secret-name" . }}
+      {{- if and .Values.opensearch.ssl.rest.enabled .Values.opensearch.ssl.rest.existingCertSecret }}
+        - name: rest-certs
+          secret:
+            secretName: {{ .Values.opensearch.ssl.rest.existingCertSecret }}
+      {{- end }}
+        - name: admin-certs
+          secret:
+            secretName: {{ template "opensearch.admin-cert-secret-name" . }}
+{{- if .Values.opensearch.extraVolumes }}
+{{ toYaml .Values.opensearch.extraVolumes | indent 8 }}
+{{- end }}
+{{- end }}

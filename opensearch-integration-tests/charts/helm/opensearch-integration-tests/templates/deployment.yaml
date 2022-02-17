@@ -1,0 +1,130 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ .Values.service.name }}
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      name: {{ .Values.service.name }}
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: {{ .Values.service.name }}
+    spec:
+      serviceAccountName: {{ .Values.service.name }}
+      {{- if .Values.integrationTests.affinity }}
+      affinity:
+      {{ .Values.integrationTests.affinity | toJson }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.service.name }}
+          image: {{ template "integration-tests.image" . }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            {{- if .Values.integrationTests.statusWritingEnabled }}
+            - name: STATUS_WRITING_ENABLED
+              value: "{{ .Values.integrationTests.statusWritingEnabled }}"
+            - name: IS_SHORT_STATUS_MESSAGE
+              value: "{{ .Values.integrationTests.isShortStatusMessage }}"
+            - name: ONLY_INTEGRATION_TESTS
+              value: "true"
+            - name: STATUS_CUSTOM_RESOURCE_NAME
+              value: {{ .Values.service.name }}
+            - name: STATUS_CUSTOM_RESOURCE_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            {{- end }}
+            - name: OPENSEARCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: TAGS
+              value: {{ .Values.integrationTests.tags }}
+            - name: OPENSEARCH_HOST
+              value: {{ .Values.integrationTests.opensearchHost | default "opensearch" }}
+            - name: OPENSEARCH_PORT
+              value: "{{ .Values.integrationTests.opensearchPort | default 9200 }}"
+            - name: OPENSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: opensearch-username
+                  name: {{ .Values.service.name }}-secret
+            - name: OPENSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: opensearch-password
+                  name: {{ .Values.service.name }}-secret
+            - name: OPENSEARCH_MASTER_NODES_NAME
+              value: {{ .Values.integrationTests.opensearchMasterNodesName | default "opensearch" }}
+            - name: IDENTITY_PROVIDER_URL
+              value: "{{ .Values.integrationTests.identityProviderUrl }}"
+            - name: IDENTITY_PROVIDER_REGISTRATION_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.service.name }}-secret
+                  key: idp-registration-token
+            - name: IDENTITY_PROVIDER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.service.name }}-secret
+                  key: idp-username
+            - name: IDENTITY_PROVIDER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.service.name }}-secret
+                  key: idp-password
+            - name: OPENSEARCH_DBAAS_ADAPTER_HOST
+              value: {{ .Values.integrationTests.opensearchDbaasAdapterHost | default "dbaas-opensearch-adapter" }}
+            - name: OPENSEARCH_DBAAS_ADAPTER_PORT
+              value: "{{ .Values.integrationTests.opensearchDbaasAdapterPort | default 8080 }}"
+            - name: OPENSEARCH_DBAAS_ADAPTER_REPOSITORY
+              value: {{ .Values.integrationTests.opensearchDbaasAdapterRepository | default "snapshots" }}
+            - name: OPENSEARCH_DBAAS_ADAPTER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: dbaas-adapter-username
+                  name: {{ .Values.service.name }}-secret
+            - name: OPENSEARCH_DBAAS_ADAPTER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: dbaas-adapter-password
+                  name: {{ .Values.service.name }}-secret
+            - name: OPENSEARCH_CURATOR_HOST
+              value: {{ .Values.integrationTests.opensearchCuratorHost | default "opensearch-curator" }}
+            - name: OPENSEARCH_CURATOR_PORT
+              value: "{{ .Values.integrationTests.opensearchCuratorPort | default 8080 }}"
+            - name: OPENSEARCH_CURATOR_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: curator-username
+                  name: {{ .Values.service.name }}-secret
+            - name: OPENSEARCH_CURATOR_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: curator-password
+                  name: {{ .Values.service.name }}-secret
+            - name: PROMETHEUS_URL
+              value: {{ .Values.integrationTests.prometheusUrl }}
+          resources:
+            requests:
+              memory: {{ default "256Mi" .Values.integrationTests.resources.requests.memory }}
+              cpu: {{ default "200m" .Values.integrationTests.resources.requests.cpu }}
+            limits:
+              memory: {{ default "256Mi" .Values.integrationTests.resources.limits.memory }}
+              cpu: {{ default "400m" .Values.integrationTests.resources.limits.cpu }}
+          volumeMounts:
+            - name: output
+              mountPath: /opt/robot/output
+          terminationMessagePath: /dev/termination-log
+      volumes:
+        - name: output
+          emptyDir: {}

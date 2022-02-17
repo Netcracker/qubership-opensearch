@@ -1,0 +1,6 @@
+apiVersion: netcracker.com/v1
+kind: OpenSearchService
+metadata:
+  name: opensearchservice-sample
+spec:
+  # TODO(user): Add fields here

@@ -1,0 +1,18 @@
+{{- if eq (include "opensearch.enableDisasterRecovery" .) "true" }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    name: {{ template "opensearch.fullname" . }}-service-operator
+    component: opensearch-service-operator
+  name: {{ template "opensearch.fullname" . }}-disaster-recovery
+spec:
+  ports:
+    - name: disaster-recovery
+      port: 8068
+      protocol: TCP
+  selector:
+    name: {{ template "opensearch.fullname" . }}-service-operator
+    component: opensearch-service-operator
+{{- end -}}

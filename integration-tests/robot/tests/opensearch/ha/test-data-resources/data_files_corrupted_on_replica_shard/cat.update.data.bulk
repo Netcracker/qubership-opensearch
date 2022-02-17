@@ -1,0 +1,36 @@
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"1"}}
+{"doc":{"id":1,"name":"Adam v.1","birthDate":1000,"sex":"m","weight":9,"color":{"name":"Black","number":1}}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"2"}}
+{"doc":{"id":2,"name":"Eva v.1","birthDate":1000,"sex":"f","weight":9,"color":{"name":"White","number":2}}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"3"}}
+{"doc":{"id":3,"name":"Kelly v.1","birthDate":1427500800000,"color":{"name":"Black","number":1},"weight":2.0,"litterId":3}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"4"}}
+{"doc":{"id":4,"name":"Jennie v.1","birthDate":1294963200000,"color":{"name":"Black","number":1},"weight":4.0,"litterId":1}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"5"}}
+{"doc":{"id":5,"name":"Deborah v.1","birthDate":1294963200000,"color":{"name":"White","number":2},"weight":12.0,"litterId":1}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"6"}}
+{"doc":{"id":6,"name":"Jayne v.1","birthDate":1294963200000,"color":{"name":"White","number":2},"weight":2.0,"litterId":1}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"7"}}
+{"doc":{"id":7,"name":"Mervin v.1","birthDate":1427500800000,"color":{"name":"Black","number":1},"weight":16.0,"litterId":3}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"8"}}
+{"doc":{"id":8,"name":"Kathy v.1","birthDate":1294963200000,"color":{"name":"Black","number":1},"weight":4.0,"litterId":1}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"9"}}
+{"doc":{"id":9,"name":"Judy v.1","birthDate":1427500800000,"color":{"name":"Gold","number":4},"weight":12.0,"litterId":3}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"10"}}
+{"doc":{"id":10,"name":"Brandon v.1","birthDate":1322524800000,"color":{"name":"Gold","number":4},"weight":8.0,"litterId":2}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"11"}}
+{"doc":{"id":11,"name":"Issac v.1","birthDate":1427500800000,"color":{"name":"White","number":2},"weight":8.0,"litterId":3}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"12"}}
+{"doc":{"id":12,"name":"Ruby v.1","birthDate":1322524800000,"color":{"name":"Gold","number":4},"weight":6.0,"litterId":2}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"13"}}
+{"doc":{"id":13,"name":"Lorraine v.1","birthDate":1322524800000,"color":{"name":"White","number":2},"weight":5.0,"litterId":2}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"14"}}
+{"doc":{"id":14,"name":"Judy v.1","birthDate":1322524800000,"color":{"name":"Gold","number":4},"weight":3.0,"litterId":2}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"15"}}
+{"doc":{"id":15,"name":"Ricky v.1","birthDate":1294963200000,"color":{"name":"Black","number":1},"weight":14.0,"litterId":1}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"16"}}
+{"doc":{"id":16,"name":"Barbara v.1","birthDate":1427500800000,"color":{"name":"Orange","number":3},"weight":9.0,"litterId":3}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"17"}}
+{"doc":{"id":17,"name":"OliviaPeters v.1","birthDate":1479898772010,"color":{"name":"Black","number":1},"weight":20,"litterId":4}}
+{"update":{"_index":"ha_test_index","_type":"_doc","_id":"18"}}
+{"doc":{"id":18,"name":"ShirleyPeters v.1","birthDate":1479898772010,"color":{"name":"Black","number":1},"weight":22,"litterId":4}}

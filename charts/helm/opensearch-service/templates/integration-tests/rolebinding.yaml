@@ -1,0 +1,13 @@
+{{- if and .Values.integrationTests.enabled }}
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ template "opensearch.fullname" . }}-integration-tests
+subjects:
+  - kind: ServiceAccount
+    name: {{ template "opensearch.fullname" . }}-integration-tests
+roleRef:
+  kind: Role
+  name: {{ template "opensearch.fullname" . }}-integration-tests
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

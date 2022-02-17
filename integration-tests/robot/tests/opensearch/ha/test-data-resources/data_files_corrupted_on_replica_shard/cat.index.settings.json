@@ -1,0 +1,44 @@
+{
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "id": {
+        "type": "long"
+      },
+      "name": {
+        "type": "text",
+        "fields": {
+          "english": {
+            "type": "text",
+            "analyzer": "english"
+          }
+        }
+      },
+      "birthDate": {
+        "type": "date"
+      },
+      "sex": {
+        "type": "text"
+      },
+      "weight": {
+        "type": "float"
+      },
+      "litterId": {
+        "type": "integer"
+      },
+      "color": {
+        "properties": {
+          "name": {
+            "type": "text"
+          },
+          "number": {
+            "type": "long"
+          }
+        }
+      }
+    }
+  }
+}

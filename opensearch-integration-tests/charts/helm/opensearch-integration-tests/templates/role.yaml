@@ -1,0 +1,44 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.service.name }}
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups:
+      - netcracker.com
+    resources:
+      - "*"
+    verbs:
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/exec
+      - services
+    verbs:
+      - get
+      - list
+      - create
+      - delete
+  - apiGroups:
+      - apps
+    resources:
+      - statefulsets
+      - statefulsets/scale
+    verbs:
+      - get
+      - list
+      - update
+      - patch
+  {{- if .Values.integrationTests.statusWritingEnabled }}
+  - apiGroups:
+      - apps
+    resources:
+      - deployments/status
+    verbs:
+      - get
+      - list
+      - update
+      - patch
+  {{- end }}

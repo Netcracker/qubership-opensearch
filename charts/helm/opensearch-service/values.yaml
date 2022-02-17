@@ -1,0 +1,945 @@
+dashboards:
+  enabled: false
+  dockerImage: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:1.2.0
+  ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
+  ## Default to "Always".
+  imagePullPolicy: ""
+  imagePullSecrets: []
+  updateStrategy: "Recreate"
+  replicas: 1
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512M"
+    limits:
+      cpu: "100m"
+      memory: "512M"
+
+  opensearchHosts: "http://opensearch:9200"
+
+  # A list of secrets and their paths to mount inside the pod
+  # This is useful for mounting certificates for security and for mounting
+  # the X-Pack license
+  secretMounts: []
+#    - name: certs
+#      secretName: dashboard-certs
+#      path: /usr/share/dashboards/certs
+
+  extraEnvs: []
+#    - name: "NODE_OPTIONS"
+#      value: "--max-old-space-size=1800"
+
+  envFrom: []
+
+  extraVolumes: []
+#    - name: extras
+#      emptyDir: {}
+
+  extraVolumeMounts: []
+#    - name: extras
+#      mountPath: /usr/share/extras
+#      readOnly: true
+
+  extraInitContainers: []
+
+  extraContainers: ""
+
+  ingress:
+    enabled: false
+    # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
+    # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
+    # ingressClassName: nginx
+    annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+    tls: []
+#      - secretName: chart-example-tls
+#        hosts:
+#          - chart-example.local
+
+  service:
+    type: ClusterIP
+    port: 5601
+    loadBalancerIP: ""
+    nodePort: ""
+    labels: { }
+    annotations: { }
+    loadBalancerSourceRanges: [ ]
+    # 0.0.0.0/0
+    httpPortName: http
+
+  config: {}
+#    # Default OpenSearch Dashboards configuration from docker image of Dashboards
+#    opensearch_dashboards.yml:
+#      server:
+#        name: dashboards
+#        host: 0.0.0.0
+#        # Dashboards TLS Config (Ensure the cert files are present before enabling SSL
+#        ssl:
+#          enabled: true
+#          key: /usr/share/opensearch-dashboards/certs/dashboards-key.pem
+#          certificate: /usr/share/opensearch-dashboards/certs/dashboards-crt.pem
+#      # Determines how dashboards will verify certificates (needs to be none for default opensearch certificates to work)
+#      opensearch:
+#        ssl:
+#          certificateAuthorities: /usr/share/opensearch-dashboards/certs/dashboards-root-ca.pem
+#          # if utilizing custom CA certs for connection to opensearch, provide the CA here
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  priorityClassName: ""
+
+  opensearchAccount:
+    secret: ""
+    keyPassphrase:
+      enabled: false
+
+  labels: {}
+
+  hostAliases: []
+#    - ip: "127.0.0.1"
+#      hostnames:
+#      - "foo.local"
+#      - "bar.local"
+
+  serverHost: "0.0.0.0"
+
+  serviceAccount:
+    ## Specifies whether a ServiceAccount should be created
+    create: true
+    ## The name of the ServiceAccount to use.
+    ## If not set and create is true, a name is generated using the fullname template
+    name:
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+
+  securityContext:
+    capabilities:
+      drop:
+        - ALL
+#    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+#    targetMemoryUtilizationPercentage: 80
+
+global:
+  clusterName: opensearch
+
+  psp:
+    create: false
+
+  rbac:
+    enabled: true
+
+  disasterRecovery:
+    mode: ""
+    indicesPattern: "*"
+    remoteCluster: ""
+    siteManagerEnabled: true
+    afterServices: []
+    serviceExport:
+      enabled: false
+      region: ""
+
+operator:
+  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest
+  replicas: 1
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  affinity: {}
+#    podAntiAffinity:
+#      requiredDuringSchedulingIgnoredDuringExecution:
+#        - labelSelector:
+#            matchExpressions:
+#              - key: component
+#                operator: In
+#                values:
+#                  - opensearch-service-operator
+#          topologyKey: "kubernetes.io/hostname"
+
+opensearch:
+  ## Used when deploying hot/warm architecture. Allows second aliased deployment to find cluster.
+  ## Default {{ template opensearch.fullname }}-discovery.
+  discoveryOverride: ""
+  securityConfig:
+    enabled: true
+    path: "/usr/share/opensearch/plugins/opensearch-security/securityconfig"
+    authc:
+      basic:
+        username: ""
+        password: ""
+      oidc:
+        subject_key: preferred_username
+        openid_connect_url: ""
+        roles_key: preferred_username
+    actionGroupsSecret:
+    configSecret:
+    internalUsersSecret:
+    rolesSecret:
+    rolesMappingSecret:
+    tenantsSecret:
+    #The following option simplifies securityConfig by using a single secret and specifying the respective secrets in the corresponding files instead of creating different secrets for config,internal users, roles, roles mapping and tenants
+    #Note that this is an alternative to the above secrets and shouldn't be used if the above secrets are used
+    config:
+      securityConfigSecret:
+      data: {}
+#        config.yml: |-
+#        internal_users.yml: |-
+#        roles.yml: |-
+#        rolesMapping.yml: |-
+#        tenants.yml: |-
+
+  ## securityContext to apply to the pod. Allows for running as non-root
+  securityContextCustom: {}
+#    fsGroup: 1000
+#    runAsUser: 1000
+#    runAsGroup: 1000
+
+  extraEnvs: []
+
+  extraInitContainers: []
+#    - name: do-something
+#      image: busybox
+#      command: ['do', 'something']
+
+  extraVolumes: []
+#    - name: extras
+#      emptyDir: {}
+
+  extraVolumeMounts: []
+#    - name: extras
+#      mountPath: /usr/share/extras
+#      readOnly: true
+
+  initContainer:
+    dockerImage: artifactorycn.netcracker.com:17064/library/busybox:1.35.0
+
+  ## Set optimal sysctl. This requires privilege. Can be disabled if
+  ## the system has already been preconfigured.
+  sysctl:
+    enabled: false
+
+  ## Give SYS_CHROOT cap to ES pods. This might not be necessary
+  sys_chroot:
+    enabled: false
+
+  ## init container to chown the mount volume. not necessary if setting a
+  ## fsGroup in the securityContext
+  fixmount:
+    enabled: false
+    securityContext: {}
+#      runAsUser: 0
+
+  ssl:
+    ## TLS is mandatory for the transport layer and can not be disabled
+    transport:
+      existingCertSecret:
+      existingCertSecretCertSubPath: transport-crt.pem
+      existingCertSecretKeySubPath: transport-key.pem
+      existingCertSecretRootCASubPath: transport-root-ca.pem
+    rest:
+      enabled: false
+      existingCertSecret:
+      existingCertSecretCertSubPath: rest-crt.pem
+      existingCertSecretKeySubPath: rest-key.pem
+      existingCertSecretRootCASubPath: rest-root-ca.pem
+    admin:
+      existingCertSecret:
+      existingCertSecretCertSubPath: admin-crt.pem
+      existingCertSecretKeySubPath: admin-key.pem
+      existingCertSecretRootCASubPath: admin-root-ca.pem
+
+  master:
+    enabled: true
+    replicas: 3
+    updateStrategy: "RollingUpdate"
+
+    ## Enable persistence using Persistent Volume Claims
+    ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+    ##
+    persistence:
+      enabled: true
+      ## A manually managed Persistent Volume and Claim
+      ## Requires persistence.enabled: true
+      ## If defined, PVC must be created manually before volume will be bound
+      ##
+      existingClaim:
+
+      ## The subdirectory of the volume to mount to, useful in dev environments
+      ## and one PV for multiple services.
+      ##
+      subPath: ""
+
+      ## OpenSearch master Persistent Volume Storage Class
+      ## If defined, storageClassName: <storageClass>
+      ## If set to "-", storageClassName: "", which disables dynamic provisioning
+      ## If undefined (the default) or set to null, no storageClassName spec is
+      ##   set, choosing the default provisioner (gp2 on AWS, standard on GKE, AWS & OpenStack).
+      ##
+      storageClass: "-"
+
+      # The List of predefined Persistent Volumes for the OpenSearch master. Should be specified as yaml list.
+      # OpenSearch nodes take name of these Persistent Volumes in order.
+      persistentVolumes: []
+
+      nodes: []
+
+      accessModes:
+        - ReadWriteOnce
+      size: 5Gi
+      annotations: {}
+
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1536Mi
+      requests:
+        cpu: 200m
+        memory: 1536Mi
+    javaOpts: "-Xms718m -Xmx718m"
+    podDisruptionBudget:
+      enabled: false
+      minAvailable: 1
+    readinessProbe: []
+    livenessProbe:
+      tcpSocket:
+        port: transport
+      initialDelaySeconds: 90
+      periodSeconds: 20
+      failureThreshold: 5
+    startupProbe: []
+    imagePullSecrets: []
+    nodeSelector: {}
+    tolerations: []
+    ## Anti-affinity to disallow deploying client and master nodes on the same worker node
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: "kubernetes.io/hostname"
+            labelSelector:
+              matchLabels:
+                role: master
+    podAnnotations: {}
+
+    extraInitContainers: []
+#      - name: do-something
+#        image: busybox
+#        command: ['do', 'something']
+
+    extraContainers: []
+#      - name: do-something
+#        image: busybox
+#        command: ['do', 'something']
+
+  arbiter:
+    enabled: false
+    replicas: 1
+    updateStrategy: "RollingUpdate"
+
+    ## Enable persistence using Persistent Volume Claims
+    ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+    ##
+    persistence:
+      enabled: true
+      ## A manually managed Persistent Volume and Claim
+      ## Requires persistence.enabled: true
+      ## If defined, PVC must be created manually before volume will be bound
+      ##
+      existingClaim:
+
+      ## The subdirectory of the volume to mount to, useful in dev environments
+      ## and one PV for multiple services.
+      ##
+      subPath: ""
+
+      ## OpenSearch arbiter Persistent Volume Storage Class
+      ## If defined, storageClassName: <storageClass>
+      ## If set to "-", storageClassName: "", which disables dynamic provisioning
+      ## If undefined (the default) or set to null, no storageClassName spec is
+      ##   set, choosing the default provisioner (gp2 on AWS, standard on GKE, AWS & OpenStack).
+      ##
+      storageClass: "-"
+
+      # The List of predefined Persistent Volumes for the OpenSearch arbiter. Should be specified as yaml list.
+      # OpenSearch nodes take name of these Persistent Volumes in order.
+      persistentVolumes: []
+
+      nodes: []
+
+      accessModes:
+        - ReadWriteOnce
+      size: 5Gi
+      annotations: {}
+
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1536Mi
+      requests:
+        cpu: 200m
+        memory: 1536Mi
+    javaOpts: "-Xms718m -Xmx718m"
+    readinessProbe: []
+    livenessProbe:
+      tcpSocket:
+        port: transport
+      initialDelaySeconds: 90
+      periodSeconds: 20
+      failureThreshold: 5
+    startupProbe: []
+    imagePullSecrets: []
+    nodeSelector: {}
+    tolerations: []
+    ## Anti-affinity to disallow deploying client and master nodes on the same worker node
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: "kubernetes.io/hostname"
+            labelSelector:
+              matchLabels:
+                role: master
+    podAnnotations: {}
+
+    extraInitContainers: []
+#      - name: do-something
+#        image: busybox
+#        command: ['do', 'something']
+
+    extraContainers: []
+#      - name: do-something
+#        image: busybox
+#        command: ['do', 'something']
+
+  data:
+    enabled: true
+    ## Enables dedicated StatefulSet for data. Otherwise, master nodes are as data storage.
+    dedicatedPod:
+      enabled: false
+    replicas: 3
+    updateStrategy: "RollingUpdate"
+
+    ## Enable persistence using Persistent Volume Claims
+    ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+    ##
+    persistence:
+      enabled: true
+      ## A manually managed Persistent Volume and Claim
+      ## Requires persistence.enabled: true
+      ## If defined, PVC must be created manually before volume will be bound
+      ##
+      existingClaim:
+
+      ## The subdirectory of the volume to mount to, useful in dev environments
+      ## and one PV for multiple services.
+      ##
+      subPath: ""
+
+      ## OpenSearch data Persistent Volume Storage Class
+      ## If defined, storageClassName: <storageClass>
+      ## If set to "-", storageClassName: "", which disables dynamic provisioning
+      ## If undefined (the default) or set to null, no storageClassName spec is
+      ##   set, choosing the default provisioner (gp2 on AWS, standard on GKE, AWS & OpenStack).
+      ##
+      storageClass: "-"
+
+      # The List of predefined Persistent Volumes for the OpenSearch data. Should be specified as yaml list.
+      # OpenSearch nodes take name of these Persistent Volumes in order.
+      persistentVolumes: []
+
+      nodes: []
+
+      accessModes:
+        - ReadWriteOnce
+      size: 5Gi
+      annotations: {}
+
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1536Mi
+      requests:
+        cpu: 200m
+        memory: 1536Mi
+    javaOpts: "-Xms718m -Xmx718m"
+    podDisruptionBudget:
+      enabled: false
+      minAvailable: 1
+    readinessProbe: []
+    livenessProbe:
+      tcpSocket:
+        port: transport
+      initialDelaySeconds: 60
+      periodSeconds: 20
+      failureThreshold: 5
+    startupProbe: []
+    imagePullSecrets: []
+    nodeSelector: {}
+    tolerations: []
+    ## Anti-affinity to disallow deploying client and master nodes on the same worker node
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            podAffinityTerm:
+              topologyKey: "kubernetes.io/hostname"
+              labelSelector:
+                matchLabels:
+                  role: data
+    podAnnotations: {}
+
+  client:
+    enabled: true
+    ## Enables dedicated deployment for client/ingest. Otherwise, master nodes as client/ingest
+    dedicatedPod:
+      enabled: false
+    service:
+      type: ClusterIP
+      annotations: {}
+        # # Defined ELB backend protocol as HTTPS to allow connection to OpenSearch API
+        # service.beta.kubernetes.io/aws-load-balancer-backend-protocol: https
+
+        # # ARN of ACM certificate registered to the deployed ELB for handling connections over TLS
+        # # ACM certificate should be issued to the DNS hostname defined earlier (elk.sec.example.com)
+        # service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:us-east-1:111222333444:certificate/c69f6022-b24f-43d9-b9c8-dfe288d9443d"
+        # service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
+
+        # service.beta.kubernetes.io/aws-load-balancer-connection-draining-enabled: "true"
+        # service.beta.kubernetes.io/aws-load-balancer-connection-draining-timeout: "60"
+        # service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+
+        # # Annotation to create internal only ELB
+        # service.beta.kubernetes.io/aws-load-balancer-internal: 0.0.0.0/0
+    replicas: 3
+    javaOpts: "-Xms512m -Xmx512m"
+    ingress:
+      ## Set to true to enable ingress record generation
+      enabled: false
+      annotations: {}
+      #  kubernetes.io/ingress.class: nginx
+      #  kubernetes.io/tls-acme: "true"
+      #  # Depending on your Ingress Controller you may need to set one of the two below annotations to have NGINX call the backend using HTTPS
+      #  nginx.org/ssl-services:"{{ template "opensearch.fullname" . }}-client-service"
+      #  nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      labels: {}
+      path: /
+      hosts:
+        - chart-example.local
+      tls: []
+      #  - secretName: chart-example-tls
+      #    hosts:
+      #      - chart-example.local
+    resources:
+      limits:
+        cpu: 1
+        memory: 1024Mi
+      requests:
+        cpu: 200m
+        memory: 1024Mi
+    podDisruptionBudget:
+      enabled: false
+      minAvailable: 1
+    readinessProbe: []
+    livenessProbe:
+      tcpSocket:
+        port: transport
+      initialDelaySeconds: 60
+      periodSeconds: 20
+      failureThreshold: 5
+    startupProbe: []
+    imagePullSecrets: []
+    nodeSelector: {}
+    tolerations: []
+    ## Weighted anti-affinity to disallow deploying client node to the same worker node as master node
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            podAffinityTerm:
+              topologyKey: "kubernetes.io/hostname"
+              labelSelector:
+                matchLabels:
+                  role: client
+    podAnnotations: {}
+
+  snapshots:
+    enabled: false
+    repositoryName: "snapshots"
+    persistentVolume: ""
+    persistentVolumeClaim: ""
+    storageClass: ""
+    size: 5Gi
+    s3:
+      enabled: false
+      pathStyleAccess: false
+      url: ""
+      bucket: ""
+      keyId: ""
+      keySecret: ""
+      basePath: ""
+      region: ""
+
+  config:
+    ## Example Config
+    plugins.security.allow_unsafe_democertificates: true
+    plugins.security.allow_default_init_securityindex: true
+    plugins.security.audit.type: log4j
+    plugins.security.audit.config.log4j.level: INFO
+    plugins.security.unsupported.restapi.allow_securityconfig_modification: true
+    plugins.security.restapi.roles_enabled: ["all_access", "security_rest_api_access"]
+    #Change it to generated certificate parameters
+    plugins.security.authcz.admin_dn:
+      - C=CA,L=Opensearch,O=Opensearch,OU=Opensearch,CN=opensearch
+    plugins.security.enable_snapshot_restore_privilege: true
+    plugins.security.check_snapshot_restore_write_privileges: true
+
+    path.repo: ["/usr/share/opensearch/snapshots"]
+
+    # cluster.routing.allocation.disk.threshold_enabled: false
+    # plugins.security.audit.config.disabled_rest_categories: NONE
+    # plugins.security.audit.config..disabled_transport_categories: NONE
+    # cluster:
+    #   name: ${CLUSTER_NAME}
+    # node:
+    #   master: ${NODE_MASTER}
+    #   data: ${NODE_DATA}
+    #   name: ${NODE_NAME}
+    #   ingest: ${NODE_INGEST}
+    #   max_local_storage_nodes: 1
+    #   attr.box_type: hot
+
+    # processors: ${PROCESSORS:1}
+
+    # network.host: ${NETWORK_HOST}
+
+    # thread_pool.bulk.queue_size: 800
+
+    # path:
+    #   data: /usr/share/opensearch/data
+    #   logs: /usr/share/opensearch/logs
+
+    # http:
+    #   enabled: ${HTTP_ENABLE}
+    #   compression: true
+
+    # discovery:
+    #   zen:
+    #     ping.unicast.hosts: ${DISCOVERY_SERVICE}
+    #     minimum_master_nodes: ${NUMBER_OF_MASTERS}
+
+    # TLS Configuration Transport Layer
+    plugins.security.ssl.transport.pemcert_filepath: transport-crt.pem
+    plugins.security.ssl.transport.pemkey_filepath: transport-key.pem
+    plugins.security.ssl.transport.pemtrustedcas_filepath: transport-root-ca.pem
+    plugins.security.ssl.transport.enforce_hostname_verification: false
+
+    # # TLS Configuration REST Layer
+    plugins.security.ssl.http.enabled: false
+    # plugins.security.ssl.http.pemcert_filepath: rest-crt.pem
+    # plugins.security.ssl.http.pemkey_filepath: rest-key.pem
+    # plugins.security.ssl.http.pemtrustedcas_filepath: rest-root-ca.pem
+
+  log4jConfig: ""
+
+  loggingConfig:
+    ## Default config
+    ## you can override this using by setting a system property, for example -Des.logger.level=DEBUG
+    es.logger.level: INFO
+    rootLogger: ${es.logger.level}, console
+    logger:
+      ## log action execution errors for easier debugging
+      action: DEBUG
+      ## reduce the logging for aws, too much is logged under the default INFO
+      com.amazonaws: WARN
+    appender:
+      console:
+        type: console
+        layout:
+          type: consolePattern
+          conversionPattern: "[%d{ISO8601}][%-5p][%-25c] %m%n"
+
+  transportKeyPassphrase:
+    enabled: false
+    passPhrase:
+
+  sslKeyPassphrase:
+    enabled: false
+    passPhrase:
+
+  maxMapCount: 262144
+
+  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_docker-opensearch:master_latest
+  ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
+  ## Default to "Always".
+  imagePullPolicy: ""
+
+  configDirectory: /usr/share/opensearch/config
+
+  serviceAccount:
+    ## Specifies whether a ServiceAccount should be created
+    create: true
+    ## The name of the ServiceAccount to use.
+    ## If not set and create is true, a name is generated using the fullname template
+    name:
+
+podScheduler:
+  dockerImage: artifactorycn.netcracker.com:17064/bitnami/kubectl:1.23.3-debian-10-r6
+  enabled: true
+  affinity: {}
+  nodeSelector: {}
+  resources:
+    requests:
+      cpu: 15m
+      memory: 128Mi
+    limits:
+      cpu: 50m
+      memory: 128Mi
+  securityContext: {}
+#    runAsUser: 1000
+
+monitoring:
+  enabled: true
+  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_elasticsearch-telegraf:master_latest
+  ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
+  ## Default to "Always".
+  imagePullPolicy: ""
+
+  monitoringType: "prometheus"
+  installDashboard: true
+  smDbHost: ""
+  smDbName: ""
+  smDbUsername: ""
+  smDbPassword: ""
+
+  opensearchHost:
+  opensearchPort: 9200
+  opensearchExecPluginTimeout: "15s"
+
+  opensearchDbaasAdapterHost:
+  opensearchDbaasAdapterPort: 8080
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 200m
+    limits:
+      memory: 256Mi
+      cpu: 200m
+
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  affinity: {}
+  #    podAffinity:
+  #      preferredDuringSchedulingIgnoredDuringExecution:
+  #        - podAffinityTerm:
+  #            labelSelector:
+  #              matchExpressions:
+  #                - key: component
+  #                  operator: In
+  #                  values:
+  #                    - opensearch
+  #            topologyKey: "kubernetes.io/hostname"
+  #          weight: 100
+
+  securityContext:
+    runAsUser: 1000
+
+  monitoringCoreosGroup: false
+
+dbaasAdapter:
+  enabled: false
+  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_dbaas_elasticsearch:master_latest
+  ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
+  ## Default to "Always".
+  imagePullPolicy: ""
+
+  dbaasAdapterAddress: ""
+  dbaasUsername: ""
+  dbaasPassword: ""
+
+  dbaasAggregatorRegistrationAddress: ""
+  dbaasAggregatorPhysicalDatabaseIdentifier: ""
+  registrationAuthUsername: ""
+  registrationAuthPassword: ""
+
+  opensearchHost:
+  opensearchPort: 9200
+  opensearchProtocol:
+  opensearchRepo: "snapshots"
+  opensearchRepoRoot: "/usr/share/opensearch"
+  opensearchClusterVersion: ""
+  netcrackerOpensearchClusterVersion: ""
+
+  resources:
+    requests:
+      memory: 32Mi
+      cpu: 200m
+    limits:
+      memory: 32Mi
+      cpu: 200m
+
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  affinity: {}
+  #    podAffinity:
+  #      preferredDuringSchedulingIgnoredDuringExecution:
+  #        - podAffinityTerm:
+  #            labelSelector:
+  #              matchExpressions:
+  #                - key: component
+  #                  operator: In
+  #                  values:
+  #                    - opensearch
+  #            topologyKey: "kubernetes.io/hostname"
+  #          weight: 100
+  #    podAntiAffinity:
+  #      requiredDuringSchedulingIgnoredDuringExecution:
+  #        - labelSelector:
+  #            matchExpressions:
+  #              - key: component
+  #                operator: In
+  #                values:
+  #                  - dbaas-opensearch-adapter
+  #          topologyKey: "kubernetes.io/hostname"
+
+  securityContext: {}
+#    runAsUser: 1000
+
+curator:
+  enabled: false
+  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_docker-elastic-curator:master_latest
+  dockerIndicesCleanerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_docker-elastic-curator:master_latest_elasticsearch_indices_cleaner
+  ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
+  ## Default to "Always".
+  imagePullPolicy: ""
+
+  opensearchHost: ""
+
+  snapshotRepositoryName: ""
+  backupSchedule: ""
+  evictionPolicy: ""
+  username: ""
+  password: ""
+
+  indicesCleanerSchedulerUnit: ""
+  indicesCleanerSchedulerUnitCount: ""
+  indicesCleanerConfigurationKey: "patterns_to_delete"
+  indicesCleanerConfiguration: []
+  #    - filter_direction: older
+  #      filter_kind: regex
+  #      filter_unit: minutes
+  #      filter_unit_count: 1
+  #      filter_value: test.*
+  #      name: deleteIndicesByPattern
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 200m
+    limits:
+      memory: 256Mi
+      cpu: 200m
+
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  affinity: {}
+  #    podAffinity:
+  #      preferredDuringSchedulingIgnoredDuringExecution:
+  #        - podAffinityTerm:
+  #            labelSelector:
+  #              matchExpressions:
+  #                - key: component
+  #                  operator: In
+  #                  values:
+  #                    - opensearch
+  #            topologyKey: "kubernetes.io/hostname"
+  #          weight: 100
+
+  securityContext: {}
+#    runAsUser: 1000
+#    fsGroup: 1000
+
+integrationTests:
+  enabled: false
+  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests
+
+  secrets:
+    idp:
+      username: ""
+      password: ""
+      registrationToken: ""
+
+  tags: "smoke"
+  opensearchPort: 9200
+  opensearchDbaasAdapterPort: 8080
+  opensearchCuratorPort: 8080
+  identityProviderUrl: ""
+  prometheusUrl: ""
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 200m
+    limits:
+      memory: 256Mi
+      cpu: 400m
+
+  affinity: {}
+#    podAffinity:
+#      preferredDuringSchedulingIgnoredDuringExecution:
+#        - podAffinityTerm:
+#            labelSelector:
+#              matchExpressions:
+#                - key: component
+#                  operator: In
+#                  values:
+#                    - opensearch
+#            topologyKey: "kubernetes.io/hostname"
+#          weight: 100
+
+nameOverride: "opensearch"
+fullnameOverride: "opensearch"

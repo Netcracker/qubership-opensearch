@@ -1,0 +1,34 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - netcracker.com
+  resources:
+  - opensearchservices
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - netcracker.com
+  resources:
+  - opensearchservices/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - netcracker.com
+  resources:
+  - opensearchservices/status
+  verbs:
+  - get
+  - patch
+  - update
