@@ -1,0 +1,20 @@
+{{- if and .Values.opensearch.master.podDisruptionBudget.enabled .Values.opensearch.master.enabled }}
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ template "opensearch.fullname" . }}-master-pdb
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+spec:
+{{- if .Values.opensearch.master.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.opensearch.master.podDisruptionBudget.minAvailable }}
+{{- end }}
+{{- if .Values.opensearch.master.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ .Values.opensearch.master.podDisruptionBudget.maxUnavailable }}
+{{- end }}
+  selector:
+    matchLabels:
+      app: {{ template "opensearch.fullname" . }}
+      role: master
+{{- end }}

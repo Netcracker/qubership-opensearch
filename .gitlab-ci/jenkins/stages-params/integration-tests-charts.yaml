@@ -1,0 +1,56 @@
+JOB_NAME: DP.Pub.Sandbox_Orchestrator_v1
+SERVER: https://git.netcracker.com
+JENKINS_URL: https://cisrvrecn.netcracker.com
+REPOSITORY_NAME: PROD.Platform.ElasticStack/opensearch-service
+CLOUD_URL: https://ci-master.openshift.sdntest.netcracker.com:6443
+CLOUD_UI_URL: https://dashboard.ci-master.openshift.sdntest.netcracker.com/#/overview?namespace=
+CLOUD_NAMESPACE: opensearch-service
+# Build Params
+LOCATION: ${CI_COMMIT_REF_NAME}
+PREFIX: opensearch-integration-tests/charts
+# Deploy Params
+ENABLE_DEPLOY: 'true'
+DEPLOYER_VERSION: helm_x
+DESCRIPTION_YAML: |
+  deployment:
+    mode: reinstall
+    deployer_version: helm_x
+    values:
+      service:
+        name: opensearch-integration-tests
+
+      secret:
+        opensearch:
+          username: "netcrk"
+          password: "crknet"
+        idp:
+          username: "sysadm"
+          password: "netcracker"
+          registrationToken: "ixw3OzDKQqMupaDqb_LrofCsBwNjNviz"
+        dbaasAdapter:
+          username: "dbaas-aggregator"
+          password: "dbaas-aggregator"
+        curator:
+          username: "admin"
+          password: "admin"
+
+      integrationTests:
+        tags: ${TAGS}
+        opensearchHost: "opensearch"
+        opensearchPort: 9200
+        opensearchMasterNodesName: "opensearch"
+        identityProviderUrl: "http://identity-management-security-services-ci.dr311dev.openshift.sdntest.netcracker.com"
+        opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"
+        opensearchDbaasAdapterPort: 8080
+        opensearchDbaasAdapterRepository: "snapshots"
+        opensearchCuratorHost: "opensearch-curator"
+        opensearchCuratorPort: 8080
+        prometheusUrl: "http://prometheus.ci-master.openshift.sdntest.netcracker.com:80"
+
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 50m
+          limits:
+            memory: 256Mi
+            cpu: 400m

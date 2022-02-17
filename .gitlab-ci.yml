@@ -1,0 +1,177 @@
+variables:
+  DOCKER_REPOSITORY: "artifactorycn.netcracker.com:17023"
+  CI_IMAGE: "artifactorycn.netcracker.com:17023/tools/monitoring-gitlab-ci:0.0.1"
+  INTEGRATION_TESTS_POD_NAME: opensearch-integration-tests
+  TAGS: NOTha
+  # Name should be formed as follows: ci_master_openshift_sdntest_<namespace_name>_token
+  CLOUD_TOKEN: ${ci_master_openshift_sdntest_opensearch_service_token}
+
+stages:
+  - build
+  - build_manifest_and_deploy
+  - test
+
+workflow:
+  rules:
+    - when: always
+
+.code-changes: &code-changes
+  changes:
+    - integration-tests/**/*
+    - charts/**/*
+    - controllers/*
+    - opensearch-integration-tests/**/*
+
+BuildDockerImage:
+  image: artifactorycn.netcracker.com:17010/docker:1.12.6
+  services:
+    - artifactorycn.netcracker.com:17010/docker:1.12.6-dind
+  stage: build
+  tags:
+    - NETCRACKER
+  variables:
+    DOCKER_IMAGE_NAME: "search/opensearch-operator"
+    DOCKER_FILE: "Dockerfile"
+  allow_failure: true
+  script:
+    - ./.gitlab-ci/docker_build.sh
+    - ./.gitlab-ci/docker_push.sh
+
+.BuildOperatorTemplate:
+  stage: build
+  image: ${CI_IMAGE}
+  tags:
+    - NETCRACKER
+  artifacts:
+    when: always
+    paths:
+      - manifest.txt
+    expire_in: 1 week
+
+BuildOperator:
+  extends: .BuildOperatorTemplate
+  allow_failure: false
+  script:
+    - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator.yaml" --notify-failed --notify-warning --notify-title="OpenSearch Operator Build Report"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: $CI_COMMIT_TAG
+
+BuildOperatorManual:
+  extends: .BuildOperatorTemplate
+  script:
+    - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator.yaml"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      <<: *code-changes
+      allow_failure: false
+    - if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+      when: manual
+      allow_failure: true
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+      allow_failure: false
+
+.BuildIntegrationTestsTemplate:
+  stage: build
+  image: ${CI_IMAGE}
+  tags:
+    - NETCRACKER
+  artifacts:
+    when: always
+    paths:
+      - image.txt
+    expire_in: 1 week
+
+BuildIntegrationTests:
+  extends: .BuildIntegrationTestsTemplate
+  allow_failure: false
+  script:
+    - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/integration-tests.yaml" --notify-failed --notify-warning --notify-title="OpenSearch Integration Tests Build Report"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: $CI_COMMIT_TAG
+
+BuildIntegrationTestsManual:
+  extends: .BuildIntegrationTestsTemplate
+  script:
+    - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/integration-tests.yaml"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      <<: *code-changes
+    - if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+      when: manual
+      allow_failure: true
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+
+.BuildChartsManifestAndDeployTemplate:
+  stage: build_manifest_and_deploy
+  image: ${CI_IMAGE}
+  tags:
+    - NETCRACKER
+  artifacts:
+    when: always
+    paths:
+      - manifest.txt
+    expire_in: 1 week
+
+BuildChartsManifestAndDeploy:
+  extends: .BuildChartsManifestAndDeployTemplate
+  needs:
+    - BuildOperator
+    - BuildIntegrationTests
+  allow_failure: false
+  script:
+    - python3 /ci/orchestrate_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator-charts.yaml" --notify --notify-title="OpenSearch Service Chart Build and Deploy Report"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: $CI_COMMIT_TAG
+
+BuildChartsManifestAndDeployManual:
+  extends: .BuildChartsManifestAndDeployTemplate
+  script:
+    - python3 /ci/orchestrate_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator-charts.yaml"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      <<: *code-changes
+      allow_failure: false
+    - if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+      when: manual
+      allow_failure: true
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+      allow_failure: false
+
+.PerformIntegrationTestsTemplate:
+  stage: test
+  image: ${CI_IMAGE}
+  tags:
+    - NETCRACKER
+  artifacts:
+    when: always
+    paths:
+      - tests_result.log
+    expire_in: 1 week
+
+PerformIntegrationTests:
+  extends: .PerformIntegrationTestsTemplate
+  needs:
+    - BuildChartsManifestAndDeploy
+  allow_failure: false
+  script:
+    - python3 /ci/smoke_tests_runner.py -f "./.gitlab-ci/jenkins/stages-params/integration-tests-charts.yaml" --log="tests_result.log" --cloud-token="${CLOUD_TOKEN}" --notify --notify-title="OpenSearch Service Integration Tests Report"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: $CI_COMMIT_TAG
+
+PerformIntegrationTestsManual:
+  extends: .PerformIntegrationTestsTemplate
+  script:
+    - python3 /ci/smoke_tests_runner.py -f "./.gitlab-ci/jenkins/stages-params/integration-tests-charts.yaml" --log="tests_result.log" --cloud-token="${CLOUD_TOKEN}"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      <<: *code-changes
+      allow_failure: false
+    - if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+      when: manual
+      allow_failure: true
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+      allow_failure: false

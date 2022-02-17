@@ -1,0 +1,36 @@
+{{ if .Values.dashboards.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "opensearch.fullname" . }}-dashboards
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    role: dashboards
+    {{- if .Values.dashboards.service.labels }}
+{{ toYaml .Values.dashboards.service.labels | indent 4 }}
+    {{- end }}
+  {{- with .Values.dashboards.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.dashboards.service.type }}
+  {{- if .Values.dashboards.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.dashboards.service.loadBalancerIP }}
+  {{- end }}
+  {{- with .Values.dashboards.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+  ports:
+    - port: {{ .Values.dashboards.service.port }}
+      {{- if .Values.dashboards.service.nodePort }}
+      nodePort: {{ .Values.dashboards.service.nodePort }}
+      {{- end }}
+      protocol: TCP
+      name: {{ .Values.dashboards.service.httpPortName | default "http" }}
+      targetPort: {{ .Values.dashboards.service.port }}
+  selector:
+    name: {{ template "opensearch.fullname" . }}-dashboards
+    release: {{ .Release.Name | quote }}
+{{- end }}

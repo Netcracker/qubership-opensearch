@@ -1,0 +1,261 @@
+{{ if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    role: data
+  name: {{ template "opensearch.fullname" . }}-data
+  namespace: {{ .Release.Namespace }}
+spec:
+  serviceName: {{ template "opensearch.fullname" . }}-data-svc
+  replicas: {{ .Values.opensearch.data.replicas }}
+  selector:
+    matchLabels:
+{{ include "opensearch.labels.selector" . | indent 6 }}
+      role: data
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: {{ .Values.opensearch.data.updateStrategy }}
+  template:
+    metadata:
+      labels:
+{{ include "opensearch.labels.standard" . | indent 8 }}
+        role: data
+      annotations:
+{{- if .Values.opensearch.data.podAnnotations }}
+{{ toYaml .Values.opensearch.data.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+      {{- if and .Values.podScheduler.enabled (eq (include "data-nodes-volumes-enabled" .) "true") }}
+      schedulerName: {{ template "opensearch.fullname" . }}-pod-scheduler
+      {{- end }}
+      {{- if .Values.opensearch.data.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.opensearch.data.imagePullSecrets | indent 8 }}
+      {{- end }}
+    {{- with .Values.opensearch.data.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.opensearch.data.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      initContainers:
+{{- if .Values.opensearch.sysctl.enabled }}
+        - name: init-sysctl
+          image: {{ template "busybox.image" . }}
+          command:
+            - sysctl
+            - -w
+            - vm.max_map_count={{ .Values.opensearch.maxMapCount }}
+          securityContext:
+            privileged: true
+{{- end }}
+{{- if .Values.opensearch.fixmount.enabled }}
+        - name: fixmount
+        {{- if .Values.opensearch.snapshots.enabled }}
+          command: [ 'sh', '-c', 'chown -R 1000:1000 /usr/share/opensearch/data && chown -R 1000:1000 /usr/share/opensearch/snapshots' ]
+        {{- else }}
+          command: [ 'sh', '-c', 'chown -R 1000:1000 /usr/share/opensearch/data' ]
+        {{- end }}
+          image: {{ template "busybox.image" . }}
+        {{- if .Values.opensearch.fixmount.securityContext }}
+          securityContext:
+        {{ .Values.opensearch.fixmount.securityContext | toYaml | indent 10}}
+        {{- end }}
+          volumeMounts:
+            - mountPath: /usr/share/opensearch/data
+              name: pvc
+              subPath: {{ .Values.opensearch.data.persistence.subPath }}
+            - mountPath: /usr/share/opensearch/snapshots
+              name: snapshots-repository
+{{- end }}
+{{- if .Values.opensearch.extraInitContainers }}
+{{ toYaml .Values.opensearch.extraInitContainers| indent 6 }}
+{{- end }}
+    {{- with .Values.opensearch.data.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      serviceAccountName: {{ template "opensearch.serviceAccountName" . }}
+{{- with .Values.opensearch.securityContextCustom }}
+      securityContext:
+{{ toYaml . | indent 8 }}
+{{- end }}
+      containers:
+        - name: opensearch
+          securityContext:
+{{- if .Values.opensearch.sys_chroot.enabled }}
+            capabilities:
+              add: ["SYS_CHROOT"]
+{{- end }}
+          env:
+            - name: cluster.name
+              value: {{ .Values.global.clusterName }}
+            - name: node.master
+              value: "false"
+            - name: node.ingest
+              value: "false"
+            - name: network.host
+              value: "0.0.0.0"
+            - name: node.name
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: discovery.seed_hosts
+              value: {{ .Values.opensearch.discoveryOverride | default (printf "%s-discovery" (include "opensearch.fullname" .)) | quote }}
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: node.data
+              value: "true"
+            - name: PROCESSORS
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.cpu
+            - name: OPENSEARCH_JAVA_OPTS
+              value: {{ .Values.opensearch.data.javaOpts }}
+{{- if .Values.opensearch.extraEnvs }}
+{{ toYaml .Values.opensearch.extraEnvs | indent 8 }}
+{{- end }}
+          image: {{ template "opensearch.image" . }}
+          imagePullPolicy: {{ .Values.opensearch.imagePullPolicy | default "Always" | quote }}
+          # only publish the transport port
+          ports:
+            - containerPort: 9300
+              name: transport
+          resources:
+{{ toYaml .Values.opensearch.data.resources | indent 12 }}
+          readinessProbe:
+        {{- if .Values.opensearch.data.readinessProbe }}
+{{ toYaml .Values.opensearch.data.readinessProbe | indent 10 }}
+        {{- else }}
+            tcpSocket:
+              port: transport
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 5
+        {{- end }}
+    {{- with .Values.opensearch.data.livenessProbe}}
+          livenessProbe:
+{{ toYaml . | indent 10 }}
+    {{- end }}
+    {{- with .Values.opensearch.data.startupProbe}}
+          startupProbe:
+{{ toYaml . | indent 10 }}
+    {{- end }}
+          volumeMounts:
+            - mountPath: /usr/share/opensearch/data
+              name: pvc
+              subPath: {{ .Values.opensearch.data.persistence.subPath }}
+            - mountPath: /usr/share/opensearch/snapshots
+              name: snapshots-repository
+        {{- if .Values.opensearch.config }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/opensearch.yml
+              name: config
+              subPath: opensearch.yml
+        {{- end }}
+        {{- if .Values.opensearch.log4jConfig }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/log4j2.properties
+              name: config
+              subPath: log4j2.properties
+        {{- end }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/logging.yml
+              name: config
+              subPath: logging.yml
+            - mountPath: {{ .Values.opensearch.configDirectory }}/transport-crt.pem
+              name: transport-certs
+              subPath: {{ template "opensearch.transport-cert-path" . }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/transport-key.pem
+              name: transport-certs
+              subPath: {{ template "opensearch.transport-key-path" . }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/transport-root-ca.pem
+              name: transport-certs
+              subPath: {{ template "opensearch.transport-root-ca-path" . }}
+        {{- if and .Values.opensearch.ssl.rest.enabled .Values.opensearch.ssl.rest.existingCertSecret }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/rest-crt.pem
+              name: rest-certs
+              subPath: {{ .Values.opensearch.ssl.rest.existingCertSecretCertSubPath }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/rest-key.pem
+              name: rest-certs
+              subPath: {{ .Values.opensearch.ssl.rest.existingCertSecretKeySubPath }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/rest-root-ca.pem
+              name: rest-certs
+              subPath: {{ .Values.opensearch.ssl.rest.existingCertSecretRootCASubPath }}
+        {{- end }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/admin-crt.pem
+              name: admin-certs
+              subPath: {{ template "opensearch.admin-cert-path" . }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/admin-key.pem
+              name: admin-certs
+              subPath: {{ template "opensearch.admin-key-path" . }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/admin-root-ca.pem
+              name: admin-certs
+              subPath: {{ template "opensearch.admin-root-ca-path" . }}
+{{- if .Values.opensearch.extraVolumeMounts }}
+{{ toYaml .Values.opensearch.extraVolumeMounts | indent 8 }}
+{{- end }}
+      volumes:
+        - name: config
+          secret:
+            secretName: {{ template "opensearch.fullname" . }}-config
+        - name: transport-certs
+          secret:
+            secretName: {{ template "opensearch.transport-cert-secret-name" . }}
+      {{- if and .Values.opensearch.ssl.rest.enabled .Values.opensearch.ssl.rest.existingCertSecret }}
+        - name: rest-certs
+          secret:
+            secretName: {{ .Values.opensearch.ssl.rest.existingCertSecret }}
+      {{- end }}
+        - name: admin-certs
+          secret:
+            secretName: {{ template "opensearch.admin-cert-secret-name" . }}
+      {{- if not .Values.opensearch.data.persistence.enabled }}
+        - name: "pvc"
+          emptyDir: {}
+      {{- else }}
+      {{- if .Values.opensearch.data.persistence.existingClaim }}
+        - name: "pvc"
+          persistentVolumeClaim:
+            claimName: {{ .Values.opensearch.data.persistence.existingClaim }}
+      {{- end }}
+      {{- end }}
+      {{- if or (not .Values.opensearch.snapshots.enabled) .Values.opensearch.snapshots.s3.enabled }}
+        - name: "snapshots-repository"
+          emptyDir: {}
+      {{- else }}
+        - name: "snapshots-repository"
+          persistentVolumeClaim:
+            claimName: {{ .Values.opensearch.snapshots.persistentVolumeClaim | default (printf "pvc-%s-snapshots" (include "opensearch.fullname" .))  }}
+      {{- end }}
+{{- if .Values.opensearch.extraVolumes }}
+{{ toYaml .Values.opensearch.extraVolumes | indent 6 }}
+{{- end }}
+  {{- if and .Values.opensearch.data.persistence.enabled (not .Values.opensearch.data.persistence.existingClaim) }}
+  volumeClaimTemplates:
+    - metadata:
+        name: pvc
+        annotations:
+      {{- range $key, $value := .Values.opensearch.data.persistence.annotations }}
+        {{ $key }}: {{ $value }}
+      {{- end }}
+      spec:
+        accessModes:
+      {{- range .Values.opensearch.data.persistence.accessModes }}
+          - {{ . | quote }}
+      {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.opensearch.data.persistence.size | quote }}
+    {{- if .Values.opensearch.data.persistence.storageClass }}
+    {{- if (eq "-" .Values.opensearch.data.persistence.storageClass) }}
+        storageClassName: ""
+    {{- else }}
+        storageClassName: "{{ .Values.opensearch.data.persistence.storageClass }}"
+    {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

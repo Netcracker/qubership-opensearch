@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "opensearch.fullname" . }}-service-operator
+spec:
+  replicas: {{ default 1 .Values.operator.replicas }}
+  selector:
+    matchLabels:
+      name: {{ template "opensearch.fullname" . }}-service-operator
+      component: opensearch-service-operator
+  template:
+    metadata:
+      labels:
+        name: {{ template "opensearch.fullname" . }}-service-operator
+        component: opensearch-service-operator
+    spec:
+      serviceAccountName: {{ template "opensearch.fullname" . }}-service-operator
+      containers:
+        - name: {{ template "opensearch.fullname" . }}-service-operator
+          image: {{ template "operator.image" . }}
+          command:
+            - /manager
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 25m
+            limits:
+              memory: 128Mi
+              cpu: 100m
+      {{- with .Values.operator.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.operator.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}

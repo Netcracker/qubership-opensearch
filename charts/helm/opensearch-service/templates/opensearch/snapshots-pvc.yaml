@@ -1,0 +1,18 @@
+{{- if and .Values.opensearch.snapshots.enabled (not .Values.opensearch.snapshots.persistentVolumeClaim) (not .Values.opensearch.snapshots.s3.enabled) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-{{ template "opensearch.fullname" . }}-snapshots
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.opensearch.snapshots.size | default "1Gi" }}
+  {{- if .Values.opensearch.snapshots.persistentVolume }}
+  volumeName: {{ .Values.opensearch.snapshots.persistentVolume }}
+  {{- end }}
+  storageClassName: "{{ .Values.opensearch.snapshots.storageClass }}"
+{{- end }}

@@ -1,0 +1,22 @@
+{{- if (and .Values.monitoring.enabled (ne .Values.monitoring.monitoringType "influxdb")) }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "opensearch.fullname" . }}-service-monitor
+  labels:
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-service-monitor
+    app.kubernetes.io/component: monitoring
+spec:
+  endpoints:
+    - interval: 60s
+      port: prometheus-cli
+      scheme: http
+  jobLabel: k8s-app
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      component: opensearch-monitoring
+      name: {{ template "opensearch.fullname" . }}-monitoring
+{{- end }}

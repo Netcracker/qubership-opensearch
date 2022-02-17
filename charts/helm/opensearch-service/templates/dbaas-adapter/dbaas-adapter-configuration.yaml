@@ -1,0 +1,18 @@
+{{- if .Values.dbaasAdapter.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    name: {{ template "dbaas-adapter.name" . }}
+    component: dbaas-opensearch-adapter
+  name: {{ template "dbaas-adapter.name" . }}-configs
+data:
+  {
+    "esClusterVersion": "{{ .Values.dbaasAdapter.opensearchClusterVersion }}",
+    "ncClusterVersion": "{{ .Values.dbaasAdapter.netcrackerOpensearchClusterVersion }}",
+    "nodes": "{{ include "opensearch.nodes.count" . }}",
+    "drMode": "false",
+    "installationMode": "{{ if eq (include "joint-mode" .) "true" }}joint{{ else }}separate{{ end }}"
+  }
+{{- end }}

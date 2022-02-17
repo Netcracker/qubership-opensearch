@@ -1,0 +1,18 @@
+{{- if .Values.dbaasAdapter.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    name: {{ template "dbaas-adapter.name" . }}
+    component: dbaas-opensearch-adapter
+  name: {{ template "dbaas-adapter.name" . }}
+spec:
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+  selector:
+    name: {{ template "dbaas-adapter.name" . }}
+    component: dbaas-opensearch-adapter
+{{- end }}
