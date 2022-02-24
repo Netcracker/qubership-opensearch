@@ -133,7 +133,7 @@ integration:
   #   deploy-param: opensearchDbaasAdapter
   - type: image
     docker-image: artifactorycn.netcracker.com:17014/product/prod.platform.elasticstack_dbaas_elasticsearch:1.0.19_20220210-104646
-    deploy-param: elasticsearchDbaasAdapter
+    deploy-param: opensearchDbaasAdapter
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
     location: v.6.8.23-0.25
