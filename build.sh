@@ -23,3 +23,12 @@ cp -R ./charts/helm/opensearch-service/* deployments/charts/opensearch-service
 
 echo "Archive artifacts"
 zip -r ${TARGET_DIR}/${HELM_ARTIFACT_NAME}.zip charts/helm/opensearch-service
+
+SCRIPTS=scripts
+DIST_FILE="${SCRIPTS}/migration-artifacts.zip"
+DIST_CONTENTS="migration-artifacts"
+
+rm -rf ./${SCRIPTS}
+mkdir ${SCRIPTS}
+
+zip -qr "$DIST_FILE" $DIST_CONTENTS
