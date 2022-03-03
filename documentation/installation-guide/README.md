@@ -58,7 +58,7 @@ Environment:
   These labels are generated automatically when you use the `pv-creator` utility to create them.
   You can specify the `persistence.persistentVolumes` parameter for `master` and `data` to use pre-created persistent volumes with other naming rules.
 
-* If you install OpenSearch service on OpenSearch service you need to execute steps from [Migrate from Elasticsearch Service](#migration-from-elasticsearch-service).
+* If you install OpenSearch service on OpenDistro Elasticsearch service you need to execute steps from [Migration from OpenDistro Elasticsearch](#migration-from-opendistro-elasticsearch).
 
 # Installation modes
 
@@ -618,15 +618,17 @@ There are 2 ways for migration:
 1. Automatic via Deploy Job (DP|APP)
 2. Manual Steps
 
-**NOTE:** If you need migrate from Elasticsearch 6.8 cluster to OpenSearch please follow the [Migrate from Elasticsearch Service](#migrate-from-elasticsearch-68-service).
+**NOTE:** If you need to migrate from Elasticsearch 6.8 cluster to OpenSearch please follow the [Migrate from Elasticsearch Service](#migrate-from-elasticsearch-68-service).
 
-OpenSearch also can be deployed with the same name as Elasticsearch installation:
+OpenSearch also can be deployed with the same name as OpenDistro Elasticsearch installation:
 ```
 nameOverride: "elasticsearch"
 fullnameOverride: "elasticsearch"
 ```
 In this case no necessary to perform steps for the Persistent Volume migration because names of entities are the same. 
 But this is not recommended way, because OpenSearch is the different solution.
+
+**NOTE:** Please read general [Prerequisites](#prerequisites) and perform necessary steps before deploy.
 
 ## Automatic Migration with Deploy Job
 
@@ -679,13 +681,13 @@ opensearch:
     enabled: true
     persistentVolumeClaim: pvc-elasticsearch-snapshots
 ```
-**Important:** do not use `Clean Install` mode for App Deployer Job. Use the `Rolling Update` mode for App Deployed and `auto` or `install` mode for DP Deployer.
+**Important:** do not use `Clean Install` mode for App Deployer Job. Use the `Rolling Update` mode for App Deployer and `auto` or `install` mode for DP Deployer.
 
 **NOTE:** if something went wrong with automatic migration the process will be interrupted, you need to perform migration procedure manually with the guide below. 
 
 ## Manual Migration Steps
 
-The following steps should be performed from the host with installed `kubeclt`, `helm` and cluster admin rights to the cluster.
+The following steps should be performed from the host with installed `kubectl`, `helm` and cluster admin rights to the cluster.
 
 1. Uninstall existing OpenDistro Elasticsearch helm release:
     

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #Required for DP job to obtain parameters
-eval $(sed -e 's/:[^:\/\/]/="/g;s/$/"/g;s/ *=/=/g' <<< "$DEPLOYMENT_PARAMETERS" | grep "ENABLE_MIGRATION\|ENABLE_HELM_DELETE\|ENABLE_PV_PATCH\|PREVIOUS_CUSTOM_RESOURCE_NAME\|PREVIOUS_DEDICATED_ARBITER\|PREVIOUS_DEDICATED_DATA")
+eval $(sed -e 's/:[^:\/\/]/="/g;s/$/"/g;s/ *=/=/g' <<<"$DEPLOYMENT_PARAMETERS" | grep "ENABLE_MIGRATION\|ENABLE_HELM_DELETE\|ENABLE_PV_PATCH\|PREVIOUS_CUSTOM_RESOURCE_NAME\|PREVIOUS_DEDICATED_ARBITER\|PREVIOUS_DEDICATED_DATA")
 
 ENABLE_MIGRATION=${ENABLE_MIGRATION:-false}
 ENABLE_HELM_DELETE=${ENABLE_HELM_DELETE:-true}
@@ -10,11 +10,11 @@ ENABLE_PV_PATCH=${ENABLE_PV_PATCH:-true}
 PREVIOUS_CUSTOM_RESOURCE_NAME=${PREVIOUS_CUSTOM_RESOURCE_NAME:-elasticsearch}
 
 PREVIOUS_DEDICATED_ARBITER=${PREVIOUS_DEDICATED_ARBITER:-false}
-PREVIOUS_DEDICATED_DATA=${PREVIOUS_DEDICATED_MASTER:-false}
+PREVIOUS_DEDICATED_DATA=${PREVIOUS_DEDICATED_DATA:-false}
 
 echo "ENABLE_MIGRATION: ${ENABLE_MIGRATION}"
 if [[ ${ENABLE_MIGRATION} != "true" ]]; then
-    exit 0
+  exit 0
 fi
 
 #$1- pvc prefix
@@ -50,24 +50,24 @@ migrate_pvc() {
   done
 }
 
-if command -v kubectl &> /dev/null; then
-    kubectl="kubectl"
+if command -v kubectl &>/dev/null; then
+  kubectl="kubectl"
 else
-    source ${WORKSPACE}/oc_version_used.sh
-    kubectl="${OCBINVERP}"
+  source ${WORKSPACE}/oc_version_used.sh
+  kubectl="${OCBINVERP}"
 fi
 
-if command -v helm &> /dev/null; then
-    helm="helm"
-  else
-    helm="helm3"
-  fi
+if command -v helm &>/dev/null; then
+  helm="helm"
+else
+  helm="helm3"
+fi
 
 echo "Start migration procedure"
 
-if ! ($helm list | grep elasticsearch-service) ; then
-    echo "There are no elasticsearch-service helm releases. Please perform manual migration"
-    exit 0
+if ! ($helm list | grep elasticsearch-service); then
+  echo "There are no elasticsearch-service helm releases. Please perform manual migration"
+  exit 0
 fi
 
 if [[ ${ENABLE_HELM_DELETE} == "true" ]]; then
@@ -85,23 +85,18 @@ fi
 echo "Start patching PV"
 master_pvc_prefix="pvc-${PREVIOUS_CUSTOM_RESOURCE_NAME}"
 if [[ ${PREVIOUS_DEDICATED_DATA} == "true" ]]; then
-    master_pvc_prefix="${master_pvc_prefix}-master"
+  master_pvc_prefix="${master_pvc_prefix}-master"
 fi
-migrate_pvc ${master_pvc_prefix}
+migrate_pvc "${master_pvc_prefix}"
 
 if [[ ${PREVIOUS_DEDICATED_DATA} == "true" ]]; then
-    data_pvc_prefix="pvc-${PREVIOUS_CUSTOM_RESOURCE_NAME}-data"
-    migrate_pvc ${master_pvc_prefix}
-fi
-
-if [[ ${PREVIOUS_DEDICATED_DATA} == "true" ]]; then
-    data_pvc_prefix="pvc-${PREVIOUS_CUSTOM_RESOURCE_NAME}-data"
-    migrate_pvc ${data_pvc_prefix}
+  data_pvc_prefix="pvc-${PREVIOUS_CUSTOM_RESOURCE_NAME}-data"
+  migrate_pvc "${data_pvc_prefix}"
 fi
 
 if [[ ${PREVIOUS_DEDICATED_ARBITER} == "true" ]]; then
-    arbiter_pvc_prefix="pvc-${PREVIOUS_CUSTOM_RESOURCE_NAME}-arbiter"
-    migrate_pvc ${arbiter_pvc_prefix}
+  arbiter_pvc_prefix="pvc-${PREVIOUS_CUSTOM_RESOURCE_NAME}-arbiter"
+  migrate_pvc "${arbiter_pvc_prefix}"
 fi
 
 echo "End migration procedure"

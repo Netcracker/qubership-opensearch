@@ -18,8 +18,7 @@ done
 
 mkdir -p deployments/charts/opensearch-service
 cp -R ./charts/helm/opensearch-service/* deployments/charts/opensearch-service
-#Uncomment when add status provisioner
-#cp ./charts/deployment-configuration.json deployments/deployment-configuration.json
+cp ./charts/deployment-configuration.json deployments/deployment-configuration.json
 
 echo "Archive artifacts"
 zip -r ${TARGET_DIR}/${HELM_ARTIFACT_NAME}.zip charts/helm/opensearch-service

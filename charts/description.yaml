@@ -14,7 +14,14 @@ publication:
     am-zip: application.zip
 
 deployment:
-  mode: clean
+  availability_check: true
+  availability:
+    resource: Job
+    conditions: Successful
+    interval: 30
+    max_tries: 20
+    delay: 30
+  mode: reinstall
   values:
     dashboards:
       enabled: true
@@ -142,6 +149,12 @@ integration:
     prefix: elasticsearch_indices_cleaner
     docker-image-id: timestamp
     deploy-param: opensearchIndicesCleaner
+  - type: find-latest-deployment-descriptor
+    repo: PROD.Platform.Streaming/deployment-status-provisioner
+    location: master
+    docker-image-id: timestamp
+    deploy-param: deploymentStatusProvisioner
+
   - type: image
     docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:1.2.0
     deploy-param: dockerDashboards
@@ -154,7 +167,7 @@ integration:
 
   - type: scripts
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: feature/migration_from_od
+    location: master
     alias: timestamp
     zip-name: migration-artifacts.zip
     name: migration-artifacts
