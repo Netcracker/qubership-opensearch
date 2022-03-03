@@ -149,6 +149,12 @@ global:
     enabled: true
 
   disasterRecovery:
+    image: artifactorycn.netcracker.com:17008/product/prod.platform.streaming_disaster-recovery-daemon:master_latest
+    httpAuth:
+      enabled: false
+      smNamespace: "site-manager"
+      smServiceAccountName: "sm-auth-sa"
+      restrictedEnvironment: false
     mode: ""
     indicesPattern: "*"
     remoteCluster: ""
@@ -157,6 +163,13 @@ global:
     serviceExport:
       enabled: false
       region: ""
+    resources:
+      limits:
+        cpu: "32m"
+        memory: "32Mi"
+      requests:
+        cpu: "10m"
+        memory: "10Mi"
 
 operator:
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest
