@@ -1,0 +1,54 @@
+{{- if .Values.statusProvisioner.enabled }}
+# status-provisioner job provides status about cluster state
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "opensearch.fullname" . }}-status-provisioner
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.statusProvisioner.lifetimeAfterCompletion | default 600 }}
+  template:
+    metadata:
+      name: {{ template "opensearch.fullname" . }}-status-provisioner
+      labels:
+        component: status-provisioner
+{{ include "opensearch.labels.standard" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ template "opensearch.fullname" . }}-status-provisioner
+      containers:
+        - name: status-provisioner
+          image: {{ template "deployment-status-provisioner.image" . }}
+          imagePullPolicy: "Always"
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: MONITORED_RESOURCES
+              value: "{{ include "opensearch.monitoredResources" . | trim | trimSuffix "," }}"
+            - name: RESOURCE_TO_SET_STATUS
+              value: {{ printf "batch v1 jobs %s-status-provisioner" (include "opensearch.fullname" .) }}
+            - name: CONDITION_REASON
+              value: "OpenSearchServiceReadinessStatus"
+            - name: POD_READINESS_TIMEOUT
+              value: "{{ .Values.statusProvisioner.podReadinessTimeout | default 300 }}"
+          {{- if and .Values.integrationTests.enabled .Values.integrationTests.statusWritingEnabled }}
+            - name: INTEGRATION_TESTS_RESOURCE
+              value: {{ printf "apps v1 deployments %s-integration-tests" (include "opensearch.fullname" .) }}
+            - name: INTEGRATION_TESTS_CONDITION_REASON
+              value: "IntegrationTestsExecutionStatus"
+            - name: INTEGRATION_TESTS_SUCCESSFUL_CONDITION_TYPE
+              value: "Ready"
+            - name: INTEGRATION_TESTS_TIMEOUT
+              value: "{{ .Values.statusProvisioner.integrationTestsTimeout | default 300 }}"
+          {{- end }}
+          resources:
+            requests:
+              cpu: {{ default "50m" .Values.statusProvisioner.resources.requests.cpu }}
+              memory: {{ default "50Mi" .Values.statusProvisioner.resources.requests.memory }}
+            limits:
+              cpu: {{ default "100m" .Values.statusProvisioner.resources.limits.cpu }}
+              memory: {{ default "100Mi" .Values.statusProvisioner.resources.limits.memory }}
+{{- end }}

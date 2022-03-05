@@ -102,6 +102,26 @@ spec:
                 secretKeyRef:
                   key: password
                   name: {{ template "opensearch.fullname" . }}-curator-secret
+            {{- if .Values.integrationTests.statusWritingEnabled }}
+            - name: STATUS_CUSTOM_RESOURCE_GROUP
+              value: apps
+            - name: STATUS_CUSTOM_RESOURCE_VERSION
+              value: v1
+            - name: STATUS_CUSTOM_RESOURCE_PLURAL
+              value: deployments
+            - name: STATUS_CUSTOM_RESOURCE_NAME
+              value: {{ printf "%s-integration-tests" (include "opensearch.fullname" .) }}
+            - name: STATUS_CUSTOM_RESOURCE_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: STATUS_WRITING_ENABLED
+              value: "{{ .Values.integrationTests.statusWritingEnabled }}"
+            - name: ONLY_INTEGRATION_TESTS
+              value: "false"
+            - name: IS_SHORT_STATUS_MESSAGE
+              value: "{{ .Values.integrationTests.isShortStatusMessage }}"
+            {{- end }}
             {{- end }}
           resources:
             requests:
