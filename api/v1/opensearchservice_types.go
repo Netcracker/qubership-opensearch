@@ -81,6 +81,22 @@ type DisasterRecoveryStatus struct {
 type OpenSearchServiceStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 	DisasterRecoveryStatus DisasterRecoveryStatus `json:"disasterRecoveryStatus,omitempty"`
+	Conditions             []StatusCondition      `json:"conditions,omitempty"`
+}
+
+// StatusCondition contains description of status of OpenSearchService
+// +k8s:openapi-gen=true
+type StatusCondition struct {
+	// Type - Can be "In progress", "Failed", "Successful" or "Ready".
+	Type string `json:"type"`
+	// Status - "True" if condition is successfully done and "False" if condition has failed or in progress type.
+	Status string `json:"status"`
+	// Reason - One-word CamelCase reason for the condition's state.
+	Reason string `json:"reason"`
+	// Message - Human-readable message indicating details about last transition.
+	Message string `json:"message"`
+	// LastTransitionTime - Last time the condition transit from one status to another.
+	LastTransitionTime string `json:"lastTransitionTime"`
 }
 
 //+kubebuilder:object:root=true
