@@ -903,10 +903,25 @@ curator:
 #    runAsUser: 1000
 #    fsGroup: 1000
 
+statusProvisioner:
+  enabled: true
+  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.streaming_deployment-status-provisioner:master_latest
+  lifetimeAfterCompletion: 600
+  podReadinessTimeout: 300
+  integrationTestsTimeout: 300
+  resources:
+    requests:
+      memory: "50Mi"
+      cpu: "50m"
+    limits:
+      memory: "100Mi"
+      cpu: "100m"
+
 integrationTests:
   enabled: false
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests
-
+  statusWritingEnabled: true
+  isShortStatusMessage: true
   secrets:
     idp:
       username: ""

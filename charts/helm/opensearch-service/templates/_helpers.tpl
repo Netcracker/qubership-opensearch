@@ -294,6 +294,67 @@ Define the name of DBaaS OpenSearch adapter.
 {{- end -}}
 
 {{/*
+Whether forced cleanup of previous opensearch-status-provisioner job is enabled
+*/}}
+{{- define "opensearch-status-provisioner.cleanupEnabled" -}}
+  {{- if .Values.statusProvisioner.enabled -}}
+    {{- $cleanupEnabled := .Values.statusProvisioner.cleanupEnabled | toString }}
+    {{- if eq $cleanupEnabled "true" -}}
+      {{- printf "true" }}
+    {{- else if eq $cleanupEnabled "false" -}}
+      {{- printf "false" -}}
+    {{- else -}}
+      {{- if or (gt .Capabilities.KubeVersion.Major "1") (ge .Capabilities.KubeVersion.Minor "21") -}}
+        {{- printf "false" -}}
+      {{- else -}}
+        {{- printf "true" -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{- printf "false" -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Calculates resources that should be monitored during deployment by Deployment Status Provisioner.
+*/}}
+{{- define "opensearch.monitoredResources" -}}
+    {{- printf "Deployment %s-service-operator, " (include "opensearch.fullname" .) -}}
+    {{- if .Values.dashboards.enabled }}
+    {{- printf "Deployment %s-dashboards, " (include "opensearch.fullname" .) -}}
+    {{- end }}
+    {{- if .Values.curator.enabled }}
+    {{- printf "Deployment %s-curator, " (include "opensearch.fullname" .) -}}
+    {{- end }}
+    {{- if .Values.monitoring.enabled }}
+    {{- printf "Deployment %s-monitoring, " (include "opensearch.fullname" .) -}}
+    {{- end }}
+    {{- if .Values.dbaasAdapter.enabled }}
+    {{- printf "Deployment dbaas-%s-adapter, " (include "opensearch.fullname" .) -}}
+    {{- end }}
+    {{- if .Values.dbaasAdapter.enabled }}
+    {{- printf "Deployment dbaas-%s-adapter, " (include "opensearch.fullname" .) -}}
+    {{- end }}
+    {{- if eq (include "joint-mode" .) "true" }}
+    {{- printf "StatefulSet %s, " (include "opensearch.fullname" .) -}}
+    {{- else }}
+    {{- printf "StatefulSet %s-master, " (include "opensearch.fullname" .) -}}
+    {{- if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod }}
+    {{- printf "StatefulSet %s-data, " (include "opensearch.fullname" .) -}}
+    {{- end }}
+    {{- if .Values.opensearch.arbiter.enabled }}
+    {{- printf "StatefulSet %s-data, " (include "opensearch.fullname" .) -}}
+    {{- end }}
+    {{- if and .Values.opensearch.client.enabled .Values.opensearch.client.dedicatedPod }}
+    {{- printf "Deployment %s-client, " (include "opensearch.fullname" .) -}}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.integrationTests.enabled }}
+    {{- printf "Deployment %s-integration-tests" (include "opensearch.fullname" .) -}}
+    {{- end }}
+{{- end -}}
+
+{{/*
 Find a busybox image in various places.
 */}}
 {{- define "busybox.image" -}}
@@ -444,5 +505,20 @@ Find an OpenSearch integration tests image in various places.
     {{- end -}}
   {{- else -}}
     {{- printf "%s" .Values.integrationTests.dockerImage -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Find a Deployment Status Provisioner image in various places.
+*/}}
+{{- define "deployment-status-provisioner.image" -}}
+  {{- if .Values.deployDescriptor -}}
+    {{- if .Values.deploymentStatusProvisioner -}}
+      {{- printf "%s" .Values.deploymentStatusProvisioner -}}
+    {{- else -}}
+      {{- printf "%s" (index .Values.deployDescriptor.deploymentStatusProvisioner.image) -}}
+    {{- end -}}
+  {{- else -}}
+    {{- printf "%s" .Values.statusProvisioner.dockerImage -}}
   {{- end -}}
 {{- end -}}

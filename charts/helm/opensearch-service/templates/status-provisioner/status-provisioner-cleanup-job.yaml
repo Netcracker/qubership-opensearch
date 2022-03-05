@@ -1,0 +1,35 @@
+{{- if eq (include "opensearch-status-provisioner.cleanupEnabled" .) "true" }}
+# status-provisioner-cleanup deletes previous status-provisioner job if it exists
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "opensearch.fullname" . }}-status-provisioner-cleanup
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+spec:
+  template:
+    metadata:
+      name: {{ template "opensearch.fullname" . }}-status-provisioner-cleanup
+      labels:
+        component: status-provisioner-cleanup
+{{ include "opensearch.labels.standard" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ template "opensearch.fullname" . }}-status-provisioner-cleanup
+      containers:
+        - name: status-provisioner-cleanup
+          image: {{ template "deployment-status-provisioner.image" . }}
+          command:
+            - "/bin/bash"
+            - "-c"
+            - kubectl delete job {{ template "opensearch.fullname" . }}-status-provisioner --ignore-not-found=true
+          resources:
+            requests:
+              cpu: {{ default "50m" .Values.statusProvisioner.resources.requests.cpu }}
+              memory: {{ default "50Mi" .Values.statusProvisioner.resources.requests.memory }}
+            limits:
+              cpu: {{ default "100m" .Values.statusProvisioner.resources.limits.cpu }}
+              memory: {{ default "100Mi" .Values.statusProvisioner.resources.limits.memory }}
+{{- end }}
