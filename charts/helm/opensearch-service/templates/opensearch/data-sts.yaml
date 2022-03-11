@@ -141,11 +141,11 @@ spec:
         {{- end }}
     {{- with .Values.opensearch.data.livenessProbe}}
           livenessProbe:
-{{ toYaml . | indent 10 }}
+{{ toYaml . | indent 12 }}
     {{- end }}
     {{- with .Values.opensearch.data.startupProbe}}
           startupProbe:
-{{ toYaml . | indent 10 }}
+{{ toYaml . | indent 12 }}
     {{- end }}
           volumeMounts:
             - mountPath: /usr/share/opensearch/data

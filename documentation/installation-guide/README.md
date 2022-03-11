@@ -8,10 +8,10 @@ Topics covered in this section:
     - [Manual Deployment](#manual-deployment)
     - [Deployment via DP Deployer Job](#deployment-via-dp-deployer-job)
     - [Deployment via Groovy Deployer Job](#deployment-via-groovy-deployer-job)
-- [Migration from Elasticsearch Service](#migration-from-elasticsearch-service)
-    - [Migrate Persistent Volumes](#migrate-persistent-volumes)
-    - [From OpenShift DVM Installation](#from-openshift-dvm-installation)
-    - [From Kubernetes Helm Chart Installation](#from-kubernetes-helm-chart-installation)
+- [Migration from OpenDistro Elasticsearch](#migration-from-opendistro-elasticsearch)
+    - [Automatic Migration with Deploy Hob](#automatic-migration-with-deploy-job)
+    - [Manual Migration Steps](#manual-migration-steps)
+    - [Migration from Elasticsearch 6.8 Service](#migrate-from-elasticsearch-68-service)
 - [Custom Resource Definition](#custom-resource-definition)
 
 # Prerequisites
@@ -58,7 +58,7 @@ Environment:
   These labels are generated automatically when you use the `pv-creator` utility to create them.
   You can specify the `persistence.persistentVolumes` parameter for `master` and `data` to use pre-created persistent volumes with other naming rules.
 
-* If you install OpenSearch service on OpenSearch service you need to execute steps from [Migrate from Elasticsearch Service](#migration-from-elasticsearch-service).
+* If you install OpenSearch service on OpenDistro Elasticsearch service you need to execute steps from [Migration from OpenDistro Elasticsearch](#migration-from-opendistro-elasticsearch).
 
 # Installation modes
 
@@ -615,9 +615,140 @@ Click *Build*.
 For information about:
 * parameters, see [Parameters](#parameters)
 
-# Migration from Elasticsearch Service
+# Migration from OpenDistro Elasticsearch
 
-## Migrate Persistent Volumes
+OpenSearch Service allows migration from OpenDistro Elasticsearch deployments. 
+
+There are 2 ways for migration:
+1. Automatic via Deploy Job (DP|APP)
+2. Manual Steps
+
+**NOTE:** If you need to migrate from Elasticsearch 6.8 cluster to OpenSearch please follow the [Migrate from Elasticsearch Service](#migrate-from-elasticsearch-68-service).
+
+OpenSearch also can be deployed with the same name as OpenDistro Elasticsearch installation:
+```
+nameOverride: "elasticsearch"
+fullnameOverride: "elasticsearch"
+```
+In this case no necessary to perform steps for the Persistent Volume migration because names of entities are the same. 
+But this is not recommended way, because OpenSearch is the different solution.
+
+**NOTE:** Please read general [Prerequisites](#prerequisites) and perform necessary steps before deploy.
+
+## Automatic Migration with Deploy Job
+
+OpenSearch deploy job can perform migration steps automatically if this feature is enabled in parameters.
+It is possible only for helm based installations (`DEPLOY_W_HELM` is `true` from previous and current deployments).
+To enabled it you need to add the following properties to deployment params of your job (DP|APP):
+
+| Parameter                               | Description                                                                                                | Default         |
+|-----------------------------------------|------------------------------------------------------------------------------------------------------------|-----------------|
+| `ENABLE_MIGRATION`                      | Whether to perform automatic migration during deploy. Disable it when migration finished.                  | `false`         |
+| `ENABLE_HELM_DELETE`                    | Whether to delete previous helm releases of OpenDistro Elasticsearch.                                      | `true`          |
+| `ENABLE_PV_PATCH`                       | Whether to perform patching for existing Persistent Volumes of OpenDistro Elasticsearch to save data.      | `true`          |
+| `PREVIOUS_CUSTOM_RESOURCE_NAME`         | The previous name of OpenDistro Elasticsearch cluster.                                                     |`"elasticsearch"`|
+| `PREVIOUS_DEDICATED_ARBITER`            | Whether existing OpenDistro Elasticsearch cluster contain dedicated arbiter nodes.                         | `false`         |
+| `PREVIOUS_DEDICATED_DATA`               | Whether existing OpenDistro Elasticsearch cluster contain dedicated data nodes.                            | `false`         |
+
+**Important:** the option `ENABLE_PV_PATCH` requires cluster rights for editing Persistent Volumes for deploy user. 
+If you want to enable automatic migration your user for deploy should have the following cluster role rights:
+```yaml
+  - apiGroups:
+      - ""
+    resources:
+      - persistentvolumes
+    verbs:
+      - create
+      - get
+      - list
+      - patch
+      - watch
+```
+
+Basically it is necessary to add only `ENABLE_MIGRATION: true` to deploy parameters to enable migration feature.
+
+You also need to specify your previous Persistent Volumes and storage class for parameters of OpenSearch `persistence` sections, and previous Persistent Volume Claim for `snapshots` if you want to save previous data. 
+For example:
+```yaml
+ENABLE_MIGRATION: true
+
+opensearch:
+  master:
+    replicas: 3
+    persistence:
+      enabled: true
+      storageClass: local-storage
+      persistentVolumes:
+        - pv-elasticsearch-1
+        - pv-elasticsearch-2
+        - pv-elasticsearch-3
+  snapshots:
+    enabled: true
+    persistentVolumeClaim: pvc-elasticsearch-snapshots
+```
+**Important:** do not use `Clean Install` mode for App Deployer Job. Use the `Rolling Update` mode for App Deployer and `auto` or `install` mode for DP Deployer.
+
+**NOTE:** if something went wrong with automatic migration the process will be interrupted, you need to perform migration procedure manually with the guide below. 
+
+## Manual Migration Steps
+
+The following steps should be performed from the host with installed `kubectl`, `helm` and cluster admin rights to the cluster.
+
+1. Uninstall existing OpenDistro Elasticsearch helm release:
+    
+    For APP Deployer installations:
+    ```
+    helm uninstall elasticsearch-service
+    ```
+   
+    For DP Deployer installations:
+    ```
+    helm uninstall elasticsearch-service-{NAMESPACE}
+    ```
+   
+    Or all resources if previous installation was not helm based:
+    ```
+    kubectl delete all --all -n {NAMESPACE}
+    kubectl delete secret --all -n {NAMESPACE}
+    kubectl delete configmap --all -n {NAMESPACE}
+    ```
+2. Patch existing Persistent Volumes of Elasticsearch data (not snapshot) to `Retain` policy:
+   ```
+   kubectl patch pv <your-pv-name> -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+   ```
+   You can get the Persistent Volume names from the Persistent Volume Claims via ```kubectl get pvc```.
+3. Delete existing Persistent Volumes Claims of Elasticsearch data (not snapshot):
+   ```
+   kubectl delete pvc <your-pvc-name>
+   ```
+4. Patch existing Persistent Volumes of Elasticsearch data (not snapshot) to available status:
+   ```
+   kubectl patch pv <your-pv-name> -p '{"spec":{"claimRef": null}}'
+   ```
+5. Deploy OpenSearch service specifying the previous Persistent Volumes and storage class for OpenSearch persistent parameters and previous Persistent Volume Claim for snapshot:
+   For example:
+    ```yaml
+    opensearch:
+      master:
+        replicas: 3
+        persistence:
+          enabled: true
+          storageClass: local-storage
+          persistentVolumes:
+            - pv-elasticsearch-1
+            - pv-elasticsearch-2
+            - pv-elasticsearch-3
+      snapshots:
+        enabled: true
+        persistentVolumeClaim: pvc-elasticsearch-snapshots
+    ```
+   Any deploy mode can be used.
+
+## Migrate from Elasticsearch 6.8 Service
+
+It is also possible to migrate from Elasticsearch 6.8 installations, but only with manual steps.
+
+### Migrate Elasticsearch 6.8 Persistent Volumes
 
 1. Folder rights
    If previously Persistent Volumes `hostPath` folders were created with rights `100:101` it is necessary to change folders owner to `1000:1000`.
@@ -665,43 +796,7 @@ For information about:
     ``` 
    Old PVCs should be removed with removing deployments of previous installation.
 
-## From OpenShift DVM Installation
-
-1. Prepare environment and parameters
-
-   Perform steps from [Migrate Persistent Volumes](#migrate-persistent-volumes).
-
-   OpenShift's environment usually restricts running pods by security constraint policies.
-
-   Generally you need to set the following annotations to your Project:
-
-    ```
-    openshift.io/sa.scc.uid-range: 1000/1001
-    openshift.io/sa.scc.supplemental-groups: 1000/1001
-    ```
-
-   To automatically change persistent folder owner (`fixMount.enabled: true`) you need root privileges and have to set the following annotations:
-
-    ```
-    openshift.io/sa.scc.uid-range: 0/1001
-    openshift.io/sa.scc.supplemental-groups: 0/1001
-    ```
-
-2. Delete previous deployments:
-
-   Delete resources from previous installation. For example:
-
-    ```
-    kubectl delete all --all -n elasticsearch-cluster
-    
-    kubectl delete secret --all -n elasticsearch-cluster
-   
-    kubectl delete configmap --all -n elasticsearch-cluster
-    ```
-
-3. Install OpenSearch release.
-
-## From Kubernetes Helm Chart Installation
+### Manual Migration from Elasticsearch 6.8
 
 1. Perform steps from [Migrate Persistent Volumes](#migrate-persistent-volumes).
 2. Delete previous deployments
