@@ -6,6 +6,8 @@ import (
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
 	"net/http"
+	"strings"
+	"time"
 )
 
 const (
@@ -40,8 +42,7 @@ func (r DisasterRecoveryReconciler) Status() error {
 func (r DisasterRecoveryReconciler) Configure() error {
 	crCondition := r.cr.Spec.DisasterRecovery.Mode != r.cr.Status.DisasterRecoveryStatus.Mode ||
 		r.cr.Status.DisasterRecoveryStatus.Status == "running" ||
-		(r.cr.Status.DisasterRecoveryStatus.Status == "failed" &&
-			r.cr.Status.DisasterRecoveryStatus.Comment == util.RetryFailedComment)
+		(r.cr.Status.DisasterRecoveryStatus.Status == "failed")
 
 	drConfigHash, err :=
 		r.reconciler.calculateConfigDataHash(r.cr.Spec.DisasterRecovery.ConfigMapName, drConfigHashName, r.cr, r.logger)
@@ -59,17 +60,31 @@ func (r DisasterRecoveryReconciler) Configure() error {
 
 		status := "done"
 		comment := "replication has finished successfully"
-		if checkNeeded {
-			// add some logic here for replication check
-		} else {
-			if r.cr.Spec.DisasterRecovery.Mode == "standby" {
-				err = r.runReplicationProcess()
+
+		replicationManager := r.getReplicationManager()
+		if r.cr.Spec.DisasterRecovery.Mode == "standby" {
+			if r.cr.Status.DisasterRecoveryStatus.Mode != "active" {
+				r.logger.Info("Removing previous replication rule")
+				r.removePreviousReplication(replicationManager)
 			}
-			if r.cr.Spec.DisasterRecovery.Mode == "active" &&
-				r.cr.Status.DisasterRecoveryStatus.Mode == "standby" {
-				err = r.stopReplication()
+			err = r.runReplicationProcess(replicationManager)
+		}
+
+		if r.cr.Spec.DisasterRecovery.Mode == "active" {
+			if checkNeeded {
+				indexNames, err := replicationManager.getReplicatedIndices()
+				if err != nil {
+					log.Error(err, "Can not get replication indices. Replication check is failed.")
+				}
+				if err = replicationManager.executeReplicationCheck(indexNames); err != nil {
+					log.Error(err, "Replication check is failed.")
+				}
+			} else {
+				comment = "Switchover mode has been changed without replication check"
 			}
-			comment = "Switchover mode has been changed without replication check"
+			if err == nil {
+				err = r.stopReplication(replicationManager)
+			}
 		}
 
 		defer func() {
@@ -82,6 +97,7 @@ func (r DisasterRecoveryReconciler) Configure() error {
 				}
 				_ = r.updateDisasterRecoveryStatus(status, comment)
 			}
+			r.logger.Info("Disaster recovery status was updated.")
 		}()
 	}
 
@@ -100,23 +116,51 @@ func (r DisasterRecoveryReconciler) updateDisasterRecoveryStatus(status string, 
 	})
 }
 
-func (r DisasterRecoveryReconciler) runReplicationProcess() error {
-	replicationManager := r.getReplicationManager()
+func (r DisasterRecoveryReconciler) removePreviousReplication(replicationManager ReplicationManager) error {
+	if !replicationManager.AutofollowTaskExists() {
+		r.logger.Info("Autofollower task does not exist")
+		return nil
+	}
+	if err := replicationManager.RemoveReplicationRule(); err != nil {
+		r.logger.Error(err, "can not delete autofollow replication rule")
+		return err
+	}
+	if err := replicationManager.StopReplication(); err != nil {
+		r.logger.Error(err, "can not stop all running replication tasks")
+		return err
+	}
+	replicationManager.DeleteAdminReplicationTask()
+	return nil
+}
+
+func (r DisasterRecoveryReconciler) runReplicationProcess(replicationManager ReplicationManager) error {
+	if err := replicationManager.DeleteIndices(); err != nil {
+		r.logger.Error(err, "can not delete Opensearch indices by pattern during switchover process to `standby` state.")
+		return err
+	}
+	time.Sleep(time.Second * 2)
 	if err := replicationManager.Configure(); err != nil {
+		r.logger.Error(err, "can not configure replication connection between DR Opensearch clusters.")
 		return err
 	}
 	if err := replicationManager.Start(); err != nil {
+		r.logger.Error(err, "can not create autofollow replication rule")
 		return err
 	}
 	r.logger.Info("Replication has been started")
 	return nil
 }
 
-func (r DisasterRecoveryReconciler) stopReplication() error {
-	replicationManager := r.getReplicationManager()
-	if err := replicationManager.Stop(); err != nil {
+func (r DisasterRecoveryReconciler) stopReplication(replicationManager ReplicationManager) error {
+	if err := replicationManager.RemoveReplicationRule(); err != nil {
+		r.logger.Error(err, "can not delete autofollow replication rule")
 		return err
 	}
+	if err := replicationManager.StopReplication(); err != nil {
+		r.logger.Error(err, "can not stop all running replication tasks")
+		return err
+	}
+	_ = replicationManager.DeleteIndicesByPattern(".tasks")
 	r.logger.Info("Replication has been stopped")
 	return nil
 }
@@ -129,9 +173,15 @@ func (r DisasterRecoveryReconciler) getReplicationManager() ReplicationManager {
 	credentials := r.reconciler.parseSecretCredentials(r.cr, r.logger)
 	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
 	restClient := NewRestClient(url, http.Client{}, credentials)
-	return *NewReplicationManager(*restClient, remoteService, pattern)
+	return *NewReplicationManager(*restClient, remoteService, pattern, r.logger)
 }
 
 func isReplicationCheckNeeded(instance *opensearchservice.OpenSearchService) bool {
-	return false
+	if instance.Spec.DisasterRecovery.NoWait {
+		return false
+	}
+	specMode := strings.ToLower(instance.Spec.DisasterRecovery.Mode)
+	statusMode := strings.ToLower(instance.Status.DisasterRecoveryStatus.Mode)
+	switchoverStatus := strings.ToLower(instance.Status.DisasterRecoveryStatus.Status)
+	return specMode == "active" && (statusMode != "active" || statusMode == "active" && switchoverStatus == "failed")
 }

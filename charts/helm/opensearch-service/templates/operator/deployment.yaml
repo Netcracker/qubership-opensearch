@@ -18,6 +18,10 @@ spec:
       containers:
         - name: {{ template "opensearch.fullname" . }}-service-operator
           image: {{ template "operator.image" . }}
+          ports:
+            - containerPort: 8069
+              protocol: TCP
+              name: rep-health
           command:
             - /manager
           imagePullPolicy: Always
@@ -26,6 +30,18 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: OPENSEARCH_NAME
+              value: {{ template "opensearch.fullname" . }}
+            - name: OPENSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ template "opensearch.fullname" . }}-secret
+            - name: OPENSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ template "opensearch.fullname" . }}-secret
           resources:
             requests:
               memory: 128Mi
@@ -33,6 +49,49 @@ spec:
             limits:
               memory: 128Mi
               cpu: 100m
+        {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}
+        - name: {{ template "opensearch.fullname" . }}-disaster-recovery
+          image: {{ template "disasterRecovery.image" . }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8068
+              protocol: TCP
+              name: dr
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: RESOURCE_FOR_DR
+              value: "netcracker.com v1 opensearchservices {{ template "opensearch.fullname" . }}"
+            - name: USE_DEFAULT_PATHS
+              value: "true"
+            - name: HEALTH_MAIN_SERVICES_ACTIVE
+              value: "{{ trim (include "opensearch.statefulsetNames" .) }}"
+            - name: HEALTH_MAIN_SERVICES_STANDBY
+              value: "{{ trim (include "opensearch.statefulsetNames" .) }}"
+            - name: HEALTH_MAIN_SERVICES_DISABLED
+              value: "{{ trim (include "opensearch.statefulsetNames" .) }}"
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: ADDITIONAL_HEALTH_ENDPOINT
+              value: http://$(POD_IP):8069/healthz
+            {{- if .Values.global.disasterRecovery.httpAuth.enabled}}
+            - name: SITE_MANAGER_NAMESPACE
+              value: {{ .Values.global.disasterRecovery.httpAuth.smNamespace | quote }}
+            - name: SITE_MANAGER_SERVICE_ACCOUNT_NAME
+              value: {{ .Values.global.disasterRecovery.httpAuth.smServiceAccountName | quote }}
+            {{- end }}
+          resources:
+            limits:
+              cpu: {{ default "32m" .Values.global.disasterRecovery.resources.limits.cpu  }}
+              memory: {{ default "32Mi" .Values.global.disasterRecovery.resources.limits.memory }}
+            requests:
+              cpu: {{ default "10m" .Values.global.disasterRecovery.resources.requests.cpu }}
+              memory: {{ default "10Mi" .Values.global.disasterRecovery.resources.requests.memory }}
+        {{- end }}
       {{- with .Values.operator.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}

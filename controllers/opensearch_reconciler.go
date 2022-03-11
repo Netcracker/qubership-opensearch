@@ -116,7 +116,7 @@ func (r *OpenSearchReconciler) createSnapshotsRepository(client http.Client, cre
 	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
 	for i := 0; i < attemptsNumber; i++ {
 		restClient := NewRestClient(url, client, credentials)
-		statusCode, _, err = restClient.sendRequest(http.MethodPut, requestPath, strings.NewReader(requestBody))
+		statusCode, _, err = restClient.SendRequest(http.MethodPut, requestPath, strings.NewReader(requestBody))
 		if err == nil && statusCode == 200 {
 			r.logger.Info("Snapshot repository is created")
 			return nil
@@ -132,7 +132,7 @@ func (r *OpenSearchReconciler) enableCompatibilityMode(client http.Client, crede
 	requestBody := `{"persistent": {"compatibility.override_main_response_version": true}}`
 	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
 	restClient := NewRestClient(url, client, credentials)
-	statusCode, _, err := restClient.sendRequest(http.MethodPut, requestPath, strings.NewReader(requestBody))
+	statusCode, _, err := restClient.SendRequest(http.MethodPut, requestPath, strings.NewReader(requestBody))
 	if err == nil && statusCode == 200 {
 		r.logger.Info("Compatibility mode is enabled")
 		return nil
