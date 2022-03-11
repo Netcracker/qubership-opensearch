@@ -1,30 +1,138 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-logr/logr"
 	"net/http"
+	"regexp"
 	"strings"
+	"time"
 )
 
 const (
-	leaderAlias              = "leader-cluster"
-	startFullReplicationPath = "_plugins/_replication/_autofollow"
-	replicationName          = "dr-replication"
+	leaderAlias               = "leader-cluster"
+	startFullReplicationPath  = "_plugins/_replication/_autofollow"
+	replicationName           = "dr-replication"
+	replicationAttemptsNumber = 5
+	replicationCheckTimeout   = time.Second * 15
 )
 
-//TODO: check this class
 type ReplicationManager struct {
 	restClient RestClient
 	remoteUrl  string
 	pattern    string
+	logger     logr.Logger
 }
 
-func NewReplicationManager(restClient RestClient, remoteUrl string, indexPattern string) *ReplicationManager {
+/*
+ReplicationStats is a struct to unmarshal http response
+The following json is expected as response:
+{
+	"num_syncing_indices": 3,
+	"num_bootstrapping_indices": 0,
+	"num_paused_indices": 0,
+	"num_failed_indices": 0,
+	"num_shard_tasks": 3,
+	"num_index_tasks": 3,
+	"operations_written": 6,
+	"operations_read": 6,
+	"failed_read_requests": 0,
+	"throttled_read_requests": 0,
+	"failed_write_requests": 0,
+	"throttled_write_requests": 0,
+	"follower_checkpoint": 3,
+	"leader_checkpoint": 5,
+	"total_write_time_millis": 194,
+	"index_stats": {
+		"my-demo45": {
+			"operations_written": 0,
+			"operations_read": 0,
+			"failed_read_requests": 0,
+			"throttled_read_requests": 0,
+			"failed_write_requests": 0,
+			"throttled_write_requests": 0,
+			"follower_checkpoint": -1,
+			"leader_checkpoint": 0,
+			"total_write_time_millis": 0
+		},
+		"my-demo": {
+			"operations_written": 0,
+			"operations_read": 0,
+			"failed_read_requests": 0,
+			"throttled_read_requests": 0,
+			"failed_write_requests": 0,
+			"throttled_write_requests": 0,
+			"follower_checkpoint": -1,
+			"leader_checkpoint": 0,
+			"total_write_time_millis": 0
+		},
+		"my-index1": {
+			"operations_written": 6,
+			"operations_read": 6,
+			"failed_read_requests": 0,
+			"throttled_read_requests": 0,
+			"failed_write_requests": 0,
+			"throttled_write_requests": 0,
+			"follower_checkpoint": 5,
+			"leader_checkpoint": 5,
+			"total_write_time_millis": 194
+		}
+	}
+}
+ */
+type ReplicationStats struct {
+	SyncingIndicesCount       int                 `json:"num_syncing_indices"`
+	BootstrappingIndicesCount int                 `json:"num_bootstrapping_indices"`
+	PausedIndicesCount        int                 `json:"num_paused_indices"`
+	FailedIndicesCount        int                 `json:"num_failed_indices"`
+	IndexStats                map[string]struct{} `json:"index_stats"`
+}
+
+type NodesInfo struct {
+	Nodes map[string]TasksInfo `json:"nodes"`
+}
+
+type TasksInfo struct {
+	Tasks map[string]InnerTask `json:"tasks"`
+}
+
+type InnerTask struct {
+	Action string `json:"action"`
+}
+
+type RuleStats struct {
+	Name          string   `json:"name"`
+	Pattern       string   `json:"pattern"`
+	SuccessStart  int      `json:"num_success_start_replication"`
+	FailedStart   int      `json:"num_failed_start_replication"`
+	FailedIndices []string `json:"failed_indices"`
+}
+
+type AutofollowStats struct {
+	SuccessStart        int         `json:"num_success_start_replication"`
+	FailedStart         int         `json:"num_failed_start_replication"`
+	AutofollowRuleStats []RuleStats `json:"autofollow_stats"`
+}
+
+type ReplicationIndexStats struct {
+	Status  string       `json:"status"`
+	Details IndexDetails `json:"syncing_details,omitempty"`
+}
+
+type IndexDetails struct {
+	LeaderCheckpoint   int `json:"leader_checkpoint"`
+	FollowerCheckpoint int `json:"follower_checkpoint"`
+	Seq                int `json:"seq_no"`
+}
+
+func NewReplicationManager(restClient RestClient, remoteUrl string, indexPattern string, logger logr.Logger) *ReplicationManager {
 	return &ReplicationManager{
 		restClient: restClient,
 		remoteUrl:  remoteUrl,
 		pattern:    indexPattern,
+		logger:     logger,
 	}
 }
 
@@ -32,7 +140,7 @@ func (rm ReplicationManager) Configure() error {
 	path := "_cluster/settings"
 	body := fmt.Sprintf(`{"persistent": {"cluster": {"remote": {"%s": {"seeds": [ "%s" ]}}}}}`, leaderAlias, rm.remoteUrl)
 	//TODO: should we process requestBody?
-	statusCode, _, err := rm.restClient.sendRequest(http.MethodPut, path, strings.NewReader(body))
+	statusCode, _, err := rm.restClient.SendRequest(http.MethodPut, path, strings.NewReader(body))
 	if err != nil {
 		return err
 	}
@@ -45,7 +153,7 @@ func (rm ReplicationManager) Configure() error {
 func (rm ReplicationManager) Start() error {
 	body := fmt.Sprintf(`{"leader_alias":"%s","pattern":"%s","name":"%s","use_roles":{"leader_cluster_role":"all_access","follower_cluster_role":"all_access"}}`,
 		leaderAlias, rm.pattern, replicationName)
-	statusCode, _, err := rm.restClient.sendRequest(http.MethodPost, startFullReplicationPath, strings.NewReader(body))
+	statusCode, _, err := rm.restClient.SendRequest(http.MethodPost, startFullReplicationPath, strings.NewReader(body))
 	if err != nil {
 		return err
 	}
@@ -55,9 +163,9 @@ func (rm ReplicationManager) Start() error {
 	return nil
 }
 
-func (rm ReplicationManager) Stop() error {
+func (rm ReplicationManager) RemoveReplicationRule() error {
 	body := fmt.Sprintf(`{"leader_alias": "%s","name": "%s"}`, leaderAlias, replicationName)
-	statusCode, _, err := rm.restClient.sendRequest(http.MethodDelete, startFullReplicationPath, strings.NewReader(body))
+	statusCode, _, err := rm.restClient.SendRequest(http.MethodDelete, startFullReplicationPath, strings.NewReader(body))
 	if err != nil {
 		return err
 	}
@@ -65,4 +173,243 @@ func (rm ReplicationManager) Stop() error {
 		return errors.New("internal server error")
 	}
 	return nil
+}
+
+func (rm ReplicationManager) StopReplication() error {
+	indexNames, err := rm.getReplicatedIndices()
+	if err != nil {
+		return err
+	}
+
+	if err = rm.stopIndicesReplication(indexNames); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (rm ReplicationManager) getReplicatedIndices() ([]string, error) {
+	statusCode, resp, err := rm.restClient.SendRequest(http.MethodGet, "_plugins/_replication/follower_stats", nil)
+	if err != nil {
+		return nil, err
+	}
+	if statusCode >= 500 {
+		return nil, errors.New("internal server error")
+	}
+	var replicationStats ReplicationStats
+	if err = json.Unmarshal(resp, &replicationStats); err != nil {
+		return nil, err
+	}
+	var indices []string
+	for key, _ := range  replicationStats.IndexStats {
+		indices = append(indices, key)
+	}
+	return indices, nil
+}
+
+func (rm ReplicationManager) executeReplicationCheck(indexNames []string) error {
+	//TODO: should we execute replication health check here?
+	pathTemplate := "_plugins/_replication/%s/_status"
+	inProgressIndices := make(map[string]int)
+	var failedIndices []string
+	for _, index := range indexNames {
+		pattern := rm.pattern
+		if strings.HasPrefix(pattern, "*") {
+			pattern = fmt.Sprintf(".%s", pattern)
+		}
+		matched, err := regexp.MatchString(pattern, index)
+		if err != nil {
+			rm.logger.Error(err, fmt.Sprintf("Regular expression - [%s] is invalid", rm.pattern))
+			return err
+		}
+		if !matched {
+			continue
+		}
+		path := fmt.Sprintf(pathTemplate, index)
+		replicationIndexStats, err := rm.getReplicationIndexStats(path)
+		if err != nil {
+			rm.logger.Error(err, fmt.Sprintf("Can not get replication index stats for [%s] index", index))
+			return err
+		}
+		if replicationIndexStats.Status == "SYNCING" || replicationIndexStats.Status == "BOOTSTRAPPING" {
+			if replicationIndexStats.Details.LeaderCheckpoint != replicationIndexStats.Details.FollowerCheckpoint {
+				inProgressIndices[index] = replicationIndexStats.Details.LeaderCheckpoint
+			}
+		} else {
+			failedIndices = append(failedIndices, index)
+		}
+	}
+
+	if len(failedIndices) > 0 {
+		err := fmt.Errorf("some replication indicies are failed")
+		rm.logger.Error(err, fmt.Sprintf("Replication check is failed because there are failed replication indicies - [%v]", failedIndices))
+		return err
+	}
+
+	attempts := replicationAttemptsNumber
+	for attempts > 0 {
+		restProgressIndex, err := rm.updateInProgressIndices(inProgressIndices)
+		if err != nil {
+			rm.logger.Error(err, "Can not update list of in progress replication indices.")
+			return err
+		}
+		if len(restProgressIndex) == 0 {
+			rm.logger.Info("Replication check is done")
+			return nil
+		}
+		rm.logger.Info(fmt.Sprintf("The rest replicated indices in progress are [%v]", restProgressIndex))
+		attempts -= 1
+		time.Sleep(replicationCheckTimeout)
+	}
+	return fmt.Errorf("replication check was failed after 5 attempts")
+}
+
+func (rm ReplicationManager) getReplicationIndexStats(path string) (ReplicationIndexStats, error) {
+	_, body, err := rm.restClient.SendRequest(http.MethodGet, path, nil)
+	if err != nil {
+		fmt.Println("replication index stats error")
+		return ReplicationIndexStats{}, err
+	}
+	var replicationIndexStats ReplicationIndexStats
+	err = json.Unmarshal(body, &replicationIndexStats)
+	if err != nil {
+		fmt.Println("unmarshal error per index")
+		return ReplicationIndexStats{}, err
+	}
+	return replicationIndexStats, nil
+}
+
+func (rm ReplicationManager) updateInProgressIndices(inProgressIndices map[string]int) (map[string]int, error) {
+	pathTemplate := "_plugins/_replication/%s/_status"
+	restProgressIndex := make(map[string]int)
+	for index, leaderCheckpoint := range inProgressIndices {
+		path := fmt.Sprintf(pathTemplate, index)
+		replicationIndexStats, err := rm.getReplicationIndexStats(path)
+		if err != nil {
+			rm.logger.Error(err, fmt.Sprintf("can not get replication index ([%s]) statistic to update list of in progress indices", index))
+			return nil, err
+		}
+		if replicationIndexStats.Details.FollowerCheckpoint < leaderCheckpoint {
+			restProgressIndex[index] = leaderCheckpoint
+		}
+	}
+	return restProgressIndex, nil
+}
+
+func (rm ReplicationManager) stopIndicesReplication(indexNames []string) error {
+	stopIndexReplicationTemplate := "_plugins/_replication/%s/_stop"
+	for _, index := range indexNames {
+		statusCode, _, err :=
+			rm.restClient.SendRequest(http.MethodPost,
+				fmt.Sprintf(stopIndexReplicationTemplate, index),
+				strings.NewReader(`{}`))
+		if err != nil {
+			return err
+		}
+		if statusCode >= 500 {
+			return errors.New("internal server error")
+		}
+	}
+	//TODO: Check that Replication is stopped
+	time.Sleep(time.Second * 3)
+	return nil
+}
+
+func (rm ReplicationManager) DeleteIndices() error {
+	if rm.pattern != "*" {
+		if err := rm.DeleteIndicesByPattern(rm.pattern); err != nil {
+			return err
+		}
+		return nil
+	}
+	_, body, err := rm.restClient.SendRequest(http.MethodGet, "_cat/indices?h=index", nil)
+	if err != nil {
+		return err
+	}
+	var bodySlice []map[string]string
+	if err = json.Unmarshal(body, &bodySlice); err != nil {
+		return err
+	}
+	var indices []string
+	for _, indexMap := range bodySlice {
+		index := indexMap["index"]
+		if !strings.HasPrefix(index, ".") {
+			indices = append(indices, index)
+		}
+	}
+	for _, index := range indices {
+		if err = rm.DeleteIndicesByPattern(index); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (rm ReplicationManager) DeleteIndicesByPattern(pattern string) error {
+	statusCode, _, err := rm.restClient.SendRequest(http.MethodDelete, pattern, nil)
+	if err != nil {
+		return err
+	}
+	if statusCode == 403 {
+		rm.logger.Info(fmt.Sprintf("No permissions to delete Opensearch indicies by pattren - [%s]", pattern))
+		return errors.New("no permissions to delete opensearch indices by pattern")
+	}
+	if statusCode >= 500 {
+		return errors.New("internal server error")
+	}
+	return nil
+}
+
+func (rm ReplicationManager) DeleteAdminReplicationTask() error {
+	_, body, err := rm.restClient.SendRequest(http.MethodGet, "_tasks", nil)
+	if err != nil {
+		rm.logger.Error(err, "admin replication task was not deleted")
+		return err
+	}
+	var nodes NodesInfo
+	err = json.Unmarshal(body, &nodes)
+	if err != nil {
+		rm.logger.Error(err, "admin replication task was not deleted")
+		return err
+	}
+	var tasksToDelete []string
+	for _, tasks := range nodes.Nodes {
+		for taskId, innerTask := range tasks.Tasks {
+			if innerTask.Action == "cluster:indices/admin/replication[c]" {
+				tasksToDelete = append(tasksToDelete, taskId)
+			}
+		}
+	}
+
+	rm.logger.Info(fmt.Sprintf("admin replication tasks are found - [%v]", tasksToDelete))
+	for _, task := range tasksToDelete {
+		path := fmt.Sprintf("_tasks/%s/_cancel", task)
+		_, _, err := rm.restClient.SendRequest(http.MethodPost, path, nil)
+		if err != nil {
+			rm.logger.Error(err, "admin replication task was not deleted")
+			return err
+		}
+	}
+	rm.logger.Info("admin replication tasks were deleted")
+	return nil
+}
+
+func (rm ReplicationManager) AutofollowTaskExists() bool {
+	_, body, err := rm.restClient.SendRequest(http.MethodGet, "_plugins/_replication/autofollow_stats", nil)
+	if err != nil {
+		rm.logger.Error(err, "can not read autofollow statistic")
+		return false
+	}
+	var stats AutofollowStats
+	err = json.Unmarshal(body, &stats)
+	if err != nil {
+		rm.logger.Error(err, "can not unmarshal autofollow statistic")
+		return false
+	}
+	for _, rule := range stats.AutofollowRuleStats {
+		if rule.Name == replicationName {
+			return true
+		}
+	}
+	rm.logger.Info("can not find existed DR replication rule")
+	return false
 }

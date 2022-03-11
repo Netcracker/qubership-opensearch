@@ -509,6 +509,45 @@ Find an OpenSearch integration tests image in various places.
 {{- end -}}
 
 {{/*
+Find an Opensearch disaster recovery service operator image in various places.
+Image can be found from:
+* SaaS/App deployer (or groovy.deploy.v3) from .Values.disasterRecoveryImage
+* DP.Deployer from .Values.deployDescriptor.disasterRecoveryImage.image
+* or from default values .Values.global.disasterRecovery.image
+*/}}
+{{- define "disasterRecovery.image" -}}
+  {{- if .Values.deployDescriptor -}}
+    {{- if .Values.disasterRecoveryImage -}}
+      {{- printf "%s" .Values.disasterRecoveryImage -}}
+    {{- else -}}
+      {{- printf "%s" (index .Values.deployDescriptor.disasterRecoveryImage.image) -}}
+    {{- end -}}
+  {{- else -}}
+    {{- printf "%s" .Values.global.disasterRecovery.image -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Configure Open Distro Elasticsearch statefulset and deployment names in disaster recovery health check format.
+*/}}
+{{- define "opensearch.statefulsetNames" -}}
+    {{- $lst := list }}
+    {{- if .Values.opensearch.arbiter.enabled }}
+        {{- $lst = append $lst (printf "%s %s-%s" "statefulset" (include "opensearch.fullname" . ) "arbiter") }}
+    {{- end }}
+    {{ if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled }}
+        {{- $lst = append $lst (printf "%s %s-%s" "statefulset" (include "opensearch.fullname" . ) "data") }}
+    {{- end }}
+    {{- if .Values.opensearch.master.enabled }}
+        {{- $lst = append $lst (printf "%s %s" "statefulset" (include "master-nodes" . )) }}
+    {{- end }}
+    {{- if and .Values.opensearch.client.enabled .Values.opensearch.client.dedicatedPod.enabled }}
+        {{- $lst = append $lst (printf "%s %s-%s" "deployment" (include "opensearch.fullname" . ) "client") }}
+    {{- end }}
+    {{- join "," $lst }}
+{{- end -}}
+
+{{/*
 Find a Deployment Status Provisioner image in various places.
 */}}
 {{- define "deployment-status-provisioner.image" -}}

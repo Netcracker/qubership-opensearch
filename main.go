@@ -23,6 +23,12 @@ import (
 	//+kubebuilder:scaffold:imports
 )
 
+const (
+	opensearchNameEnvVar     = "OPENSEARCH_NAME"
+	opensearchUsrnameEnvVar  = "OPENSEARCH_USERNAME"
+	opensearchPasswordEnvVar = "OPENSEARCH_PASSWORD"
+)
+
 var (
 	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
@@ -92,9 +98,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	opensearchName := os.Getenv(opensearchNameEnvVar)
+	if opensearchName == "" {
+		setupLog.Error(fmt.Errorf("%s must be set", opensearchName), "The operator can't work with Opensearch because Opensearch name is not given")
+		os.Exit(1)
+	}
+	opensearchUsername := os.Getenv(opensearchUsrnameEnvVar)
+	opensearchPassword := os.Getenv(opensearchPasswordEnvVar)
+	replicationChecker := disasterrecovery.NewReplicationChecker(opensearchName, opensearchUsername, opensearchPassword)
+
 	setupLog.Info("Starting disaster recovery REST server.")
 	go func() {
-		if err = disasterrecovery.StartServer(mgr.GetClient()); err != nil {
+		if err = disasterrecovery.StartServer(replicationChecker); err != nil {
 			setupLog.Error(err, "Disaster recovery REST server cannot be created because of error")
 			os.Exit(1)
 		}

@@ -21,7 +21,7 @@ func NewRestClient(url string, httpClient http.Client, credentials []string) *Re
 	}
 }
 
-func (rc RestClient) sendRequest(method string, path string, body io.Reader) (statusCode int, responseBody []byte, err error) {
+func (rc RestClient) SendRequest(method string, path string, body io.Reader) (statusCode int, responseBody []byte, err error) {
 	requestUrl := fmt.Sprintf("%s/%s", rc.url, path)
 	request, err := http.NewRequest(method, requestUrl, body)
 	if err != nil {
