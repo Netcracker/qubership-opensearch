@@ -254,6 +254,21 @@ Where:
   * `<OPENSEARCH_NAME>` is the fullname of OpenSearch. For example, `opensearch`.
   * `<NAMESPACE>` is the OpenShift/Kubernetes project/namespace of the OpenSearch cluster side. For example, `opensearch-service`.
 
+All OpenSearch disaster recovery REST server endpoints can be secured via Kubernetes JWT Service Account Tokens. To enable disaster recovery REST server authentication the `global.disasterRecovery.httpAuth.enabled` deployment parameter must be `true`.
+The example for secured `sitemanager` GET endpoint is following:
+
+```
+curl -XGET -H "Authorization: Bearer <TOKEN>" <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/sitemanager
+```
+
+The example for secured `sitemanager` POST endpoint is following:
+
+```
+curl -XPOST -H "Content-Type: application/json, Authorization: Bearer <TOKEN>" <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/sitemanager
+```
+
+Where `TOKEN` is Site Manager Kubernetes JWT Service Account Token. The verification service account name and namespace are specified in `global.disasterRecovery.httpAuth.smServiceAccountName` and `global.disasterRecovery.httpAuth.smNamespace` deploy parameters.
+
 For more information about OpenSearch disaster recovery REST server API, see [REST API](#rest-api).
 
 # REST API
@@ -269,6 +284,15 @@ OpenSearch disaster recovery REST server provides three methods of interaction:
   Where:
     * `<OPENSEARCH_NAME>` is the fullname of OpenSearch. For example, `opensearch`.
     * `<NAMESPACE>` is the OpenShift/Kubernetes project/namespace of the OpenSearch cluster side. For example, `opensearch-service`.
+  
+  All OpenSearch disaster recovery REST server endpoints can be secured via Kubernetes JWT Service Account Tokens. To enable disaster recovery REST server authentication the `global.disasterRecovery.httpAuth.enabled` deployment parameter must be `true`.
+  The example for secured `healthz` endpoint is following:
+
+  ```
+  curl -XGET -H "Authorization: Bearer <TOKEN>" <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/healthz
+  ```
+
+  Where `TOKEN` is Site Manager Kubernetes JWT Service Account Token. The verification service account name and namespace are specified in `global.disasterRecovery.httpAuth.smServiceAccountName` and `global.disasterRecovery.httpAuth.smNamespace` deploy parameters.
 
   The response to such a request is as follows:
 
@@ -292,6 +316,15 @@ OpenSearch disaster recovery REST server provides three methods of interaction:
   Where:
     * `<OPENSEARCH_NAME>` is the fullname of OpenSearch. For example, `opensearch`.
     * `<NAMESPACE>` is the OpenShift/Kubernetes project/namespace of the OpenSearch cluster side. For example, `opensearch-service`.
+  
+  All OpenSearch disaster recovery REST server endpoints can be secured via Kubernetes JWT Service Account Tokens. To enable disaster recovery REST server authentication the `global.disasterRecovery.httpAuth.enabled` deployment parameter must be `true`.
+  The example for secured `sitemanager` GET endpoint is following:
+
+  ```
+  curl -XGET -H "Authorization: Bearer <TOKEN>" <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/sitemanager
+  ```
+
+  Where `TOKEN` is Site Manager Kubernetes JWT Service Account Token. The verification service account name and namespace are specified in `global.disasterRecovery.httpAuth.smServiceAccountName` and `global.disasterRecovery.httpAuth.smNamespace` deploy parameters.
 
   The response to such a request is as follows:
 
@@ -325,6 +358,15 @@ OpenSearch disaster recovery REST server provides three methods of interaction:
         * `disabled` - OpenSearch does not accept external requests from clients and replication from `active` OpenSearch is disabled.
 
   The response to such a request is as follows:
+
+  All OpenSearch disaster recovery REST server endpoints can be secured via Kubernetes JWT Service Account Tokens. To enable disaster recovery REST server authentication the `global.disasterRecovery.httpAuth.enabled` deployment parameter must be `true`.
+  The example for secured `sitemanager` POST endpoint is following:
+
+  ```
+  curl -XPOST -H "Content-Type: application/json, Authorization: Bearer <TOKEN>" <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/sitemanager
+  ```
+
+  Where `TOKEN` is Site Manager Kubernetes JWT Service Account Token. The verification service account name and namespace are specified in `global.disasterRecovery.httpAuth.smServiceAccountName` and `global.disasterRecovery.httpAuth.smNamespace` deploy parameters.
 
   ```json
   {"mode":"standby"}
