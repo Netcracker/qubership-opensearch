@@ -114,49 +114,52 @@ cloud:
 integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: v.0.0.2
     docker-image-id: timestamp
     deploy-param: opensearchOperator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/disaster-recovery-daemon
-    location: master
+    location: 0.0.2
     docker-image-id: timestamp
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: v.0.0.2
     prefix: integration-tests
     docker-image-id: timestamp
     deploy-param: opensearchIntegrationTests
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-opensearch
-    location: master
+    location: 0.0.1
     docker-image-id: timestamp
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/elasticsearch-telegraf
-    location: master
+    location: v.6.8.23-1.6
     docker-image-id: timestamp
     deploy-param: opensearchMonitoring
-  - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.ElasticStack/dbaas_elasticsearch
-    location: master
-    docker-image-id: timestamp
+  # - type: find-latest-deployment-descriptor
+  #   repo: PROD.Platform.ElasticStack/dbaas_elasticsearch
+  #   location: master
+  #   docker-image-id: timestamp
+  #   deploy-param: opensearchDbaasAdapter
+  - type: image
+    docker-image: artifactorycn.netcracker.com:17014/product/prod.platform.elasticstack_dbaas_elasticsearch:1.0.20_20220311-034017
     deploy-param: opensearchDbaasAdapter
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: master
+    location: v.6.8.23-0.25
     docker-image-id: timestamp
     deploy-param: opensearchCurator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: master
+    location: v.6.8.23-0.25
     prefix: elasticsearch_indices_cleaner
     docker-image-id: timestamp
     deploy-param: opensearchIndicesCleaner
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/deployment-status-provisioner
-    location: master
+    location: v.0.0.5
     docker-image-id: timestamp
     deploy-param: deploymentStatusProvisioner
 
@@ -172,7 +175,7 @@ integration:
 
   - type: scripts
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: v.0.0.2
     alias: timestamp
     zip-name: migration-artifacts.zip
     name: migration-artifacts
