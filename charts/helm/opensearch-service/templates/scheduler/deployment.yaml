@@ -17,6 +17,12 @@ spec:
   template:
     metadata:
       labels:
+{{- with .Values.global.customLabels }}
+  {{- toYaml . | nindent 8 -}}
+{{- end }}
+{{- with .Values.podScheduler.customLabels }}
+  {{- toYaml . | nindent 8 -}}
+{{- end }}
         component: opensearch-pod-scheduler
         name: {{ template "opensearch.fullname" . }}-pod-scheduler
     spec:

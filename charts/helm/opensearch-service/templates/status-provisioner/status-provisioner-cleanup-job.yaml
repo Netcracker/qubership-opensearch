@@ -13,6 +13,12 @@ spec:
     metadata:
       name: {{ template "opensearch.fullname" . }}-status-provisioner-cleanup
       labels:
+{{- with .Values.global.customLabels }}
+  {{- toYaml . | nindent 8 -}}
+{{- end }}
+{{- with .Values.statusProvisioner.customLabels }}
+  {{- toYaml . | nindent 8 -}}
+{{- end }}
         component: status-provisioner-cleanup
 {{ include "opensearch.labels.standard" . | nindent 8 }}
     spec:

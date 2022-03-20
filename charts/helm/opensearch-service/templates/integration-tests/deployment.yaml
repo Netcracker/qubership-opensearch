@@ -13,6 +13,12 @@ spec:
   template:
     metadata:
       labels:
+{{- with .Values.global.customLabels }}
+  {{- toYaml . | nindent 8 -}}
+{{- end }}
+{{- with .Values.integrationTests.customLabels }}
+  {{- toYaml . | nindent 8 -}}
+{{- end }}
         name: {{ template "opensearch.fullname" . }}-integration-tests
     spec:
       serviceAccountName: {{ template "opensearch.fullname" . }}-integration-tests
