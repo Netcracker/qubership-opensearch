@@ -170,6 +170,7 @@ global:
       requests:
         cpu: "10m"
         memory: "10Mi"
+  customLabels: {}
 
 operator:
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest
@@ -190,6 +191,7 @@ operator:
 #                values:
 #                  - opensearch-service-operator
 #          topologyKey: "kubernetes.io/hostname"
+  customLabels: {}
 
 opensearch:
   ## Used when deploying hot/warm architecture. Allows second aliased deployment to find cluster.
@@ -364,6 +366,7 @@ opensearch:
 #      - name: do-something
 #        image: busybox
 #        command: ['do', 'something']
+    customLabels: {}
 
   arbiter:
     enabled: false
@@ -443,6 +446,7 @@ opensearch:
 #      - name: do-something
 #        image: busybox
 #        command: ['do', 'something']
+    customLabels: {}
 
   data:
     enabled: true
@@ -520,6 +524,7 @@ opensearch:
                 matchLabels:
                   role: data
     podAnnotations: {}
+    customLabels: {}
 
   client:
     enabled: true
@@ -594,6 +599,7 @@ opensearch:
                 matchLabels:
                   role: client
     podAnnotations: {}
+    customLabels: {}
 
   snapshots:
     enabled: false
@@ -611,6 +617,7 @@ opensearch:
       keySecret: ""
       basePath: ""
       region: ""
+    customLabels: {}
 
   config:
     ## Example Config
@@ -729,6 +736,7 @@ podScheduler:
       memory: 128Mi
   securityContext: {}
 #    runAsUser: 1000
+  customLabels: {}
 
 monitoring:
   enabled: true
@@ -786,6 +794,7 @@ monitoring:
     runAsUser: 1000
 
   monitoringCoreosGroup: false
+  customLabels: {}
 
 dbaasAdapter:
   enabled: false
@@ -853,6 +862,7 @@ dbaasAdapter:
 
   securityContext: {}
 #    runAsUser: 1000
+  customLabels: {}
 
 curator:
   enabled: false
@@ -915,6 +925,7 @@ curator:
   securityContext: {}
 #    runAsUser: 1000
 #    fsGroup: 1000
+  customLabels: {}
 
 statusProvisioner:
   enabled: true
@@ -929,6 +940,7 @@ statusProvisioner:
     limits:
       memory: "100Mi"
       cpu: "100m"
+  customLabels: {}
 
 integrationTests:
   enabled: false
@@ -968,6 +980,7 @@ integrationTests:
 #                    - opensearch
 #            topologyKey: "kubernetes.io/hostname"
 #          weight: 100
+  customLabels: {}
 
 nameOverride: "opensearch"
 fullnameOverride: "opensearch"
