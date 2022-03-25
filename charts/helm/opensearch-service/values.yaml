@@ -796,9 +796,10 @@ monitoring:
   monitoringCoreosGroup: false
   customLabels: {}
 
+# DBaaS adapter based on OpenSearch client
 dbaasAdapter:
   enabled: false
-  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_dbaas_elasticsearch:master_latest
+  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_dbaas-opensearch-adapter:master_latest
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
@@ -862,6 +863,76 @@ dbaasAdapter:
 
   securityContext: {}
 #    runAsUser: 1000
+  customLabels: {}
+
+# DBaaS adapter based on Elasticsearch client
+elasticsearchDbaasAdapter:
+  enabled: false
+  name: "dbaas-elasticsearch-adapter"
+  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_dbaas_elasticsearch:master_latest
+  ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
+  ## Default to "Always".
+  imagePullPolicy: ""
+
+  dbaasAdapterAddress: ""
+  dbaasUsername: ""
+  dbaasPassword: ""
+
+  dbaasAggregatorRegistrationAddress: ""
+  dbaasAggregatorPhysicalDatabaseIdentifier: ""
+  registrationAuthUsername: ""
+  registrationAuthPassword: ""
+
+  opensearchHost:
+  opensearchPort: 9200
+  opensearchProtocol:
+  opensearchRepo: "snapshots"
+  opensearchRepoRoot: "/usr/share/opensearch"
+  opensearchClusterVersion: ""
+  netcrackerOpensearchClusterVersion: ""
+
+  resources:
+    requests:
+      memory: 32Mi
+      cpu: 200m
+    limits:
+      memory: 32Mi
+      cpu: 200m
+
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  #
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+
+  affinity: {}
+  #    podAffinity:
+  #      preferredDuringSchedulingIgnoredDuringExecution:
+  #        - podAffinityTerm:
+  #            labelSelector:
+  #              matchExpressions:
+  #                - key: component
+  #                  operator: In
+  #                  values:
+  #                    - opensearch
+  #            topologyKey: "kubernetes.io/hostname"
+  #          weight: 100
+  #    podAntiAffinity:
+  #      requiredDuringSchedulingIgnoredDuringExecution:
+  #        - labelSelector:
+  #            matchExpressions:
+  #              - key: component
+  #                operator: In
+  #                values:
+  #                  - dbaas-opensearch-adapter
+  #          topologyKey: "kubernetes.io/hostname"
+
+  securityContext: {}
+  #    runAsUser: 1000
   customLabels: {}
 
 curator:

@@ -82,6 +82,8 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.service.name }}-secret
                   key: idp-password
+            - name: DBAAS_ADAPTER_TYPE
+              value: {{ .Values.integrationTests.dbaasAdapterType | default "opensearch" }}
             - name: OPENSEARCH_DBAAS_ADAPTER_HOST
               value: {{ .Values.integrationTests.opensearchDbaasAdapterHost | default "dbaas-opensearch-adapter" }}
             - name: OPENSEARCH_DBAAS_ADAPTER_PORT

@@ -4,6 +4,6 @@
     "resourceName": "${ CUSTOM_RESOURCE_NAME ? CUSTOM_RESOURCE_NAME : 'opensearch' }-status-provisioner",
     "statusPath": "$.status.conditions[?(@.type=='Successful')]",
     "statusPathFail": "$.status.conditions[?(@.type=='Failed')]",
-    "timeout": "${ CUSTOM_TIMEOUT_MIN ? CUSTOM_TIMEOUT_MIN : '10' }"
+    "timeout": "${ CUSTOM_TIMEOUT_MIN ? CUSTOM_TIMEOUT_MIN : '20' }"
   }
 }

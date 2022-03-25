@@ -68,6 +68,15 @@ spec:
                     - configMapName
                     - mode
                   type: object
+                elasticsearchDbaasAdapter:
+                  properties:
+                    name:
+                      type: string
+                    secretName:
+                      type: string
+                  required:
+                    - name
+                  type: object
                 monitoring:
                   properties:
                     name:

@@ -78,6 +78,8 @@ The default value is `opensearch`.
 The `integrationTests.identityProviderUrl` parameter specifies the URL of Identity Provider.
 This parameter must be specified if you want to run integration tests with `authentication` tag.
 
+The `integrationTests.dbaasAdapterType` parameter specifies the type of DBaaS adapter that is used in OpenSearch service installation. The possible values are `opensearch` and `elasticsearch`. The default value is `opensearch`.
+
 The `integrationTests.opensearchDbaasAdapterHost` parameter specifies the host name of DBaaS OpenSearch adapter.
 The default value is `dbaas-opensearch-adapter`.
 

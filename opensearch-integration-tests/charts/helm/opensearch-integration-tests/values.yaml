@@ -23,6 +23,7 @@ integrationTests:
   opensearchPort: 9200
   opensearchMasterNodesName: "opensearch"
   identityProviderUrl: ""
+  dbaasAdapterType: "opensearch"
   opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"
   opensearchDbaasAdapterPort: 8080
   opensearchDbaasAdapterRepository: "snapshots"

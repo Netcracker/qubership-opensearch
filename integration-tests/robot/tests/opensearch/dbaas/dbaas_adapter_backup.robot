@@ -1,4 +1,5 @@
 *** Variables ***
+${DBAAS_ADAPTER_TYPE}                    %{DBAAS_ADAPTER_TYPE}
 ${OPENSEARCH_DBAAS_ADAPTER_HOST}         %{OPENSEARCH_DBAAS_ADAPTER_HOST}
 ${OPENSEARCH_DBAAS_ADAPTER_PORT}         %{OPENSEARCH_DBAAS_ADAPTER_PORT}
 ${OPENSEARCH_DBAAS_ADAPTER_USERNAME}     %{OPENSEARCH_DBAAS_ADAPTER_USERNAME}
@@ -30,17 +31,19 @@ Generate Name
 Create Index By Dbaas Agent
     [Arguments]  ${prefix}  ${db_name}
     ${data}=  Set Variable  {"dbName":"${db_name}","metadata":{},"settings":{"index":{"number_of_shards":3,"number_of_replicas":1}},"namePrefix":"${prefix}","username":"nadmin","password":"admin"}
-    ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/elasticsearch/databases  data=${data}  headers=${headers}
+    ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  201
+    ${content}=  Convert Json ${response.content} To Type
+    [Return]  ${content['resources']}
 
 Delete Index By Dbaas Agent
     [Arguments]  ${data}
-    ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/elasticsearch/resources/bulk-drop  data=${data}  headers=${headers}
+    ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/resources/bulk-drop  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
 
 Create Backup By Dbaas Agent
     [Arguments]  ${indices_list}
-    ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/elasticsearch/backups/collect  data=${indices_list}  headers=${headers}
+    ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/collect  data=${indices_list}  headers=${headers}
     ${content}=  Convert Json ${response.content} To Type
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${content['trackId']}
@@ -48,12 +51,12 @@ Create Backup By Dbaas Agent
 
 Delete Backup By Dbaas Agent
     [Arguments]  ${backup_id}
-    ${response}=  Delete Request  dbaassession  /api/v1/dbaas/adapter/elasticsearch/backups/${backup_id}  headers=${headers}
+    ${response}=  Delete Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
 
 Restore Indices From Backup By Dbaas Agent
     [Arguments]  ${backup_id}  ${indices_list}
-    ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/elasticsearch/backups/${backup_id}/restore  data=${indices_list}  headers=${headers}
+    ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}/restore  data=${indices_list}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
@@ -61,12 +64,12 @@ Restore Indices From Backup By Dbaas Agent
 
 Check Backup Status
     [Arguments]  ${backup_id}
-    ${restore_status}=  Get Request  dbaassession  /api/v1/dbaas/adapter/elasticsearch/backups/track/backup/${backup_id}
+    ${restore_status}=  Get Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/track/backup/${backup_id}
     Should Contain  str(${restore_status.content})  SUCCESS
 
 Check Restore Status
     [Arguments]  ${backup_id}
-    ${restore_status}=  Get Request  dbaassession  /api/v1/dbaas/adapter/elasticsearch/backups/track/restore/${backup_id}
+    ${restore_status}=  Get Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/track/restore/${backup_id}
     Should Contain  str(${restore_status.content})  SUCCESS
 
 Create OpenSearch Backup
@@ -116,10 +119,12 @@ Create Index By Dbaas Adapter
 
 Delete Index By Dbaas Adapter
     [Tags]  dbaas  dbaas_opensearch  dbaas_delete_index
-    ${index_name}=  Generate Name  dbaas-index
-    Create OpenSearch Index  ${index_name}
+    ${prefix}=  Generate Random String  5  [LOWER]
+    ${db_name}=  Set Variable  dbaas-index
+    ${index_name}=  Catenate  SEPARATOR=-  ${prefix}  ${db_name}
+    ${resources}=  Create Index By Dbaas Agent  ${prefix}  ${db_name}
     Check OpenSearch Index Exists  ${index_name}
-    Delete Index By Dbaas Agent  [{"kind": "index", "name":"${index_name}"}]
+    Delete Index By Dbaas Agent  ${resources}
     Check OpenSearch Index Does Not Exist  ${index_name}
     [Teardown]  Delete OpenSearch Index  ${index_name}
 

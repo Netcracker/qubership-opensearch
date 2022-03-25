@@ -31,6 +31,6 @@ spec:
       name: {{ .Values.dashboards.service.httpPortName | default "http" }}
       targetPort: {{ .Values.dashboards.service.port }}
   selector:
-    name: {{ template "opensearch.fullname" . }}-dashboards
+    role: dashboards
     release: {{ .Release.Name | quote }}
 {{- end }}
