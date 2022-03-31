@@ -47,6 +47,12 @@ type DbaasAdapter struct {
 	SecretName string `json:"secretName"`
 }
 
+// ElasticsearchDbaasAdapter structure defines parameters necessary for interaction with DBaaS Elasticsearch adapter
+type ElasticsearchDbaasAdapter struct {
+	Name       string `json:"name"`
+	SecretName string `json:"secretName,omitempty"`
+}
+
 // Curator structure defines parameters necessary for interaction with OpenSearch Curator
 type Curator struct {
 	Name       string `json:"name"`
@@ -63,12 +69,13 @@ type DisasterRecovery struct {
 // OpenSearchServiceSpec defines the desired state of OpenSearchService
 type OpenSearchServiceSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
-	OpenSearch       *OpenSearch       `json:"opensearch,omitempty"`
-	Dashboards       *Dashboards       `json:"dashboards,omitempty"`
-	Monitoring       *Monitoring       `json:"monitoring,omitempty"`
-	DbaasAdapter     *DbaasAdapter     `json:"dbaasAdapter,omitempty"`
-	Curator          *Curator          `json:"curator,omitempty"`
-	DisasterRecovery *DisasterRecovery `json:"disasterRecovery,omitempty"`
+	OpenSearch                *OpenSearch                `json:"opensearch,omitempty"`
+	Dashboards                *Dashboards                `json:"dashboards,omitempty"`
+	Monitoring                *Monitoring                `json:"monitoring,omitempty"`
+	DbaasAdapter              *DbaasAdapter              `json:"dbaasAdapter,omitempty"`
+	ElasticsearchDbaasAdapter *ElasticsearchDbaasAdapter `json:"elasticsearchDbaasAdapter,omitempty"`
+	Curator                   *Curator                   `json:"curator,omitempty"`
+	DisasterRecovery          *DisasterRecovery          `json:"disasterRecovery,omitempty"`
 }
 
 type DisasterRecoveryStatus struct {

@@ -25,6 +25,12 @@ deployment:
   values:
     dashboards:
       enabled: true
+      ingress:
+        enabled: true
+        hosts:
+          - host: dashboards-opensearch-service.ci-master.openshift.sdntest.netcracker.com
+            paths:
+              - path: /
 
     opensearch:
       securityConfig:
@@ -139,10 +145,15 @@ integration:
     docker-image-id: timestamp
     deploy-param: opensearchMonitoring
   - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.ElasticStack/dbaas_elasticsearch
+    repo: PROD.Platform.ElasticStack/dbaas-opensearch-adapter
     location: master
     docker-image-id: timestamp
     deploy-param: opensearchDbaasAdapter
+  - type: find-latest-deployment-descriptor
+    repo: PROD.Platform.ElasticStack/dbaas_elasticsearch
+    location: master
+    docker-image-id: timestamp
+    deploy-param: elasticsearchDbaasAdapterImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
     location: master

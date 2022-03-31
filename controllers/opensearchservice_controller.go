@@ -111,6 +111,9 @@ func (r *OpenSearchServiceReconciler) buildReconcilers(cr *opensearchservice.Ope
 	if cr.Spec.DbaasAdapter != nil {
 		reconcilers = append(reconcilers, NewDbaasAdapterReconciler(r, cr, logger))
 	}
+	if cr.Spec.ElasticsearchDbaasAdapter != nil {
+		reconcilers = append(reconcilers, NewElasticsearchDbaasAdapterReconciler(r, cr, logger))
+	}
 	if cr.Spec.Curator != nil {
 		reconcilers = append(reconcilers, NewCuratorReconciler(r, cr, logger))
 	}

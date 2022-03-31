@@ -1,0 +1,130 @@
+{{- if .Values.elasticsearchDbaasAdapter.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    name: {{ .Values.elasticsearchDbaasAdapter.name }}
+    component: dbaas-elasticsearch-adapter
+  name: {{ .Values.elasticsearchDbaasAdapter.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+{{ include "opensearch.labels.selector" . | indent 6 }}
+      name: {{ .Values.elasticsearchDbaasAdapter.name }}
+      component: dbaas-elasticsearch-adapter
+  template:
+    metadata:
+      labels:
+{{- with .Values.global.customLabels }}
+  {{- toYaml . | nindent 8 -}}
+{{- end }}
+{{- with .Values.dbaasAdapter.customLabels }}
+  {{- toYaml . | nindent 8 -}}
+{{- end }}
+{{ include "opensearch.labels.standard" . | indent 8 }}
+        name: {{ .Values.elasticsearchDbaasAdapter.name }}
+        component: dbaas-elasticsearch-adapter
+    spec:
+      containers:
+        - env:
+            - name: DBAAS_ADAPTER_ADDRESS
+              value: {{ .Values.elasticsearchDbaasAdapter.dbaasAdapterAddress | default (printf "http://%s.%s:8080" .Values.elasticsearchDbaasAdapter.name .Release.Namespace) }}
+            - name: DBAAS_ADAPTER_API_USER
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ .Values.elasticsearchDbaasAdapter.name }}-secret
+            - name: DBAAS_ADAPTER_API_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ .Values.elasticsearchDbaasAdapter.name }}-secret
+            - name: DBAAS_AGGREGATOR_REGISTRATION_ADDRESS
+              value: {{ .Values.elasticsearchDbaasAdapter.dbaasAggregatorRegistrationAddress | default "http://dbaas-aggregator.dbaas:8080" }}
+            - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER
+              value: {{ .Values.elasticsearchDbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
+            - name: DBAAS_AGGREGATOR_REGISTRATION_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: registration-auth-username
+                  name: {{ .Values.elasticsearchDbaasAdapter.name }}-secret
+            - name: DBAAS_AGGREGATOR_REGISTRATION_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: registration-auth-password
+                  name: {{ .Values.elasticsearchDbaasAdapter.name }}-secret
+            - name: ELASTIC_HOST
+              value: {{ .Values.elasticsearchDbaasAdapter.opensearchHost | default (include "opensearch.fullname" .) }}
+            - name: ELASTIC_PORT
+              value: "{{ .Values.dbaasAdapter.opensearchPort | default 9200 }}"
+            - name: ELASTIC_PROTO
+              value: {{ .Values.elasticsearchDbaasAdapter.opensearchProtocol | default "http" }}
+            - name: ELASTIC_REPO
+              value: {{ .Values.elasticsearchDbaasAdapter.opensearchRepo | default "snapshots" }}
+            - name: ELASTIC_REPO_ROOT
+              value: {{ .Values.elasticsearchDbaasAdapter.opensearchRepoRoot | default "/usr/share/opensearch" }}
+            - name: ELASTIC_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ template "opensearch.fullname" . }}-secret
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ template "opensearch.fullname" . }}-secret
+            - name: LABELS_FILE_LOCATION_NAME
+              value: "dbaas.physical_databases.registration.labels.json"
+            - name: LABELS_FILE_LOCATION_DIR
+              value: "/app/config/"
+          image: {{ template "elasticsearch-dbaas-adapter.image" . }}
+          imagePullPolicy: {{ .Values.elasticsearchDbaasAdapter.imagePullPolicy | default "Always" | quote }}
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: "/health"
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          resources:
+{{ toYaml .Values.elasticsearchDbaasAdapter.resources | indent 12 }}
+          name: {{ .Values.elasticsearchDbaasAdapter.name }}
+          volumeMounts:
+            - mountPath: "/app/config/"
+              name: dbaas-adapter-configs
+          ports:
+            - protocol: TCP
+              containerPort: 8080
+      volumes:
+        - name: dbaas-adapter-configs
+          configMap:
+            name: {{ .Values.elasticsearchDbaasAdapter.name }}-configs
+    {{- with .Values.elasticsearchDbaasAdapter.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.elasticsearchDbaasAdapter.securityContext }}
+      securityContext:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.elasticsearchDbaasAdapter.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.elasticsearchDbaasAdapter.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+{{ end }}

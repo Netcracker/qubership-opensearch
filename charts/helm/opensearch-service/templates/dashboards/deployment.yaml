@@ -17,6 +17,9 @@ spec:
   template:
     metadata:
       labels:
+        {{- with .Values.global.customLabels }}
+        {{- toYaml . | nindent 8 -}}
+        {{- end }}
 {{ include "opensearch.labels.standard" . | indent 8 }}
         role: dashboards
         {{- range $key, $value := .Values.dashboards.labels }}

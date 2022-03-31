@@ -445,6 +445,21 @@ Find a DBaaS OpenSearch adapter image in various places.
 {{- end -}}
 
 {{/*
+Find a DBaaS Elasticsearch adapter image in various places.
+*/}}
+{{- define "elasticsearch-dbaas-adapter.image" -}}
+  {{- if .Values.deployDescriptor -}}
+    {{- if .Values.elasticsearchDbaasAdapterImage -}}
+      {{- printf "%s" .Values.elasticsearchDbaasAdapterImage -}}
+    {{- else -}}
+      {{- printf "%s" (index .Values.deployDescriptor.elasticsearchDbaasAdapterImage.image) -}}
+    {{- end -}}
+  {{- else -}}
+    {{- printf "%s" .Values.elasticsearchDbaasAdapter.dockerImage -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
 Find an OpenSearch curator image in various places.
 */}}
 {{- define "curator.image" -}}
