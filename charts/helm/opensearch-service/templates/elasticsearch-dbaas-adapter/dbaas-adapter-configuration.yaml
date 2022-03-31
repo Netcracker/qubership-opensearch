@@ -1,0 +1,18 @@
+{{- if .Values.elasticsearchDbaasAdapter.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    name: {{ .Values.elasticsearchDbaasAdapter.name }}
+    component: dbaas-elasticsearch-adapter
+  name: {{ .Values.elasticsearchDbaasAdapter.name }}-configs
+data:
+  {
+    "esClusterVersion": "{{ .Values.elasticsearchDbaasAdapter.opensearchClusterVersion }}",
+    "ncClusterVersion": "{{ .Values.elasticsearchDbaasAdapter.netcrackerOpensearchClusterVersion }}",
+    "nodes": "{{ include "opensearch.nodes.count" . }}",
+    "drMode": "{{ include "opensearch.enableDisasterRecovery" . }}",
+    "installationMode": "{{ if eq (include "joint-mode" .) "true" }}joint{{ else }}separate{{ end }}"
+  }
+{{- end }}

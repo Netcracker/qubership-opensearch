@@ -9,10 +9,10 @@ metadata:
   name: {{ template "dbaas-adapter.name" . }}-configs
 data:
   {
-    "esClusterVersion": "{{ .Values.dbaasAdapter.opensearchClusterVersion }}",
+    "osClusterVersion": "{{ .Values.dbaasAdapter.opensearchClusterVersion }}",
     "ncClusterVersion": "{{ .Values.dbaasAdapter.netcrackerOpensearchClusterVersion }}",
     "nodes": "{{ include "opensearch.nodes.count" . }}",
-    "drMode": "false",
+    "drMode": "{{ include "opensearch.enableDisasterRecovery" . }}",
     "installationMode": "{{ if eq (include "joint-mode" .) "true" }}joint{{ else }}separate{{ end }}"
   }
 {{- end }}

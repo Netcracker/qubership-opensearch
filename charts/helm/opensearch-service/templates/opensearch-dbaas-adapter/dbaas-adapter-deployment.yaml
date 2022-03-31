@@ -31,12 +31,12 @@ spec:
         - env:
             - name: DBAAS_ADAPTER_ADDRESS
               value: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (printf "http://%s.%s:8080" (include "dbaas-adapter.name" .) .Release.Namespace) }}
-            - name: DBAAS_ADAPTER_API_USER
+            - name: DBAAS_ADAPTER_USERNAME
               valueFrom:
                 secretKeyRef:
                   key: username
                   name: {{ template "dbaas-adapter.name" . }}-secret
-            - name: DBAAS_ADAPTER_API_PASSWORD
+            - name: DBAAS_ADAPTER_PASSWORD
               valueFrom:
                 secretKeyRef:
                   key: password
@@ -55,22 +55,22 @@ spec:
                 secretKeyRef:
                   key: registration-auth-password
                   name: {{ template "dbaas-adapter.name" . }}-secret
-            - name: ELASTIC_HOST
+            - name: OPENSEARCH_HOST
               value: {{ .Values.dbaasAdapter.opensearchHost | default (include "opensearch.fullname" .) }}
-            - name: ELASTIC_PORT
+            - name: OPENSEARCH_PORT
               value: "{{ .Values.dbaasAdapter.opensearchPort | default 9200 }}"
-            - name: ELASTIC_PROTO
+            - name: OPENSEARCH_PROTO
               value: {{ .Values.dbaasAdapter.opensearchProtocol | default "http" }}
-            - name: ELASTIC_REPO
+            - name: OPENSEARCH_REPO
               value: {{ .Values.dbaasAdapter.opensearchRepo | default "snapshots" }}
-            - name: ELASTIC_REPO_ROOT
+            - name: OPENSEARCH_REPO_ROOT
               value: {{ .Values.dbaasAdapter.opensearchRepoRoot | default "/usr/share/opensearch" }}
-            - name: ELASTIC_USERNAME
+            - name: OPENSEARCH_USERNAME
               valueFrom:
                 secretKeyRef:
                   key: username
                   name: {{ template "opensearch.fullname" . }}-secret
-            - name: ELASTIC_PASSWORD
+            - name: OPENSEARCH_PASSWORD
               valueFrom:
                 secretKeyRef:
                   key: password

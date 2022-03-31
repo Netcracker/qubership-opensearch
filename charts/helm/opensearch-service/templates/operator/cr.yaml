@@ -48,6 +48,11 @@ spec:
     name: {{ template "dbaas-adapter.name" . }}
     secretName: {{ template "dbaas-adapter.name" . }}-secret
   {{- end }}
+  {{- if .Values.elasticsearchDbaasAdapter.enabled }}
+  elasticsearchDbaasAdapter:
+    name: {{ .Values.elasticsearchDbaasAdapter.name }}
+    secretName: {{ .Values.elasticsearchDbaasAdapter.name }}-secret
+  {{- end }}
   {{- if .Values.curator.enabled }}
   curator:
     name: {{ template "opensearch.fullname" . }}-curator
