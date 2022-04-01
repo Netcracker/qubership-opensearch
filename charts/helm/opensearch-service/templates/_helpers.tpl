@@ -388,8 +388,8 @@ Calculates resources that should be monitored during deployment by Deployment St
     {{- if .Values.dbaasAdapter.enabled }}
     {{- printf "Deployment dbaas-%s-adapter, " (include "opensearch.fullname" .) -}}
     {{- end }}
-    {{- if .Values.dbaasAdapter.enabled }}
-    {{- printf "Deployment dbaas-%s-adapter, " (include "opensearch.fullname" .) -}}
+    {{- if .Values.elasticsearchDbaasAdapter.enabled }}
+    {{- printf "Deployment %s, " .Values.elasticsearchDbaasAdapter.name -}}
     {{- end }}
     {{ if not .Values.global.externalOpensearch.enabled }}
     {{- if eq (include "joint-mode" .) "true" }}

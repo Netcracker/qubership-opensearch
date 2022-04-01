@@ -623,7 +623,6 @@ opensearch:
       keySecret: ""
       basePath: ""
       region: ""
-    customLabels: {}
 
   config:
     ## Example Config
