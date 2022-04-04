@@ -65,12 +65,14 @@ func (r DisasterRecoveryReconciler) Configure() error {
 		if r.cr.Spec.DisasterRecovery.Mode == "standby" {
 			if r.cr.Status.DisasterRecoveryStatus.Mode != "active" {
 				r.logger.Info("Removing previous replication rule")
-				r.removePreviousReplication(replicationManager)
+				err = r.removePreviousReplication(replicationManager)
 			}
-			err = r.runReplicationProcess(replicationManager)
+			if err == nil {
+				err = r.runReplicationProcess(replicationManager)
+			}
 		}
 
-		if r.cr.Spec.DisasterRecovery.Mode == "active" {
+		if r.cr.Spec.DisasterRecovery.Mode == "active" || r.cr.Spec.DisasterRecovery.Mode == "disable" {
 			if checkNeeded {
 				indexNames, err := replicationManager.getReplicatedIndices()
 				if err != nil {
@@ -103,7 +105,7 @@ func (r DisasterRecoveryReconciler) Configure() error {
 
 	r.reconciler.ResourceHashes[drConfigHashName] = drConfigHash
 
-	return nil
+	return err
 }
 
 // updateDisasterRecoveryStatus updates state of Disaster Recovery switchover
@@ -135,12 +137,12 @@ func (r DisasterRecoveryReconciler) removePreviousReplication(replicationManager
 
 func (r DisasterRecoveryReconciler) runReplicationProcess(replicationManager ReplicationManager) error {
 	if err := replicationManager.DeleteIndices(); err != nil {
-		r.logger.Error(err, "can not delete Opensearch indices by pattern during switchover process to `standby` state.")
+		r.logger.Error(err, "can not delete OpenSearch indices by pattern during switchover process to `standby` state.")
 		return err
 	}
 	time.Sleep(time.Second * 2)
 	if err := replicationManager.Configure(); err != nil {
-		r.logger.Error(err, "can not configure replication connection between DR Opensearch clusters.")
+		r.logger.Error(err, "can not configure replication connection between DR OpenSearch clusters.")
 		return err
 	}
 	if err := replicationManager.Start(); err != nil {
@@ -152,6 +154,10 @@ func (r DisasterRecoveryReconciler) runReplicationProcess(replicationManager Rep
 }
 
 func (r DisasterRecoveryReconciler) stopReplication(replicationManager ReplicationManager) error {
+	if !replicationManager.AutofollowTaskExists() {
+		r.logger.Info("Autofollow task does not exist. Replication was stopped.")
+		return nil
+	}
 	if err := replicationManager.RemoveReplicationRule(); err != nil {
 		r.logger.Error(err, "can not delete autofollow replication rule")
 		return err
