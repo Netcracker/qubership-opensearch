@@ -37,9 +37,9 @@ spec:
                 fieldRef:
                   fieldPath: "metadata.namespace"
             - name: ELASTICSEARCH_HOST
-              value: {{ .Values.monitoring.opensearchHost | default (include "opensearch.fullname" .) }}
+              value: {{ default (include "opensearch.fullname" .) (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-host" .) .Values.monitoring.opensearchHost) }}
             - name: ELASTICSEARCH_PORT
-              value: "{{ .Values.monitoring.opensearchPort | default 9200 }}"
+              value: "{{ default 9200 (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-port" .) .Values.monitoring.opensearchPort) }}"
             - name: ELASTICSEARCH_DBAAS_ADAPTER_HOST
               value: {{ .Values.monitoring.opensearchDbaasAdapterHost | default (include "dbaas-adapter.name" .) }}
             - name: ELASTICSEARCH_DBAAS_ADAPTER_PORT
@@ -51,7 +51,11 @@ spec:
             - name: ELASTICSEARCH_EXEC_PLUGIN_TIMEOUT
               value: {{ .Values.monitoring.opensearchExecPluginTimeout | default "15s" }}
             - name: ELASTICSEARCH_PROTOCOL
+              {{ if or .Values.global.externalOpensearch.enabled .Values.opensearch.ssl.rest.enabled }}
+              value: "https"
+              {{ else }}
               value: "http"
+              {{ end }}
           {{- if (eq .Values.monitoring.monitoringType "influxdb") }}
             - name: SM_DB_HOST
               value: {{ .Values.monitoring.smDbHost }}

@@ -1,3 +1,4 @@
+{{- if  not .Values.global.externalOpensearch.enabled }}
 {{- if and .Values.opensearch.client.enabled .Values.opensearch.client.dedicatedPod.enabled }}
 apiVersion: apps/v1
 kind: Deployment
@@ -194,5 +195,6 @@ spec:
             secretName: {{ template "opensearch.admin-cert-secret-name" . }}
 {{- if .Values.opensearch.extraVolumes }}
 {{ toYaml .Values.opensearch.extraVolumes | indent 8 }}
+{{- end }}
 {{- end }}
 {{- end }}

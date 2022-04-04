@@ -78,10 +78,12 @@ func (r *OpenSearchServiceReconciler) Reconcile(ctx context.Context, request ctr
 		}
 	}
 
-	err = r.checkOpenSearchIsReady(instance)
-	if err != nil {
-		log.Info(fmt.Sprintf("OpenSearch check - %v", err))
-		return ctrl.Result{RequeueAfter: time.Second * 20}, err
+	if instance.Spec.OpenSearch != nil {
+		err = r.checkOpenSearchIsReady(instance)
+		if err != nil {
+			log.Info(fmt.Sprintf("OpenSearch check - %v", err))
+			return ctrl.Result{RequeueAfter: time.Second * 20}, err
+		}
 	}
 
 	for _, reconciler := range reconcilers {

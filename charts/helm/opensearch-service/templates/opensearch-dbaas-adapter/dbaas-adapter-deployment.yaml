@@ -56,11 +56,11 @@ spec:
                   key: registration-auth-password
                   name: {{ template "dbaas-adapter.name" . }}-secret
             - name: OPENSEARCH_HOST
-              value: {{ .Values.dbaasAdapter.opensearchHost | default (include "opensearch.fullname" .) }}
+              value: {{ default (include "opensearch.fullname" .) (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-host" .) .Values.dbaasAdapter.opensearchHost) }}
             - name: OPENSEARCH_PORT
-              value: "{{ .Values.dbaasAdapter.opensearchPort | default 9200 }}"
-            - name: OPENSEARCH_PROTO
-              value: {{ .Values.dbaasAdapter.opensearchProtocol | default "http" }}
+              value: "{{ default 9200 (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-port" .) .Values.dbaasAdapter.opensearchPort) }}"
+            - name: OPENSEARCH_PROTOCOL
+              value: {{ template "dbaas-adapter.opensearch-protocol" . }}
             - name: OPENSEARCH_REPO
               value: {{ .Values.dbaasAdapter.opensearchRepo | default "snapshots" }}
             - name: OPENSEARCH_REPO_ROOT

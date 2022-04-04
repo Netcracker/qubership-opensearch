@@ -1,3 +1,4 @@
+{{- if  not .Values.global.externalOpensearch.enabled }}
 #TODO: ask Sergei about parameters
 {{- if not (and .Values.opensearch.securityConfig.config.securityConfigSecret .Values.opensearch.securityConfig.config.data) }}
 apiVersion: v1
@@ -89,4 +90,5 @@ stringData:
     _meta:
       type: "whitelist"
       config_version: 2
+{{- end }}
 {{- end }}

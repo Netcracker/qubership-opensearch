@@ -1,3 +1,4 @@
+{{- if  not .Values.global.externalOpensearch.enabled }}
 {{- if .Values.opensearch.arbiter.enabled }}
 apiVersion: apps/v1
 kind: StatefulSet
@@ -393,4 +394,5 @@ spec:
     {{- end }}
     {{- end }}
   {{- end }}
+{{- end }}
 {{- end }}

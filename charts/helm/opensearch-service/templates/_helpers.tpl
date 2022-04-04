@@ -316,11 +316,67 @@ Whether forced cleanup of previous opensearch-status-provisioner job is enabled
 {{- end -}}
 
 {{/*
+Opensearch protocol for dbaas adapter
+*/}}
+{{- define "dbaas-adapter.opensearch-protocol" -}}
+{{- if .Values.global.externalOpensearch.enabled }}
+  {{- if contains "https" .Values.global.externalOpensearch.url }}
+    {{- printf "https" }}
+ {{- else }}
+    {{- printf "http" }}
+ {{- end -}}
+{{- else }}
+    {{- default "http" .Values.dbaasAdapter.opensearchProtocol }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Elastic protocol for dbaas adapter
+*/}}
+{{- define "dbaas-adapter.elasticsearch-protocol" -}}
+{{- if .Values.global.externalOpensearch.enabled }}
+  {{- if contains "https" .Values.global.externalOpensearch.url }}
+    {{- printf "https" }}
+ {{- else }}
+    {{- printf "http" }}
+ {{- end -}}
+{{- else }}
+    {{- default "http" .Values.elasticsearchDbaasAdapter.opensearchProtocol }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+External Opensearch host
+*/}}
+{{- define "external.opensearch-host" -}}
+{{$host := .Values.global.externalOpensearch.url}}
+{{- if contains "https" .Values.global.externalOpensearch.url }}
+  {{- $host = trimPrefix "https://" $host}}
+{{- else}}
+  {{- $host = trimPrefix "http://" $host}}
+{{- end -}}
+{{- $host = trimSuffix "/" $host}}
+{{- $host }}
+{{- end -}}
+
+{{/*
+External Opensearch port
+*/}}
+{{- define "external.opensearch-port" -}}
+{{$host := .Values.global.externalOpensearch.url}}
+{{- if contains "https" .Values.global.externalOpensearch.url }}
+  {{- 443 }}
+{{- else}}
+  {{- 80 }}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Calculates resources that should be monitored during deployment by Deployment Status Provisioner.
 */}}
 {{- define "opensearch.monitoredResources" -}}
     {{- printf "Deployment %s-service-operator, " (include "opensearch.fullname" .) -}}
-    {{- if .Values.dashboards.enabled }}
+    {{- if and (not .Values.global.externalOpensearch.enabled) .Values.dashboards.enabled }}
     {{- printf "Deployment %s-dashboards, " (include "opensearch.fullname" .) -}}
     {{- end }}
     {{- if .Values.curator.enabled }}
@@ -335,6 +391,7 @@ Calculates resources that should be monitored during deployment by Deployment St
     {{- if .Values.dbaasAdapter.enabled }}
     {{- printf "Deployment dbaas-%s-adapter, " (include "opensearch.fullname" .) -}}
     {{- end }}
+    {{ if not .Values.global.externalOpensearch.enabled }}
     {{- if eq (include "joint-mode" .) "true" }}
     {{- printf "StatefulSet %s, " (include "opensearch.fullname" .) -}}
     {{- else }}
@@ -349,6 +406,7 @@ Calculates resources that should be monitored during deployment by Deployment St
     {{- printf "Deployment %s-client, " (include "opensearch.fullname" .) -}}
     {{- end }}
     {{- end }}
+    {{ end }}
     {{- if .Values.integrationTests.enabled }}
     {{- printf "Deployment %s-integration-tests" (include "opensearch.fullname" .) -}}
     {{- end }}

@@ -1,3 +1,4 @@
+{{- if  not .Values.global.externalOpensearch.enabled }}
 {{- if .Values.opensearch.master.enabled }}
 apiVersion: v1
 kind: Service
@@ -17,4 +18,5 @@ spec:
   publishNotReadyAddresses: true
   selector:
     role: master
+{{- end }}
 {{- end }}

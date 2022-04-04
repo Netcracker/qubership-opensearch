@@ -1,3 +1,4 @@
+{{- if  not .Values.global.externalOpensearch.enabled }}
 {{- if and .Values.opensearch.arbiter.enabled .Values.opensearch.arbiter.persistence.enabled (not (empty .Values.opensearch.arbiter.persistence.persistentVolumes)) }}
 {{- if not (eq (len .Values.opensearch.arbiter.persistence.persistentVolumes) (.Values.opensearch.arbiter.replicas | int)) }}
 {{ fail "Number of persistent volumes ('.Values.opensearch.arbiter.persistence.persistentVolumes') must be equal to replicas ('.Values.opensearch.arbiter.replicas'). " }}
@@ -26,5 +27,6 @@ spec:
   {{- end }}
   {{- end }}
 ---
+{{- end }}
 {{- end }}
 {{- end }}

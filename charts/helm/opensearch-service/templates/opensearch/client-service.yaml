@@ -1,3 +1,4 @@
+{{- if  not .Values.global.externalOpensearch.enabled }}
 kind: Service
 apiVersion: v1
 metadata:
@@ -25,3 +26,4 @@ spec:
     role: master
   {{- end }}
   type: {{ .Values.opensearch.client.service.type }}
+{{- end }}

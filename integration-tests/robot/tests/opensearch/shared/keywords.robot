@@ -1,6 +1,7 @@
 *** Variables ***
 ${OPENSEARCH_HOST}               %{OPENSEARCH_HOST}
 ${OPENSEARCH_PORT}               %{OPENSEARCH_PORT}
+${OPENSEARCH_PROTOCOL}           %{OPENSEARCH_PROTOCOL}
 ${OPENSEARCH_USERNAME}           %{OPENSEARCH_USERNAME}
 ${OPENSEARCH_PASSWORD}           %{OPENSEARCH_PASSWORD}
 ${OPENSEARCH_MASTER_NODES_NAME}  %{OPENSEARCH_MASTER_NODES_NAME}
@@ -17,7 +18,7 @@ Library  json
 Prepare OpenSearch
     [Arguments]  ${need_auth}=True
     ${auth}=  Run Keyword If  ${need_auth}  Create List  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}
-    Create Session  opensearch  http://${OPENSEARCH_HOST}:${OPENSEARCH_PORT}  auth=${auth}  disable_warnings=1
+    Create Session  opensearch  ${OPENSEARCH_PROTOCOL}://${OPENSEARCH_HOST}:${OPENSEARCH_PORT}  auth=${auth}  disable_warnings=1
     &{headers}=  Create Dictionary  Content-Type=application/json  Accept=application/json
     Set Global Variable  ${headers}
 

@@ -1,3 +1,6 @@
+{{- if and .Values.global.externalOpensearch.enabled (or (not .Values.global.externalOpensearch.url) (not .Values.global.externalOpensearch.username) (not .Values.global.externalOpensearch.password)) }}
+  {{- fail "If external Opensearch is used the following fiels should be filled: `global.externalOpensearch.url`, `global.externalOpensearch.username`, `global.externalOpensearch.password`." }}
+{{- end }}
 apiVersion: netcracker.com/v1
 kind: OpenSearchService
 metadata:
@@ -7,6 +10,7 @@ metadata:
     name: {{ template "opensearch.fullname" . }}
     component: opensearch-service
 spec:
+  {{ if not .Values.global.externalOpensearch.enabled }}
   opensearch:
     dedicatedClientPod: {{ .Values.opensearch.client.dedicatedPod.enabled }}
     dedicatedDataPod: {{ .Values.opensearch.data.dedicatedPod.enabled }}
@@ -29,6 +33,7 @@ spec:
     {{- else }}
     securityConfigurationName: {{ template "opensearch.fullname" . }}-security-configuration
     {{- end }}
+  {{ end }}
   {{- if .Values.dashboards.enabled }}
   dashboards:
     name: {{ template "opensearch.fullname" . }}-dashboards
