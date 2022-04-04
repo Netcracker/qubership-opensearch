@@ -1,3 +1,4 @@
+{{- if  not .Values.global.externalOpensearch.enabled }}
 {{- if and .Values.opensearch.client.ingress.enabled .Values.opensearch.client.enabled }}
 {{- $fullName := printf "%s" (include "opensearch.fullname" .) }}
 {{- $ingressPath := .Values.opensearch.client.ingress.path }}
@@ -47,4 +48,5 @@ spec:
               servicePort: 9200
             {{- end }}
   {{- end }}
+{{- end }}
 {{- end }}

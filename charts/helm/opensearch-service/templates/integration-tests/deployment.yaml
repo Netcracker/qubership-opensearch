@@ -41,9 +41,19 @@ spec:
             - name: TAGS
               value: {{ .Values.integrationTests.tags }}
             - name: OPENSEARCH_HOST
-              value: {{ template "opensearch.fullname" . }}
+              value: {{ (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-host" .) (include "opensearch.fullname" .)) }}
             - name: OPENSEARCH_PORT
-              value: "{{ .Values.integrationTests.opensearchPort | default 9200 }}"
+              value: "{{ default 9200 (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-port" .) .Values.integrationTests.opensearchPort) }}"
+            - name: OPENSEARCH_PROTOCOL
+              {{ if or .Values.global.externalOpensearch.enabled .Values.opensearch.ssl.rest.enabled }}
+              value: "https"
+              {{ else }}
+              value: "http"
+              {{ end }}
+              {{ if .Values.global.externalOpensearch.enabled }}
+            - name: EXTERNAL_OPENSEARCH
+              value: "true"
+              {{ end }}
             - name: OPENSEARCH_USERNAME
               valueFrom:
                 secretKeyRef:

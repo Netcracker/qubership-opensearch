@@ -1,3 +1,4 @@
+{{- if  not .Values.global.externalOpensearch.enabled }}
 {{- if and .Values.opensearch.master.enabled .Values.opensearch.master.persistence.enabled (not (empty .Values.opensearch.master.persistence.persistentVolumes)) }}
 {{- if not (eq (len .Values.opensearch.master.persistence.persistentVolumes) (.Values.opensearch.master.replicas | int)) }}
 {{ fail "Number of persistent volumes ('.Values.opensearch.master.persistence.persistentVolumes') must be equal to replicas ('.Values.opensearch.master.replicas'). " }}
@@ -26,5 +27,6 @@ spec:
   {{- end }}
   {{- end }}
 ---
+{{- end }}
 {{- end }}
 {{- end }}

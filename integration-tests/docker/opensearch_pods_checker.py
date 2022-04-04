@@ -15,6 +15,8 @@ master_nodes_name = environ.get("OPENSEARCH_MASTER_NODES_NAME")
 namespace = environ.get("OPENSEARCH_NAMESPACE")
 username = environ.get("OPENSEARCH_USERNAME")
 password = environ.get("OPENSEARCH_PASSWORD")
+protocol = environ.get("OPENSEARCH_PROTOCOL", "http")
+external = environ.get("EXTERNAL_OPENSEARCH", False)
 timeout = 300
 
 if __name__ == '__main__':
@@ -23,17 +25,18 @@ if __name__ == '__main__':
     except Exception:
         exit(1)
     start_time = time.time()
-    url = f'http://{host}:{port}/_cat/health?v&h=status&format=json'
+    url = f'{protocol}://{host}:{port}/_cat/health?v&h=status&format=json'
     auth = None
     if username and password:
         auth = (username, password)
     while timeout > time.time() - start_time:
         time.sleep(10)
         try:
-            master_stateful_set = platform_library.get_stateful_set(master_nodes_name, namespace)
-            if master_stateful_set.status.replicas != master_stateful_set.status.ready_replicas:
-                continue
-            response = requests.get(url, auth=auth)
+            if !external:
+                master_stateful_set = platform_library.get_stateful_set(master_nodes_name, namespace)
+                if master_stateful_set.status.replicas != master_stateful_set.status.ready_replicas:
+                    continue
+            response = requests.get(url, auth=auth, verify=False)
             if response.status_code == 200:
                 status = json.loads(response.content.decode('utf-8'))[0]['status']
                 if status == 'green':

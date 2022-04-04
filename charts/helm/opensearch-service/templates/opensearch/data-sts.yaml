@@ -1,3 +1,4 @@
+{{- if  not .Values.global.externalOpensearch.enabled }}
 {{ if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled }}
 apiVersion: apps/v1
 kind: StatefulSet
@@ -264,4 +265,5 @@ spec:
     {{- end }}
     {{- end }}
   {{- end }}
+{{- end }}
 {{- end }}

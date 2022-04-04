@@ -1,3 +1,4 @@
+{{- if  not .Values.global.externalOpensearch.enabled }}
 {{- if and .Values.opensearch.data.podDisruptionBudget.enabled .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled }}
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
@@ -17,4 +18,5 @@ spec:
     matchLabels:
       app: {{ template "opensearch.fullname" . }}
       role: data
+{{- end }}
 {{- end }}

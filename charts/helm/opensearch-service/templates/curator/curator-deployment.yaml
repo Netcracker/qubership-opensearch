@@ -32,7 +32,7 @@ spec:
             - name: NAMESPACE
               value: {{ .Release.Namespace }}
             - name: ES_HOST
-              value: {{ .Values.curator.opensearchHost | default (printf "%s:9200" (include "opensearch.fullname" .)) }}
+              value: {{ default (printf "%s:9200" (include "opensearch.fullname" .)) (.Values.global.externalOpensearch.enabled | ternary (printf "%s:%s" (include "external.opensearch-host" .) (include "external.opensearch-port" .)) .Values.curator.opensearchHost) }}
             - name: ES_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -46,7 +46,11 @@ spec:
             - name: ES_AUTH
               value: "$(ES_USERNAME):$(ES_PASSWORD)"
             - name: TLS_HTTP_ENABLED
+              {{ if or .Values.global.externalOpensearch.enabled .Values.opensearch.ssl.rest.enabled }}
+              value: "true"
+              {{ else }}
               value: "false"
+              {{ end }}
             - name: SNAPSHOT_REPOSITORY_NAME
               value: {{ .Values.curator.snapshotRepositoryName | default "snapshots" }}
           {{- if .Values.curator.backupSchedule }}
@@ -102,7 +106,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: ELASTICSEARCH_HOST
-              value: {{ .Values.curator.opensearchHost | default (printf "%s:9200" (include "opensearch.fullname" .)) }}
+              value: {{ default (printf "%s:9200" (include "opensearch.fullname" .)) (.Values.global.externalOpensearch.enabled | ternary (printf "%s:%s" (include "external.opensearch-host" .) (include "external.opensearch-port" .)) .Values.curator.opensearchHost) }}
             - name: ES_USERNAME
               valueFrom:
                 secretKeyRef:

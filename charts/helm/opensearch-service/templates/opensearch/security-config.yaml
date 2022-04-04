@@ -1,3 +1,4 @@
+{{- if  not .Values.global.externalOpensearch.enabled }}
 {{- if and .Values.opensearch.securityConfig.config.securityConfigSecret .Values.opensearch.securityConfig.config.data }}
 apiVersion: v1
 kind: Secret
@@ -12,3 +13,4 @@ data:
   {{ $key }}: {{ $val | b64enc | quote }}
 {{- end }}
 {{- end}}
+{{- end }}

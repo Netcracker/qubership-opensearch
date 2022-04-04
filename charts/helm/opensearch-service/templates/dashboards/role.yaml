@@ -1,3 +1,4 @@
+{{- if  not .Values.global.externalOpensearch.enabled }}
 {{- if and .Values.dashboards.enabled .Values.global.rbac.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -15,5 +16,6 @@ rules:
       - {{ template "opensearch.fullname" . }}-psp
 {{- else }}
 rules: []
+{{- end }}
 {{- end }}
 {{- end }}

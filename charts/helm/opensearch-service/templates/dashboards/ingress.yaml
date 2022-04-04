@@ -1,3 +1,4 @@
+{{- if  not .Values.global.externalOpensearch.enabled }}
 {{- if and .Values.dashboards.enabled .Values.dashboards.ingress.enabled -}}
 {{- $serviceName := printf "%s-%s" (include "opensearch.fullname" .) "dashboards" }}
 {{- $servicePort := .Values.dashboards.service.port }}
@@ -49,4 +50,5 @@ spec:
             {{- end }}
           {{- end }}
     {{- end }}
+{{- end }}
 {{- end }}

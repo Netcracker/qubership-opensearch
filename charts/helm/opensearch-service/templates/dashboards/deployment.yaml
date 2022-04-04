@@ -1,3 +1,4 @@
+{{- if  not .Values.global.externalOpensearch.enabled }}
 {{- if .Values.dashboards.enabled }}
 apiVersion: apps/v1
 kind: Deployment
@@ -149,4 +150,5 @@ spec:
         {{- if .Values.dashboards.extraContainers }}
 {{ toYaml .Values.dashboards.extraContainers | indent 6 }}
         {{- end }}
+{{- end }}
 {{- end }}

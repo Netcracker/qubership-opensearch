@@ -56,11 +56,11 @@ spec:
                   key: registration-auth-password
                   name: {{ .Values.elasticsearchDbaasAdapter.name }}-secret
             - name: ELASTIC_HOST
-              value: {{ .Values.elasticsearchDbaasAdapter.opensearchHost | default (include "opensearch.fullname" .) }}
+              value: {{ default (include "opensearch.fullname" .) (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-host" .) .Values.elasticsearchDbaasAdapter.opensearchHost) }}
             - name: ELASTIC_PORT
-              value: "{{ .Values.dbaasAdapter.opensearchPort | default 9200 }}"
+              value: "{{ default 9200 (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-port" .) .Values.elasticsearchDbaasAdapter.opensearchPort) }}"
             - name: ELASTIC_PROTO
-              value: {{ .Values.elasticsearchDbaasAdapter.opensearchProtocol | default "http" }}
+              value: {{ template "dbaas-adapter.elasticsearch-protocol" . }}
             - name: ELASTIC_REPO
               value: {{ .Values.elasticsearchDbaasAdapter.opensearchRepo | default "snapshots" }}
             - name: ELASTIC_REPO_ROOT
