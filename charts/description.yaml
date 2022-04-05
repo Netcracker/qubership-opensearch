@@ -120,7 +120,7 @@ cloud:
 integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: MANOPD-75046
     docker-image-id: timestamp
     deploy-param: opensearchOperator
   - type: find-latest-deployment-descriptor
@@ -130,7 +130,7 @@ integration:
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: MANOPD-75046
     prefix: integration-tests
     docker-image-id: timestamp
     deploy-param: opensearchIntegrationTests
