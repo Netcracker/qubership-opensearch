@@ -49,6 +49,8 @@ spec:
                   fieldPath: metadata.namespace
             - name: TAGS
               value: {{ .Values.integrationTests.tags }}
+            - name: OPENSEARCH_PROTOCOL
+              value: {{ .Values.integrationTests.opensearchProtocol | default "http" }}
             - name: OPENSEARCH_HOST
               value: {{ .Values.integrationTests.opensearchHost | default "opensearch" }}
             - name: OPENSEARCH_PORT

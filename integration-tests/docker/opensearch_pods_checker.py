@@ -32,7 +32,7 @@ if __name__ == '__main__':
     while timeout > time.time() - start_time:
         time.sleep(10)
         try:
-            if !external:
+            if not external:
                 master_stateful_set = platform_library.get_stateful_set(master_nodes_name, namespace)
                 if master_stateful_set.status.replicas != master_stateful_set.status.ready_replicas:
                     continue

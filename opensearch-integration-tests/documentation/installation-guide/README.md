@@ -68,6 +68,8 @@ The default value is `artifactorycn.netcracker.com:17008/product/prod.platform.e
 The `integrationTests.tags` parameter specifies the tags combined with `AND`, `OR` and `NOT` operators that select test cases to run.
 You can use `smoke`, `authentication`, `backup`, `dbaas` and `ha` tags to run appropriate tests. The default value is `smoke`.
 
+The `integrationTests.opensearchProtocol` parameter specifies the OpenSearch protocol. The default value is `http`.
+
 The `integrationTests.opensearchHost` parameter specifies the host name of OpenSearch. The default value is `OpenSearch`.
 
 The `integrationTests.opensearchPort` parameter specifies the OpenSearch port. The default value is `9200`.
