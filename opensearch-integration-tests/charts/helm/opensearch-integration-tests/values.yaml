@@ -19,6 +19,7 @@ secret:
 integrationTests:
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests
   tags: "smoke"
+  opensearchProtocol: "http"
   opensearchHost: "opensearch"
   opensearchPort: 9200
   opensearchMasterNodesName: "opensearch"
