@@ -127,6 +127,18 @@ type IndexDetails struct {
 	Seq                int `json:"seq_no"`
 }
 
+type PluginReplicationError struct {
+	Err struct {
+		Reason   string `json:"reason,omitempty"`
+		Type     string `json:"type,omitempty"`
+		CausedBy struct {
+			Type   string `json:"type,omitempty"`
+			Reason string `json:"reason,omitempty"`
+		} `json:"caused_by,omitempty"`
+	} `json:"error"`
+	Status int `json:"status"`
+}
+
 func NewReplicationManager(restClient RestClient, remoteUrl string, indexPattern string, logger logr.Logger) *ReplicationManager {
 	return &ReplicationManager{
 		restClient: restClient,
@@ -138,29 +150,72 @@ func NewReplicationManager(restClient RestClient, remoteUrl string, indexPattern
 
 func (rm ReplicationManager) Configure() error {
 	path := "_cluster/settings"
-	body := fmt.Sprintf(`{"persistent": {"cluster": {"remote": {"%s": {"seeds": [ "%s" ]}}}}}`, leaderAlias, rm.remoteUrl)
-	//TODO: should we process requestBody?
+	body := fmt.Sprintf(`
+{
+  "persistent": {
+    "cluster": {
+	  "remote": {
+		"%s": {
+		  "seeds": ["%s"]
+		}
+	  }
+    }
+  }
+}
+`, leaderAlias, rm.remoteUrl)
 	statusCode, _, err := rm.restClient.SendRequest(http.MethodPut, path, strings.NewReader(body))
 	if err != nil {
 		return err
 	}
-	if statusCode >= 500 {
-		return errors.New("internal server error")
+	if statusCode >= 400 {
+		return errors.New(
+			fmt.Sprintf("asynchronous request to create connection with the remote opensearch cluster returned unexpected status code - [%d]",
+				statusCode))
 	}
 	return nil
 }
 
 func (rm ReplicationManager) Start() error {
-	body := fmt.Sprintf(`{"leader_alias":"%s","pattern":"%s","name":"%s","use_roles":{"leader_cluster_role":"all_access","follower_cluster_role":"all_access"}}`,
-		leaderAlias, rm.pattern, replicationName)
-	statusCode, _, err := rm.restClient.SendRequest(http.MethodPost, startFullReplicationPath, strings.NewReader(body))
+	body := fmt.Sprintf(`
+{
+  "leader_alias": "%s",
+  "pattern": "%s",
+  "name": "%s",
+  "use_roles": {
+    "leader_cluster_role": "all_access",
+	"follower_cluster_role": "all_access"
+  }
+}
+`, leaderAlias, rm.pattern, replicationName)
+	statusCode, respBody, err := rm.restClient.SendRequest(http.MethodPost, startFullReplicationPath, strings.NewReader(body))
 	if err != nil {
 		return err
 	}
-	if statusCode >= 500 {
-		return errors.New("internal server error")
+	if statusCode >= 200 && statusCode < 300 {
+		return nil
 	}
-	return nil
+	var replicationErrorData PluginReplicationError
+	err = json.Unmarshal(respBody, &replicationErrorData)
+	if err != nil {
+		return err
+	}
+	if statusCode == 500 && replicationErrorData.Err.Type == "connect_transport_exception" {
+		if replicationErrorData.Err.CausedBy.Reason == "handshake failed because connection reset" {
+			return fmt.Errorf("leader and follower opensearch clusters have different admin and transport certs, the full error message is %+v", replicationErrorData)
+		}
+		if strings.HasPrefix(replicationErrorData.Err.CausedBy.Reason, "Connection refused") {
+			return fmt.Errorf("the leader opensearch cluster was resolved but connection refused, please, check leader cluster configuration carefully. The full error message is %+v", replicationErrorData)
+		}
+	}
+	if statusCode == 404 && replicationErrorData.Err.Type == "no_such_remote_cluster_exception" {
+		return fmt.Errorf("the opensearch cluster with alias [%s] was not found, check that it is created on the previous step. The full error message is %+v", leaderAlias, replicationErrorData)
+	}
+	if statusCode == 400 &&
+		replicationErrorData.Err.Type == "illegal_argument_exception" &&
+		replicationErrorData.Err.CausedBy.Type == "unknown_host_exception" {
+		return fmt.Errorf("remote opensearch cluster host - [%s] is invalid. The full error message is %+v", replicationErrorData.Err.CausedBy.Reason, replicationErrorData)
+	}
+	return fmt.Errorf("error occurred during start dr replication - [%v]", replicationErrorData)
 }
 
 func (rm ReplicationManager) RemoveReplicationRule() error {
@@ -169,7 +224,7 @@ func (rm ReplicationManager) RemoveReplicationRule() error {
 	if err != nil {
 		return err
 	}
-	if statusCode >= 500 {
+	if statusCode >= 400 {
 		return errors.New("internal server error")
 	}
 	return nil
@@ -192,7 +247,7 @@ func (rm ReplicationManager) getReplicatedIndices() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	if statusCode >= 500 {
+	if statusCode >= 400 {
 		return nil, errors.New("internal server error")
 	}
 	var replicationStats ReplicationStats
@@ -305,7 +360,7 @@ func (rm ReplicationManager) stopIndicesReplication(indexNames []string) error {
 		if err != nil {
 			return err
 		}
-		if statusCode >= 500 {
+		if statusCode >= 400 {
 			return errors.New("internal server error")
 		}
 	}
