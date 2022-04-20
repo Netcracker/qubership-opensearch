@@ -17,7 +17,11 @@ Library  json
 *** Keywords ***
 Prepare OpenSearch
     [Arguments]  ${need_auth}=True
-    ${auth}=  Run Keyword If  ${need_auth}  Create List  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}
+    Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}  ${need_auth}
+
+Login To OpenSearch
+    [Arguments]  ${username}  ${password}  ${need_auth}=True
+    ${auth}=  Run Keyword If  ${need_auth}  Create List  ${username}  ${password}
     Create Session  opensearch  ${OPENSEARCH_PROTOCOL}://${OPENSEARCH_HOST}:${OPENSEARCH_PORT}  auth=${auth}  disable_warnings=1
     &{headers}=  Create Dictionary  Content-Type=application/json  Accept=application/json
     Set Global Variable  ${headers}
@@ -138,3 +142,44 @@ Get Master Node Name
     Should Be Equal As Strings  ${response.status_code}  200  OpenSearch returned ${response.status_code} code. Master node is not recognized
     [Return]  ${content.strip()}
 
+Create OpenSearch Alias
+    [Arguments]  ${index_name}  ${alias}
+    ${response}=  Put Request  opensearch  /${index_name}/_alias/${alias}
+    [Return]  ${response}
+
+Create OpenSearch Index Template
+    [Arguments]  ${template_name}  ${index_pattern}  ${settings}={"number_of_shards":1}
+    ${template}=  Set Variable  {"index_patterns":["${index_pattern}"],"template": {"settings":${settings}}}
+    ${response}=  Put Request  opensearch  /_index_template/${template_name}  data=${template}  headers=${headers}
+    [Return]  ${response}
+
+Create OpenSearch Template
+    [Arguments]  ${template_name}  ${index_pattern}  ${settings}={"number_of_shards":1}
+    ${template}=  Set Variable  {"index_patterns":["${index_pattern}"],"settings":${settings}}
+    ${response}=  Put Request  opensearch  /_template/${template_name}  data=${template}  headers=${headers}
+    [Return]  ${response}
+
+Get OpenSearch Alias
+    [Arguments]  ${index_name}  ${alias}
+    ${response}=  Get Request  opensearch  /${index_name}/_alias/${alias}
+    [Return]  ${response}
+
+Get OpenSearch Template
+    [Arguments]  ${template_name}
+    ${response}=  Get Request  opensearch  /_template/${template_name}
+    [Return]  ${response}
+
+Get OpenSearch Index Template
+    [Arguments]  ${template_name}
+    ${response}=  Get Request  opensearch  /_index_template/${template_name}
+    [Return]  ${response}
+
+Get OpenSearch User
+    [Arguments]  ${username}
+    ${response}=  Get Request  opensearch  /_plugins/_security/api/internalusers/${username}
+    [Return]  ${response}
+
+Get OpenSearch Role
+    [Arguments]  ${rolename}
+    ${response}=  Get Request  opensearch  /_plugins/_security/api/roles/${rolename}
+    [Return]  ${response}
