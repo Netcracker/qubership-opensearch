@@ -28,19 +28,6 @@ Generate Name
     ${prefix}=  Generate Random String  5  [LOWER]
     [Return]  ${prefix}-${name}
 
-Create Index By Dbaas Agent
-    [Arguments]  ${prefix}  ${db_name}
-    ${data}=  Set Variable  {"dbName":"${db_name}","metadata":{},"settings":{"index":{"number_of_shards":3,"number_of_replicas":1}},"namePrefix":"${prefix}","username":"nadmin","password":"admin"}
-    ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  201
-    ${content}=  Convert Json ${response.content} To Type
-    [Return]  ${content['resources']}
-
-Delete Index By Dbaas Agent
-    [Arguments]  ${data}
-    ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/resources/bulk-drop  data=${data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
-
 Create Backup By Dbaas Agent
     [Arguments]  ${indices_list}
     ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/collect  data=${indices_list}  headers=${headers}
@@ -107,27 +94,6 @@ Check OpenSearch Backup Does Not Exist
     Should Be Equal As Strings  ${response.status_code}  404
 
 *** Test Cases ***
-Create Index By Dbaas Adapter
-    [Tags]  dbaas  dbaas_opensearch  dbaas_create_index
-    ${prefix}=  Generate Random String  5  [LOWER]
-    ${db_name}=  Set Variable  dbaas-index
-    ${index_name}=  Catenate  SEPARATOR=-  ${prefix}  ${db_name}
-    Delete OpenSearch Index  ${index_name}
-    Create Index By Dbaas Agent  ${prefix}  ${db_name}
-    Check OpenSearch Index Exists  ${index_name}
-    [Teardown]  Delete OpenSearch Index  ${index_name}
-
-Delete Index By Dbaas Adapter
-    [Tags]  dbaas  dbaas_opensearch  dbaas_delete_index
-    ${prefix}=  Generate Random String  5  [LOWER]
-    ${db_name}=  Set Variable  dbaas-index
-    ${index_name}=  Catenate  SEPARATOR=-  ${prefix}  ${db_name}
-    ${resources}=  Create Index By Dbaas Agent  ${prefix}  ${db_name}
-    Check OpenSearch Index Exists  ${index_name}
-    Delete Index By Dbaas Agent  ${resources}
-    Check OpenSearch Index Does Not Exist  ${index_name}
-    [Teardown]  Delete OpenSearch Index  ${index_name}
-
 Create Backup By Dbaas Adapter
     [Tags]  dbaas  dbaas_backup  dbaas_create_backup
     ${index_name}=  Generate Name  dbaas-backup-index
