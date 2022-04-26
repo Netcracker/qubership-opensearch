@@ -19,8 +19,8 @@ deployment:
     resource: Job
     conditions: Successful
     interval: 30
-    max_tries: 20
-    delay: 30
+    max_tries: 60
+    delay: 60
   mode: reinstall
   values:
     dashboards:
