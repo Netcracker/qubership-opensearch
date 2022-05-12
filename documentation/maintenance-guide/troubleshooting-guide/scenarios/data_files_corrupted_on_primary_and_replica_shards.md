@@ -69,41 +69,36 @@ Make sure that some indices have `red` status. Make sure all of unassigned shard
 Save the following as relocate_shards.sh script:
 
 ```
-        #!/usr/bin/env bash
-        
-        
-        # URL of Elastic Search
-        url=
-        # To this node shards will be relocated
-        node_name=
-        username=
-        password=
-        
-        post_query(){
-        	index=$1
-        	shard=$2
-        	node=$3
-        	curl -u "$username:$password" -XPOST ${url}"/_cluster/reroute" -d "{  \"commands\" : [{ \"allocate_empty_primary\" : {\"index\" : \"${index}\", \"shard\" : ${shard}, \"node\" : \"${node}\"}}] }"
-        }
-        
-        relocate(){
-          url1=${url1}
-          node=${node_name}
-          while read data; do
-            pairs=$(echo $data | tr " " "\n")
-        	array=()
-        	for pair in ${pairs}; do
-        		array+=(${pair})
-        	done
-        	index=${array[0]}
-        	shard=${array[1]}
-        	post_query ${index} ${shard} ${node} 2>& 1 >/dev/null
-          done
-        }
-        
-        curl -u "$username:$password" $url/_cat/shards | grep UNASSIGNED \
-        		  | awk -v node=${node_name} -v url=${url} '{if ( $3 == "p" ) \
-									                {print $1, $2}}' | relocate         
+#!/usr/bin/env bash
+
+
+# URL of OpenSearch
+url=
+username=
+password=
+index=
+num=0
+nodes=()
+
+relocate(){
+  len=${#nodes[@]}
+  while read data; do
+	IFS=" " read -r -a pair <<< ${data}
+	index=${pair[0]}
+	shard=${pair[1]}
+	node=${nodes[$num]}
+	num=$(( (${num} + 1) % ${len}))
+	curl -k -u "$username:$password" -XPOST ${url}"/_cluster/reroute" -H 'Content-Type: application/json' -d "{  \"commands\" : [{ \"allocate_empty_primary\" : {\"index\" : \"${index}\", \"shard\" : ${shard}, \"node\" : \"${node}\", \"accept_data_loss\" : true }}] }"
+  done
+}
+
+old_ifs=$IFS
+while IFS='' read -r node; do nodes+=("$node"); done < <(curl -k -u "$username:$password" ${url}/_cat/nodes?h=name)
+
+curl -k -u "$username:$password" ${url}"/_cat/shards/"${index} | grep UNASSIGNED \
+		  | awk '{if ( $3 == "p" ) {print $1, $2}}' | relocate
+
+IFS=${old_ifs}     
 ```
 Make sure the script file can be executed, do `chmod +x` on it:
 
@@ -111,9 +106,9 @@ Make sure the script file can be executed, do `chmod +x` on it:
 
 Specify the OpenSearch server URL in the `url` parameter in the `relocate_shards.sh` script.
 
-Specify the name of OpenSearch available node in the `node_name` parameter in the `relocate_shards.sh` script.
-
 Specify the OpenSearch `username` and `password` parameter in the `relocate_shards.sh` script.
+
+Specify the OpenSearch `index` parameter in the `relocate_shards.sh` script, if you need relocate shards for one particular index.
 
 Make sure you have OpenSearch backups, or data loss is acceptable.
 
@@ -144,3 +139,5 @@ Expected output:
         cats                              0 p STARTED      0     159b 10.1.10.27 data-second
 ```
 You need to make sure there is no "UNASSIGNED" status for any shard.
+
+Alternatively, you can run `/usr/share/opensearch/bin/relocate-shards.sh index` script from OpenSearch pod, where `index` is optional parameter.
