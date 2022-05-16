@@ -117,7 +117,7 @@ cloud:
   url: https://ci-master.openshift.sdntest.netcracker.com:6443
   project: opensearch-service
 
-iintegration:
+integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
     location: v.0.0.5
@@ -136,7 +136,7 @@ iintegration:
     deploy-param: opensearchIntegrationTests
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-opensearch
-    location: 0.0.1
+    location: 0.0.2
     docker-image-id: timestamp
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
