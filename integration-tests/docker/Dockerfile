@@ -1,4 +1,4 @@
-FROM artifactorycn.netcracker.com:17014/product/prod.platform.streaming_docker-integration-tests:v.0.0.11_20220117-022318
+FROM artifactorycn.netcracker.com:17014/product/prod.platform.streaming_docker-integration-tests:v.0.0.15_20220520-082422
 
 ENV ROBOT_OUTPUT=/opt/robot/output \
     SERVICE_CHECKER_SCRIPT=${ROBOT_HOME}/opensearch_pods_checker.py \

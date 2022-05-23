@@ -170,7 +170,6 @@ integration:
     location: master
     docker-image-id: timestamp
     deploy-param: deploymentStatusProvisioner
-
   - type: image
     docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:1.2.0
     deploy-param: dockerDashboards
@@ -180,7 +179,6 @@ integration:
   - type: image
     docker-image: artifactorycn.netcracker.com:17064/bitnami/kubectl:1.23.3-debian-10-r6
     deploy-param: kubectl
-
   - type: scripts
     repo: PROD.Platform.ElasticStack/opensearch-service
     location: master
