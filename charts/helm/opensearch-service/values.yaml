@@ -866,8 +866,9 @@ dbaasAdapter:
   #                  - dbaas-opensearch-adapter
   #          topologyKey: "kubernetes.io/hostname"
 
-  securityContext: {}
-#    runAsUser: 1000
+  securityContext:
+    runAsUser: 1000
+
   customLabels: {}
 
 # DBaaS adapter based on Elasticsearch client
