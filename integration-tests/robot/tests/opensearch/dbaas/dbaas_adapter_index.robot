@@ -67,6 +67,7 @@ Create Index By Dbaas Adapter And Write Data
     ${index_name}=  Catenate  SEPARATOR=_  ${prefix}  ${db_name}
     Delete OpenSearch Index  ${index_name}
     ${response}=  Create Index By Dbaas Agent  ${prefix}  ${db_name}
+    Log  ${response}
     ${username}=  Set Variable  ${response['connectionProperties']['username']}
     ${password}=  Set Variable  ${response['connectionProperties']['password']}
     Check OpenSearch Index Exists  ${index_name}
@@ -78,8 +79,13 @@ Create Index By Dbaas Adapter And Write Data
     ${document}=  Find Document By Field  ${index_name}  name  John
     Should Be Equal As Strings  ${document['age']}  25
     Run Keyword And Expect Error  *  Create Document ${document} For Index ${index_name}-test
+    ${response}=  Create OpenSearch Index  ${prefix}-test
+    Should Be Equal As Strings  ${response.status_code}  403
+    ${response}=  Create OpenSearch Index  ${index_name}-test
+    Should Be Equal As Strings  ${response.status_code}  403
 
-    [Teardown]  Delete OpenSearch Index  ${index_name}
+    [Teardown]  Run Keywords  Delete OpenSearch Index  ${index_name}*
+                ...  AND  Delete OpenSearch Index  ${prefix}-test
 
 
 Create Index With User By Dbaas Adapter And Write Data
@@ -88,10 +94,10 @@ Create Index With User By Dbaas Adapter And Write Data
     ${db_name}=  Set Variable  dbaas-index
     ${index_name}=  Catenate  SEPARATOR=_  ${prefix}  ${db_name}
     Delete OpenSearch Index  ${index_name}
-    ${response}=  Create Index By Dbaas Agent  ${prefix}  ${db_name}  testuser  testpassword
+    ${response}=  Create Index By Dbaas Agent  ${prefix}  ${db_name}  testuser  testPassword_1
     Check OpenSearch Index Exists  ${index_name}
 
-    Login To OpenSearch  testuser  testpassword
+    Login To OpenSearch  testuser  testPassword_1
     ${document}=  Set Variable  {"name": "John", "age": "25"}
     Create Document ${document} For Index ${index_name}
     Sleep  ${SLEEP_TIME}

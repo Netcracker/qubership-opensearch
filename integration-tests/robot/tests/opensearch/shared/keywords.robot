@@ -183,3 +183,20 @@ Get OpenSearch Role
     [Arguments]  ${rolename}
     ${response}=  Get Request  opensearch  /_plugins/_security/api/roles/${rolename}
     [Return]  ${response}
+
+Make Index Read Only
+    [Arguments]  ${index_name}
+    ${body}=  Set Variable  {"settings":{"index.blocks.write":true}}
+    ${response}=  Put Request  opensearch  /${index_name}/_settings  data=${body}  headers=${headers}
+    [Return]  ${response}
+
+Make Index Read Write
+    [Arguments]  ${index_name}
+    ${body}=  Set Variable  {"settings":{"index.blocks.write":false}}
+    ${response}=  Put Request  opensearch  /${index_name}/_settings  data=${body}  headers=${headers}
+    [Return]  ${response}
+
+Clone Index
+    [Arguments]  ${index_name}  ${clone_index_name}
+    ${response}=  Put Request  opensearch  /${index_name}/_clone/${clone_index_name}  headers=${headers}
+    [Return]  ${response}

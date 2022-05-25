@@ -39,6 +39,14 @@ Create Database Resource Prefix By Dbaas Agent
     ${content}=  Convert Json ${response.content} To Type
     [Return]  ${content}
 
+Create Database Resource Prefix By Dbaas Agent With Credentials
+    [Arguments]  ${username}  ${password}
+    ${data}=  Set Variable  {"settings":{"resourcePrefix": true,"createOnly": ["user"]}, "username": "${username}", "password": "${password}"}
+    ${response}=  Post Request  dbaas_admin_session  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
+    Should Be Equal As Strings  ${response.status_code}  201
+    ${content}=  Convert Json ${response.content} To Type
+    [Return]  ${content}
+
 Delete Database Resource Prefix Dbaas Agent
     [Arguments]  ${prefix}
     ${data}=  Set Variable  [{"kind":"resourcePrefix","name":"${prefix}"}]
@@ -99,7 +107,18 @@ Database Resource Prefix Authorization
     Should Be Equal As Strings  ${response.status_code}  403
     ${document}=  Set Variable  {"name": "John", "age": "25"}
     Create Document ${document} For Index ${resourcePrefix_first}-test
+    ${response}=  Make Index Read Only  ${resourcePrefix_first}-test
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Clone Index  ${resourcePrefix_first}-test  ${resourcePrefix_first}-test-new
+    Should Be Equal As Strings  ${response.status_code}  200
+    Check OpenSearch Index Exists  ${resourcePrefix_first}-test-new
 
+#    Uncomment it when (if) OpenSearch issue https://github.com/opensearch-project/security/issues/429 fixed.
+#    {response}=  Clone Index  ${resourcePrefix_first}-test  custom-test-new
+#    Should Be Equal As Strings  ${response.status_code}  403
+
+    ${response}=  Make Index Read Write  ${resourcePrefix_first}-test
+    Should Be Equal As Strings  ${response.status_code}  200
 
     Login To OpenSearch  ${username_second}  ${password_second}
     ${response}=  Create OpenSearch Template  ${resourcePrefix_second}-template  ${resourcePrefix_second}*  {"number_of_shards":3}
@@ -119,6 +138,8 @@ Database Resource Prefix Authorization
     Should Be Equal As Strings  ${response.status_code}  403
     ${response}=  Create OpenSearch Alias  ${resourcePrefix_first}-test  ${resourcePrefix_second}-alias2
     Should Be Equal As Strings  ${response.status_code}  403
+    ${response}=  Clone Index  ${resourcePrefix_first}-test  ${resourcePrefix_second}-test-new
+    Should Be Equal As Strings  ${response.status_code}  403
 
     [Teardown]  Run Keywords  Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix_first}
            ...  AND  Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix_second}
@@ -136,6 +157,8 @@ Delete Database Resource Prefix
     Create OpenSearch Template  ${resourcePrefix}-template  ${resourcePrefix}*  {"number_of_shards":3}
     Create OpenSearch Index  ${resourcePrefix}-test
     Create OpenSearch Alias  ${resourcePrefix}-test  ${resourcePrefix}-alias
+    Make Index Read Only  ${resourcePrefix}-test
+    Clone Index  ${resourcePrefix}-test  ${resourcePrefix}-test-new
     Sleep  ${SLEEP_TIME}
 
     Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}
@@ -144,6 +167,8 @@ Delete Database Resource Prefix
     ${response}=  Get OpenSearch Role  ${resourcePrefix}_role
     Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Get OpenSearch Index  ${resourcePrefix}-test
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Get OpenSearch Index  ${resourcePrefix}-test-new
     Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Get OpenSearch Index Template  ${resourcePrefix}-index-template
     Should Be Equal As Strings  ${response.status_code}  200
@@ -160,6 +185,8 @@ Delete Database Resource Prefix
     ${response}=  Get OpenSearch Role  ${resourcePrefix}_role
     Should Be Equal As Strings  ${response.status_code}  404
     ${response}=  Get OpenSearch Index  ${resourcePrefix}-test
+    Should Be Equal As Strings  ${response.status_code}  404
+    ${response}=  Get OpenSearch Index  ${resourcePrefix}-test-new
     Should Be Equal As Strings  ${response.status_code}  404
     ${response}=  Get OpenSearch Index Template  ${resourcePrefix}-index-template
     Should Be Equal As Strings  ${response.status_code}  404
