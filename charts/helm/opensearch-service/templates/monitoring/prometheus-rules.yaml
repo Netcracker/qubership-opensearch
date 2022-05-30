@@ -39,7 +39,7 @@ spec:
           annotations:
             description: 'OpenSearch memory usage is above 95%.'
             summary: OpenSearch's memory usage is above 95%
-          expr: max(opensearch_os_mem_used_percent{namespace="{{ .Release.Namespace }}"}) > 95
+          expr: max(container_memory_working_set_bytes{namespace="{{ .Release.Namespace }}", container="opensearch"}) / max(container_spec_memory_limit_bytes{namespace="{{ .Release.Namespace }}", container="opensearch"}) > 0.95
           for: 3m
           labels:
             severity: high
@@ -67,7 +67,7 @@ spec:
           for: 3m
           labels:
             severity: high
-        {{- if .Values.dbaasAdapter.enabled }}
+        {{- if (or .Values.dbaasAdapter.enabled .Values.elasticsearchDbaasAdapter.enabled) }}
         - alert: OpenSearch_DBaaS_Is_Down_Alert
           annotations:
             description: 'OpenSearch DBaaS agent is Down.'

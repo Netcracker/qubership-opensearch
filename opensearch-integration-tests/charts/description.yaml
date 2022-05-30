@@ -18,7 +18,7 @@ deployment:
   availability:
     resource: Deployment
     conditions: Successful
-    interval: 30
+    interval: 40
     max_tries: 30
     delay: 60
 

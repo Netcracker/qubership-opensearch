@@ -70,6 +70,7 @@ deployment:
 
     monitoring:
       enabled: true
+      includeIndices: true
       resources:
         requests:
           memory: 256Mi
