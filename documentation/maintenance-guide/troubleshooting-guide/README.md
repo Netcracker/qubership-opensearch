@@ -505,3 +505,59 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
     * Expand the **Backup** tab and check the space amount in the **Storage Size/Free Space** view.
 
 3. Manual backup can be initiated after problem resolution. For more information, refer to [Manual Backup](../backup/manual-backup-procedure.md).
+
+# Opensearch Disaster Recovery Health
+
+## Opensearch Disaster Recovery Health Has Status "DEGRADED"
+
+|Problem|Severity|Possible Reason|
+|---|---|---|
+|Opensearch DR health has status `DEGRADED`|Average|Replication between active and standby sides has failed indices. The possible root cause is a locked index on the active side.|
+
+**Solution**:
+
+1. Navigate to the Opensearch console and execute the following:
+
+```bash
+curl -u username:password http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/autofollow_stats
+```
+where opensearch.<opensearch_namespace> are service name and namespace for Opensearch on the standby side.
+
+The result can be like this
+
+```json
+{
+    "num_success_start_replication": 2,
+    "num_failed_start_replication": 1,
+    "num_failed_leader_calls": 0,
+    "failed_indices": ["test_topic"],
+    "autofollow_stats": [
+        {
+            "name": "dr-replication",
+            "pattern": "*",
+            "num_success_start_replication": 3,
+            "num_failed_start_replication": 0,
+            "num_failed_leader_calls": 0,
+            "failed_indices": ["test_topic"]
+        }
+    ]
+}
+```
+
+Please, recognize list of "failed_indices".
+
+2. Navigate to the Opensearch console on the active side and try to stop replication for all indices from previous step.
+
+```bash
+curl XPOST -u username:password http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/<index_name>/_stop -d `{}`
+```
+where opensearch.<opensearch_namespace> are service name and namespace for Opensearch on the active side.
+      `index_name` is the name of failed index.
+
+This is an asynchronous operation and expected response is
+
+```json
+{"acknowledged": true}
+```
+
+3. For standby side switch Opensearch cluster to the `active` side and return to the `standby` one. This action should restart replication properly. 

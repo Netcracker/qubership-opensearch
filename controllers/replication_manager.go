@@ -361,7 +361,8 @@ func (rm ReplicationManager) stopIndicesReplication(indexNames []string) error {
 			return err
 		}
 		if statusCode >= 400 {
-			return errors.New("internal server error")
+			return errors.New(fmt.Sprintf("can not stop replication for [%s] index with status code - [%d]",
+				index, statusCode))
 		}
 	}
 	//TODO: Check that Replication is stopped
@@ -371,30 +372,50 @@ func (rm ReplicationManager) stopIndicesReplication(indexNames []string) error {
 
 func (rm ReplicationManager) DeleteIndices() error {
 	if rm.pattern != "*" {
-		if err := rm.DeleteIndicesByPattern(rm.pattern); err != nil {
+		if err := rm.DeleteIndicesByPatternWithUnlock(rm.pattern); err != nil {
 			return err
 		}
 		return nil
 	}
-	_, body, err := rm.restClient.SendRequest(http.MethodGet, "_cat/indices?h=index", nil)
+
+	indices, err := rm.restClient.GetArrayData("_cat/indices?h=index", "index", func(s string) bool {
+		return !strings.HasPrefix(s, ".")
+	})
 	if err != nil {
 		return err
 	}
-	var bodySlice []map[string]string
-	if err = json.Unmarshal(body, &bodySlice); err != nil {
-		return err
-	}
-	var indices []string
-	for _, indexMap := range bodySlice {
-		index := indexMap["index"]
-		if !strings.HasPrefix(index, ".") {
-			indices = append(indices, index)
-		}
-	}
+
 	for _, index := range indices {
-		if err = rm.DeleteIndicesByPattern(index); err != nil {
+		if err = rm.DeleteIndicesByPatternWithUnlock(index); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (rm ReplicationManager) DeleteIndicesByPatternWithUnlock(pattern string) error {
+	statusCode, _, err := rm.restClient.SendRequest(http.MethodDelete, pattern, nil)
+	if err != nil {
+		return err
+	}
+	if statusCode == 403 {
+		path := fmt.Sprintf("_cat/indices/%s?h=index", pattern)
+		indices, err := rm.restClient.GetArrayData(path, "index", func(s string) bool {
+			return !strings.HasPrefix(s, ".")
+		})
+		if err != nil {
+			return err
+		}
+		if err = rm.stopIndicesReplication(indices); err != nil {
+			return err
+		}
+		if err = rm.DeleteIndicesByPattern(pattern); err != nil {
+			return err
+		}
+	}
+	if statusCode >= 400 {
+		return errors.New(fmt.Sprintf("can not delete indices by pattern - [%s] with status code - [%d]",
+			pattern, statusCode))
 	}
 	return nil
 }
@@ -408,8 +429,9 @@ func (rm ReplicationManager) DeleteIndicesByPattern(pattern string) error {
 		rm.logger.Info(fmt.Sprintf("No permissions to delete Opensearch indicies by pattren - [%s]", pattern))
 		return errors.New("no permissions to delete opensearch indices by pattern")
 	}
-	if statusCode >= 500 {
-		return errors.New("internal server error")
+	if statusCode >= 400 {
+		return errors.New(fmt.Sprintf("can not delete indices by pattern - [%s] with status code - [%d]",
+			pattern, statusCode))
 	}
 	return nil
 }
