@@ -1008,7 +1008,7 @@ statusProvisioner:
   enabled: true
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.streaming_deployment-status-provisioner:master_latest
   lifetimeAfterCompletion: 600
-  podReadinessTimeout: 300
+  podReadinessTimeout: 500
   integrationTestsTimeout: 300
   resources:
     requests:
