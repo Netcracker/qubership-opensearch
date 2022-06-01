@@ -11,6 +11,7 @@ Topics covered in this section:
 - [Migration from OpenDistro Elasticsearch](#migration-from-opendistro-elasticsearch)
     - [Automatic Migration with Deploy Hob](#automatic-migration-with-deploy-job)
     - [Manual Migration Steps](#manual-migration-steps)
+    - [Backup and Restore](#backup-and-restore)
     - [Migration from Elasticsearch 6.8 Service](#migrate-from-elasticsearch-68-service)
 - [Custom Resource Definition](#custom-resource-definition)
 
