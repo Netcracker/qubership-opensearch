@@ -677,9 +677,10 @@ For information about:
 
 OpenSearch Service allows migration from OpenDistro Elasticsearch deployments. 
 
-There are 2 ways for migration:
+There are 3 ways for migration:
 1. Automatic via Deploy Job (DP|APP)
 2. Manual Steps
+3. Backup and Restore
 
 **NOTE:** If you need to migrate from Elasticsearch 6.8 cluster to OpenSearch please follow the [Migrate from Elasticsearch Service](#migrate-from-elasticsearch-68-service).
 
@@ -801,6 +802,48 @@ The following steps should be performed from the host with installed `kubectl`, 
         persistentVolumeClaim: pvc-elasticsearch-snapshots
     ```
    Any deploy mode can be used.
+
+## Backup and Restore
+
+With this approach snapshots collected on Elasticsearch side and restored on OpenSearch side. This migration also requires manual steps.
+
+**Prerequisites:** Elasticsearch and OpenSearch clusters should be installed with enabled independent snapshots storages (Separate snapshot PVC with access from all Elasticsearch/OpenSearch pods)
+
+1. Perform manual backup on Elasticsearch side:
+   * From any elasticsearch pod call backup procedure (All pods have access to snapshots, so it doesn't matter, what pod to choose here and below):
+     ```bash
+     curl -XPUT -u username:password "http://localhost:9200/_snapshot/${SNAPSHOTS_REPOSITORY_NAME:-snapshots}/${SNAPSHOT_NAME:-elasticsearch_snapshot}?wait_for_completion=true"
+     ```
+     with Elasticsearch `username:password` specified.
+   
+   * Check snapshot status and indices from response.
+
+     Additional information about manual backup described in [Manual backup guide](https://git.netcracker.com/PROD.Platform.ElasticStack/elasticsearch-service/-/blob/master/documentation/maintenance-guide/backup/manual-backup-procedure.md):
+   
+2. Copy snapshots directory from elasticsearch side:
+   * Use kubectl with config on elasticsearch cluster:
+     ```
+     kubectl cp elasticsearch-pod-name:/usr/share/elasticsearch/snapshots ./snapshots/ -n elasticsearch-namespace
+     ```
+     with `elasticsearch-pod-name` and `elasticsearch-namespace`. Snapshots will be copied to local path `./snapshots`.
+
+3. Copy snapshots from local environment to OpenSearch cluster:
+   * Use kubectl with config on OpenSearch cluster
+     ```
+     kubectl cp ./snapshots/ opensearch-pod-name:/usr/share/opensearch -n opensearch-namespace
+     ```
+     with `opensearch-pod-name` and `opensearch-namespace`. Snapshots will be copied from local path `./snapshots`.
+
+4. Perform manual restore on OpenSearch side:
+   * From any OpenSearch pod call restore procedure
+     ```bash
+     curl -XPOST -u username:password "http://localhost:9200/_snapshot/${SNAPSHOTS_REPOSITORY_NAME:-snapshots}/${SNAPSHOT_NAME:-elasticsearch_snapshot}/_restore"
+     ```
+     with OpenSearch `username:password` specified and `SNAPSHOT_NAME` the same, that was defined for backup on elasticsearch side.
+   
+   * Check that response is `"accepted":true`. Otherwise, some problem occurred and described in response, such as already existing open index in new cluster, but if OpenSearch cluster has clean installation, no conflicts expected. If such problem reproduced, close or delete indices that already exists or use renaming pattern. 
+     
+     Additional information about manual snapshot recovery described in [Manual recovery guide](https://git.netcracker.com/PROD.Platform.ElasticStack/elasticsearch-service/-/blob/master/documentation/maintenance-guide/recovery/manual-recovery-procedure.md) 
 
 ## Migrate from Elasticsearch 6.8 Service
 
