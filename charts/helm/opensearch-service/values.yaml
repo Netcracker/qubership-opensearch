@@ -757,6 +757,8 @@ monitoring:
   smDbUsername: ""
   smDbPassword: ""
 
+  includeIndices: false
+
   opensearchHost:
   opensearchPort: 9200
   opensearchExecPluginTimeout: "15s"

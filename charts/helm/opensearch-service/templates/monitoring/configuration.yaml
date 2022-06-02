@@ -270,6 +270,11 @@ data:
       ## Set cluster_stats to true when you want to also obtain cluster stats from the
       ## Master node.
       cluster_stats = true
+    {{ if .Values.monitoring.includeIndices }}
+      ## Indices to collect; can be one or more indices names or _all
+      ## Use of wildcards is allowed. Use a wildcard at the end to retrieve index names that end with a changing value, like a date.
+      indices_include = ["_all"]
+    {{- end }}
 
       ## Optional SSL Config
       # ssl_ca = "/etc/telegraf/ca.pem"
