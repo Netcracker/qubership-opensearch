@@ -27,16 +27,25 @@
   "iteration": 1648039834561,
   "links": [
     {
-      "asDropdown": false,
       "icon": "external link",
-      "includeVars": false,
-      "keepTime": false,
-      "tags": [],
+      "tags": [
+        "k8s-pod-by-node"
+      ],
       "targetBlank": true,
       "title": "Kubernetes / Pod Resources",
-      "tooltip": "",
-      "type": "link",
-      "url": "/d/uaHNcPvMz/kubernetes-pod-resources?var-namespace=${namespace}"
+      "type": "dashboards"
+    },
+    {
+      "icon": "external link",
+      "tags": [
+        "prometheus",
+        "opensearch",
+        "indices"
+      ],
+      "targetBlank": true,
+      "title": "OpenSearch Indices",
+      "tooltip": "Open OpenSearch Indices dashboard",
+      "type": "dashboards"
     }
   ],
   "liveNow": false,
@@ -58,6 +67,9 @@
       "circleBackground": false,
       "colorBackground": false,
       "colorValue": true,
+      "datasource": {
+        "uid": "$datasource"
+      },
       "defaultColor": "rgb(117, 117, 117)",
       "description": "Status of OpenSearch cluster.\nIf the cluster status is `degraded`, at least one replica shard is unallocated or missing. The search\n   results will still be complete, but if more shards are missing, you may lose data.\n   \n   A `failed` cluster status indicates that:\n   \n    * At least one primary shard is missing.\n    * You are missing data.\n    * The searches will return partial results.\n    * You will be blocked from indexing into that shard.",
       "format": "none",
@@ -123,8 +135,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "$datasource"
           },
           "dsType": "influxdb",
           "exemplar": true,
@@ -397,8 +408,11 @@
       "circleBackground": false,
       "colorBackground": false,
       "colorValue": true,
+      "datasource": {
+        "uid": "$datasource"
+      },
       "defaultColor": "rgb(117, 117, 117)",
-      "description": "Maximum current CPU usage (in percent) among all Elasticsearch servers.",
+      "description": "Maximum current CPU usage (in percent) among all OpenSearch servers.",
       "format": "percent",
       "gauge": {
         "maxValue": 100,
@@ -463,8 +477,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "$datasource"
           },
           "exemplar": false,
           "expr": "100 * max(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$es_pod_names\",container=\"opensearch\"}[5m])) / max(kube_pod_container_resource_limits_cpu_cores{exported_namespace=\"$namespace\",exported_pod=~\"$es_pod_names\"})",
@@ -512,8 +525,11 @@
       "circleBackground": false,
       "colorBackground": false,
       "colorValue": true,
+      "datasource": {
+        "uid": "$datasource"
+      },
       "defaultColor": "rgb(117, 117, 117)",
-      "description": "Maximum current Memory usage (in percent) among all Elasticsearch servers.",
+      "description": "Maximum current Memory usage (in percent) among all OpenSearch servers.",
       "format": "percent",
       "gauge": {
         "maxValue": 100,
@@ -578,11 +594,10 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "$datasource"
           },
           "exemplar": false,
-          "expr": "100 * max(container_memory_usage_bytes{namespace=\"$namespace\", pod=~\"$es_pod_names\",container=\"opensearch\"}) / max(container_spec_memory_limit_bytes{namespace=\"$namespace\", pod=~\"$es_pod_names\", container=\"opensearch\"})",
+          "expr": "100 * max(container_memory_working_set_bytes{namespace=\"$namespace\", pod=~\"$es_pod_names\",container=\"opensearch\"}) / max(container_spec_memory_limit_bytes{namespace=\"$namespace\", pod=~\"$es_pod_names\", container=\"opensearch\"})",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -648,7 +663,10 @@
         }
       ],
       "crosshairColor": "#8F070C",
-      "description": "Transitions of Elasticsearch cluster statuses",
+      "datasource": {
+        "uid": "$datasource"
+      },
+      "description": "Transitions of OpenSearch cluster status",
       "display": "timeline",
       "expandFromQueryS": 0,
       "extendLastValue": true,
@@ -680,8 +698,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "$datasource"
           },
           "exemplar": true,
           "expr": "max(opensearch_cluster_health_status_code{namespace=\"$namespace\",host=~\"$side*\",status=\"\"})",
@@ -787,7 +804,10 @@
         }
       ],
       "crosshairColor": "#8F070C",
-      "description": "Transitions of readiness probes for each Elasticsearch pod.",
+      "datasource": {
+        "uid": "$datasource"
+      },
+      "description": "Transitions of readiness probes for each OpenSearch pod.",
       "display": "timeline",
       "expandFromQueryS": 0,
       "extendLastValue": true,
@@ -819,8 +839,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
+            "uid": "$datasource"
           },
           "exemplar": true,
           "expr": "min(kube_pod_status_ready{exported_namespace=\"$namespace\", exported_pod=~\"$es_pod_names\", condition=\"true\"}) by (exported_pod)",
@@ -952,7 +971,7 @@
             "h": 3,
             "w": 6,
             "x": 0,
-            "y": 2
+            "y": 14
           },
           "id": 65038,
           "interval": "",
@@ -1059,7 +1078,7 @@
             "h": 3,
             "w": 6,
             "x": 6,
-            "y": 2
+            "y": 14
           },
           "id": 65039,
           "interval": "",
@@ -1169,7 +1188,7 @@
             "h": 3,
             "w": 4,
             "x": 12,
-            "y": 2
+            "y": 14
           },
           "id": 65040,
           "links": [],
@@ -1275,7 +1294,7 @@
             "h": 3,
             "w": 4,
             "x": 16,
-            "y": 2
+            "y": 14
           },
           "id": 65041,
           "links": [],
@@ -1384,7 +1403,7 @@
             "h": 3,
             "w": 4,
             "x": 20,
-            "y": 2
+            "y": 14
           },
           "id": 65042,
           "links": [],
@@ -1462,6 +1481,196 @@
         "x": 0,
         "y": 14
       },
+      "id": 65291,
+      "panels": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "The number of tasks in 'pending' status in OpenSearch cluster",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "fixedColor": "rgb(31, 120, 193)",
+                "mode": "thresholds"
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "N/A"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 1
+                  },
+                  {
+                    "color": "red",
+                    "value": 5
+                  }
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 6,
+            "x": 0,
+            "y": 15
+          },
+          "id": 65922,
+          "links": [],
+          "maxDataPoints": 100,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.3.3",
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "exemplar": false,
+              "expr": "opensearch_cluster_health_number_of_pending_tasks{host=~\"$side*\",namespace=\"$namespace\"}",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "Pending Tasks",
+          "type": "stat"
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "description": "The maximum time in milliseconds that task is waiting in queue",
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 6,
+            "w": 18,
+            "x": 6,
+            "y": 15
+          },
+          "hiddenSeries": false,
+          "id": 65923,
+          "interval": "$inter",
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": true,
+            "max": true,
+            "min": false,
+            "rightSide": true,
+            "show": false,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "8.4.3",
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "exemplar": true,
+              "expr": "max(opensearch_cluster_health_task_max_waiting_in_queue_millis{host=~\"$side*\",namespace=\"$namespace\"})",
+              "instant": false,
+              "interval": "",
+              "legendFormat": "time of max waiting task",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Time of Most Waiting Task",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "ms",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        }
+      ],
+      "title": "OpenSearch tasks",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
       "id": 65118,
       "panels": [
         {
@@ -1482,7 +1691,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 15
+            "y": 16
           },
           "hiddenSeries": false,
           "id": 65074,
@@ -1606,7 +1815,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 15
+            "y": 16
           },
           "hiddenSeries": false,
           "id": 65049,
@@ -1734,7 +1943,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 22
+            "y": 23
           },
           "hiddenSeries": false,
           "id": 65048,
@@ -1776,8 +1985,7 @@
               "_comment": "In the query 'count(rx_size_in_bytes) / count(rx_size_in_bytes)' part is added to have 'null' results, because by default 'non_negative_derivative' function returns nothing if interval does not contain values.",
               "alias": "$tag_node_name: rx",
               "datasource": {
-                "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "$datasource"
               },
               "dsType": "influxdb",
               "expr": "sum(irate(opensearch_transport_rx_size_in_bytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\"}[$__interval])) by (node_name, node_host)",
@@ -1824,8 +2032,7 @@
               "_comment": "In the query 'count(tx_size_in_bytes) / count(tx_size_in_bytes)' part is added to have 'null' results, because by default 'non_negative_derivative' function returns nothing if interval does not contain values.",
               "alias": "$tag_node_name: tx",
               "datasource": {
-                "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "$datasource"
               },
               "dsType": "influxdb",
               "exemplar": true,
@@ -1888,7 +2095,7 @@
           },
           "yaxes": [
             {
-              "format": "bytes",
+              "format": "binBps",
               "logBase": 1,
               "show": true
             },
@@ -1912,7 +2119,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 16
       },
       "id": 65119,
       "panels": [
@@ -1934,7 +2141,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 16
+            "y": 17
           },
           "hiddenSeries": false,
           "id": 65069,
@@ -1965,9 +2172,10 @@
           "renderer": "flot",
           "seriesOverrides": [
             {
-              "alias": "/total$/",
+              "alias": "/total/",
               "color": "#890F02",
-              "fill": 0
+              "fill": 0,
+              "linewidth": 2
             }
           ],
           "spaceLength": 10,
@@ -2074,7 +2282,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 16
+            "y": 17
           },
           "hiddenSeries": false,
           "id": 65046,
@@ -2214,7 +2422,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 23
+            "y": 24
           },
           "hiddenSeries": false,
           "id": 65076,
@@ -2348,7 +2556,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 23
+            "y": 24
           },
           "hiddenSeries": false,
           "id": 65062,
@@ -2472,7 +2680,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 17
       },
       "id": 65120,
       "panels": [
@@ -2497,7 +2705,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 17
+            "y": 18
           },
           "hiddenSeries": false,
           "id": 65067,
@@ -2527,7 +2735,7 @@
           "renderer": "flot",
           "seriesOverrides": [
             {
-              "alias": "/total$/",
+              "alias": "/limit/",
               "color": "#890F02",
               "fill": 0,
               "linewidth": 2
@@ -2556,7 +2764,7 @@
                 }
               ],
               "interval": "",
-              "legendFormat": "{{pod}}:usage",
+              "legendFormat": "{{pod}}:allocated",
               "measurement": "memory/usage",
               "policy": "default",
               "query": "SELECT mean(\"value\") FROM \"memory/usage\" WHERE (\"pod_name\" =~ /^$node_name$*/ AND \"type\" = 'pod' AND \"namespace_name\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"pod_name\" fill(null)",
@@ -2620,6 +2828,12 @@
                 ]
               ],
               "tags": []
+            },
+            {
+              "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$es_pod_names\",container!=\"\"}) by (pod)",
+              "interval": "",
+              "legendFormat": "{{pod}}:usage",
+              "refId": "C"
             }
           ],
           "thresholds": [],
@@ -2662,7 +2876,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 18
       },
       "id": 65121,
       "panels": [
@@ -2687,7 +2901,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 18
+            "y": 19
           },
           "hiddenSeries": false,
           "id": 65047,
@@ -2825,7 +3039,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 18
+            "y": 19
           },
           "hiddenSeries": false,
           "id": 65068,
@@ -2858,7 +3072,8 @@
             {
               "alias": "/total/",
               "color": "#BF1B00",
-              "fill": 0
+              "fill": 0,
+              "linewidth": 2
             }
           ],
           "spaceLength": 10,
@@ -2868,8 +3083,7 @@
             {
               "alias": "$tag_node_name [$tag_node_host] total",
               "datasource": {
-                "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "$datasource"
               },
               "dsType": "influxdb",
               "expr": "sum(opensearch_fs_total_total_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
@@ -2915,8 +3129,7 @@
             {
               "alias": "$tag_node_name [$tag_node_host] used",
               "datasource": {
-                "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "$datasource"
               },
               "dsType": "influxdb",
               "exemplar": true,
@@ -3008,7 +3221,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 25
+            "y": 26
           },
           "hiddenSeries": false,
           "id": 65070,
@@ -3140,7 +3353,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 25
+            "y": 26
           },
           "hiddenSeries": false,
           "id": 65071,
@@ -3178,8 +3391,7 @@
               "_comment": "In the query 'count(io_stats_total_read_kilobytes) / count(io_stats_total_read_kilobytes)' part is added to have 'null' results, because by default 'non_negative_derivative' function returns nothing if interval does not contain values.",
               "alias": "$tag_node_name [$tag_node_host] $col",
               "datasource": {
-                "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "$datasource"
               },
               "dsType": "influxdb",
               "expr": "sum(irate(opensearch_fs_io_stats_total_read_kilobytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\"}[$__interval])) by (node_name, node_host)",
@@ -3223,8 +3435,7 @@
             },
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "$datasource"
               },
               "exemplar": true,
               "expr": "sum(irate(opensearch_fs_io_stats_total_write_kilobytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\"}[$__interval])) by (node_name, node_host)",
@@ -3268,7 +3479,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "description": "Open File Descriptors",
+          "description": "The amount of open file descriptors for each OpenSearch node",
           "fieldConfig": {
             "defaults": {
               "links": []
@@ -3281,7 +3492,7 @@
             "h": 6,
             "w": 12,
             "x": 0,
-            "y": 32
+            "y": 33
           },
           "hiddenSeries": false,
           "id": 65135,
@@ -3317,8 +3528,7 @@
           "targets": [
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "$datasource"
               },
               "exemplar": true,
               "expr": "max(opensearch_process_open_file_descriptors{namespace=\"$namespace\"}) by (node_name)",
@@ -3370,7 +3580,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 19
       },
       "id": 65122,
       "panels": [
@@ -3392,7 +3602,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 19
+            "y": 20
           },
           "hiddenSeries": false,
           "id": 65050,
@@ -3519,7 +3729,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 19
+            "y": 20
           },
           "hiddenSeries": false,
           "id": 65045,
@@ -3648,7 +3858,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 26
+            "y": 27
           },
           "hiddenSeries": false,
           "id": 65075,
@@ -3679,7 +3889,7 @@
           "renderer": "flot",
           "seriesOverrides": [
             {
-              "alias": "/total$/",
+              "alias": "/limit/",
               "color": "#890F02",
               "fill": 0,
               "linewidth": 2
@@ -3816,24 +4026,18 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 20
       },
       "id": 65123,
       "panels": [
         {
           "aliasColors": {},
-          "bars": true,
+          "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "description": "The number of operations performed by indices by the current moment grouped by operation type and OpenSearch node",
+          "description": "The number of operations performed by indices at the moment grouped by operation type and OpenSearch node",
           "editable": true,
           "error": false,
-          "fieldConfig": {
-            "defaults": {
-              "links": []
-            },
-            "overrides": []
-          },
           "fill": 0,
           "fillGradient": 0,
           "grid": {},
@@ -3841,7 +4045,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 20
+            "y": 21
           },
           "hiddenSeries": false,
           "id": 65059,
@@ -3861,7 +4065,7 @@
             "total": false,
             "values": true
           },
-          "lines": false,
+          "lines": true,
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null as zero",
@@ -3873,15 +4077,7 @@
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
-          "seriesOverrides": [
-            {
-              "alias": "/indexing-index/",
-              "bars": false,
-              "color": "#BF1B00",
-              "fill": 1,
-              "lines": true
-            }
-          ],
+          "seriesOverrides": [],
           "spaceLength": 10,
           "stack": false,
           "steppedLine": true,
@@ -3890,20 +4086,6 @@
               "alias": "$tag_node_name: $col",
               "dsType": "influxdb",
               "expr": "sum(opensearch_indices_flush_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
-              "groupBy": [
-                {
-                  "params": [
-                    "$__interval"
-                  ],
-                  "type": "time"
-                },
-                {
-                  "params": [
-                    "null"
-                  ],
-                  "type": "fill"
-                }
-              ],
               "interval": "",
               "legendFormat": "{{node_name}}:flush",
               "measurement": "opensearch_indices",
@@ -3912,20 +4094,6 @@
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  },
-                  {
-                    "params": [],
-                    "type": "mean"
-                  }
-                ]
-              ],
               "tags": []
             },
             {
@@ -4019,7 +4187,7 @@
           "tooltip": {
             "shared": true,
             "sort": 0,
-            "value_type": "cumulative"
+            "value_type": "individual"
           },
           "type": "graph",
           "xaxis": {
@@ -4030,6 +4198,179 @@
           "yaxes": [
             {
               "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "description": "The operations number performed by indices per second grouped by operation type and OpenSearch node",
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "fillGradient": 0,
+          "grid": {},
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 21
+          },
+          "hiddenSeries": false,
+          "id": 65060,
+          "interval": "$inter",
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": true,
+            "hideEmpty": false,
+            "hideZero": false,
+            "max": true,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "sort": "current",
+            "sortDesc": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null as zero",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "8.3.3",
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": true,
+          "targets": [
+            {
+              "expr": "sum(rate(opensearch_indices_flush_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:flush",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_get_exists_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:get-exists",
+              "refId": "B"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_get_missing_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:get-missing",
+              "refId": "C"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_get_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:get",
+              "refId": "D"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_indexing_delete_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:indexing-delete",
+              "refId": "E"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_indexing_index_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:indexing-index",
+              "refId": "F"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_indexing_noop_update_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:indexing-noop-update",
+              "refId": "G"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_merges_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:merges",
+              "refId": "H"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_percolate_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:percolate",
+              "refId": "I"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_refresh_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:refresh",
+              "refId": "J"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_search_fetch_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:search-fetch",
+              "refId": "K"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_search_query_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:search-query",
+              "refId": "L"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_search_scroll_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:search-scroll",
+              "refId": "M"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_suggest_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:suggest",
+              "refId": "N"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_warmer_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:warmer",
+              "refId": "O"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Indices operations rate",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "ops",
               "logBase": 1,
               "show": true
             },
@@ -4063,11 +4404,11 @@
           "gridPos": {
             "h": 8,
             "w": 12,
-            "x": 12,
-            "y": 20
+            "x": 0,
+            "y": 29
           },
           "hiddenSeries": false,
-          "id": 65060,
+          "id": 65066,
           "interval": "$inter",
           "legend": {
             "alignAsTable": true,
@@ -4288,6 +4629,209 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "description": "The average time to complete an operation in indices per second grouped by operation type and OpenSearch node",
+          "editable": true,
+          "error": false,
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 0,
+          "fillGradient": 0,
+          "grid": {},
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 29
+          },
+          "hiddenSeries": false,
+          "id": 65077,
+          "interval": "$inter",
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": true,
+            "hideEmpty": true,
+            "hideZero": false,
+            "max": true,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "sort": "current",
+            "sortDesc": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null as zero",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "8.3.3",
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": true,
+          "targets": [
+            {
+              "expr": "sum(rate(opensearch_indices_merges_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:merges-total",
+              "refId": "C"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_flush_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:flush-total",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_get_exists_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:get-exists",
+              "refId": "B"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_get_missing_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:get-missing",
+              "refId": "D"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_get_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:get",
+              "refId": "E"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_indexing_delete_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:indexing-delete",
+              "refId": "F"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_indexing_index_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:indexing-index",
+              "refId": "G"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_indexing_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:indexing-throttle",
+              "refId": "H"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_merges_total_stopped_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:merges-total-stopped",
+              "refId": "I"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_merges_total_throttled_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:merges-total-throttled",
+              "refId": "J"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_percolate_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:percolate",
+              "refId": "K"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_recovery_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:recovery-throttle",
+              "refId": "L"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_refresh_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:refresh-total",
+              "refId": "M"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_search_fetch_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:search-fetch",
+              "refId": "N"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_search_query_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:search-query",
+              "refId": "O"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_search_scroll_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:search-scroll",
+              "refId": "P"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_store_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:store-throttle",
+              "refId": "Q"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_suggest_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:suggest",
+              "refId": "R"
+            },
+            {
+              "expr": "sum(rate(opensearch_indices_warmer_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{node_name}}:warmer-total",
+              "refId": "S"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Indices time operations rate",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "ms/sec",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
           "description": "The number of operations performed by indices in the moment grouped by operation type and OpenSearch node",
           "fieldConfig": {
             "defaults": {
@@ -4301,10 +4845,10 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 28
+            "y": 37
           },
           "hiddenSeries": false,
-          "id": 65065,
+          "id": 65078,
           "interval": "$inter",
           "legend": {
             "alignAsTable": true,
@@ -4433,7 +4977,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "description": "The number of documents stored in indices.",
+          "description": "The size of data stored in indices grouped by OpenSearch nodes",
           "fieldConfig": {
             "defaults": {
               "links": []
@@ -4446,135 +4990,10 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 28
+            "y": 37
           },
           "hiddenSeries": false,
-          "id": 65053,
-          "interval": "$inter",
-          "legend": {
-            "alignAsTable": true,
-            "avg": false,
-            "current": true,
-            "hideZero": false,
-            "max": true,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": false,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "null",
-          "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "8.3.3",
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "alias": "document count",
-              "dsType": "influxdb",
-              "expr": "sum(opensearch_clusterstats_indices_docs_count{host=~\"$side*\",namespace=\"$namespace\"}) by (cluster_name)",
-              "groupBy": [
-                {
-                  "params": [
-                    "$__interval"
-                  ],
-                  "type": "time"
-                },
-                {
-                  "params": [
-                    "null"
-                  ],
-                  "type": "fill"
-                }
-              ],
-              "interval": "",
-              "legendFormat": "documents count",
-              "measurement": "opensearch_clusterstats_indices",
-              "policy": "default",
-              "query": "SELECT mean(\"docs_count\") FROM \"opensearch_clusterstats_indices\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval), \"cluster_name\" fill(null)",
-              "rawQuery": true,
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  },
-                  {
-                    "params": [],
-                    "type": "mean"
-                  }
-                ]
-              ],
-              "tags": []
-            }
-          ],
-          "thresholds": [],
-          "timeRegions": [],
-          "title": "Indices documents count",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "mode": "time",
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "none",
-              "logBase": 1,
-              "show": true
-            },
-            {
-              "format": "short",
-              "logBase": 1,
-              "show": false
-            }
-          ],
-          "yaxis": {
-            "align": false
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "description": "The size of data stored in indices.",
-          "fieldConfig": {
-            "defaults": {
-              "links": []
-            },
-            "overrides": []
-          },
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 36
-          },
-          "hiddenSeries": false,
-          "id": 65052,
+          "id": 65080,
           "interval": "$inter",
           "legend": {
             "alignAsTable": true,
@@ -4607,7 +5026,7 @@
             {
               "alias": "indices size",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_clusterstats_indices_store_size_in_bytes{host=~\"$side*\",namespace=\"$namespace\"}) by (cluster_name)",
+              "expr": "sum(opensearch_indices_store_size_in_bytes{node_name=~\"^$node_name$\",namespace=\"$namespace\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -4623,7 +5042,7 @@
                 }
               ],
               "interval": "",
-              "legendFormat": "indices size",
+              "legendFormat": "{{ node_name }}",
               "measurement": "opensearch_clusterstats_indices",
               "policy": "default",
               "query": "SELECT mean(\"store_size_in_bytes\") FROM \"opensearch_clusterstats_indices\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval), \"cluster_name\" fill(null)",
@@ -4665,12 +5084,229 @@
             {
               "format": "bytes",
               "logBase": 1,
+              "min": "0",
               "show": true
             },
             {
               "format": "short",
               "logBase": 1,
               "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "description": "The number of documents stored in indices grouped by OpenSearch nodes",
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 45
+          },
+          "hiddenSeries": false,
+          "id": 65082,
+          "interval": "$inter",
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": true,
+            "hideZero": false,
+            "max": true,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "8.3.3",
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "document count",
+              "dsType": "influxdb",
+              "expr": "sum(opensearch_indices_docs_count{node_name=~\"^$node_name$\",namespace=\"$namespace\"}) by (node_name)",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "interval": "",
+              "legendFormat": "{{ node_name }}",
+              "measurement": "opensearch_clusterstats_indices",
+              "policy": "default",
+              "query": "SELECT mean(\"docs_count\") FROM \"opensearch_clusterstats_indices\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval), \"cluster_name\" fill(null)",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Indices documents count",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "none",
+              "logBase": 1,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": false
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "description": "The number of documents added to indices per second grouped by OpenSearch nodes",
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 45
+          },
+          "hiddenSeries": false,
+          "id": 65083,
+          "interval": "$inter",
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": true,
+            "hideZero": false,
+            "max": true,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "8.3.3",
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(rate(opensearch_indices_docs_count{node_name=~\"^$node_name$\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "interval": "",
+              "legendFormat": "{{ node_name }}",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Indices documents rate",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "cps",
+              "logBase": 1,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "logBase": 1,
+              "show": false
             }
           ],
           "yaxis": {
@@ -4687,7 +5323,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 21
       },
       "id": 65124,
       "panels": [
@@ -4709,7 +5345,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 21
+            "y": 22
           },
           "hiddenSeries": false,
           "id": 65061,
@@ -5002,7 +5638,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 21
+            "y": 22
           },
           "hiddenSeries": false,
           "id": 65063,
@@ -5146,7 +5782,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 28
+            "y": 29
           },
           "hiddenSeries": false,
           "id": 65064,
@@ -5294,7 +5930,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 22
       },
       "id": 65126,
       "panels": [
@@ -5373,7 +6009,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 22
+            "y": 23
           },
           "id": 65144,
           "interval": "$inter",
@@ -5397,8 +6033,7 @@
           "targets": [
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "$datasource"
               },
               "exemplar": false,
               "expr": "opensearch_backups_metric_current_status{namespace=\"$namespace\",host=~\"$side*\"}",
@@ -5519,7 +6154,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 22
+            "y": 23
           },
           "id": 65101,
           "interval": "$inter",
@@ -5638,7 +6273,7 @@
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 22
+            "y": 23
           },
           "hideTimeOverride": false,
           "id": 65105,
@@ -5761,7 +6396,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 30
+            "y": 31
           },
           "highlightOnMouseover": true,
           "id": 65137,
@@ -5789,8 +6424,7 @@
           "targets": [
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "$datasource"
               },
               "exemplar": true,
               "expr": "opensearch_backups_metric_current_status{namespace=\"$namespace\",host=~\"$side*\"}",
@@ -6004,7 +6638,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 30
+            "y": 31
           },
           "id": 65111,
           "links": [],
@@ -6118,7 +6752,7 @@
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 30
+            "y": 31
           },
           "id": 65099,
           "interval": "$inter",
@@ -6237,7 +6871,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 38
+            "y": 39
           },
           "id": 65107,
           "interval": "$inter",
@@ -6352,7 +6986,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 38
+            "y": 39
           },
           "id": 65109,
           "interval": "$inter",
@@ -6438,7 +7072,7 @@
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 38
+            "y": 39
           },
           "height": "295px",
           "hiddenSeries": false,
@@ -6619,7 +7253,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 46
+            "y": 47
           },
           "height": "300px",
           "hiddenSeries": false,
@@ -6634,7 +7268,7 @@
             "max": false,
             "min": false,
             "rightSide": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": true
           },
@@ -6748,7 +7382,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 46
+            "y": 47
           },
           "height": "300px",
           "hiddenSeries": false,
@@ -6873,7 +7507,7 @@
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 46
+            "y": 47
           },
           "height": "300px",
           "hiddenSeries": false,
@@ -6988,7 +7622,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 23
       },
       "id": 65127,
       "panels": [
@@ -7010,7 +7644,7 @@
             "h": 6,
             "w": 12,
             "x": 0,
-            "y": 11
+            "y": 24
           },
           "id": 65088,
           "interval": "$inter",
@@ -7182,7 +7816,7 @@
             "h": 6,
             "w": 12,
             "x": 12,
-            "y": 11
+            "y": 24
           },
           "id": 65091,
           "interval": "$inter",
@@ -7380,7 +8014,7 @@
             "h": 6,
             "w": 12,
             "x": 0,
-            "y": 17
+            "y": 30
           },
           "highlightOnMouseover": true,
           "id": 65139,
@@ -7404,8 +8038,7 @@
           "targets": [
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "$datasource"
               },
               "exemplar": true,
               "expr": "opensearch_dbaas_health_status{namespace=\"$namespace\",host=~\"$side*\"}",
@@ -7544,7 +8177,7 @@
             }
           ],
           "crosshairColor": "#8F070C",
-          "description": "Transitions of DBaaS Elasticsearch cluster statuses",
+          "description": "Transitions of DBaaS OpenSearch cluster status",
           "display": "timeline",
           "expandFromQueryS": 0,
           "extendLastValue": true,
@@ -7552,7 +8185,7 @@
             "h": 6,
             "w": 12,
             "x": 12,
-            "y": 17
+            "y": 30
           },
           "highlightOnMouseover": true,
           "id": 65141,
@@ -7576,8 +8209,7 @@
           "targets": [
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "PC3E95692D54ABCC0"
+                "uid": "$datasource"
               },
               "exemplar": true,
               "expr": "opensearch_dbaas_health_elastic_cluster_status{namespace=\"$namespace\",host=~\"$side*\"}",
@@ -7627,7 +8259,7 @@
             "value": "minutes"
           },
           "timeTextColor": "#d8d9da",
-          "title": "DBaaS Elasticsearch Cluster Status Transitions",
+          "title": "DBaaS OpenSearch Cluster Status Transitions",
           "type": "natel-discrete-panel",
           "units": "short",
           "use12HourClock": false,
@@ -7793,13 +8425,7 @@
       },
       {
         "current": {
-          "selected": true,
-          "text": [
-            "opensearch-service"
-          ],
-          "value": [
-            "opensearch-service"
-          ]
+          "selected": true
         },
         "datasource": {
           "uid": "$datasource"
@@ -7926,7 +8552,7 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
