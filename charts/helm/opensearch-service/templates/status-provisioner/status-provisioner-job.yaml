@@ -41,7 +41,7 @@ spec:
             - name: CONDITION_REASON
               value: "OpenSearchServiceReadinessStatus"
             - name: POD_READINESS_TIMEOUT
-              value: "{{ .Values.statusProvisioner.podReadinessTimeout | default 300 }}"
+              value: "{{ .Values.statusProvisioner.podReadinessTimeout | default 500 }}"
           {{- if and .Values.integrationTests.enabled .Values.integrationTests.statusWritingEnabled }}
             - name: INTEGRATION_TESTS_RESOURCE
               value: {{ printf "apps v1 deployments %s-integration-tests" (include "opensearch.fullname" .) }}
