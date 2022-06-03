@@ -811,7 +811,7 @@ With this approach snapshots collected on Elasticsearch side and restored on Ope
 **Prerequisites:** Elasticsearch and OpenSearch clusters should be installed with enabled independent snapshots storages (Separate snapshot PVC with access from all Elasticsearch/OpenSearch pods)
 
 1. Perform manual backup on Elasticsearch side:
-   * From any elasticsearch pod call backup procedure (All pods have access to snapshots, so it doesn't matter, what pod to choose here and below):
+   * From any Elasticsearch pod run backup procedure (All pods have access to snapshots, so it doesn't matter, what pod to choose here and below):
      ```bash
      curl -XPUT -u username:password "http://localhost:9200/_snapshot/${SNAPSHOTS_REPOSITORY_NAME:-snapshots}/${SNAPSHOT_NAME:-elasticsearch_snapshot}?wait_for_completion=true"
      ```
@@ -821,14 +821,14 @@ With this approach snapshots collected on Elasticsearch side and restored on Ope
 
      Additional information about manual backup described in [Manual backup guide](https://git.netcracker.com/PROD.Platform.ElasticStack/elasticsearch-service/-/blob/master/documentation/maintenance-guide/backup/manual-backup-procedure.md):
    
-2. Copy snapshots directory from elasticsearch side:
-   * Use kubectl with config on elasticsearch cluster:
+2. Copy `snapshots` directory from Elasticsearch side:
+   * Use kubectl with config on Elasticsearch cluster:
      ```
      kubectl cp elasticsearch-pod-name:/usr/share/elasticsearch/snapshots ./snapshots/ -n elasticsearch-namespace
      ```
      with `elasticsearch-pod-name` and `elasticsearch-namespace`. Snapshots will be copied to local path `./snapshots`.
 
-3. Copy snapshots from local environment to OpenSearch cluster:
+3. Copy `snapshots` directory from local environment to OpenSearch cluster:
    * Use kubectl with config on OpenSearch cluster
      ```
      kubectl cp ./snapshots/ opensearch-pod-name:/usr/share/opensearch -n opensearch-namespace
@@ -836,11 +836,11 @@ With this approach snapshots collected on Elasticsearch side and restored on Ope
      with `opensearch-pod-name` and `opensearch-namespace`. Snapshots will be copied from local path `./snapshots`.
 
 4. Perform manual restore on OpenSearch side:
-   * From any OpenSearch pod call restore procedure
+   * From any OpenSearch pod run restore procedure
      ```bash
      curl -XPOST -u username:password "http://localhost:9200/_snapshot/${SNAPSHOTS_REPOSITORY_NAME:-snapshots}/${SNAPSHOT_NAME:-elasticsearch_snapshot}/_restore"
      ```
-     with OpenSearch `username:password` specified and `SNAPSHOT_NAME` the same, that was defined for backup on elasticsearch side.
+     with OpenSearch `username:password` specified and `SNAPSHOT_NAME` the same, that was defined for backup on Elasticsearch side.
    
    * Check that response is `"accepted":true`. Otherwise, some problem occurred and described in response, such as already existing open index in new cluster, but if OpenSearch cluster has clean installation, no conflicts expected. If such problem reproduced, close or delete indices that already exists or use renaming pattern. 
      
