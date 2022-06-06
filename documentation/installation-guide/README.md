@@ -505,7 +505,7 @@ opensearch:
     replicas: 3
     nodeSelector:
       role: compute
-    javaOpts: "-Xms512m -Xmx512m"
+    javaOpts: "-Xms718m -Xmx718m"
     persistence:
       storageClass: local-storage
       size: 2Gi
@@ -545,7 +545,7 @@ opensearch:
       requests:
         cpu: 200m
         memory: 1024Mi
-    javaOpts: "-Xms512m -Xmx512m"
+    javaOpts: "-Xms718m -Xmx718m"
     persistence:
       persistentVolumes:
         - pv1
