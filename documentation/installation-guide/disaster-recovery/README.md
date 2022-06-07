@@ -82,16 +82,30 @@ opensearch:
 
   master:
     replicas: 3
-    javaOpts: "-Xms512m -Xmx512m"
+    javaOpts: "-Xms718m -Xmx718m"
     persistence:
       storageClass: host-path
       size: 2Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1536Mi
+      requests:
+        cpu: 200m
+        memory: 1536Mi  
 
   client:
     ingress:
       enabled: true
       hosts:
         - opensearch-opensearch-service.kubernetes.docker.internal
+    resources:
+      limits:
+        cpu: 1
+        memory: 1024Mi
+      requests:
+        cpu: 200m
+        memory: 1024Mi
 
 monitoring:
   enabled: false
@@ -121,16 +135,30 @@ opensearch:
 
   master:
     replicas: 3
-    javaOpts: "-Xms512m -Xmx512m"
+    javaOpts: "-Xms718m -Xmx718m"
     persistence:
       storageClass: host-path
       size: 2Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1536Mi
+      requests:
+        cpu: 200m
+        memory: 1536Mi  
 
   client:
     ingress:
       enabled: true
       hosts:
         - opensearch-opensearch-service.kubernetes.docker.internal
+    resources:
+      limits:
+        cpu: 1
+        memory: 1024Mi
+      requests:
+        cpu: 200m
+        memory: 1024Mi
 
 monitoring:
   enabled: false
@@ -175,16 +203,30 @@ opensearch:
 
   master:
     replicas: 3
-    javaOpts: "-Xms512m -Xmx512m"
+    javaOpts: "-Xms718m -Xmx718m"
     persistence:
       storageClass: host-path
       size: 2Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1536Mi
+      requests:
+        cpu: 200m
+        memory: 1536Mi        
 
   client:
     ingress:
       enabled: true
       hosts:
         - opensearch-opensearch-service.gke.example.us-central.com
+    resources:
+      limits:
+        cpu: 1
+        memory: 1024Mi
+      requests:
+        cpu: 200m
+        memory: 1024Mi
 ```
 
 **NOTE:** You should install `active` service and then copy `opensearch-admin-certs` and `opensearch-transport-certs` Kubernetes secrets to the Kubernetes namespace for `standby` service *before* its installation.
@@ -214,16 +256,30 @@ opensearch:
 
   master:
     replicas: 3
-    javaOpts: "-Xms512m -Xmx512m"
+    javaOpts: "-Xms718m -Xmx718m"
     persistence:
       storageClass: host-path
       size: 2Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1536Mi
+      requests:
+        cpu: 200m
+        memory: 1536Mi  
 
   client:
     ingress:
       enabled: true
       hosts:
         - opensearch-opensearch-service.gke.example.northamerica.com
+    resources:
+      limits:
+        cpu: 1
+        memory: 1024Mi
+      requests:
+        cpu: 200m
+        memory: 1024Mi
 ```
 
 **NOTE:** `MCS` feature can work unstable, sometimes it requires redeployment if connectivity between clusters is not established.
