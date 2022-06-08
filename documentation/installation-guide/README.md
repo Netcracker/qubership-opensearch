@@ -26,7 +26,7 @@ Before you begin, ensure the following requirements are met:
 The following Custom Resource Definitions should be installed to the cloud before the installation of OpenSearch:
 
 * `OpenSearchService` - When you deploy with restricted rights or creating CRDs, it is disabled by the Deployer job. You also have to apply the CRD manually when performing the `Upgrade` operation for the version where the CRD is changed (tags usually contain this information). [CRDs folder](../../charts/helm/opensearch-service/crds).
-* `GrafanaDashboard`, `PrometheusRule`, and `ServiceMonitor` - They should be installed when you deploy OpenSearch monitoring with `monitoring.monitoringType=prometheus`. You need to install the Monitoring Operator service before the OpenSearch installation.
+* If `monitoring.enabled=true` and `monitoring.monitoringType=prometheus`, then `GrafanaDashboard`, `PrometheusRule`, and `ServiceMonitor` should be installed. You need to install the Monitoring Operator service before the OpenSearch installation.
 
 **Important**: To create CRDs, you must have cloud admin rights. If the deployment user does not have the `cluster-admin` rights, you need to perform the steps described in the [Deployment with Restricted Rights](#deployment-with-restricted-rights) section before the installation.
 
@@ -46,6 +46,13 @@ Environment:
   This operation can be performed automatically during installation if `opensearch.sysctl.enabled` is `true`, but it requires the permission to run privileged containers for the cluster.
   **Pay attention**: running privileged containers is usually denied for public clouds.
 
+* Following annotations should be specified for the project:
+
+  ```
+  oc annotate --overwrite ns ${OS_PROJECT} openshift.io/sa.scc.supplemental-groups='1000/1000'
+  oc annotate --overwrite ns ${OS_PROJECT} openshift.io/sa.scc.uid-range='1000/1000'
+  ```
+
 * If you use predefined `hostPath` persistent volumes, set the appropriate `UID` and `GID` on the `hostPath` directories and rule for SELinux:
 
    ```
@@ -59,6 +66,23 @@ Environment:
   You can specify the `persistence.persistentVolumes` parameter for `master` and `data` to use pre-created persistent volumes with other naming rules.
 
 * If you install OpenSearch service on OpenDistro Elasticsearch service you need to execute steps from [Migration from OpenDistro Elasticsearch](#migration-from-opendistro-elasticsearch).
+
+## Common Solution Prerequisites
+
+* A PV must be created for each replica from each deployment
+
+### Hardware Requirements
+
+The following HWE is provided as an example to estimate the project needs.
+
+| Component                    | Hardware                             | Minimal                             | Recommended                            |
+|------------------------------|--------------------------------------|-------------------------------------|----------------------------------------|
+| Opensearch                   | CPU <br> RAM <br> Java heap <br> HDD | 400m <br> 2 Gb <br> 1 Gb <br> 10 Gb | 2 <br> 8 Gb <br> 4 Gb <br> 1.2*DB size |
+| Opensearch Monitoring        | CPU <br> RAM                         | 200m <br> 256 Mb                    | 200m <br> 256 Mb                       |
+| Opensearch Curator           | CPU <br> RAM                         | 200m <br> 256 Mb                    | 200m <br> 256 Mb                       |
+| Opensearch statusProvisioner | CPU <br> RAM                         | 200m <br> 256 Mb                    | 200m <br> 256 Mb                       |
+| DBaaS Opensearch Adapter     | CPU <br> RAM                         | 200m <br> 32 Mb                     | 400m <br> 64 Mb                        |
+| DBaaS Elasticsearch Adapter  | CPU <br> RAM                         | 200m <br> 32 Mb                     | 400m <br> 64 Mb                        |
 
 # Installation modes
 
@@ -576,6 +600,36 @@ opensearch:
         memory: 1024Mi
 ```
 
+Base `CMDB` parameters example to deploy OpenSearch via Groovy Job Deployer:
+
+```****
+monitoring.enabled=false;
+opensearch.securityConfig.authc.basic.password=<pwd>;
+opensearch.securityConfig.authc.basic.username=<username>;
+opensearch.master.replicas=1;
+opensearch.master.nodeSelector='{"region": "<label value>"}';
+opensearch.master.javaOpts=-Xms512m -Xmx512m;
+opensearch.master.persistence.persistentVolumes='["<pv name>"]';
+opensearch.master.persistence.size=2Gi;
+opensearch.client.ingress.enabled=true;
+opensearch.client.hosts=opensearch-core-opensearch.paas-apps10.openshift.sdntest.netcracker.com;
+dbaasAdapter.enabled=true;
+dbaasAdapter.dbaasUsername=dbaas-aggregator;
+dbaasAdapter.dbaasPassword=dbaas-aggregator;
+dbaasAdapter.dbaasAggregatorRegistrationAddress=http://dbaas-aggregator.dbaas-core:8080;
+dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier=core-opensearch;
+dbaasAdapter.registrationAuthUsername=cluster-dba;
+dbaasAdapter.registrationAuthPassword=Bnmq5567_PO;
+dbaasAdapter.requests.memory=32Mi;
+dbaasAdapter.requests.cpu=200m;
+dbaasAdapter.limits.memory=32Mi;
+dbaasAdapter.limits.cpu=200m;
+ESCAPE_SEQUENCE=true;
+dbaasAdapter.nodeSelector='{"region": "*******"}';
+DEPLOY_W_HELM=true;
+DISABLE_CRD=true;
+```
+
 You can add necessary parameters and sections to these examples to reach expected result.
 
 # Deployment
@@ -639,6 +693,8 @@ For information about:
 
 To deploy via Groovy Deployer job, navigate to the Jenkins job `groovy.deploy.v3` and then click **Build with parameters**.
 
+Descriptors can be found in [TAGS](https://git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/-/tags) section on GitLab
+
 The job parameters are predefined and described as follows:
 
 The `PROJECT` parameter specifies the name of the existing OpenShift project/Kubernetes namespace. For example, `opensearch-service`.
@@ -652,19 +708,9 @@ The `ARTIFACT_DESCRIPTOR_VERSION` parameter specifies the version of maven artif
 `artifactId:artifactVersion`. For example, `opensearch-service:charts_v01`.
 The images for all components are taken from the maven artifact.
 
-The `CUSTOM_PARAMS` parameter specifies the list of necessary parameters for OpenSearch service installation.
+The `CMDB` is the list of necessary parameters for OpenSearch service installation.
 All parameters should be divided by `;` and should not contain `"` in values.
 You can find examples in [Samples](#samples) section.
-Multiline sections can be filled with `'` as follows:
-```
-opensearch='
-  securityConfig:
-    authc:
-      basic:
-        username: "admin"
-        password: "admin"
-';
-```
 
 **Note**: You should always specify `DEPLOY_W_HELM=true;` as first parameter  and `ESCAPE_SEQUENCE=true;` as last to correct deploy Helm release.
 
