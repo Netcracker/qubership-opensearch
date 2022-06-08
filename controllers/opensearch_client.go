@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -40,4 +41,24 @@ func (rc RestClient) SendRequest(method string, path string, body io.Reader) (st
 	statusCode = response.StatusCode
 	responseBody, err = ioutil.ReadAll(response.Body)
 	return
+}
+
+func (rc RestClient) GetArrayData(path, key string, filter func(string) bool) ([]string, error) {
+	arrayData := make([]string, 0, 64)
+	_, body, err := rc.SendRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return arrayData, err
+	}
+	var bodySlice []map[string]string
+	if err = json.Unmarshal(body, &bodySlice); err != nil {
+		return arrayData, err
+	}
+
+	for _, data := range bodySlice {
+		dataItem := data[key]
+		if filter(dataItem) {
+			arrayData = append(arrayData, dataItem)
+		}
+	}
+	return arrayData, nil
 }
