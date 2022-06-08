@@ -2,10 +2,14 @@ package controllers
 
 import (
 	"crypto/tls"
+	"crypto/x509"
+	"errors"
 	"fmt"
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
 	"github.com/go-logr/logr"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -13,6 +17,7 @@ import (
 
 const (
 	opensearchConfigHashName = "config.opensearch"
+	certificateFilePath      = "/certs/crt.pem"
 )
 
 type OpenSearchReconciler struct {
@@ -77,10 +82,10 @@ func (r OpenSearchReconciler) Status() error {
 
 func (r OpenSearchReconciler) Configure() error {
 	if r.cr.Spec.OpenSearch.Snapshots != nil {
-		transport := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		client, err := r.configureClient()
+		if err != nil {
+			return err
 		}
-		client := http.Client{Transport: transport}
 		opensearchCredentials := r.reconciler.parseSecretCredentials(r.cr, r.logger)
 
 		if r.cr.Spec.Curator != nil {
@@ -151,4 +156,23 @@ func (r *OpenSearchReconciler) getS3Credentials() (string, string) {
 	keyId = secret.Data["s3-key-id"]
 	keySecret = secret.Data["s3-key-secret"]
 	return string(keyId), string(keySecret)
+}
+
+func (r *OpenSearchReconciler) configureClient() (http.Client, error) {
+	client := http.Client{}
+	if _, err := os.Stat(certificateFilePath); errors.Is(err, os.ErrNotExist) {
+		return client, nil
+	}
+	caCert, err := ioutil.ReadFile(certificateFilePath)
+	if err != nil {
+		return client, err
+	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+	client.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{
+			RootCAs: caCertPool,
+		},
+	}
+	return client, nil
 }

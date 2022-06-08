@@ -28,6 +28,12 @@ spec:
             - containerPort: 8069
               protocol: TCP
               name: rep-health
+          {{- if and .Values.opensearch.ssl.rest.enabled .Values.opensearch.ssl.rest.existingCertSecret }}
+          volumeMounts:
+            - mountPath: /certs/crt.pem
+              name: certs
+              subPath: {{ .Values.opensearch.ssl.rest.existingCertSecretCertSubPath }}
+          {{- end }}
           command:
             - /manager
           imagePullPolicy: Always
@@ -98,6 +104,12 @@ spec:
               cpu: {{ default "10m" .Values.global.disasterRecovery.resources.requests.cpu }}
               memory: {{ default "10Mi" .Values.global.disasterRecovery.resources.requests.memory }}
         {{- end }}
+      {{- if and .Values.opensearch.ssl.rest.enabled .Values.opensearch.ssl.rest.existingCertSecret }}
+      volumes:
+        - name: certs
+          secret:
+            secretName: {{ .Values.opensearch.ssl.rest.existingCertSecret }}
+      {{- end }}
       {{- with .Values.operator.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}
