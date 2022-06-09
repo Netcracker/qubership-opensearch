@@ -8504,11 +8504,11 @@
         "name": "node_name",
         "options": [],
         "query": {
-          "query": "label_values(opensearch_indices_flush_total{namespace="$namespace"}, node_name)",
+          "query": "label_values(opensearch_indices_flush_total{namespace=\"$namespace\"}, node_name)",
           "refId": "Platform Monitoring Prometheus-node_name-Variable-Query"
         },
         "refresh": 1,
-        "regex": "opensearch-[0-9].*",
+        "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
