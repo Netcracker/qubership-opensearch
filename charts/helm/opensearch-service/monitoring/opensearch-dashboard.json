@@ -480,7 +480,7 @@
             "uid": "$datasource"
           },
           "exemplar": false,
-          "expr": "100 * max(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$es_pod_names\",container=\"opensearch\"}[5m])) / max(kube_pod_container_resource_limits_cpu_cores{exported_namespace=\"$namespace\",exported_pod=~\"$es_pod_names\"})",
+          "expr": "100 * max(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$node_name\",container=\"opensearch\"}[5m])) / max(kube_pod_container_resource_limits_cpu_cores{exported_namespace=\"$namespace\",exported_pod=~\"$node_name\"})",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -597,7 +597,7 @@
             "uid": "$datasource"
           },
           "exemplar": false,
-          "expr": "100 * max(container_memory_working_set_bytes{namespace=\"$namespace\", pod=~\"$es_pod_names\",container=\"opensearch\"}) / max(container_spec_memory_limit_bytes{namespace=\"$namespace\", pod=~\"$es_pod_names\", container=\"opensearch\"})",
+          "expr": "100 * max(container_memory_working_set_bytes{namespace=\"$namespace\", pod=~\"$node_name\",container=\"opensearch\"}) / max(container_spec_memory_limit_bytes{namespace=\"$namespace\", pod=~\"$node_name\", container=\"opensearch\"})",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -842,7 +842,7 @@
             "uid": "$datasource"
           },
           "exemplar": true,
-          "expr": "min(kube_pod_status_ready{exported_namespace=\"$namespace\", exported_pod=~\"$es_pod_names\", condition=\"true\"}) by (exported_pod)",
+          "expr": "min(kube_pod_status_ready{exported_namespace=\"$namespace\", exported_pod=~\"$node_name\", condition=\"true\"}) by (exported_pod)",
           "interval": "",
           "legendFormat": "{{exported_pod}}",
           "refId": "A"
@@ -2748,7 +2748,7 @@
             {
               "alias": "$tag_pod_name used",
               "dsType": "influxdb",
-              "expr": "sum(container_memory_usage_bytes{namespace=\"$namespace\",pod=~\"$es_pod_names\",container!=\"\"}) by (pod)",
+              "expr": "sum(container_memory_usage_bytes{namespace=\"$namespace\",pod=~\"$node_name\",container!=\"\"}) by (pod)",
               "groupBy": [
                 {
                   "params": [
@@ -2790,7 +2790,7 @@
             {
               "alias": "$tag_pod_name total",
               "dsType": "influxdb",
-              "expr": "sum(kube_pod_container_resource_limits_memory_bytes{exported_namespace=\"$namespace\",exported_pod=~\"$es_pod_names\"}) by (exported_pod)",
+              "expr": "sum(kube_pod_container_resource_limits_memory_bytes{exported_namespace=\"$namespace\",exported_pod=~\"$node_name\"}) by (exported_pod)",
               "groupBy": [
                 {
                   "params": [
@@ -2830,7 +2830,7 @@
               "tags": []
             },
             {
-              "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$es_pod_names\",container!=\"\"}) by (pod)",
+              "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$node_name\",container!=\"\"}) by (pod)",
               "interval": "",
               "legendFormat": "{{pod}}:usage",
               "refId": "C"
@@ -3902,7 +3902,7 @@
             {
               "alias": "$tag_pod_name",
               "dsType": "influxdb",
-              "expr": "(sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$es_pod_names\",container!=\"\"}[1m])) by (pod)) * 1000",
+              "expr": "(sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$node_name\",container!=\"\"}[1m])) by (pod)) * 1000",
               "groupBy": [
                 {
                   "params": [
@@ -3944,7 +3944,7 @@
             {
               "alias": "$tag_pod_name total",
               "dsType": "influxdb",
-              "expr": "(sum(kube_pod_container_resource_limits_cpu_cores{exported_namespace=\"$namespace\",exported_pod=~\"$es_pod_names\"}) by (exported_pod)) * 1000",
+              "expr": "(sum(kube_pod_container_resource_limits_cpu_cores{exported_namespace=\"$namespace\",exported_pod=~\"$node_name\"}) by (exported_pod)) * 1000",
               "groupBy": [
                 {
                   "params": [
@@ -8504,44 +8504,11 @@
         "name": "node_name",
         "options": [],
         "query": {
-          "query": "label_values(node_name)",
+          "query": "label_values(opensearch_fs_total_available_in_bytes{namespace=\"$namespace\"}, node_name)",
           "refId": "Platform Monitoring Prometheus-node_name-Variable-Query"
         },
         "refresh": 1,
-        "regex": "opensearch-[0-9].*",
-        "skipUrlSync": false,
-        "sort": 0,
-        "tagValuesQuery": "",
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
-      },
-      {
-        "current": {
-          "selected": true,
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
-        },
-        "datasource": {
-          "uid": "$datasource"
-        },
-        "definition": "label_values(pod)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "OpenSearch pods",
-        "multi": true,
-        "name": "es_pod_names",
-        "options": [],
-        "query": {
-          "query": "label_values(pod)",
-          "refId": "Platform Monitoring Prometheus-es_pod_names-Variable-Query"
-        },
-        "refresh": 2,
-        "regex": "opensearch-[0-9].*",
+        "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
