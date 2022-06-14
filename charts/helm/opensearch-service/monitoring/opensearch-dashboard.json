@@ -8504,7 +8504,7 @@
         "name": "node_name",
         "options": [],
         "query": {
-          "query": "label_values(opensearch_indices_flush_total{namespace=\"$namespace\"}, node_name)",
+          "query": "label_values(opensearch_fs_total_available_in_bytes{namespace=\"$namespace\"}, node_name)",
           "refId": "Platform Monitoring Prometheus-node_name-Variable-Query"
         },
         "refresh": 1,
