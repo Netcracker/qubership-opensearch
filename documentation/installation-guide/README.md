@@ -46,7 +46,7 @@ Environment:
   This operation can be performed automatically during installation if `opensearch.sysctl.enabled` is `true`, but it requires the permission to run privileged containers for the cluster.
   **Pay attention**: running privileged containers is usually denied for public clouds.
 
-* Following annotations should be specified for the project:
+* In case you deploy on *Openshift*, following annotations should be specified for the project:
 
   ```
   oc annotate --overwrite ns ${OS_PROJECT} openshift.io/sa.scc.supplemental-groups='1000/1000'
@@ -75,14 +75,16 @@ Environment:
 
 The following HWE is provided as an example to estimate the project needs.
 
-| Component                    | Hardware                             | Minimal                             | Recommended                            |
-|------------------------------|--------------------------------------|-------------------------------------|----------------------------------------|
-| Opensearch                   | CPU <br> RAM <br> Java heap <br> HDD | 400m <br> 2 Gb <br> 1 Gb <br> 10 Gb | 2 <br> 8 Gb <br> 4 Gb <br> 1.2*DB size |
-| Opensearch Monitoring        | CPU <br> RAM                         | 200m <br> 256 Mb                    | 200m <br> 256 Mb                       |
-| Opensearch Curator           | CPU <br> RAM                         | 200m <br> 256 Mb                    | 200m <br> 256 Mb                       |
-| Opensearch statusProvisioner | CPU <br> RAM                         | 200m <br> 256 Mb                    | 200m <br> 256 Mb                       |
-| DBaaS Opensearch Adapter     | CPU <br> RAM                         | 200m <br> 32 Mb                     | 400m <br> 64 Mb                        |
-| DBaaS Elasticsearch Adapter  | CPU <br> RAM                         | 200m <br> 32 Mb                     | 400m <br> 64 Mb                        |
+| Component                    | Hardware                                           | Minimal                                        | Recommended                                             |
+|------------------------------|----------------------------------------------------|------------------------------------------------|---------------------------------------------------------|
+| Opensearch                   | CPU <br> RAM <br> Java heap <br> HDD <br> NFS (S3) | 400m <br> 2 Gb <br> 1 Gb <br> 10 Gb <br> 10 Gb | 2 <br> 8 Gb <br> 4 Gb <br> 1.2*DB size <br> 1.2*DB size |
+| Opensearch Monitoring        | CPU <br> RAM                                       | 200m <br> 256 Mb                               | 200m <br> 256 Mb                                        |
+| Opensearch Curator           | CPU <br> RAM                                       | 200m <br> 256 Mb                               | 200m <br> 256 Mb                                        |
+| Opensearch statusProvisioner | CPU <br> RAM                                       | 200m <br> 256 Mb                               | 200m <br> 256 Mb                                        |
+| DBaaS Opensearch Adapter     | CPU <br> RAM                                       | 200m <br> 32 Mb                                | 400m <br> 64 Mb                                         |
+| DBaaS Elasticsearch Adapter  | CPU <br> RAM                                       | 200m <br> 32 Mb                                | 400m <br> 64 Mb                                         |
+
+  **Note**: Provided HWE for **Opensearch** component are for the single node. In case you have multiple instances, you have to provide the same resources for each node.  
 
 # Installation modes
 
