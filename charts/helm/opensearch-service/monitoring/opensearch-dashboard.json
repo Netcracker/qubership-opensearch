@@ -67,9 +67,7 @@
       "circleBackground": false,
       "colorBackground": false,
       "colorValue": true,
-      "datasource": {
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "defaultColor": "rgb(117, 117, 117)",
       "description": "Status of OpenSearch cluster.\nIf the cluster status is `degraded`, at least one replica shard is unallocated or missing. The search\n   results will still be complete, but if more shards are missing, you may lose data.\n   \n   A `failed` cluster status indicates that:\n   \n    * At least one primary shard is missing.\n    * You are missing data.\n    * The searches will return partial results.\n    * You will be blocked from indexing into that shard.",
       "format": "none",
@@ -134,12 +132,10 @@
       "tableColumn": "",
       "targets": [
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "dsType": "influxdb",
           "exemplar": true,
-          "expr": "max(opensearch_cluster_health_status_code{namespace=\"$namespace\",host=~\"$side*\",status=\"\"})",
+          "expr": "max(opensearch_cluster_health_status_code{namespace=\"$namespace\",cluster=\"$cluster\",status=\"\"})",
           "groupBy": [
             {
               "params": [
@@ -159,7 +155,7 @@
           "legendFormat": "",
           "measurement": "opensearch_cluster_health",
           "policy": "default",
-          "query": "SELECT max(\"status_code\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "query": "SELECT max(\"status_code\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
@@ -231,7 +227,7 @@
     {
       "aliasColors": {
         "Down": "red",
-        "scalar(opensearch_cluster_health_total_number_of_nodes{host=~\"^.*\",namespace=\"$namespace\"}) - min(opensearch_cluster_health_number_of_nodes{namespace=\"$namespace\",host=~\"^.*\"})": "red"
+        "scalar(opensearch_cluster_health_total_number_of_nodes{cluster=\"$cluster\",namespace=\"$namespace\"}) - min(opensearch_cluster_health_number_of_nodes{namespace=\"$namespace\",cluster=\"$cluster\"})": "red"
       },
       "bars": false,
       "dashLength": 10,
@@ -294,7 +290,7 @@
         {
           "alias": "UP",
           "dsType": "influxdb",
-          "expr": "min(opensearch_cluster_health_number_of_nodes{namespace=\"$namespace\",host=~\"$side*\"})",
+          "expr": "min(opensearch_cluster_health_number_of_nodes{namespace=\"$namespace\",cluster=\"$cluster\"})",
           "groupBy": [
             {
               "params": [
@@ -312,7 +308,7 @@
           "interval": "",
           "legendFormat": "Up",
           "policy": "default",
-          "query": "SELECT min(\"number_of_nodes\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "query": "SELECT min(\"number_of_nodes\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
@@ -335,7 +331,7 @@
         {
           "alias": "DOWN",
           "dsType": "influxdb",
-          "expr": "scalar(opensearch_cluster_health_total_number_of_nodes{host=~\"$side*\",namespace=\"$namespace\"}) - min(opensearch_cluster_health_number_of_nodes{namespace=\"$namespace\",host=~\"$side*\"})",
+          "expr": "scalar(opensearch_cluster_health_total_number_of_nodes{cluster=\"$cluster\",namespace=\"$namespace\"}) - min(opensearch_cluster_health_number_of_nodes{namespace=\"$namespace\",cluster=\"$cluster\"})",
           "groupBy": [
             {
               "params": [
@@ -353,7 +349,7 @@
           "interval": "",
           "legendFormat": "Down",
           "policy": "default",
-          "query": "SELECT last(\"total_number_of_nodes\") - min(\"number_of_nodes\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "query": "SELECT last(\"total_number_of_nodes\") - min(\"number_of_nodes\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
           "rawQuery": true,
           "refId": "B",
           "resultFormat": "time_series",
@@ -408,9 +404,7 @@
       "circleBackground": false,
       "colorBackground": false,
       "colorValue": true,
-      "datasource": {
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "defaultColor": "rgb(117, 117, 117)",
       "description": "Maximum current CPU usage (in percent) among all OpenSearch servers.",
       "format": "percent",
@@ -476,11 +470,9 @@
       "tableColumn": "",
       "targets": [
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "exemplar": false,
-          "expr": "100 * max(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$node_name\",container=\"opensearch\"}[5m])) / max(kube_pod_container_resource_limits_cpu_cores{exported_namespace=\"$namespace\",exported_pod=~\"$node_name\"})",
+          "expr": "100 * max(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$node_name\",container=\"opensearch\",cluster=\"$cluster\"}[5m])) / max(kube_pod_container_resource_limits_cpu_cores{exported_namespace=\"$namespace\",exported_pod=~\"$node_name\",cluster=\"$cluster\"})",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -525,9 +517,7 @@
       "circleBackground": false,
       "colorBackground": false,
       "colorValue": true,
-      "datasource": {
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "defaultColor": "rgb(117, 117, 117)",
       "description": "Maximum current Memory usage (in percent) among all OpenSearch servers.",
       "format": "percent",
@@ -593,11 +583,9 @@
       "tableColumn": "",
       "targets": [
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "exemplar": false,
-          "expr": "100 * max(container_memory_working_set_bytes{namespace=\"$namespace\", pod=~\"$node_name\",container=\"opensearch\"}) / max(container_spec_memory_limit_bytes{namespace=\"$namespace\", pod=~\"$node_name\", container=\"opensearch\"})",
+          "expr": "100 * max(container_memory_working_set_bytes{namespace=\"$namespace\", pod=~\"$node_name\",container=\"opensearch\",cluster=\"$cluster\"}) / max(container_spec_memory_limit_bytes{namespace=\"$namespace\", pod=~\"$node_name\", container=\"opensearch\",cluster=\"$cluster\"})",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -663,9 +651,7 @@
         }
       ],
       "crosshairColor": "#8F070C",
-      "datasource": {
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "description": "Transitions of OpenSearch cluster status",
       "display": "timeline",
       "expandFromQueryS": 0,
@@ -697,11 +683,9 @@
       "showTimeAxis": true,
       "targets": [
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
-          "expr": "max(opensearch_cluster_health_status_code{namespace=\"$namespace\",host=~\"$side*\",status=\"\"})",
+          "expr": "max(opensearch_cluster_health_status_code{namespace=\"$namespace\",cluster=\"$cluster\",status=\"\"})",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -804,9 +788,7 @@
         }
       ],
       "crosshairColor": "#8F070C",
-      "datasource": {
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "description": "Transitions of readiness probes for each OpenSearch pod.",
       "display": "timeline",
       "expandFromQueryS": 0,
@@ -838,11 +820,9 @@
       "showTimeAxis": true,
       "targets": [
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
-          "expr": "min(kube_pod_status_ready{exported_namespace=\"$namespace\", exported_pod=~\"$node_name\", condition=\"true\"}) by (exported_pod)",
+          "expr": "min(kube_pod_status_ready{exported_namespace=\"$namespace\", exported_pod=~\"$node_name\", condition=\"true\", cluster=\"$cluster\"}) by (exported_pod)",
           "interval": "",
           "legendFormat": "{{exported_pod}}",
           "refId": "A"
@@ -930,9 +910,7 @@
       "id": 65117,
       "panels": [
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The number of active primary shards in OpenSearch cluster",
           "fieldConfig": {
             "defaults": {
@@ -995,7 +973,7 @@
           "targets": [
             {
               "dsType": "influxdb",
-              "expr": "opensearch_cluster_health_active_primary_shards{host=~\"$side*\",namespace=\"$namespace\"}",
+              "expr": "opensearch_cluster_health_active_primary_shards{cluster=\"$cluster\",namespace=\"$namespace\"}",
               "groupBy": [
                 {
                   "params": [
@@ -1015,7 +993,7 @@
               "legendFormat": "",
               "measurement": "opensearch_cluster_health",
               "policy": "default",
-              "query": "SELECT last(\"active_primary_shards\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(0)",
+              "query": "SELECT last(\"active_primary_shards\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(0)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -1102,7 +1080,7 @@
           "targets": [
             {
               "dsType": "influxdb",
-              "expr": "opensearch_cluster_health_active_shards{host=~\"$side*\",namespace=\"$namespace\"}",
+              "expr": "opensearch_cluster_health_active_shards{cluster=\"$cluster\",namespace=\"$namespace\"}",
               "groupBy": [
                 {
                   "params": [
@@ -1122,7 +1100,7 @@
               "legendFormat": "",
               "measurement": "opensearch_cluster_health",
               "policy": "default",
-              "query": "SELECT last(\"active_shards\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(0)",
+              "query": "SELECT last(\"active_shards\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(0)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -1147,9 +1125,7 @@
           "type": "stat"
         },
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The number of shards that are in the `initializing` state. When you first create an index, or when a node is rebooted, its shards are briefly in the `initializing` state before transitioning to `started` or `unassigned` as the master node attempts to assign shards to nodes in the cluster. If you see the shards remain in the `initializing` state for too long, it could be a warning sign that your cluster is unstable.",
           "fieldConfig": {
             "defaults": {
@@ -1211,7 +1187,7 @@
           "targets": [
             {
               "dsType": "influxdb",
-              "expr": "opensearch_cluster_health_initializing_shards{host=~\"$side*\",namespace=\"$namespace\"}",
+              "expr": "opensearch_cluster_health_initializing_shards{cluster=\"$cluster\",namespace=\"$namespace\"}",
               "groupBy": [
                 {
                   "params": [
@@ -1231,7 +1207,7 @@
               "legendFormat": "",
               "measurement": "opensearch_cluster_health",
               "policy": "default",
-              "query": "SELECT last(\"initializing_shards\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(0)",
+              "query": "SELECT last(\"initializing_shards\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(0)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -1317,7 +1293,7 @@
           "targets": [
             {
               "dsType": "influxdb",
-              "expr": "opensearch_cluster_health_relocating_shards{host=~\"$side*\",namespace=\"$namespace\"}",
+              "expr": "opensearch_cluster_health_relocating_shards{cluster=\"$cluster\",namespace=\"$namespace\"}",
               "groupBy": [
                 {
                   "params": [
@@ -1337,7 +1313,7 @@
               "legendFormat": "",
               "measurement": "opensearch_cluster_health",
               "policy": "default",
-              "query": "SELECT last(\"relocating_shards\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(0)",
+              "query": "SELECT last(\"relocating_shards\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(0)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -1362,9 +1338,7 @@
           "type": "stat"
         },
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The number of shards that are not assigned to any node and have the `unassigned` state. If you see the shards remain in the `unassigned` state for too long, it could be a warning sign that your cluster is unstable.",
           "fieldConfig": {
             "defaults": {
@@ -1426,7 +1400,7 @@
           "targets": [
             {
               "dsType": "influxdb",
-              "expr": "max(opensearch_cluster_health_unassigned_shards{host=~\"$side*\",namespace=\"$namespace\"})",
+              "expr": "max(opensearch_cluster_health_unassigned_shards{cluster=\"$cluster\",namespace=\"$namespace\"})",
               "groupBy": [
                 {
                   "params": [
@@ -1445,7 +1419,7 @@
               "legendFormat": "",
               "measurement": "opensearch_cluster_health",
               "policy": "default",
-              "query": "SELECT max(\"unassigned_shards\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(0)",
+              "query": "SELECT max(\"unassigned_shards\") FROM \"opensearch_cluster_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(0)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -1484,9 +1458,7 @@
       "id": 65291,
       "panels": [
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The number of tasks in 'pending' status in OpenSearch cluster",
           "fieldConfig": {
             "defaults": {
@@ -1552,11 +1524,9 @@
           "pluginVersion": "8.3.3",
           "targets": [
             {
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "exemplar": false,
-              "expr": "opensearch_cluster_health_number_of_pending_tasks{host=~\"$side*\",namespace=\"$namespace\"}",
+              "expr": "opensearch_cluster_health_number_of_pending_tasks{cluster=\"$cluster\",namespace=\"$namespace\"}",
               "instant": true,
               "interval": "",
               "legendFormat": "",
@@ -1618,11 +1588,9 @@
           "steppedLine": false,
           "targets": [
             {
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "exemplar": true,
-              "expr": "max(opensearch_cluster_health_task_max_waiting_in_queue_millis{host=~\"$side*\",namespace=\"$namespace\"})",
+              "expr": "max(opensearch_cluster_health_task_max_waiting_in_queue_millis{cluster=\"$cluster\",namespace=\"$namespace\"})",
               "instant": false,
               "interval": "",
               "legendFormat": "time of max waiting task",
@@ -1727,7 +1695,7 @@
             {
               "alias": "$tag_node_name",
               "dsType": "influxdb",
-              "expr": "max(opensearch_transport_server_open{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "max(opensearch_transport_server_open{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -1746,7 +1714,7 @@
               "legendFormat": "{{node_name}}",
               "measurement": "opensearch_transport",
               "policy": "default",
-              "query": "SELECT max(\"server_open\") FROM \"opensearch_transport\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"node_name\" fill(null)",
+              "query": "SELECT max(\"server_open\") FROM \"opensearch_transport\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"node_name\" fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -1851,7 +1819,7 @@
             {
               "alias": "$tag_node_name.$col",
               "dsType": "influxdb",
-              "expr": "max(opensearch_http_current_open{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "max(opensearch_http_current_open{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -1871,7 +1839,7 @@
               "legendFormat": "{{node_name}}",
               "measurement": "opensearch_http",
               "policy": "default",
-              "query": "SELECT max(\"current_open\") as \"open\" FROM \"opensearch_http\" WHERE (node_name =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"node_name\" fill(null)",
+              "query": "SELECT max(\"current_open\") as \"open\" FROM \"opensearch_http\" WHERE (node_name =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"node_name\" fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -1984,11 +1952,9 @@
             {
               "_comment": "In the query 'count(rx_size_in_bytes) / count(rx_size_in_bytes)' part is added to have 'null' results, because by default 'non_negative_derivative' function returns nothing if interval does not contain values.",
               "alias": "$tag_node_name: rx",
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "dsType": "influxdb",
-              "expr": "sum(irate(opensearch_transport_rx_size_in_bytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\"}[$__interval])) by (node_name, node_host)",
+              "expr": "sum(irate(opensearch_transport_rx_size_in_bytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
               "groupBy": [
                 {
                   "params": [
@@ -2008,7 +1974,7 @@
               "legendFormat": "{{node_name}}[{{node_host}}:rx]",
               "measurement": "opensearch_transport",
               "policy": "default",
-              "query": "SELECT non_negative_derivative(mean(\"rx_size_in_bytes\"), 1s) * count(\"rx_size_in_bytes\") / count(\"rx_size_in_bytes\") FROM \"opensearch_transport\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"node_name\" fill(null)",
+              "query": "SELECT non_negative_derivative(mean(\"rx_size_in_bytes\"), 1s) * count(\"rx_size_in_bytes\") / count(\"rx_size_in_bytes\") FROM \"opensearch_transport\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"node_name\" fill(null)",
               "rawQuery": true,
               "refId": "B",
               "resultFormat": "time_series",
@@ -2031,12 +1997,10 @@
             {
               "_comment": "In the query 'count(tx_size_in_bytes) / count(tx_size_in_bytes)' part is added to have 'null' results, because by default 'non_negative_derivative' function returns nothing if interval does not contain values.",
               "alias": "$tag_node_name: tx",
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "dsType": "influxdb",
               "exemplar": true,
-              "expr": "sum(irate(opensearch_transport_tx_size_in_bytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\"}[$__interval])) by (node_name, node_host)",
+              "expr": "sum(irate(opensearch_transport_tx_size_in_bytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
               "groupBy": [
                 {
                   "params": [
@@ -2056,7 +2020,7 @@
               "legendFormat": "{{node_name}}[{{node_host}}:tx]",
               "measurement": "opensearch_transport",
               "policy": "default",
-              "query": "SELECT non_negative_derivative(mean(\"tx_size_in_bytes\"), 1s) * count(\"tx_size_in_bytes\") / count(\"tx_size_in_bytes\") FROM \"opensearch_transport\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"node_name\" fill(null)",
+              "query": "SELECT non_negative_derivative(mean(\"tx_size_in_bytes\"), 1s) * count(\"tx_size_in_bytes\") / count(\"tx_size_in_bytes\") FROM \"opensearch_transport\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND \"cluster\"=\"$cluster\" AND $timeFilter GROUP BY time($__interval), \"node_name\" fill(null)",
               "rawQuery": true,
               "refId": "D",
               "resultFormat": "time_series",
@@ -2185,7 +2149,7 @@
             {
               "alias": "$tag_node_name: $col",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_jvm_mem_heap_used_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_jvm_mem_heap_used_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -2225,7 +2189,7 @@
               "tags": []
             },
             {
-              "expr": "sum(opensearch_jvm_mem_heap_max_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_jvm_mem_heap_max_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "total:{{node_name}}",
               "refId": "B"
@@ -2320,7 +2284,7 @@
             {
               "alias": "$tag_node_name",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_jvm_mem_heap_used_percent{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_jvm_mem_heap_used_percent{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -2340,7 +2304,7 @@
               "legendFormat": "{{node_name}}",
               "measurement": "opensearch_jvm",
               "policy": "default",
-              "query": "SELECT mean(\"mem_heap_used_percent\") FROM \"opensearch_jvm\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"node_name\" fill(null)",
+              "query": "SELECT mean(\"mem_heap_used_percent\") FROM \"opensearch_jvm\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"node_name\" fill(null)",
               "rawQuery": true,
               "refId": "C",
               "resultFormat": "time_series",
@@ -2406,9 +2370,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The usage of memory outside the JVM heap by each OpenSearch node",
           "fieldConfig": {
             "defaults": {
@@ -2465,7 +2427,7 @@
             {
               "alias": "$tag_node_name: $col",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_jvm_mem_non_heap_used_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_jvm_mem_non_heap_used_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -2484,7 +2446,7 @@
               "legendFormat": "{{node_name}}",
               "measurement": "opensearch_jvm",
               "policy": "default",
-              "query": "SELECT mean(\"mem_non_heap_used_in_bytes\") AS \"used\" FROM \"opensearch_jvm\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"node_name\" fill(null)",
+              "query": "SELECT mean(\"mem_non_heap_used_in_bytes\") AS \"used\" FROM \"opensearch_jvm\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"node_name\" fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -2540,9 +2502,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "Time spent on major GCs that collect old generation objects and on minor GCs that collects young generation objects in JVM (time rate per sampling interval).",
           "fieldConfig": {
             "defaults": {
@@ -2594,7 +2554,7 @@
             {
               "alias": "$tag_node_name: $col",
               "dsType": "influxdb",
-              "expr": "sum(irate(opensearch_jvm_gc_collectors_old_collection_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[$__interval])) by (node_name)",
+              "expr": "sum(irate(opensearch_jvm_gc_collectors_old_collection_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[$__interval])) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -2613,7 +2573,7 @@
               "legendFormat": "old:{{node_name}}",
               "measurement": "opensearch_jvm",
               "policy": "default",
-              "query": "SELECT non_negative_difference(max(\"gc_collectors_old_collection_time_in_millis\")) * mean(\"gc_collectors_old_collection_time_in_millis\") / mean(\"gc_collectors_old_collection_time_in_millis\") AS \"old\", non_negative_difference(max(\"gc_collectors_young_collection_time_in_millis\")) * mean(\"gc_collectors_young_collection_time_in_millis\") / mean(\"gc_collectors_young_collection_time_in_millis\") AS \"young\" FROM \"opensearch_jvm\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"node_name\" fill(null)",
+              "query": "SELECT non_negative_difference(max(\"gc_collectors_old_collection_time_in_millis\")) * mean(\"gc_collectors_old_collection_time_in_millis\") / mean(\"gc_collectors_old_collection_time_in_millis\") AS \"old\", non_negative_difference(max(\"gc_collectors_young_collection_time_in_millis\")) * mean(\"gc_collectors_young_collection_time_in_millis\") / mean(\"gc_collectors_young_collection_time_in_millis\") AS \"young\" FROM \"opensearch_jvm\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"node_name\" fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -2634,7 +2594,7 @@
               "tags": []
             },
             {
-              "expr": "sum(irate(opensearch_jvm_gc_collectors_young_collection_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[$__interval])) by (node_name)",
+              "expr": "sum(irate(opensearch_jvm_gc_collectors_young_collection_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[$__interval])) by (node_name)",
               "interval": "",
               "legendFormat": "young:{{node_name}}",
               "refId": "B"
@@ -2689,9 +2649,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The usage of memory by each OpenSearch node and its limit. These metric is useful to avoid reaching the memory limit on nodes.",
           "fieldConfig": {
             "defaults": {
@@ -2748,7 +2706,7 @@
             {
               "alias": "$tag_pod_name used",
               "dsType": "influxdb",
-              "expr": "sum(container_memory_usage_bytes{namespace=\"$namespace\",pod=~\"$node_name\",container!=\"\"}) by (pod)",
+              "expr": "sum(container_memory_usage_bytes{namespace=\"$namespace\",pod=~\"$node_name\",container!=\"\",cluster=\"$cluster\"}) by (pod)",
               "groupBy": [
                 {
                   "params": [
@@ -2767,7 +2725,7 @@
               "legendFormat": "{{pod}}:allocated",
               "measurement": "memory/usage",
               "policy": "default",
-              "query": "SELECT mean(\"value\") FROM \"memory/usage\" WHERE (\"pod_name\" =~ /^$node_name$*/ AND \"type\" = 'pod' AND \"namespace_name\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"pod_name\" fill(null)",
+              "query": "SELECT mean(\"value\") FROM \"memory/usage\" WHERE (\"pod_name\" =~ /^$node_name$*/ AND \"type\" = 'pod' AND \"namespace_name\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"pod_name\" fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -2790,7 +2748,7 @@
             {
               "alias": "$tag_pod_name total",
               "dsType": "influxdb",
-              "expr": "sum(kube_pod_container_resource_limits_memory_bytes{exported_namespace=\"$namespace\",exported_pod=~\"$node_name\"}) by (exported_pod)",
+              "expr": "sum(kube_pod_container_resource_limits_memory_bytes{exported_namespace=\"$namespace\",exported_pod=~\"$node_name\",cluster=\"$cluster\"}) by (exported_pod)",
               "groupBy": [
                 {
                   "params": [
@@ -2809,7 +2767,7 @@
               "legendFormat": "{{exported_pod}}:limit",
               "measurement": "memory/limit",
               "policy": "default",
-              "query": "SELECT mean(\"value\") FROM \"memory/limit\" WHERE (\"pod_name\" =~ /^$node_name$*/ AND \"type\" = 'pod' AND \"namespace_name\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"pod_name\" fill(null)",
+              "query": "SELECT mean(\"value\") FROM \"memory/limit\" WHERE (\"pod_name\" =~ /^$node_name$*/ AND \"type\" = 'pod' AND \"namespace_name\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"pod_name\" fill(null)",
               "rawQuery": true,
               "refId": "B",
               "resultFormat": "time_series",
@@ -2830,7 +2788,7 @@
               "tags": []
             },
             {
-              "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$node_name\",container!=\"\"}) by (pod)",
+              "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$node_name\",container!=\"\",cluster=\"$cluster\"}) by (pod)",
               "interval": "",
               "legendFormat": "{{pod}}:usage",
               "refId": "C"
@@ -2944,7 +2902,7 @@
             {
               "alias": "$tag_node_name [$tag_node_host] used",
               "dsType": "influxdb",
-              "expr": "100 * (((sum(opensearch_fs_total_total_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)) - (sum(opensearch_fs_total_free_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name))) / sum(opensearch_fs_total_total_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)) ",
+              "expr": "100 * (((sum(opensearch_fs_total_total_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)) - (sum(opensearch_fs_total_free_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name))) / sum(opensearch_fs_total_total_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)) ",
               "groupBy": [
                 {
                   "params": [
@@ -2963,7 +2921,7 @@
               "legendFormat": "{{node_name}}",
               "measurement": "opensearch_fs",
               "policy": "default",
-              "query": "SELECT 100 * (mean(\"total_total_in_bytes\") - mean(\"total_free_in_bytes\")) / mean(\"total_total_in_bytes\") FROM \"opensearch_fs\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"node_name\" ,\"node_host\" fill(null)",
+              "query": "SELECT 100 * (mean(\"total_total_in_bytes\") - mean(\"total_free_in_bytes\")) / mean(\"total_total_in_bytes\") FROM \"opensearch_fs\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"node_name\" ,\"node_host\" fill(null)",
               "rawQuery": true,
               "refId": "D",
               "resultFormat": "time_series",
@@ -3019,10 +2977,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The usage of disk space allocated to each OpenSearch node and its limit",
           "editable": true,
           "error": false,
@@ -3082,11 +3037,9 @@
           "targets": [
             {
               "alias": "$tag_node_name [$tag_node_host] total",
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_fs_total_total_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_fs_total_total_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -3106,7 +3059,7 @@
               "legendFormat": "total: {{node_name}}",
               "measurement": "opensearch_fs",
               "policy": "default",
-              "query": "SELECT mean(\"total_total_in_bytes\") FROM \"opensearch_fs\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"node_name\", \"node_host\" fill(null)",
+              "query": "SELECT mean(\"total_total_in_bytes\") FROM \"opensearch_fs\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"node_name\", \"node_host\" fill(null)",
               "rawQuery": true,
               "refId": "C",
               "resultFormat": "time_series",
@@ -3128,12 +3081,10 @@
             },
             {
               "alias": "$tag_node_name [$tag_node_host] used",
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "dsType": "influxdb",
               "exemplar": true,
-              "expr": "sum(opensearch_fs_total_total_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name) - sum(opensearch_fs_total_available_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_fs_total_total_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name) - sum(opensearch_fs_total_available_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -3152,7 +3103,7 @@
               "legendFormat": "used: {{node_name}}",
               "measurement": "opensearch_fs",
               "policy": "default",
-              "query": "SELECT mean(\"total_total_in_bytes\") - mean( \"total_available_in_bytes\") FROM \"opensearch_fs\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND $timeFilter GROUP BY  time($__interval), \"node_name\", \"node_host\" fill(null)",
+              "query": "SELECT mean(\"total_total_in_bytes\") - mean( \"total_available_in_bytes\") FROM \"opensearch_fs\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY  time($__interval), \"node_name\", \"node_host\" fill(null)",
               "rawQuery": true,
               "refId": "D",
               "resultFormat": "time_series",
@@ -3259,7 +3210,7 @@
               "_comment": "In the query 'count(io_stats_total_read_operations) / count(io_stats_total_read_operations)' part is added to have 'null' results, because by default 'non_negative_derivative' function returns nothing if interval does not contain values.",
               "alias": "$tag_node_name [$tag_node_host] $col",
               "dsType": "influxdb",
-              "expr": "sum(irate(opensearch_fs_io_stats_total_write_operations{namespace=\"$namespace\",node_name=~\"^opensearch.*\"}[$__interval])) by (node_name, node_host)",
+              "expr": "sum(irate(opensearch_fs_io_stats_total_write_operations{namespace=\"$namespace\",node_name=~\"^opensearch.*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
               "groupBy": [
                 {
                   "params": [
@@ -3278,7 +3229,7 @@
               "legendFormat": "{{node_name}}[{{node_host}}]:write",
               "measurement": "opensearch_fs",
               "policy": "default",
-              "query": "SELECT non_negative_derivative(mean(\"io_stats_total_read_operations\"), 1s) * count(\"io_stats_total_read_operations\") / count(\"io_stats_total_read_operations\") AS \"read\", non_negative_derivative(mean(\"io_stats_total_write_operations\"), 1s) AS \"write\" FROM \"opensearch_fs\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"node_name\", \"node_host\" fill(null)",
+              "query": "SELECT non_negative_derivative(mean(\"io_stats_total_read_operations\"), 1s) * count(\"io_stats_total_read_operations\") / count(\"io_stats_total_read_operations\") AS \"read\", non_negative_derivative(mean(\"io_stats_total_write_operations\"), 1s) AS \"write\" FROM \"opensearch_fs\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"node_name\", \"node_host\" fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -3299,7 +3250,7 @@
               "tags": []
             },
             {
-              "expr": "sum(irate(opensearch_fs_io_stats_total_read_operations{namespace=\"$namespace\",node_name=~\"^opensearch.*\"}[$__interval])) by (node_name, node_host)",
+              "expr": "sum(irate(opensearch_fs_io_stats_total_read_operations{namespace=\"$namespace\",node_name=~\"^opensearch.*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
               "interval": "",
               "legendFormat": "{{node_name}}[{{node_host}}]:read",
               "refId": "B"
@@ -3390,11 +3341,9 @@
             {
               "_comment": "In the query 'count(io_stats_total_read_kilobytes) / count(io_stats_total_read_kilobytes)' part is added to have 'null' results, because by default 'non_negative_derivative' function returns nothing if interval does not contain values.",
               "alias": "$tag_node_name [$tag_node_host] $col",
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "dsType": "influxdb",
-              "expr": "sum(irate(opensearch_fs_io_stats_total_read_kilobytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\"}[$__interval])) by (node_name, node_host)",
+              "expr": "sum(irate(opensearch_fs_io_stats_total_read_kilobytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
               "groupBy": [
                 {
                   "params": [
@@ -3413,7 +3362,7 @@
               "interval": "",
               "legendFormat": "{{node_name}}[{{node_host}}:read]",
               "policy": "default",
-              "query": "SELECT non_negative_derivative(mean(\"io_stats_total_read_kilobytes\"), 1s) * count(\"io_stats_total_read_kilobytes\") / count(\"io_stats_total_read_kilobytes\") AS \"read\", non_negative_derivative(mean(\"io_stats_total_write_kilobytes\"), 1s) AS \"write\" FROM \"opensearch_fs\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"node_name\", \"node_host\" fill(null)",
+              "query": "SELECT non_negative_derivative(mean(\"io_stats_total_read_kilobytes\"), 1s) * count(\"io_stats_total_read_kilobytes\") / count(\"io_stats_total_read_kilobytes\") AS \"read\", non_negative_derivative(mean(\"io_stats_total_write_kilobytes\"), 1s) AS \"write\" FROM \"opensearch_fs\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"node_name\", \"node_host\" fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -3434,11 +3383,9 @@
               "tags": []
             },
             {
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "exemplar": true,
-              "expr": "sum(irate(opensearch_fs_io_stats_total_write_kilobytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\"}[$__interval])) by (node_name, node_host)",
+              "expr": "sum(irate(opensearch_fs_io_stats_total_write_kilobytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
               "interval": "",
               "legendFormat": "{{node_name}}[{{node_host}}:write]",
               "refId": "B"
@@ -3527,11 +3474,9 @@
           "steppedLine": false,
           "targets": [
             {
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "exemplar": true,
-              "expr": "max(opensearch_process_open_file_descriptors{namespace=\"$namespace\"}) by (node_name)",
+              "expr": "max(opensearch_process_open_file_descriptors{namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "hide": false,
               "interval": "",
               "legendFormat": "{{node_name}}",
@@ -3638,7 +3583,7 @@
             {
               "alias": "$tag_node_name [$tag_node_host]",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_os_cpu_load_average_5m{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name, node_host)",
+              "expr": "sum(opensearch_os_cpu_load_average_5m{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name, node_host)",
               "groupBy": [
                 {
                   "params": [
@@ -3657,7 +3602,7 @@
               "legendFormat": "{{node_name}} [{{node_host}}]",
               "measurement": "opensearch_os",
               "policy": "default",
-              "query": "SELECT mean(\"cpu_load_average_5m\") FROM \"opensearch_os\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"node_name\", \"node_host\" fill(null)",
+              "query": "SELECT mean(\"cpu_load_average_5m\") FROM \"opensearch_os\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"node_name\", \"node_host\" fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -3766,7 +3711,7 @@
             {
               "alias": "$tag_node_name [$tag_node_host]",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_process_cpu_percent{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name, node_host)",
+              "expr": "sum(opensearch_process_cpu_percent{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name, node_host)",
               "groupBy": [
                 {
                   "params": [
@@ -3785,7 +3730,7 @@
               "legendFormat": "{{node_name}}[{{node_host}}]",
               "measurement": "opensearch_process",
               "policy": "default",
-              "query": "SELECT mean(\"cpu_percent\") FROM \"opensearch_process\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"node_name\", \"node_host\" fill(null)",
+              "query": "SELECT mean(\"cpu_percent\") FROM \"opensearch_process\" WHERE (\"node_name\" =~ /^$node_name$/ AND \"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"node_name\", \"node_host\" fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -3902,7 +3847,7 @@
             {
               "alias": "$tag_pod_name",
               "dsType": "influxdb",
-              "expr": "(sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$node_name\",container!=\"\"}[1m])) by (pod)) * 1000",
+              "expr": "(sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$node_name\",container!=\"\",cluster=\"$cluster\"}[1m])) by (pod)) * 1000",
               "groupBy": [
                 {
                   "params": [
@@ -3921,7 +3866,7 @@
               "legendFormat": "Usage: {{pod}}",
               "measurement": "cpu/usage_rate",
               "policy": "default",
-              "query": "SELECT mean(\"value\") FROM \"cpu/usage_rate\" WHERE (\"pod_name\" =~ /^$node_name$*/ AND \"type\" = 'pod' AND \"namespace_name\" =~ /^$namespace$/) AND $timeFilter GROUP BY time($__interval), \"pod_name\" fill(null)",
+              "query": "SELECT mean(\"value\") FROM \"cpu/usage_rate\" WHERE (\"pod_name\" =~ /^$node_name$*/ AND \"type\" = 'pod' AND \"namespace_name\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"pod_name\" fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -3944,7 +3889,7 @@
             {
               "alias": "$tag_pod_name total",
               "dsType": "influxdb",
-              "expr": "(sum(kube_pod_container_resource_limits_cpu_cores{exported_namespace=\"$namespace\",exported_pod=~\"$node_name\"}) by (exported_pod)) * 1000",
+              "expr": "(sum(kube_pod_container_resource_limits_cpu_cores{exported_namespace=\"$namespace\",exported_pod=~\"$node_name\",cluster=\"$cluster\"}) by (exported_pod)) * 1000",
               "groupBy": [
                 {
                   "params": [
@@ -4085,7 +4030,7 @@
             {
               "alias": "$tag_node_name: $col",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_indices_flush_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_flush_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:flush",
               "measurement": "opensearch_indices",
@@ -4097,85 +4042,85 @@
               "tags": []
             },
             {
-              "expr": "sum(opensearch_indices_get_exists_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_get_exists_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:get-exists",
               "refId": "B"
             },
             {
-              "expr": "sum(opensearch_indices_get_missing_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_get_missing_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:get-missing",
               "refId": "C"
             },
             {
-              "expr": "sum(opensearch_indices_get_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_get_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}: get",
               "refId": "D"
             },
             {
-              "expr": "sum(opensearch_indices_indexing_delete_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_indexing_delete_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:indexing-delete",
               "refId": "E"
             },
             {
-              "expr": "sum(opensearch_indices_indexing_index_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_indexing_index_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:indexing-index",
               "refId": "F"
             },
             {
-              "expr": "sum(opensearch_indices_indexing_noop_update_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_indexing_noop_update_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:indexing-noop-update",
               "refId": "G"
             },
             {
-              "expr": "sum(opensearch_indices_merges_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_merges_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:merges",
               "refId": "H"
             },
             {
-              "expr": "sum(opensearch_indices_percolate_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_percolate_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:percolate",
               "refId": "I"
             },
             {
-              "expr": "sum(opensearch_indices_refresh_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_refresh_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:refresh",
               "refId": "J"
             },
             {
-              "expr": "sum(opensearch_indices_search_fetch_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_search_fetch_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search-fetch",
               "refId": "K"
             },
             {
-              "expr": "sum(opensearch_indices_search_query_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_search_query_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search-query",
               "refId": "L"
             },
             {
-              "expr": "sum(opensearch_indices_search_scroll_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_search_scroll_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search-scroll",
               "refId": "M"
             },
             {
-              "expr": "sum(opensearch_indices_suggest_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_suggest_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:suggest",
               "refId": "N"
             },
             {
-              "expr": "sum(opensearch_indices_warmer_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_warmer_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:warmer",
               "refId": "O"
@@ -4264,91 +4209,91 @@
           "steppedLine": true,
           "targets": [
             {
-              "expr": "sum(rate(opensearch_indices_flush_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_flush_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:flush",
               "refId": "A"
             },
             {
-              "expr": "sum(rate(opensearch_indices_get_exists_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_get_exists_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:get-exists",
               "refId": "B"
             },
             {
-              "expr": "sum(rate(opensearch_indices_get_missing_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_get_missing_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:get-missing",
               "refId": "C"
             },
             {
-              "expr": "sum(rate(opensearch_indices_get_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_get_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:get",
               "refId": "D"
             },
             {
-              "expr": "sum(rate(opensearch_indices_indexing_delete_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_indexing_delete_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:indexing-delete",
               "refId": "E"
             },
             {
-              "expr": "sum(rate(opensearch_indices_indexing_index_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_indexing_index_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:indexing-index",
               "refId": "F"
             },
             {
-              "expr": "sum(rate(opensearch_indices_indexing_noop_update_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_indexing_noop_update_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:indexing-noop-update",
               "refId": "G"
             },
             {
-              "expr": "sum(rate(opensearch_indices_merges_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_merges_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:merges",
               "refId": "H"
             },
             {
-              "expr": "sum(rate(opensearch_indices_percolate_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_percolate_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:percolate",
               "refId": "I"
             },
             {
-              "expr": "sum(rate(opensearch_indices_refresh_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_refresh_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:refresh",
               "refId": "J"
             },
             {
-              "expr": "sum(rate(opensearch_indices_search_fetch_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_search_fetch_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search-fetch",
               "refId": "K"
             },
             {
-              "expr": "sum(rate(opensearch_indices_search_query_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_search_query_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search-query",
               "refId": "L"
             },
             {
-              "expr": "sum(rate(opensearch_indices_search_scroll_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_search_scroll_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search-scroll",
               "refId": "M"
             },
             {
-              "expr": "sum(rate(opensearch_indices_suggest_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_suggest_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:suggest",
               "refId": "N"
             },
             {
-              "expr": "sum(rate(opensearch_indices_warmer_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_warmer_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:warmer",
               "refId": "O"
@@ -4445,7 +4390,7 @@
             {
               "alias": "$tag_node_name: $col",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_indices_merges_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_merges_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -4486,109 +4431,109 @@
               "tags": []
             },
             {
-              "expr": "sum(opensearch_indices_flush_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_flush_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:flush-total",
               "refId": "A"
             },
             {
-              "expr": "sum(opensearch_indices_get_exists_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_get_exists_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:get-exists",
               "refId": "B"
             },
             {
-              "expr": "sum(opensearch_indices_get_missing_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_get_missing_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:get-missing",
               "refId": "D"
             },
             {
-              "expr": "sum(opensearch_indices_get_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_get_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:get",
               "refId": "E"
             },
             {
-              "expr": "sum(opensearch_indices_indexing_delete_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_indexing_delete_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:indexing-delete",
               "refId": "F"
             },
             {
-              "expr": "sum(opensearch_indices_indexing_index_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_indexing_index_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:indexing-index",
               "refId": "G"
             },
             {
-              "expr": "sum(opensearch_indices_indexing_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_indexing_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:indexing-throttle",
               "refId": "H"
             },
             {
-              "expr": "sum(opensearch_indices_merges_total_stopped_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_merges_total_stopped_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:merges-total-stopped",
               "refId": "I"
             },
             {
-              "expr": "sum(opensearch_indices_merges_total_throttled_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_merges_total_throttled_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:merges-total-throttled",
               "refId": "J"
             },
             {
-              "expr": "sum(opensearch_indices_percolate_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_percolate_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:percolate",
               "refId": "K"
             },
             {
-              "expr": "sum(opensearch_indices_recovery_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_recovery_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:recovery-throttle",
               "refId": "L"
             },
             {
-              "expr": "sum(opensearch_indices_refresh_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_refresh_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:refresh-total",
               "refId": "M"
             },
             {
-              "expr": "sum(opensearch_indices_search_fetch_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_search_fetch_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search-fetch",
               "refId": "N"
             },
             {
-              "expr": "sum(opensearch_indices_search_query_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_search_query_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search-query",
               "refId": "O"
             },
             {
-              "expr": "sum(opensearch_indices_search_scroll_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_search_scroll_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search-scroll",
               "refId": "P"
             },
             {
-              "expr": "sum(opensearch_indices_store_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_store_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:store-throttle",
               "refId": "Q"
             },
             {
-              "expr": "sum(opensearch_indices_suggest_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_suggest_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:suggest",
               "refId": "R"
             },
             {
-              "expr": "sum(opensearch_indices_warmer_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_warmer_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:warmer-total",
               "refId": "S"
@@ -4683,115 +4628,115 @@
           "steppedLine": true,
           "targets": [
             {
-              "expr": "sum(rate(opensearch_indices_merges_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_merges_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:merges-total",
               "refId": "C"
             },
             {
-              "expr": "sum(rate(opensearch_indices_flush_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_flush_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:flush-total",
               "refId": "A"
             },
             {
-              "expr": "sum(rate(opensearch_indices_get_exists_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_get_exists_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:get-exists",
               "refId": "B"
             },
             {
-              "expr": "sum(rate(opensearch_indices_get_missing_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_get_missing_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:get-missing",
               "refId": "D"
             },
             {
-              "expr": "sum(rate(opensearch_indices_get_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_get_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:get",
               "refId": "E"
             },
             {
-              "expr": "sum(rate(opensearch_indices_indexing_delete_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_indexing_delete_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:indexing-delete",
               "refId": "F"
             },
             {
-              "expr": "sum(rate(opensearch_indices_indexing_index_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_indexing_index_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:indexing-index",
               "refId": "G"
             },
             {
-              "expr": "sum(rate(opensearch_indices_indexing_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_indexing_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:indexing-throttle",
               "refId": "H"
             },
             {
-              "expr": "sum(rate(opensearch_indices_merges_total_stopped_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_merges_total_stopped_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:merges-total-stopped",
               "refId": "I"
             },
             {
-              "expr": "sum(rate(opensearch_indices_merges_total_throttled_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_merges_total_throttled_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:merges-total-throttled",
               "refId": "J"
             },
             {
-              "expr": "sum(rate(opensearch_indices_percolate_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_percolate_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:percolate",
               "refId": "K"
             },
             {
-              "expr": "sum(rate(opensearch_indices_recovery_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_recovery_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:recovery-throttle",
               "refId": "L"
             },
             {
-              "expr": "sum(rate(opensearch_indices_refresh_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_refresh_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:refresh-total",
               "refId": "M"
             },
             {
-              "expr": "sum(rate(opensearch_indices_search_fetch_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_search_fetch_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search-fetch",
               "refId": "N"
             },
             {
-              "expr": "sum(rate(opensearch_indices_search_query_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_search_query_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search-query",
               "refId": "O"
             },
             {
-              "expr": "sum(rate(opensearch_indices_search_scroll_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_search_scroll_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search-scroll",
               "refId": "P"
             },
             {
-              "expr": "sum(rate(opensearch_indices_store_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_store_throttle_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:store-throttle",
               "refId": "Q"
             },
             {
-              "expr": "sum(rate(opensearch_indices_suggest_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_suggest_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:suggest",
               "refId": "R"
             },
             {
-              "expr": "sum(rate(opensearch_indices_warmer_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_warmer_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:warmer-total",
               "refId": "S"
@@ -4884,7 +4829,7 @@
             {
               "alias": "$tag_node_name: $col",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_indices_get_current{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_get_current{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -4924,19 +4869,19 @@
               "tags": []
             },
             {
-              "expr": "sum(opensearch_indices_indexing_index_current{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_indexing_index_current{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:index",
               "refId": "B"
             },
             {
-              "expr": "sum(opensearch_indices_search_fetch_current{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_search_fetch_current{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search fetch",
               "refId": "C"
             },
             {
-              "expr": "sum(opensearch_indices_search_query_current{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_search_query_current{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search query",
               "refId": "D"
@@ -5026,7 +4971,7 @@
             {
               "alias": "indices size",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_indices_store_size_in_bytes{node_name=~\"^$node_name$\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_store_size_in_bytes{node_name=~\"^$node_name$\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -5045,7 +4990,7 @@
               "legendFormat": "{{ node_name }}",
               "measurement": "opensearch_clusterstats_indices",
               "policy": "default",
-              "query": "SELECT mean(\"store_size_in_bytes\") FROM \"opensearch_clusterstats_indices\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval), \"cluster_name\" fill(null)",
+              "query": "SELECT mean(\"store_size_in_bytes\") FROM \"opensearch_clusterstats_indices\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"cluster_name\" fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -5152,7 +5097,7 @@
             {
               "alias": "document count",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_indices_docs_count{node_name=~\"^$node_name$\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_docs_count{node_name=~\"^$node_name$\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -5171,7 +5116,7 @@
               "legendFormat": "{{ node_name }}",
               "measurement": "opensearch_clusterstats_indices",
               "policy": "default",
-              "query": "SELECT mean(\"docs_count\") FROM \"opensearch_clusterstats_indices\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval), \"cluster_name\" fill(null)",
+              "query": "SELECT mean(\"docs_count\") FROM \"opensearch_clusterstats_indices\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval), \"cluster_name\" fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -5276,7 +5221,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(opensearch_indices_docs_count{node_name=~\"^$node_name$\",namespace=\"$namespace\"}[5m])) by (node_name)",
+              "expr": "sum(rate(opensearch_indices_docs_count{node_name=~\"^$node_name$\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])) by (node_name)",
               "interval": "",
               "legendFormat": "{{ node_name }}",
               "refId": "A"
@@ -5384,7 +5329,7 @@
             {
               "alias": "$tag_node_name: indexing",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_indices_indexing_index_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name) / sum(opensearch_indices_indexing_index_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_indexing_index_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name) / sum(opensearch_indices_indexing_index_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -5427,7 +5372,7 @@
             {
               "alias": "$tag_node_name: flush",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_indices_flush_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name) / sum(opensearch_indices_flush_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_flush_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name) / sum(opensearch_indices_flush_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -5469,7 +5414,7 @@
             {
               "alias": "$tag_node_name: get exists",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_indices_get_exists_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name) / sum(opensearch_indices_get_exists_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_get_exists_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name) / sum(opensearch_indices_get_exists_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -5510,7 +5455,7 @@
             {
               "alias": "$tag_node_name: search query",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_indices_search_query_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name) / sum(opensearch_indices_search_query_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_search_query_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name) / sum(opensearch_indices_search_query_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -5551,7 +5496,7 @@
             {
               "alias": "$tag_node_name: fetch query",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_indices_search_fetch_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name) / sum(opensearch_indices_search_fetch_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "sum(opensearch_indices_search_fetch_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name) / sum(opensearch_indices_search_fetch_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -5675,7 +5620,7 @@
             {
               "alias": "$tag_node_name: $col",
               "dsType": "influxdb",
-              "expr": "max(opensearch_thread_pool_write_rejected{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "max(opensearch_thread_pool_write_rejected{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -5716,19 +5661,19 @@
               "tags": []
             },
             {
-              "expr": "max(opensearch_thread_pool_get_rejected{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "max(opensearch_thread_pool_get_rejected{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:get",
               "refId": "B"
             },
             {
-              "expr": "max(opensearch_thread_pool_index_rejected{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "max(opensearch_thread_pool_index_rejected{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:index",
               "refId": "C"
             },
             {
-              "expr": "max(opensearch_thread_pool_search_rejected{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "max(opensearch_thread_pool_search_rejected{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search",
               "refId": "D"
@@ -5820,7 +5765,7 @@
             {
               "alias": "$tag_node_name: $col",
               "dsType": "influxdb",
-              "expr": "max(opensearch_thread_pool_write_queue{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "max(opensearch_thread_pool_write_queue{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "groupBy": [
                 {
                   "params": [
@@ -5860,31 +5805,31 @@
               "tags": []
             },
             {
-              "expr": "max(opensearch_thread_pool_flush_queue{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "max(opensearch_thread_pool_flush_queue{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:flush",
               "refId": "B"
             },
             {
-              "expr": "max(opensearch_thread_pool_get_queue{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "max(opensearch_thread_pool_get_queue{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:get",
               "refId": "C"
             },
             {
-              "expr": "max(opensearch_thread_pool_index_queue{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "max(opensearch_thread_pool_index_queue{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:index",
               "refId": "D"
             },
             {
-              "expr": "max(opensearch_thread_pool_refresh_queue{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "max(opensearch_thread_pool_refresh_queue{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:refresh",
               "refId": "E"
             },
             {
-              "expr": "max(opensearch_thread_pool_search_queue{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
+              "expr": "max(opensearch_thread_pool_search_queue{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
               "interval": "",
               "legendFormat": "{{node_name}}:search",
               "refId": "F"
@@ -6032,11 +5977,9 @@
           "pluginVersion": "8.4.3",
           "targets": [
             {
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "exemplar": false,
-              "expr": "opensearch_backups_metric_current_status{namespace=\"$namespace\",host=~\"$side*\"}",
+              "expr": "opensearch_backups_metric_current_status{namespace=\"$namespace\",cluster=\"$cluster\"}",
               "groupBy": [
                 {
                   "params": [
@@ -6057,7 +6000,7 @@
               "measurement": "opensearch_backups_metric",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT last(\"current_status\") FROM \"opensearch_backups_metric\" WHERE (\"project_name\" =~ /^$project$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT last(\"current_status\") FROM \"opensearch_backups_metric\" WHERE (\"project_name\" =~ /^$project$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -6177,7 +6120,7 @@
           "pluginVersion": "8.4.3",
           "targets": [
             {
-              "expr": "opensearch_backups_metric_last_backup_status{namespace=\"$namespace\",host=~\"$side*\"}",
+              "expr": "opensearch_backups_metric_last_backup_status{namespace=\"$namespace\",cluster=\"$cluster\"}",
               "groupBy": [
                 {
                   "params": [
@@ -6198,7 +6141,7 @@
               "measurement": "opensearch_backups_metric",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT last(\"last_backup_status\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT last(\"last_backup_status\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -6297,7 +6240,7 @@
           "pluginVersion": "8.4.3",
           "targets": [
             {
-              "expr": "opensearch_backups_metric_last_snapshot_time{namespace=\"$namespace\",host=~\"$side*\"}",
+              "expr": "opensearch_backups_metric_last_snapshot_time{namespace=\"$namespace\",cluster=\"$cluster\"}",
               "groupBy": [
                 {
                   "params": [
@@ -6319,7 +6262,7 @@
               "measurement": "opensearch_backups_metric",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT last(\"last_snapshot_time\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT last(\"last_snapshot_time\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -6423,11 +6366,9 @@
           "showTimeAxis": true,
           "targets": [
             {
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "exemplar": true,
-              "expr": "opensearch_backups_metric_current_status{namespace=\"$namespace\",host=~\"$side*\"}",
+              "expr": "opensearch_backups_metric_current_status{namespace=\"$namespace\",cluster=\"$cluster\"}",
               "groupBy": [
                 {
                   "params": [
@@ -6448,7 +6389,7 @@
               "measurement": "elasticsearch_backups_metric",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT last(\"current_status\") FROM \"elasticsearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT last(\"current_status\") FROM \"elasticsearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -6660,7 +6601,7 @@
           "pluginVersion": "8.4.3",
           "targets": [
             {
-              "expr": "opensearch_backups_metric_storage_type{namespace=\"$namespace\",host=~\"$side*\"}",
+              "expr": "opensearch_backups_metric_storage_type{namespace=\"$namespace\",cluster=\"$cluster\"}",
               "groupBy": [
                 {
                   "params": [
@@ -6681,7 +6622,7 @@
               "measurement": "opensearch_backups_metric",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT last(\"storage_type\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT last(\"storage_type\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -6775,7 +6716,7 @@
           "pluginVersion": "8.4.3",
           "targets": [
             {
-              "expr": "opensearch_backups_metric_count_of_successful_snapshots{namespace=\"$namespace\",host=~\"$side*\"}",
+              "expr": "opensearch_backups_metric_count_of_successful_snapshots{namespace=\"$namespace\",cluster=\"$cluster\"}",
               "groupBy": [
                 {
                   "params": [
@@ -6796,7 +6737,7 @@
               "measurement": "opensearch_backups_metric",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT last(\"count_of_successful_snapshots\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT last(\"count_of_successful_snapshots\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -6894,7 +6835,7 @@
           "pluginVersion": "8.4.3",
           "targets": [
             {
-              "expr": "opensearch_backups_metric_last_snapshot_time{namespace=\"$namespace\",host=~\"$side*\"}",
+              "expr": "opensearch_backups_metric_last_snapshot_time{namespace=\"$namespace\",cluster=\"$cluster\"}",
               "groupBy": [
                 {
                   "params": [
@@ -6915,7 +6856,7 @@
               "measurement": "opensearch_backups_metric",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT last(\"last_snapshot_time\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT last(\"last_snapshot_time\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -7009,7 +6950,7 @@
           "pluginVersion": "8.4.3",
           "targets": [
             {
-              "expr": "opensearch_backups_metric_count_of_snapshots{namespace=\"$namespace\",host=~\"$side*\"}",
+              "expr": "opensearch_backups_metric_count_of_snapshots{namespace=\"$namespace\",cluster=\"$cluster\"}",
               "groupBy": [
                 {
                   "params": [
@@ -7030,7 +6971,7 @@
               "measurement": "opensearch_backups_metric",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT last(\"count_of_snapshots\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT last(\"count_of_snapshots\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -7120,7 +7061,7 @@
             {
               "alias": "Space Used",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_fs_total_total_in_bytes{namespace=\"$namespace\",host=~\"$side*\"})",
+              "expr": "sum(opensearch_fs_total_total_in_bytes{namespace=\"$namespace\",cluster=\"$cluster\"})",
               "groupBy": [
                 {
                   "params": [
@@ -7140,7 +7081,7 @@
               "measurement": "opensearch_fs",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT (mean(\"total_total_in_bytes\") - mean(\"total_free_in_bytes\")) FROM \"opensearch_fs\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT (mean(\"total_total_in_bytes\") - mean(\"total_free_in_bytes\")) FROM \"opensearch_fs\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -7163,7 +7104,7 @@
             {
               "alias": "Total Volume Space",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_fs_total_total_in_bytes{namespace=\"$namespace\",host=~\"$side*\"}) - sum(opensearch_fs_total_free_in_bytes{namespace=\"$namespace\",host=~\"$side*\"})",
+              "expr": "sum(opensearch_fs_total_total_in_bytes{namespace=\"$namespace\",cluster=\"$cluster\"}) - sum(opensearch_fs_total_free_in_bytes{namespace=\"$namespace\",cluster=\"$cluster\"})",
               "groupBy": [
                 {
                   "params": [
@@ -7183,7 +7124,7 @@
               "measurement": "opensearch_fs",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT mean(\"total_total_in_bytes\") FROM \"opensearch_fs\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT mean(\"total_total_in_bytes\") FROM \"opensearch_fs\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "B",
               "resultFormat": "time_series",
@@ -7292,7 +7233,7 @@
             {
               "alias": "Time Spent on Each Backup",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_backups_metric_last_backup_time_spent{namespace=\"$namespace\",host=~\"$side*\"})",
+              "expr": "sum(opensearch_backups_metric_last_backup_time_spent{namespace=\"$namespace\",cluster=\"$cluster\"})",
               "groupBy": [
                 {
                   "params": [
@@ -7312,7 +7253,7 @@
               "measurement": "opensearch_backups_metric",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT mean(\"last_backup_time_spent\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT mean(\"last_backup_time_spent\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -7417,7 +7358,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(opensearch_backups_metric_last_backup_time_spent{namespace=\"$namespace\",host=~\"$side*\"})",
+              "expr": "sum(opensearch_backups_metric_last_backup_time_spent{namespace=\"$namespace\",cluster=\"$cluster\"})",
               "groupBy": [
                 {
                   "params": [
@@ -7437,7 +7378,7 @@
               "measurement": "opensearch_backups_metric",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT mean(\"last_backup_time_spent\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT mean(\"last_backup_time_spent\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -7540,7 +7481,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "opensearch_backups_metric_last_backup_size{namespace=\"$namespace\",host=~\"$side*\"}",
+              "expr": "opensearch_backups_metric_last_backup_size{namespace=\"$namespace\",cluster=\"$cluster\"}",
               "groupBy": [
                 {
                   "params": [
@@ -7560,7 +7501,7 @@
               "measurement": "opensearch_backups_metric",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT last(\"last_backup_size\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT last(\"last_backup_size\") FROM \"opensearch_backups_metric\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "B",
               "resultFormat": "time_series",
@@ -7696,7 +7637,7 @@
           "targets": [
             {
               "dsType": "influxdb",
-              "expr": "opensearch_dbaas_health_status{namespace=\"$namespace\",host=~\"$side*\"}",
+              "expr": "opensearch_dbaas_health_status{namespace=\"$namespace\",cluster=\"$cluster\"}",
               "groupBy": [
                 {
                   "params": [
@@ -7717,7 +7658,7 @@
               "measurement": "opensearch_dbaas_health",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT last(\"status\") FROM \"opensearch_dbaas_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT last(\"status\") FROM \"opensearch_dbaas_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -7869,7 +7810,7 @@
             {
               "alias": "Status",
               "dsType": "influxdb",
-              "expr": "opensearch_dbaas_health_elastic_cluster_status{namespace=\"$namespace\",host=~\"$side*\"}",
+              "expr": "opensearch_dbaas_health_elastic_cluster_status{namespace=\"$namespace\",cluster=\"$cluster\"}",
               "groupBy": [
                 {
                   "params": [
@@ -7890,7 +7831,7 @@
               "measurement": "opensearch_dbaas_health",
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "SELECT last(\"elastic_cluster_status\")  / 5 FROM \"opensearch_dbaas_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"host\" =~ /$side/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+              "query": "SELECT last(\"elastic_cluster_status\")  / 5 FROM \"opensearch_dbaas_health\" WHERE (\"namespace\" =~ /^$namespace$/ AND \"cluster\"=\"$cluster\") AND $timeFilter GROUP BY time($__interval) fill(null)",
               "rawQuery": true,
               "refId": "A",
               "resultFormat": "time_series",
@@ -8037,11 +7978,9 @@
           "showTimeAxis": true,
           "targets": [
             {
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "exemplar": true,
-              "expr": "opensearch_dbaas_health_status{namespace=\"$namespace\",host=~\"$side*\"}",
+              "expr": "opensearch_dbaas_health_status{namespace=\"$namespace\",cluster=\"$cluster\"}",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -8208,11 +8147,9 @@
           "showTimeAxis": true,
           "targets": [
             {
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "exemplar": true,
-              "expr": "opensearch_dbaas_health_elastic_cluster_status{namespace=\"$namespace\",host=~\"$side*\"}",
+              "expr": "opensearch_dbaas_health_elastic_cluster_status{namespace=\"$namespace\",cluster=\"$cluster\"}",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -8348,6 +8285,83 @@
         "type": "datasource"
       },
       {
+        "current": {
+          "isNone": true,
+          "selected": false,
+          "text": "None",
+          "value": ""
+        },
+        "hide": 0,
+        "includeAll": false,
+        "datasource": "$datasource",
+        "label": "Cluster",
+        "multi": false,
+        "name": "cluster",
+        "options": [],
+        "query": {
+          "query": "label_values(opensearch_cluster_health_status_code, cluster)",
+          "refId": "StandardVariableQuery"
+        },
+        "skipUrlSync": false,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true
+        },
+        "datasource": "$datasource",
+        "definition": "label_values(opensearch_cluster_health_status_code{cluster=\"$cluster\"}, namespace)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Namespace",
+        "multi": false,
+        "name": "namespace",
+        "options": [],
+        "query": {
+          "query": "label_values(opensearch_cluster_health_status_code, namespace)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": "$datasource",
+        "definition": "label_values(node_name)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Node name",
+        "multi": true,
+        "name": "node_name",
+        "options": [],
+        "query": {
+          "query": "label_values(opensearch_fs_total_available_in_bytes{namespace=\"$namespace\"}, node_name)",
+          "refId": "Platform Monitoring Prometheus-node_name-Variable-Query"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
         "auto": true,
         "auto_count": 100,
         "auto_min": "30s",
@@ -8422,99 +8436,6 @@
         "refresh": 2,
         "skipUrlSync": false,
         "type": "interval"
-      },
-      {
-        "current": {
-          "selected": true
-        },
-        "datasource": {
-          "uid": "$datasource"
-        },
-        "definition": "label_values(opensearch_cluster_health_status_code, namespace)",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Namespace",
-        "multi": false,
-        "name": "namespace",
-        "options": [],
-        "query": {
-          "query": "label_values(opensearch_cluster_health_status_code, namespace)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 1,
-        "tagValuesQuery": "",
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
-      },
-      {
-        "allValue": ".",
-        "current": {
-          "selected": false,
-          "text": "All",
-          "value": "$__all"
-        },
-        "hide": 0,
-        "includeAll": true,
-        "label": "DR Side",
-        "multi": false,
-        "name": "side",
-        "options": [
-          {
-            "selected": true,
-            "text": "All",
-            "value": "$__all"
-          },
-          {
-            "selected": false,
-            "text": "left",
-            "value": "left"
-          },
-          {
-            "selected": false,
-            "text": "right",
-            "value": "right"
-          }
-        ],
-        "query": "left,right",
-        "skipUrlSync": false,
-        "type": "custom"
-      },
-      {
-        "current": {
-          "selected": true,
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
-        },
-        "datasource": {
-          "uid": "$datasource"
-        },
-        "definition": "label_values(node_name)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Node name",
-        "multi": true,
-        "name": "node_name",
-        "options": [],
-        "query": {
-          "query": "label_values(opensearch_fs_total_available_in_bytes{namespace=\"$namespace\"}, node_name)",
-          "refId": "Platform Monitoring Prometheus-node_name-Variable-Query"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "tagValuesQuery": "",
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
       }
     ]
   },
