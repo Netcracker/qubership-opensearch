@@ -29,9 +29,7 @@
   "panels": [
     {
       "collapsed": false,
-      "datasource": {
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -44,9 +42,7 @@
       "type": "row"
     },
     {
-      "datasource": {
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "description": "The number of documents and size in bytes for each index in descending order of size values",
       "fieldConfig": {
         "defaults": {
@@ -110,11 +106,9 @@
       "pluginVersion": "8.4.5",
       "targets": [
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "exemplar": false,
-          "expr": "sum(opensearch_indices_stats_primaries_docs_count{namespace=\"$namespace\",index_name=~\"$index\"}) by (index_name)",
+          "expr": "sum(opensearch_indices_stats_primaries_docs_count{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}) by (index_name)",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -122,11 +116,9 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "exemplar": false,
-          "expr": "sum(opensearch_indices_stats_primaries_store_size_in_bytes{namespace=\"$namespace\",index_name=~\"$index\"}) by (index_name)",
+          "expr": "sum(opensearch_indices_stats_primaries_store_size_in_bytes{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}) by (index_name)",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -162,9 +154,7 @@
     },
     {
       "collapsed": true,
-      "datasource": {
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -178,9 +168,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The number of documents added to index on primary shards per second",
           "fill": 1,
           "fillGradient": 0,
@@ -223,7 +211,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "rate(opensearch_indices_stats_primaries_docs_count{namespace=\"$namespace\",index_name=~\"$index\"}[5m])",
+              "expr": "rate(opensearch_indices_stats_primaries_docs_count{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}[5m])",
               "interval": "",
               "legendFormat": "primary",
               "refId": "A"
@@ -266,9 +254,7 @@
     },
     {
       "collapsed": true,
-      "datasource": {
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -289,9 +275,7 @@
           ],
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The size in bytes occupied by index on primary shards and in total",
           "fill": 1,
           "fillGradient": 0,
@@ -368,7 +352,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "opensearch_indices_stats_primaries_store_size_in_bytes{namespace=\"$namespace\",index_name=~\"$index\"}",
+              "expr": "opensearch_indices_stats_primaries_store_size_in_bytes{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}",
               "format": "time_series",
               "instant": false,
               "interval": "",
@@ -377,7 +361,7 @@
             },
             {
               "exemplar": true,
-              "expr": "opensearch_indices_stats_total_store_size_in_bytes{namespace=\"$namespace\",index_name=~\"$index\"}",
+              "expr": "opensearch_indices_stats_total_store_size_in_bytes{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}",
               "format": "time_series",
               "instant": false,
               "interval": "",
@@ -424,9 +408,7 @@
     },
     {
       "collapsed": true,
-      "datasource": {
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -447,9 +429,7 @@
           ],
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The number of indexing operations in index per second",
           "fill": 1,
           "fillGradient": 0,
@@ -526,7 +506,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "rate(opensearch_indices_stats_primaries_indexing_index_total{namespace=\"$namespace\",index_name=~\"$index\"}[5m])",
+              "expr": "rate(opensearch_indices_stats_primaries_indexing_index_total{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}[5m])",
               "format": "time_series",
               "instant": false,
               "interval": "",
@@ -573,9 +553,7 @@
     },
     {
       "collapsed": true,
-      "datasource": {
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -596,9 +574,7 @@
           ],
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The number of deleted documents from index per second",
           "fill": 1,
           "fillGradient": 0,
@@ -675,7 +651,7 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "rate(opensearch_indices_stats_primaries_docs_deleted{namespace=\"$namespace\",index_name=~\"$index\"}[5m])",
+              "expr": "rate(opensearch_indices_stats_primaries_docs_deleted{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}[5m])",
               "format": "time_series",
               "instant": false,
               "interval": "",
@@ -746,10 +722,29 @@
         "type": "datasource"
       },
       {
-        "allFormat": "glob",
-        "datasource": {
-          "uid": "$datasource"
+        "current": {
+          "isNone": true,
+          "selected": false,
+          "text": "None",
+          "value": ""
         },
+        "hide": 0,
+        "datasource": "$datasource",
+        "includeAll": false,
+        "label": "Cluster",
+        "multi": false,
+        "name": "cluster",
+        "options": [],
+        "query": {
+          "query": "label_values(opensearch_cluster_health_status_code, cluster)",
+          "refId": "StandardVariableQuery"
+        },
+        "skipUrlSync": false,
+        "type": "query"
+      },
+      {
+        "allFormat": "glob",
+        "datasource": "$datasource",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -757,7 +752,7 @@
         "multi": false,
         "name": "namespace",
         "options": [],
-        "query": "label_values(opensearch_cluster_health_status_code, namespace)",
+        "query": "label_values(opensearch_cluster_health_status_code{cluster=\"$cluster\"}, namespace)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -774,9 +769,7 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": {
-          "uid": "$datasource"
-        },
+        "datasource": "$datasource",
         "definition": "",
         "hide": 0,
         "includeAll": true,
@@ -784,7 +777,7 @@
         "multi": true,
         "name": "index",
         "options": [],
-        "query": "label_values(opensearch_indices_stats_primaries_docs_count{namespace=\"$namespace\",index_name=~\"$indices_regex\"}, index_name)",
+        "query": "label_values(opensearch_indices_stats_primaries_docs_count{namespace=\"$namespace\",index_name=~\"$indices_regex\",cluster=\"$cluster\"}, index_name)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
