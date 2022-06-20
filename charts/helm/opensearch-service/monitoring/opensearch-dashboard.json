@@ -232,6 +232,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": "$datasource",
       "decimals": 0,
       "description": "Status of OpenSearch nodes",
       "fieldConfig": {
@@ -1018,6 +1019,7 @@
           "type": "stat"
         },
         {
+          "datasource": "$datasource",
           "description": "The number of active primary and replica shards in OpenSearch cluster",
           "fieldConfig": {
             "defaults": {
@@ -1232,6 +1234,7 @@
           "type": "stat"
         },
         {
+          "datasource": "$datasource",
           "description": "The number of shards that are relocating now and have the `relocating` state.",
           "fieldConfig": {
             "defaults": {
@@ -1541,6 +1544,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The maximum time in milliseconds that task is waiting in queue",
           "fieldConfig": {
             "defaults": {
@@ -1646,6 +1650,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The number of open transport connections for each OpenSearch node",
           "fieldConfig": {
             "defaults": {
@@ -1770,6 +1775,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The number of open HTTP connections for each OpenSearch node. If the total number of open HTTP connections is constantly increasing, it may indicate that your HTTP clients are not properly establishing persistent connections. Reestablishing connections adds extra milliseconds or even seconds to your request response time.",
           "fieldConfig": {
             "defaults": {
@@ -1895,6 +1901,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The rate of change between subsequent size values of received (rx) and transmitted (tx) packages for each OpenSearch node",
           "editable": true,
           "error": false,
@@ -2092,6 +2099,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The usage of JVM heap memory by each OpenSearch node",
           "fieldConfig": {
             "defaults": {
@@ -2230,6 +2238,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "OpenSearch is set up to initiate garbage collections whenever JVM heap usage hits 75 percent. As shown above, it may be useful to monitor which nodes exhibit high heap usage, and set up an alert to find out if any node is consistently using over 85 percent of heap memory; this indicates that the rate of garbage collection isn’t keeping up with the rate of garbage creation. To address this problem, you can either increase your heap size (as long as it remains below the recommended guidelines stated above), or scale out the cluster by adding more nodes.",
           "editable": true,
           "error": false,
@@ -2843,6 +2852,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The usage of disk space in percent for an OpenSearch node",
           "editable": true,
           "error": false,
@@ -3159,6 +3169,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The rate of change between subsequent values of input/output operations per second for each OpenSearch node",
           "fieldConfig": {
             "defaults": {
@@ -3291,6 +3302,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The rate of change between subsequent values of disk usage for each OpenSearch node",
           "fieldConfig": {
             "defaults": {
@@ -3426,6 +3438,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The amount of open file descriptors for each OpenSearch node",
           "fieldConfig": {
             "defaults": {
@@ -3534,6 +3547,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "Five-minute load average on the system",
           "fieldConfig": {
             "defaults": {
@@ -3658,6 +3672,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The usage of CPU in percent for each OpenSearch node",
           "editable": true,
           "error": false,
@@ -3787,6 +3802,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The usage of CPU by each OpenSearch node and its limit",
           "editable": true,
           "error": false,
@@ -3980,6 +3996,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The number of operations performed by indices at the moment grouped by operation type and OpenSearch node",
           "editable": true,
           "error": false,
@@ -4161,6 +4178,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The operations number performed by indices per second grouped by operation type and OpenSearch node",
           "editable": true,
           "error": false,
@@ -4334,6 +4352,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The average time to complete an operation in indices grouped by operation type and OpenSearch node",
           "editable": true,
           "error": false,
@@ -4574,6 +4593,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The average time to complete an operation in indices per second grouped by operation type and OpenSearch node",
           "editable": true,
           "error": false,
@@ -4777,6 +4797,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The number of operations performed by indices in the moment grouped by operation type and OpenSearch node",
           "fieldConfig": {
             "defaults": {
@@ -4922,6 +4943,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The size of data stored in indices grouped by OpenSearch nodes",
           "fieldConfig": {
             "defaults": {
@@ -5047,6 +5069,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The number of documents stored in indices grouped by OpenSearch nodes",
           "fieldConfig": {
             "defaults": {
@@ -5173,6 +5196,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The number of documents added to indices per second grouped by OpenSearch nodes",
           "fieldConfig": {
             "defaults": {
@@ -5277,6 +5301,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "If you notice the indexing latency increasing, you may be trying to index too many documents at one time (OpenSearch’s documentation recommends starting with a bulk indexing size of 5 to 15 megabytes and increasing slowly from there).\nIf you are planning to index a lot of documents and you don’t need the new information to be immediately available for search, you can optimize for indexing performance over search performance by decreasing refresh frequency until you are done indexing.\nFlush latency:  If you see this metric increasing steadily, it could indicate a problem with slow disks",
           "fieldConfig": {
             "defaults": {
@@ -5570,6 +5595,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The size of each thread pool’s queue represents how many requests are waiting to be served while the node is currently at capacity. The queue allows the node to track and eventually serve these requests instead of discarding them. Thread pool rejections arise once the thread pool’s maximum queue size (which varies based on the type of thread pool) is reached.",
           "fieldConfig": {
             "defaults": {
@@ -5714,6 +5740,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "The size of each thread pool’s queue represents how many requests are waiting to be served while the node is currently at capacity.",
           "fieldConfig": {
             "defaults": {
@@ -5880,6 +5907,7 @@
       "id": 65126,
       "panels": [
         {
+          "datasource": "$datasource",
           "description": "Shows the current activity status of the backup daemon. The activity status can be one of following:\n* Not Active - There is no running backup process.\n* In Progress/Started - The backup process is running.",
           "fieldConfig": {
             "defaults": {
@@ -6025,6 +6053,7 @@
           "type": "stat"
         },
         {
+          "datasource": "$datasource",
           "description": "Shows the state of the last backup. The backup status can be one of following:\n \n* SUCCESS - There is at least one successful backup, and the latest backup is successful.\n* FAILED - There are no successful backups, or the last backup failed.",
           "fieldConfig": {
             "defaults": {
@@ -6166,6 +6195,7 @@
           "type": "stat"
         },
         {
+          "datasource": "$datasource",
           "description": "Shows the period of time when the last backup process was ended.",
           "fieldConfig": {
             "defaults": {
@@ -6331,6 +6361,7 @@
             }
           ],
           "crosshairColor": "#8F070C",
+          "datasource": "$datasource",
           "description": "Shows the current activity status of the backup daemon. The activity status can be one of following:\n* Not Active - There is no running backup process.\n* In Progress/Started - The backup process is running.",
           "display": "timeline",
           "expandFromQueryS": 0,
@@ -6524,6 +6555,7 @@
           "writeMetricNames": false
         },
         {
+          "datasource": "$datasource",
           "description": "Shows the backup storage type.",
           "fieldConfig": {
             "defaults": {
@@ -6647,6 +6679,7 @@
           "type": "stat"
         },
         {
+          "datasource": "$datasource",
           "description": "Shows the amount of successful backups.",
           "fieldConfig": {
             "defaults": {
@@ -6762,6 +6795,7 @@
           "type": "stat"
         },
         {
+          "datasource": "$datasource",
           "description": "Shows the period of time when the last successful backup process was ended.",
           "fieldConfig": {
             "defaults": {
@@ -6881,6 +6915,7 @@
           "type": "stat"
         },
         {
+          "datasource": "$datasource",
           "description": "Shows the amount of available backups.",
           "fieldConfig": {
             "defaults": {
@@ -7000,6 +7035,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "Shows the space occupied by backups and the remaining amount of space. \nNot all storage supports total size, so \"Total Volume Space\" metrics can be zeroed.",
           "fieldConfig": {
             "defaults": {
@@ -7181,6 +7217,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "Shows the changes of activity status on the chart.",
           "fieldConfig": {
             "defaults": {
@@ -7310,6 +7347,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "Shows time spent on last backup.",
           "fieldConfig": {
             "defaults": {
@@ -7435,6 +7473,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
+          "datasource": "$datasource",
           "description": "Shows the size of the last backup.",
           "fieldConfig": {
             "defaults": {
@@ -7571,6 +7610,7 @@
           "circleBackground": false,
           "colorBackground": false,
           "colorValue": true,
+          "datasource": "$datasource",
           "defaultColor": "rgb(117, 117, 117)",
           "description": "The status of DBaaS Adapter.",
           "format": "none",
@@ -7743,6 +7783,7 @@
           "circleBackground": false,
           "colorBackground": false,
           "colorValue": true,
+          "datasource": "$datasource",
           "defaultColor": "rgb(117, 117, 117)",
           "description": "The status of OpenSearch cluster from the DBaaS Adapter side",
           "format": "none",
@@ -7947,6 +7988,7 @@
             }
           ],
           "crosshairColor": "#8F070C",
+          "datasource": "$datasource",
           "description": "Transitions of DBaaS Adapter statuses",
           "display": "timeline",
           "expandFromQueryS": 0,
@@ -8116,6 +8158,7 @@
             }
           ],
           "crosshairColor": "#8F070C",
+          "datasource": "$datasource",
           "description": "Transitions of DBaaS OpenSearch cluster status",
           "display": "timeline",
           "expandFromQueryS": 0,
