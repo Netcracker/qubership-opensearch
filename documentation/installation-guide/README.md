@@ -70,7 +70,7 @@ Environment:
 
 ## Common Solution Prerequisites
 
-* A PV must be created for each replica from each deployment
+* Persistent volumes should be created for master nodes in joint mode and for master and data nodes in separate mode.
 
 ### Hardware Requirements
 
@@ -606,7 +606,7 @@ opensearch:
 
 Base `CMDB` parameters example to deploy OpenSearch via Groovy Job Deployer:
 
-```****
+```
 monitoring.enabled=false;
 opensearch.securityConfig.authc.basic.password=<pwd>;
 opensearch.securityConfig.authc.basic.username=<username>;
@@ -614,9 +614,10 @@ opensearch.master.replicas=1;
 opensearch.master.nodeSelector='{"region": "<label value>"}';
 opensearch.master.javaOpts=-Xms512m -Xmx512m;
 opensearch.master.persistence.persistentVolumes='["<pv name>"]';
+opensearch.master.persistence.nodes='["<node name>"]';
 opensearch.master.persistence.size=2Gi;
 opensearch.client.ingress.enabled=true;
-opensearch.client.hosts=opensearch-core-opensearch.paas-apps10.openshift.sdntest.netcracker.com;
+opensearch.client.ingress.hosts='["opensearch-core-opensearch.paas-apps10.openshift.sdntest.netcracker.com"]';
 dbaasAdapter.enabled=true;
 dbaasAdapter.dbaasUsername=dbaas-aggregator;
 dbaasAdapter.dbaasPassword=dbaas-aggregator;
@@ -697,7 +698,7 @@ For information about:
 
 To deploy via Groovy Deployer job, navigate to the Jenkins job `groovy.deploy.v3` and then click **Build with parameters**.
 
-Descriptors can be found in [TAGS](https://git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/-/tags) section on GitLab
+Descriptors can be found in [TAGS](https://git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/-/tags) section on GitLab.
 
 The job parameters are predefined and described as follows:
 
@@ -715,6 +716,16 @@ The images for all components are taken from the maven artifact.
 The `CMDB` is the list of necessary parameters for OpenSearch service installation.
 All parameters should be divided by `;` and should not contain `"` in values.
 You can find examples in [Samples](#samples) section.
+Multiline sections can be filled with `'` as follows:
+```
+opensearch='
+  securityConfig:
+    authc:
+      basic:
+        username: "admin"
+        password: "admin"
+';
+```
 
 **Note**: You should always specify `DEPLOY_W_HELM=true;` as first parameter  and `ESCAPE_SEQUENCE=true;` as last to correct deploy Helm release.
 
