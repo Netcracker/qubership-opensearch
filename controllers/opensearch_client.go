@@ -43,6 +43,14 @@ func (rc RestClient) SendRequest(method string, path string, body io.Reader) (st
 	return
 }
 
+func (rc RestClient) SendRequestWithStatusCodeCheck(method string, path string, body io.Reader) ([]byte, error) {
+	statusCode, responseBody, err := rc.SendRequest(method, path, body)
+	if statusCode >= 500 {
+		return responseBody, fmt.Errorf("opensearch returned [%d] status code: %s", statusCode, responseBody)
+	}
+	return responseBody, err
+}
+
 func (rc RestClient) GetArrayData(path, key string, filter func(string) bool) ([]string, error) {
 	arrayData := make([]string, 0, 64)
 	_, body, err := rc.SendRequest(http.MethodGet, path, nil)
