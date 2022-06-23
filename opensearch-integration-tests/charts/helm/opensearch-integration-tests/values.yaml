@@ -28,6 +28,7 @@ integrationTests:
   opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"
   opensearchDbaasAdapterPort: 8080
   opensearchDbaasAdapterRepository: "snapshots"
+  opensearchDbaasAdapterApiVersion: v1
   opensearchCuratorHost: "opensearch-curator"
   opensearchCuratorPort: 8080
 

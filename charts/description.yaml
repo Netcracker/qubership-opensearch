@@ -87,6 +87,7 @@ deployment:
       registrationAuthPassword: "Bnmq5567_PO"
       opensearchRepo: "snapshots"
       opensearchRepoRoot: "/usr/share/opensearch"
+      apiVersion: v1
       resources:
         requests:
           memory: 32Mi
