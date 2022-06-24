@@ -102,6 +102,8 @@ spec:
                 secretKeyRef:
                   key: dbaas-adapter-password
                   name: {{ .Values.service.name }}-secret
+            - name: OPENSEARCH_DBAAS_ADAPTER_API_VERSION
+              value: {{ .Values.integrationTests.opensearchDbaasAdapterApiVersion | quote }}
             - name: OPENSEARCH_CURATOR_HOST
               value: {{ .Values.integrationTests.opensearchCuratorHost | default "opensearch-curator" }}
             - name: OPENSEARCH_CURATOR_PORT

@@ -13,3 +13,7 @@ def get_excluded_tags(environ) -> list:
                                                'OPENSEARCH_DBAAS_ADAPTER_PASSWORD',
                                                'OPENSEARCH_DBAAS_ADAPTER_REPOSITORY'):
         return ['dbaas']
+    if environ.get("OPENSEARCH_DBAAS_ADAPTER_API_VERSION") != "v2":
+        return ['dbaas_v2']
+    else:
+        return ['dbaas_v1']

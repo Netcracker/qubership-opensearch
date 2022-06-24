@@ -104,6 +104,8 @@ spec:
                 secretKeyRef:
                   key: password
                   name: {{ template "dbaas-adapter.name" . }}-secret
+            - name: OPENSEARCH_DBAAS_ADAPTER_API_VERSION
+              value: {{ .Values.dbaasAdapter.apiVersion | quote }}
             {{- else if .Values.elasticsearchDbaasAdapter.enabled }}
             - name: DBAAS_ADAPTER_TYPE
               value: "elasticsearch"
