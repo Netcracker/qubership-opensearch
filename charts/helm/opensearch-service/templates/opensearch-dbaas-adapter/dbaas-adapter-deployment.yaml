@@ -41,6 +41,8 @@ spec:
                 secretKeyRef:
                   key: password
                   name: {{ template "dbaas-adapter.name" . }}-secret
+            - name: API_VERSION
+              value: {{ .Values.dbaasAdapter.apiVersion | quote }}
             - name: DBAAS_AGGREGATOR_REGISTRATION_ADDRESS
               value: {{ .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress | default "http://dbaas-aggregator.dbaas:8080" }}
             - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER

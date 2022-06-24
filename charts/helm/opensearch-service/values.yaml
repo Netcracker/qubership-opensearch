@@ -814,6 +814,7 @@ dbaasAdapter:
   dbaasAdapterAddress: ""
   dbaasUsername: ""
   dbaasPassword: ""
+  apiVersion: v1
 
   dbaasAggregatorRegistrationAddress: ""
   dbaasAggregatorPhysicalDatabaseIdentifier: ""

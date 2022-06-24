@@ -91,6 +91,9 @@ The default value is `8080`.
 The `integrationTests.opensearchDbaasAdapterRepository` parameter the name of snapshot repository in OpenSearch.
 The default value is `snapshots`.
 
+The `integrationTests.opensearchDbaasAdapterApiVersion` parameter specifies the DBaaS Adapter API version which tests should use.
+The default value is `v1`.
+
 The `integrationTests.opensearchCuratorHost` parameter specifies the host name of OpenSearch Curator.
 The default value is `opensearch-curator`.
 

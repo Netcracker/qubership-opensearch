@@ -4,6 +4,7 @@ ${OPENSEARCH_DBAAS_ADAPTER_HOST}         %{OPENSEARCH_DBAAS_ADAPTER_HOST}
 ${OPENSEARCH_DBAAS_ADAPTER_PORT}         %{OPENSEARCH_DBAAS_ADAPTER_PORT}
 ${OPENSEARCH_DBAAS_ADAPTER_USERNAME}     %{OPENSEARCH_DBAAS_ADAPTER_USERNAME}
 ${OPENSEARCH_DBAAS_ADAPTER_PASSWORD}     %{OPENSEARCH_DBAAS_ADAPTER_PASSWORD}
+${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}  %{OPENSEARCH_DBAAS_ADAPTER_API_VERSION=v1}
 ${OPENSEARCH_HOST}                       %{OPENSEARCH_HOST}
 ${OPENSEARCH_PORT}                       %{OPENSEARCH_PORT}
 ${OPENSEARCH_PROTOCOL}                   %{OPENSEARCH_PROTOCOL}
@@ -15,6 +16,7 @@ ${SLEEP_TIME}                            5s
 Library  DateTime
 Library  String
 Resource  ../shared/keywords.robot
+Library  ../shared/lib/JsonpathLibrary.py
 Suite Setup  Prepare
 
 *** Keywords ***
@@ -33,8 +35,9 @@ Login To OpenSearch As User
     [Return]  opensearch_user_session
 
 Create Database Resource Prefix By Dbaas Agent
+    [Arguments]
     ${data}=  Set Variable  {"settings":{"resourcePrefix": true,"createOnly": ["user"]}}
-    ${response}=  Post Request  dbaas_admin_session  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
+    ${response}=  Post Request  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  201
     ${content}=  Convert Json ${response.content} To Type
     [Return]  ${content}
@@ -42,7 +45,7 @@ Create Database Resource Prefix By Dbaas Agent
 Create Database Resource Prefix By Dbaas Agent With Credentials
     [Arguments]  ${username}  ${password}
     ${data}=  Set Variable  {"settings":{"resourcePrefix": true,"createOnly": ["user"]}, "username": "${username}", "password": "${password}"}
-    ${response}=  Post Request  dbaas_admin_session  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
+    ${response}=  Post Request  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  201
     ${content}=  Convert Json ${response.content} To Type
     [Return]  ${content}
@@ -50,12 +53,12 @@ Create Database Resource Prefix By Dbaas Agent With Credentials
 Delete Database Resource Prefix Dbaas Agent
     [Arguments]  ${prefix}
     ${data}=  Set Variable  [{"kind":"resourcePrefix","name":"${prefix}"}]
-    ${response}=  Post Request  dbaas_admin_session  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/resources/bulk-drop  data=${data}  headers=${headers}
+    ${response}=  Post Request  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/resources/bulk-drop  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
 
 *** Test Cases ***
 Create Database Resource Prefix
-    [Tags]  dbaas  dbaas_opensearch  dbaas_resource_prefix  dbaas_create_resource_prefix
+    [Tags]  dbaas  dbaas_opensearch  dbaas_resource_prefix  dbaas_create_resource_prefix  dbaas_v1
     ${response}=  Create Database Resource Prefix By Dbaas Agent
     Log  ${response}
     ${username}=  Set Variable  ${response['connectionProperties']['username']}
@@ -83,7 +86,7 @@ Create Database Resource Prefix
     [Teardown]  Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
 
 Database Resource Prefix Authorization
-    [Tags]  dbaas  dbaas_opensearch  dbaas_resource_prefix  dbaas_resource_prefix_authorization
+    [Tags]  dbaas  dbaas_opensearch  dbaas_resource_prefix  dbaas_resource_prefix_authorization  dbaas_v1
     ${response}=  Create Database Resource Prefix By Dbaas Agent
     Log  ${response}
     ${username_first}=  Set Variable  ${response['connectionProperties']['username']}
@@ -145,7 +148,7 @@ Database Resource Prefix Authorization
            ...  AND  Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix_second}
 
 Delete Database Resource Prefix
-    [Tags]  dbaas  dbaas_opensearch  dbaas_resource_prefix  dbaas_delete_resource_prefix
+    [Tags]  dbaas  dbaas_opensearch  dbaas_resource_prefix  dbaas_delete_resource_prefix  dbaas_v1
     ${response}=  Create Database Resource Prefix By Dbaas Agent
     Log  ${response}
     ${username}=  Set Variable  ${response['connectionProperties']['username']}
@@ -193,6 +196,73 @@ Delete Database Resource Prefix
     ${response}=  Get OpenSearch Template  ${resourcePrefix}-template
     Should Be Equal As Strings  ${response.status_code}  404
     ${response}=  Get OpenSearch Alias  ${resourcePrefix}-test  ${resourcePrefix}-alias
+    Should Be Equal As Strings  ${response.status_code}  404
+
+    [Teardown]  Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
+
+Create Database Resource Prefix for Multiple Users
+    [Tags]  dbaas  dbaas_opensearch  dbaas_resource_prefix  dbaas_create_resource_prefix_for_multiple_users  dbaas_v2
+    ${response}=  Create Database Resource Prefix By Dbaas Agent
+    Log  ${response}
+    ${resourcePrefix}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="admin")].resourcePrefix
+    Log  Resource Prefix: ${resourcePrefix}
+
+    ${username_admin}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="admin")].username
+    ${password_admin}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="admin")].password
+
+    ${username_dml}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="dml")].username
+    ${password_dml}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="dml")].password
+
+    ${username_readonly}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="readonly")].username
+    ${password_readonly}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="readonly")].password
+
+    Login To OpenSearch  ${username_admin}  ${password_admin}
+    ${response}=  Create OpenSearch Index  ${resourcePrefix}-test
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${document}=  Set Variable  {"name": "John", "age": "25"}
+    Create Document ${document} For Index ${resourcePrefix}-test
+    Sleep  ${SLEEP_TIME}
+    ${document}=  Find Document By Field  ${resourcePrefix}-test  name  John
+    Should Be Equal As Strings  ${document['age']}  25
+
+    Login To OpenSearch  ${username_dml}  ${password_dml}
+    ${response}=  Create OpenSearch Index  ${resourcePrefix}-test2
+    Should Be Equal As Strings  ${response.status_code}  403
+    ${document}=  Set Variable  {"name": "Jack", "age": "26"}
+    ${response}=  Update Document ${document} For Index ${resourcePrefix}-test
+    Should Be Equal As Strings  ${response.status_code}  200
+    Sleep  ${SLEEP_TIME}
+    ${document}=  Find Document By Field  ${resourcePrefix}-test  name  Jack
+    Should Be Equal As Strings  ${document['age']}  26
+
+    Login To OpenSearch  ${username_readonly}  ${password_readonly}
+    ${response}=  Create OpenSearch Index  ${resourcePrefix}-test2
+    Should Be Equal As Strings  ${response.status_code}  403
+    ${document}=  Set Variable  {"name": "James", "age": "27"}
+    ${response}=  Update Document ${document} For Index ${resourcePrefix}-test
+    Should Be Equal As Strings  ${response.status_code}  403
+    ${document}=  Find Document By Field  ${resourcePrefix}-test  name  Jack
+    Should Be Equal As Strings  ${document['age']}  26
+
+    Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
+    Sleep  ${SLEEP_TIME}
+    Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}
+
+    ${response}=  Get OpenSearch User  ${username_admin}
+    Should Be Equal As Strings  ${response.status_code}  404
+    ${response}=  Get OpenSearch User  ${username_dml}
+    Should Be Equal As Strings  ${response.status_code}  404
+    ${response}=  Get OpenSearch User  ${username_readonly}
+    Should Be Equal As Strings  ${response.status_code}  404
+
+    ${response}=  Get OpenSearch Role  ${resourcePrefix}_admin
+    Should Be Equal As Strings  ${response.status_code}  404
+    ${response}=  Get OpenSearch Role  ${resourcePrefix}_dml
+    Should Be Equal As Strings  ${response.status_code}  404
+    ${response}=  Get OpenSearch Role  ${resourcePrefix}_readonly
+    Should Be Equal As Strings  ${response.status_code}  404
+
+    ${response}=  Get OpenSearch Index  ${resourcePrefix}-test
     Should Be Equal As Strings  ${response.status_code}  404
 
     [Teardown]  Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}

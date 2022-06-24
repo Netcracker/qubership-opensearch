@@ -5,6 +5,7 @@ ${OPENSEARCH_DBAAS_ADAPTER_PORT}         %{OPENSEARCH_DBAAS_ADAPTER_PORT}
 ${OPENSEARCH_DBAAS_ADAPTER_USERNAME}     %{OPENSEARCH_DBAAS_ADAPTER_USERNAME}
 ${OPENSEARCH_DBAAS_ADAPTER_PASSWORD}     %{OPENSEARCH_DBAAS_ADAPTER_PASSWORD}
 ${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}   %{OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}
+${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}  %{OPENSEARCH_DBAAS_ADAPTER_API_VERSION=v1}
 ${RETRY_TIME}                               20s
 ${RETRY_INTERVAL}                           1s
 ${SLEEP_TIME}                               5s
@@ -27,19 +28,19 @@ Prepare Dbaas Adapter
 Create Index By Dbaas Agent
     [Arguments]  ${prefix}  ${db_name}  ${username}=  ${password}=
     ${data}=  Set Variable  {"dbName":"${db_name}","metadata":{},"settings":{"index":{"number_of_shards":3,"number_of_replicas":1}},"namePrefix":"${prefix}","username":"${username}","password":"${password}"}
-    ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
+    ${response}=  Post Request  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  201
     ${content}=  Convert Json ${response.content} To Type
     [Return]  ${content}
 
 Delete Index By Dbaas Agent
     [Arguments]  ${data}
-    ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/resources/bulk-drop  data=${data}  headers=${headers}
+    ${response}=  Post Request  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/resources/bulk-drop  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
 
 *** Test Cases ***
 Create Index By Dbaas Adapter
-    [Tags]  dbaas  dbaas_opensearch  dbaas_index  dbaas_create_index
+    [Tags]  dbaas  dbaas_opensearch  dbaas_index  dbaas_create_index  dbaas_v1
     ${prefix}=  Generate Random String  5  [LOWER]
     ${db_name}=  Set Variable  dbaas-index
     ${index_name}=  Catenate  SEPARATOR=_  ${prefix}  ${db_name}
@@ -49,7 +50,7 @@ Create Index By Dbaas Adapter
     [Teardown]  Delete OpenSearch Index  ${index_name}
 
 Delete Index By Dbaas Adapter
-    [Tags]  dbaas  dbaas_opensearch  dbaas_index  dbaas_delete_index
+    [Tags]  dbaas  dbaas_opensearch  dbaas_index  dbaas_delete_index  dbaas_v1
     ${prefix}=  Generate Random String  5  [LOWER]
     ${db_name}=  Set Variable  dbaas-index
     ${index_name}=  Catenate  SEPARATOR=_  ${prefix}  ${db_name}
@@ -61,7 +62,7 @@ Delete Index By Dbaas Adapter
     [Teardown]  Delete OpenSearch Index  ${index_name}
 
 Create Index By Dbaas Adapter And Write Data
-    [Tags]  dbaas  dbaas_opensearch  dbaas_index  dbaas_create_index_and_write_data
+    [Tags]  dbaas  dbaas_opensearch  dbaas_index  dbaas_create_index_and_write_data  dbaas_v1
     ${prefix}=  Generate Random String  5  [LOWER]
     ${db_name}=  Set Variable  dbaas-index
     ${index_name}=  Catenate  SEPARATOR=_  ${prefix}  ${db_name}
@@ -89,7 +90,7 @@ Create Index By Dbaas Adapter And Write Data
 
 
 Create Index With User By Dbaas Adapter And Write Data
-    [Tags]  dbaas  dbaas_opensearch  dbaas_index  dbaas_create_index_with_user_and_write_data
+    [Tags]  dbaas  dbaas_opensearch  dbaas_index  dbaas_create_index_with_user_and_write_data  dbaas_v1
     ${prefix}=  Generate Random String  5  [LOWER]
     ${db_name}=  Set Variable  dbaas-index
     ${index_name}=  Catenate  SEPARATOR=_  ${prefix}  ${db_name}

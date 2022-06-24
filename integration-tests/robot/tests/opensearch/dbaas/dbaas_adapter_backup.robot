@@ -5,6 +5,7 @@ ${OPENSEARCH_DBAAS_ADAPTER_PORT}         %{OPENSEARCH_DBAAS_ADAPTER_PORT}
 ${OPENSEARCH_DBAAS_ADAPTER_USERNAME}     %{OPENSEARCH_DBAAS_ADAPTER_USERNAME}
 ${OPENSEARCH_DBAAS_ADAPTER_PASSWORD}     %{OPENSEARCH_DBAAS_ADAPTER_PASSWORD}
 ${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}   %{OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}
+${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}  %{OPENSEARCH_DBAAS_ADAPTER_API_VERSION=v1}
 ${RETRY_TIME}                               20s
 ${RETRY_INTERVAL}                           1s
 
@@ -30,7 +31,7 @@ Generate Name
 
 Create Backup By Dbaas Agent
     [Arguments]  ${indices_list}
-    ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/collect  data=${indices_list}  headers=${headers}
+    ${response}=  Post Request  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/collect  data=${indices_list}  headers=${headers}
     ${content}=  Convert Json ${response.content} To Type
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${content['trackId']}
@@ -38,12 +39,12 @@ Create Backup By Dbaas Agent
 
 Delete Backup By Dbaas Agent
     [Arguments]  ${backup_id}
-    ${response}=  Delete Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}  headers=${headers}
+    ${response}=  Delete Request  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
 
 Restore Indices From Backup By Dbaas Agent
     [Arguments]  ${backup_id}  ${indices_list}
-    ${response}=  Post Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}/restore  data=${indices_list}  headers=${headers}
+    ${response}=  Post Request  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}/restore  data=${indices_list}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
@@ -51,12 +52,12 @@ Restore Indices From Backup By Dbaas Agent
 
 Check Backup Status
     [Arguments]  ${backup_id}
-    ${restore_status}=  Get Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/track/backup/${backup_id}
+    ${restore_status}=  Get Request  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/track/backup/${backup_id}
     Should Contain  str(${restore_status.content})  SUCCESS
 
 Check Restore Status
     [Arguments]  ${backup_id}
-    ${restore_status}=  Get Request  dbaassession  /api/v1/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/track/restore/${backup_id}
+    ${restore_status}=  Get Request  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/track/restore/${backup_id}
     Should Contain  str(${restore_status.content})  SUCCESS
 
 Create OpenSearch Backup
