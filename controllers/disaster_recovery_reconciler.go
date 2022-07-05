@@ -167,6 +167,12 @@ func (r DisasterRecoveryReconciler) stopReplication(replicationManager Replicati
 		return err
 	}
 	_ = replicationManager.DeleteIndicesByPattern(".tasks")
+
+	if err := replicationManager.StopIndicesByPattern(replicationManager.pattern); err != nil {
+		r.logger.Error(err, "can not stop OpenSearch indices by pattern during switchover process to `active` state.")
+		return err
+	}
+
 	r.logger.Info("Replication has been stopped")
 	return nil
 }
