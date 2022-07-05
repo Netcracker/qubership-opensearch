@@ -92,20 +92,13 @@ opensearch:
         memory: 1536Mi
       requests:
         cpu: 200m
-        memory: 1536Mi  
+        memory: 1536Mi
 
   client:
     ingress:
       enabled: true
       hosts:
         - opensearch-opensearch-service.kubernetes.docker.internal
-    resources:
-      limits:
-        cpu: 1
-        memory: 1024Mi
-      requests:
-        cpu: 200m
-        memory: 1024Mi
 
 monitoring:
   enabled: false
@@ -152,13 +145,6 @@ opensearch:
       enabled: true
       hosts:
         - opensearch-opensearch-service.kubernetes.docker.internal
-    resources:
-      limits:
-        cpu: 1
-        memory: 1024Mi
-      requests:
-        cpu: 200m
-        memory: 1024Mi
 
 monitoring:
   enabled: false
