@@ -81,7 +81,7 @@ The following json is expected as response:
 		}
 	}
 }
- */
+*/
 type ReplicationStats struct {
 	SyncingIndicesCount       int                 `json:"num_syncing_indices"`
 	BootstrappingIndicesCount int                 `json:"num_bootstrapping_indices"`
@@ -255,7 +255,7 @@ func (rm ReplicationManager) getReplicatedIndices() ([]string, error) {
 		return nil, err
 	}
 	var indices []string
-	for key, _ := range  replicationStats.IndexStats {
+	for key, _ := range replicationStats.IndexStats {
 		indices = append(indices, key)
 	}
 	return indices, nil
@@ -391,6 +391,17 @@ func (rm ReplicationManager) DeleteIndices() error {
 		}
 	}
 	return nil
+}
+
+func (rm ReplicationManager) StopIndicesByPattern(pattern string) error {
+	path := fmt.Sprintf("_cat/indices/%s?h=index", pattern)
+	indices, err := rm.restClient.GetArrayData(path, "index", func(s string) bool {
+		return !strings.HasPrefix(s, ".")
+	})
+	if err != nil {
+		return err
+	}
+	return rm.stopIndicesReplication(indices)
 }
 
 func (rm ReplicationManager) DeleteIndicesByPatternWithUnlock(pattern string) error {
