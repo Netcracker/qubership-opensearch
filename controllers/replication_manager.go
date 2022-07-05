@@ -401,10 +401,7 @@ func (rm ReplicationManager) StopIndicesByPattern(pattern string) error {
 	if err != nil {
 		return err
 	}
-	if err = rm.stopIndicesReplication(indices); err != nil {
-		return err
-	}
-	return nil
+	return rm.stopIndicesReplication(indices)
 }
 
 func (rm ReplicationManager) DeleteIndicesByPatternWithUnlock(pattern string) error {

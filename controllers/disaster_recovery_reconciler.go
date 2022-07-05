@@ -87,7 +87,6 @@ func (r DisasterRecoveryReconciler) Configure() error {
 			if err == nil {
 				err = r.stopReplication(replicationManager)
 			}
-
 		}
 
 		defer func() {
