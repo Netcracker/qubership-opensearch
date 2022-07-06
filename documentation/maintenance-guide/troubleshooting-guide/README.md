@@ -506,24 +506,52 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
 
 3. Manual backup can be initiated after problem resolution. For more information, refer to [Manual Backup](../backup/manual-backup-procedure.md).
 
-# Opensearch Disaster Recovery Health
+# OpenSearch Disaster Recovery Health
 
-## Opensearch Disaster Recovery Health Has Status "DEGRADED"
+## OpenSearch Disaster Recovery Health Has Status "DEGRADED"
 
-|Problem|Severity|Possible Reason|
-|---|---|---|
-|Opensearch DR health has status `DEGRADED`|Average|Replication between active and standby sides has failed indices. The possible root cause is a locked index on the active side.|
+| Problem                                    | Severity | Possible Reason                                                                                                                                              |
+|--------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| OpenSearch DR health has `DEGRADED` status | Average  | Replication between `active` and `standby` sides has unhealthy indices or failed replications. The possible root cause is a locked index on the active side. |
 
 **Solution**:
 
-1. Navigate to the Opensearch console and execute the following:
+1. Navigate to the OpenSearch console on `standby` side and run the following command:
+
+```bash
+curl -u <username>:<password> -XGET http://opensearch.<opensearch_namespace>:9200/_cat/indices?h=index,health&v
+```
+
+where:
+   * `<username>:<password>` are the credentials to OpenSearch.
+   * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
+
+The result can be as follows:
+
+```
+health status index                  uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+green  open   test_index_new         waIH2YgMRCaasksr28YkJg   5   1        198            0      1.3mb        672.3kb
+green  open   ha_test                wf2g8XAWT9SO31Q7L0DoBA   1   1    1772737           30    102.4mb         35.5mb
+green  open   test_index_1           WdE0LZzYR7e5Bl3WuoIj6A   5   1       1000            0      6.1mb            3mb
+green  open   test_index_new_one     rH0dn00iRh27hBmbC0tUog   5   1        200            0      1.3mb        693.9kb
+green  open   .opendistro_security   T6DvSm51R8eZc5IBpSGFcg   1   2          9            0    126.2kb           42kb
+green  open   .tasks                 bkWLpwKSRNe9YnVBecRRbA   1   1         19            0       38kb           19kb
+green  open   test_index_new_1       AXO1xAibTRa5f--S83B3oA   5   1        800            0      4.9mb          2.4mb
+green  open   test_index_new_one_1   MYVWZcsTT4KkJs8XBPGTvg   5   1        800            0      4.8mb          2.4mb
+green  open   test_index             tkKQhOZET6q0Fu4kMReO1Q   5   1        200            0      1.3mb          698kb
+```
+
+Make sure that all indices required for replication have `green` health status.
+
+2. Navigate to the OpenSearch console on `standby` side and execute the following:
 
 ```bash
 curl -u username:password http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/autofollow_stats
 ```
-where opensearch.<opensearch_namespace> are service name and namespace for Opensearch on the standby side.
 
-The result can be like this
+where `opensearch.<opensearch_namespace>` are service name and namespace for OpenSearch on the `standby` side.
+
+The result can be as follows:
 
 ```json
 {
@@ -544,20 +572,53 @@ The result can be like this
 }
 ```
 
-Please, recognize list of "failed_indices".
+Please, recognize list of `failed_indices`.
 
-2. Navigate to the Opensearch console on the active side and try to stop replication for all indices from previous step.
+3. For each index from the previous step do the following:
 
-```bash
-curl XPOST -u username:password http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/<index_name>/_stop -d `{}`
-```
-where opensearch.<opensearch_namespace> are service name and namespace for Opensearch on the active side.
-      `index_name` is the name of failed index.
+   1. Navigate to the OpenSearch console on the `active` side and try to stop replication for the index:
 
-This is an asynchronous operation and expected response is
+      ```bash
+      curl -u <username>:<password> -XPOST http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/<index_name>/_stop -H 'Content-Type: application/json' -d'{}'
+      ```
 
-```json
-{"acknowledged": true}
-```
+      where:
+         * `<username>:<password>` are the credentials to OpenSearch.
+         * `opensearch.<opensearch_namespace>` are service name and namespace for OpenSearch on the active side.
+         * `<index_name>` is the name of failed index. For example, `test_topic`.
 
-3. For standby side switch Opensearch cluster to the `active` side and return to the `standby` one. This action should restart replication properly. 
+      This is an asynchronous operation and expected response is the following:
+
+      ```json
+      {"acknowledged": true}
+      ```
+
+   2. If on the previous step you have got the following response:
+
+      ```json
+      {"error":{"root_cause":[{"type":"illegal_argument_exception","reason":"No replication in progress for index:test_topic"}],"type":"illegal_argument_exception","reason":"No replication in progress for index:test_topic"},"status":400}
+      ```
+
+      the replication is not run on the `active` side for the specified failed `test_topic` index. Then you need to go to the `standby` side of OpenSearch cluster and check the status of replication for above index:
+
+      ```bash
+      curl -u <username>:<password> -XGET http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/<index_name>/_status?pretty
+      ```
+
+      where:
+         * `<username>:<password>` are the credentials to OpenSearch.
+         * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
+         * `<index_name>` is the name of failed index. For example, `test_topic`.
+
+   3. If `status` of index replication on `standby` side is `FAILED`, you have to stop corresponding replication with the following command:
+
+      ```bash
+      curl -u <username>:<password> -XPOST  http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/<index_name>/_stop -H 'Content-Type: application/json' -d'{}'
+      ```
+
+      where:
+         * `<username>:<password>` are the credentials to OpenSearch.
+         * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
+         * `<index_name>` is the name of failed index. For example, `test_topic`.
+
+4. For `standby` side switch OpenSearch cluster to the `active` side and return to the `standby` one. This action should restart replication properly. 
