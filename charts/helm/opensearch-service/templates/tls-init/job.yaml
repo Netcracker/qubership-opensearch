@@ -35,6 +35,9 @@ spec:
               value: {{ template "opensearch.transport-cert-secret-name" . }}
             - name: ADMIN_CERTIFICATES_SECRET_NAME
               value: {{ template "opensearch.admin-cert-secret-name" . }}
+          resources:
+{{ toYaml .Values.opensearch.tlsInit.resources | indent 12 }}
+
           command:
             - "/bin/sh"
             - "-ec"

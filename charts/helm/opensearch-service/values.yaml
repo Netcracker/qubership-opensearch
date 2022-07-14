@@ -726,6 +726,15 @@ opensearch:
     ## The name of the ServiceAccount to use.
     ## If not set and create is true, a name is generated using the fullname template
     name:
+  
+  tlsInit:
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 25m
+      limits:
+        memory: 128Mi
+        cpu: 100m
 
 podScheduler:
   dockerImage: artifactorycn.netcracker.com:17064/bitnami/kubectl:1.23.3-debian-10-r6
