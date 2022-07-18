@@ -1,3 +1,124 @@
+build:
+  env:
+    type: application-integration
+    version: openshift-dd-2
+  networkRules: integration
+  integration:
+    multi_image_descriptor: true
+    dmp_descriptor:
+      version: '1.12'
+
+publication:
+  application-manifest:
+    am-mf: application.mf
+    am-zip: application.zip
+
+deployment:
+  availability_check: true
+  availability:
+    resource: Job
+    conditions: Successful
+    interval: 30
+    max_tries: 60
+    delay: 60
+  mode: reinstall
+  values:
+    dashboards:
+      enabled: true
+      ingress:
+        enabled: true
+        hosts:
+          - host: dashboards-opensearch-service.ci-master.openshift.sdntest.netcracker.com
+            paths:
+              - path: /
+
+    opensearch:
+      securityConfig:
+        enabled: true
+        path: "/usr/share/opensearch/plugins/opensearch-security/securityconfig"
+        authc:
+          basic:
+            username: "netcrk"
+            password: "crknet"
+          oidc:
+            openid_connect_url: "http://identity-management-security-services-ci.dr311dev.openshift.sdntest.netcracker.com/.well-known/openid-configuration"
+      master:
+        enabled: true
+        replicas: 3
+        persistence:
+          enabled: true
+          storageClass: "local-path"
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1536Mi
+          requests:
+            cpu: 50m
+            memory: 1536Mi
+      client:
+        ingress:
+          enabled: true
+          path: /
+          hosts:
+            - opensearch-opensearch-service.ci-master.openshift.sdntest.netcracker.com
+      snapshots:
+        enabled: true
+        repositoryName: "snapshots"
+        persistentVolume: "pv-opensearch-snapshots"
+        persistentVolumeClaim: "pvc-opensearch-snapshots"
+        size: 2Gi
+
+    monitoring:
+      enabled: true
+      includeIndices: true
+      resources:
+        requests:
+          memory: 256Mi
+          cpu: 50m
+        limits:
+          memory: 256Mi
+          cpu: 200m
+
+    dbaasAdapter:
+      enabled: true
+      dbaasUsername: "dbaas-aggregator"
+      dbaasPassword: "dbaas-aggregator"
+      registrationAuthUsername: "cluster-dba"
+      registrationAuthPassword: "Bnmq5567_PO"
+      opensearchRepo: "snapshots"
+      opensearchRepoRoot: "/usr/share/opensearch"
+      apiVersion: v1
+      resources:
+        requests:
+          memory: 32Mi
+          cpu: 50m
+        limits:
+          memory: 32Mi
+          cpu: 200m
+      securityContext:
+        runAsUser: 1000
+
+    curator:
+      enabled: true
+      snapshotRepositoryName: "snapshots"
+      username: "admin"
+      password: "admin"
+      resources:
+        requests:
+          memory: 256Mi
+          cpu: 50m
+        limits:
+          memory: 256Mi
+          cpu: 200m
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+
+cloud:
+  type: helm
+  url: https://ci-master.openshift.sdntest.netcracker.com:6443
+  project: opensearch-service
+
 integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
