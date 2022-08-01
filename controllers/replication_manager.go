@@ -448,6 +448,20 @@ func (rm ReplicationManager) DeleteIndicesByPattern(pattern string) error {
 }
 
 func (rm ReplicationManager) DeleteAdminReplicationTask() error {
+//   curl -u admin:admin -XPOST opensearch:9200/_tasks/_cancel?actions=cluster:indices/admin/replication*
+
+// 		path := fmt.Sprintf("_tasks/%s/_cancel", task)
+// 		_, _, err := rm.restClient.SendRequest(http.MethodPost, path, nil)
+// 		if err != nil {
+// 			rm.logger.Error(err, "admin replication task was not deleted")
+// 			return err
+// 		}
+
+
+
+
+
+
 	_, body, err := rm.restClient.SendRequest(http.MethodGet, "_tasks", nil)
 	if err != nil {
 		rm.logger.Error(err, "admin replication task was not deleted")
