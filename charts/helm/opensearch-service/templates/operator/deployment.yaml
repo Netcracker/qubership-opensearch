@@ -55,7 +55,12 @@ spec:
                   key: password
                   name: {{ template "opensearch.fullname" . }}-secret
           resources:
-{{ toYaml .Values.operator.resources | indent 12 }}
+            limits:
+              cpu: {{ default "25m" .Values.operator.resources.limits.cpu  }}
+              memory: {{ default "128Mi" .Values.operator.resources.limits.memory }}
+            requests:
+              cpu: {{ default "100m" .Values.operator.resources.requests.cpu }}
+              memory: {{ default "128Mi" .Values.operator.resources.requests.memory }}
         {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}
         - name: {{ template "opensearch.fullname" . }}-disaster-recovery
           image: {{ template "disasterRecovery.image" . }}
