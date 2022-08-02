@@ -154,20 +154,26 @@ func (r DisasterRecoveryReconciler) runReplicationProcess(replicationManager Rep
 }
 
 func (r DisasterRecoveryReconciler) stopReplication(replicationManager ReplicationManager) error {
-	if !replicationManager.AutofollowTaskExists() {
-		r.logger.Info("Autofollow task does not exist. Replication was stopped.")
-		return nil
+	r.logger.Info("Check if autofollow task exist")
+	if replicationManager.AutofollowTaskExists() {
+		if err := replicationManager.RemoveReplicationRule(); err != nil {
+			r.logger.Error(err, "can not delete autofollow replication rule")
+			return err
+		}
+		r.logger.Info("Autofollow task was stopped.")
+	} else {
+		r.logger.Info("Autofollow task does not exist. ")
 	}
-	if err := replicationManager.RemoveReplicationRule(); err != nil {
-		r.logger.Error(err, "can not delete autofollow replication rule")
-		return err
-	}
+
+	r.logger.Info("Try to stop running replication for indices.")
 	if err := replicationManager.StopReplication(); err != nil {
 		r.logger.Error(err, "can not stop all running replication tasks")
 		return err
 	}
+	r.logger.Info("Delete indices by pattern `.tasks`")
 	_ = replicationManager.DeleteIndicesByPattern(".tasks")
 
+	r.logger.Info(fmt.Sprintf("Try to stop running replication for all indices match replication pattern [%s].", replicationManager.pattern))
 	if err := replicationManager.StopIndicesByPattern(replicationManager.pattern); err != nil {
 		r.logger.Error(err, "can not stop OpenSearch indices by pattern during switchover process to `active` state.")
 		return err
