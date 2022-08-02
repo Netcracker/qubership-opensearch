@@ -6,12 +6,15 @@ import (
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
+	"github.com/hashicorp/go-retryablehttp"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"time"
 )
 
 const (
@@ -205,4 +208,11 @@ func (r *OpenSearchServiceReconciler) addAnnotationsToStatefulSet(name string, n
 
 func (r *OpenSearchServiceReconciler) createUrl(host string, port int) string {
 	return fmt.Sprintf("http://%s:%d", host, port)
+}
+
+func (r *OpenSearchServiceReconciler) createHttpClient() http.Client {
+	retryClient := retryablehttp.NewClient()
+	retryClient.RetryMax = 3
+	retryClient.RetryWaitMax = time.Second * 10
+	return *retryClient.StandardClient()
 }

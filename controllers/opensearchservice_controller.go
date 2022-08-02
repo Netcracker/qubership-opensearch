@@ -128,7 +128,7 @@ func (r *OpenSearchServiceReconciler) buildReconcilers(cr *opensearchservice.Ope
 func (r *OpenSearchServiceReconciler) checkOpenSearchIsReady(cr *opensearchservice.OpenSearchService) error {
 	credentials := r.parseSecretCredentials(cr, log)
 	url := r.createUrl(cr.Name, opensearchHttpPort)
-	restClient := NewRestClient(url, http.Client{}, credentials)
+	restClient := NewRestClient(url, r.createHttpClient(), credentials)
 	statusCode, _, err := restClient.SendRequest(http.MethodGet, "", nil)
 	if err != nil || statusCode != 200 {
 		return NotReadyError{}

@@ -5,7 +5,6 @@ import (
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
-	"net/http"
 	"strings"
 	"time"
 )
@@ -190,7 +189,7 @@ func (r DisasterRecoveryReconciler) getReplicationManager() ReplicationManager {
 	pattern := configMap.Data[replicationPatternKey]
 	credentials := r.reconciler.parseSecretCredentials(r.cr, r.logger)
 	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
-	restClient := NewRestClient(url, http.Client{}, credentials)
+	restClient := NewRestClient(url, r.reconciler.createHttpClient(), credentials)
 	return *NewReplicationManager(*restClient, remoteService, pattern, r.logger)
 }
 
