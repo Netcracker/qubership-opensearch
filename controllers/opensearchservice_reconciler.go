@@ -24,8 +24,9 @@ const (
 // OpenSearchServiceReconciler reconciles a OpenSearchService object
 type OpenSearchServiceReconciler struct {
 	client.Client
-	Scheme         *runtime.Scheme
-	ResourceHashes map[string]string
+	Scheme             *runtime.Scheme
+	ResourceHashes     map[string]string
+	ReplicationWatcher ReplicationWatcher
 }
 
 // findSecret returns the secret found by name and namespace and error if it occurred
@@ -247,7 +248,7 @@ func (r *OpenSearchServiceReconciler) createUrl(host string, port int) string {
 
 func (r *OpenSearchServiceReconciler) createHttpClient() http.Client {
 	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 3
+	retryClient.RetryMax = 6
 	retryClient.RetryWaitMax = time.Second * 10
 	return *retryClient.StandardClient()
 }

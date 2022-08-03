@@ -39,12 +39,12 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: {{ $fullName }}
+                name: {{ $fullName }}-internal
                 port:
                   number: 9200
             {{- else }}
             backend:
-              serviceName: {{ $fullName }}
+              serviceName: {{ $fullName }}-internal
               servicePort: 9200
             {{- end }}
   {{- end }}

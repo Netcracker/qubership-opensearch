@@ -622,3 +622,40 @@ Please, recognize list of `failed_indices`.
          * `<index_name>` is the name of failed index. For example, `test_topic`.
 
 4. For `standby` side switch OpenSearch cluster to the `active` side and return to the `standby` one. This action should restart replication properly. 
+
+## Index Is Not Replicated To Standby Side Without Any Errors
+
+| Problem                                           | Severity | Possible Reason                                                                                                                                              |
+|---------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Index changes stopped replicating to standby side | Average  | Problem index was removed and created again on active side during replication and standby OpenSearch marked replication as `paused`. |
+
+**Solution**:
+
+1. Navigate to the OpenSearch console on `standby` side and run the following command:
+
+      ```bash
+      curl -u <username>:<password> -XGET http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/<index_name>/_status?pretty
+      ```
+
+   where:
+   * `<username>:<password>` are the credentials to OpenSearch.
+   * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
+   * `<index_name>` is the name of missed index. For example, `test_topic`.
+
+   the following response makes it clear that index was removed in active side:
+   ```
+   {"status":"PAUSED","reason":"AutoPaused: [[haindex2][0] - org.opensearch.index.IndexNotFoundException - \"no such index [haindex2]\"], ","leader_alias":"leader-cluster","leader_index":"haindex2","follower_index":"haindex2"}
+   ```
+2. To run replication again you can remove presented index on standby side:
+
+   ```bash
+   curl -u <username>:<password> -XDELETE http://opensearch.<opensearch_namespace>:9200/<index_name>
+   ```
+   where:
+   * `<username>:<password>` are the credentials to OpenSearch.
+   * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
+   * `<index_name>` is the name of missed index. For example, `test_topic`.
+   
+   Then wait some time for `autofollow` process run replication again.
+ 
+**NOTE:** This option cleans all index data presented on standby side. Make sure you need to remove this and OpenSearch on active side has correct changes.

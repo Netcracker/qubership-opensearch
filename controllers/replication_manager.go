@@ -120,6 +120,7 @@ type AutofollowStats struct {
 
 type ReplicationIndexStats struct {
 	Status  string       `json:"status"`
+	Reason  string       `json:"reason,omitempty"`
 	Details IndexDetails `json:"syncing_details,omitempty"`
 }
 
@@ -432,10 +433,7 @@ func (rm ReplicationManager) DeleteIndicesByPatternWithUnlock(pattern string) er
 		return err
 	}
 	if statusCode == 403 {
-		path := fmt.Sprintf("_cat/indices/%s?h=index", pattern)
-		indices, err := rm.restClient.GetArrayData(path, "index", func(s string) bool {
-			return !strings.HasPrefix(s, ".")
-		})
+		indices, err := rm.GetIndicesByPatternExcludeService(pattern)
 		if err != nil {
 			return err
 		}
@@ -451,6 +449,14 @@ func (rm ReplicationManager) DeleteIndicesByPatternWithUnlock(pattern string) er
 			pattern, statusCode))
 	}
 	return nil
+}
+
+func (rm ReplicationManager) GetIndicesByPatternExcludeService(pattern string) ([]string, error) {
+	path := fmt.Sprintf("_cat/indices/%s?h=index", pattern)
+	indices, err := rm.restClient.GetArrayData(path, "index", func(s string) bool {
+		return !strings.HasPrefix(s, ".")
+	})
+	return indices, err
 }
 
 func (rm ReplicationManager) DeleteIndicesByPattern(pattern string) error {
@@ -522,4 +528,25 @@ func (rm ReplicationManager) AutofollowTaskExists() bool {
 	}
 	rm.logger.Info("can not find existed DR replication rule")
 	return false
+}
+
+func (rm ReplicationManager) GetAutoFollowRuleStats() (*RuleStats, error) {
+	_, body, err := rm.restClient.SendRequest(http.MethodGet, "_plugins/_replication/autofollow_stats", nil)
+	if err != nil {
+		rm.logger.Error(err, "can not read autofollow statistic")
+		return nil, err
+	}
+	var stats AutofollowStats
+	err = json.Unmarshal(body, &stats)
+	if err != nil {
+		rm.logger.Error(err, "can not unmarshal autofollow statistic")
+		return nil, err
+	}
+	for _, rule := range stats.AutofollowRuleStats {
+		if rule.Name == replicationName {
+			return &rule, nil
+		}
+	}
+	rm.logger.Info("can not find existed DR replication rule")
+	return nil, nil
 }
