@@ -40,7 +40,7 @@ spec:
               memory: {{ default "128Mi" .Values.opensearch.tlsInit.resources.requests.memory  }}
               cpu: {{ default "25m" .Values.opensearch.tlsInit.resources.requests.cpu  }}
             limits:
-              memory: {{ default "256Mi" .Values.opensearch.tlsInit.resources.limits.memory  }}
+              memory: {{ default "128Mi" .Values.opensearch.tlsInit.resources.limits.memory  }}
               cpu: {{ default "50m" .Values.opensearch.tlsInit.resources.limits.cpu  }}
 
           command:

@@ -56,8 +56,8 @@ spec:
                   name: {{ template "opensearch.fullname" . }}-secret
           resources:
             limits:
-              cpu: {{ default "50m" .Values.operator.resources.limits.cpu  }}
-              memory: {{ default "256Mi" .Values.operator.resources.limits.memory }}
+              cpu: {{ default "100m" .Values.operator.resources.limits.cpu  }}
+              memory: {{ default "128Mi" .Values.operator.resources.limits.memory }}
             requests:
               cpu: {{ default "25m" .Values.operator.resources.requests.cpu }}
               memory: {{ default "128Mi" .Values.operator.resources.requests.memory }}

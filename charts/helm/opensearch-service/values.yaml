@@ -204,8 +204,8 @@ operator:
       memory: 128Mi
       cpu: 25m
     limits:
-      memory: 256Mi
-      cpu: 50m
+      memory: 128Mi
+      cpu: 100m
 
 opensearch:
   ## Used when deploying hot/warm architecture. Allows second aliased deployment to find cluster.
@@ -741,7 +741,7 @@ opensearch:
         memory: 128Mi
         cpu: 25m
       limits:
-        memory: 256Mi
+        memory: 128Mi
         cpu: 50m
 
 podScheduler:
