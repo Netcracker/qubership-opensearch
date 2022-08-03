@@ -57,6 +57,12 @@ func (r DisasterRecoveryReconciler) Configure() error {
 			return err
 		}
 
+		r.logger.Info("Disable client service")
+		if err := r.reconciler.disableClientService(r.cr.Name, r.cr.Namespace, r.logger); err != nil {
+			return err
+		}
+		time.Sleep(time.Second * 2)
+
 		status := "done"
 		comment := "replication has finished successfully"
 
@@ -88,6 +94,11 @@ func (r DisasterRecoveryReconciler) Configure() error {
 			}
 		}
 
+		r.logger.Info("Enable client service")
+		if err := r.reconciler.enableClientService(r.cr.Name, r.cr.Namespace, r.logger); err != nil {
+			return err
+		}
+
 		defer func() {
 			if status == "failed" {
 				_ = r.updateDisasterRecoveryStatus(status, comment)
@@ -98,6 +109,8 @@ func (r DisasterRecoveryReconciler) Configure() error {
 				}
 				_ = r.updateDisasterRecoveryStatus(status, comment)
 			}
+			r.logger.Info("Enable client service")
+			_ = r.reconciler.enableClientService(r.cr.Name, r.cr.Namespace, r.logger)
 			r.logger.Info("Disaster recovery status was updated.")
 		}()
 	}
@@ -135,15 +148,18 @@ func (r DisasterRecoveryReconciler) removePreviousReplication(replicationManager
 }
 
 func (r DisasterRecoveryReconciler) runReplicationProcess(replicationManager ReplicationManager) error {
+	r.logger.Info("Delete replication indices")
 	if err := replicationManager.DeleteIndices(); err != nil {
 		r.logger.Error(err, "can not delete OpenSearch indices by pattern during switchover process to `standby` state.")
 		return err
 	}
 	time.Sleep(time.Second * 2)
+	r.logger.Info("Configure replication connection between clusters")
 	if err := replicationManager.Configure(); err != nil {
 		r.logger.Error(err, "can not configure replication connection between DR OpenSearch clusters.")
 		return err
 	}
+	r.logger.Info("Start autofollow replication")
 	if err := replicationManager.Start(); err != nil {
 		r.logger.Error(err, "can not create autofollow replication rule")
 		return err

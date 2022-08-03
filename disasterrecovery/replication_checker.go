@@ -171,7 +171,7 @@ func (rc ReplicationChecker) getIndexReplicationStatus(indexName string) (IndexR
 }
 
 func createUrl(host string, port int) string {
-	return fmt.Sprintf("http://%s:%d", host, port)
+	return fmt.Sprintf("http://%s-internal:%d", host, port)
 }
 
 func createHttpClient() http.Client {
