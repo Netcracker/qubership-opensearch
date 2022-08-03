@@ -41,7 +41,7 @@ spec:
               cpu: {{ default "25m" .Values.opensearch.tlsInit.resources.requests.cpu  }}
             limits:
               memory: {{ default "128Mi" .Values.opensearch.tlsInit.resources.limits.memory  }}
-              cpu: {{ default "50m" .Values.opensearch.tlsInit.resources.limits.cpu  }}
+              cpu: {{ default "100m" .Values.opensearch.tlsInit.resources.limits.cpu  }}
 
           command:
             - "/bin/sh"
