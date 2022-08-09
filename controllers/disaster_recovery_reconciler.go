@@ -142,20 +142,34 @@ func (r DisasterRecoveryReconciler) updateDisasterRecoveryStatus(status string, 
 }
 
 func (r DisasterRecoveryReconciler) removePreviousReplication(replicationManager ReplicationManager) error {
+	r.logger.Info("Check if autofollow task exists")
 	if replicationManager.AutofollowTaskExists() {
 		if err := replicationManager.RemoveReplicationRule(); err != nil {
 			r.logger.Error(err, "can not delete autofollow replication rule")
 			return err
 		}
+		r.logger.Info("Autofollow task was stopped.")
 	} else {
-		r.logger.Info("Autofollower task does not exist")
+		r.logger.Info("Autofollow task does not exist. ")
 	}
 
+	r.logger.Info("Try to stop running replication for indices.")
 	if err := replicationManager.StopReplication(); err != nil {
 		r.logger.Error(err, "can not stop all running replication tasks")
 		return err
 	}
-	replicationManager.DeleteAdminReplicationTask()
+	r.logger.Info(fmt.Sprintf("Try to stop running replication for all indices match replication pattern [%s].", replicationManager.pattern))
+	if err := replicationManager.StopIndicesByPattern(replicationManager.pattern); err != nil {
+		r.logger.Error(err, "can not stop OpenSearch indices by pattern during switchover process to `active` state.")
+		return err
+	}
+
+	if err := replicationManager.DeleteAdminReplicationTask(); err != nil {
+		r.logger.Error(err, "can not delete replication tasks during switchover process to `active` state.")
+		return err
+	}
+
+	r.logger.Info("Replication has been stopped")
 	return nil
 }
 
@@ -181,35 +195,11 @@ func (r DisasterRecoveryReconciler) runReplicationProcess(replicationManager Rep
 }
 
 func (r DisasterRecoveryReconciler) stopReplication(replicationManager ReplicationManager) error {
-	r.logger.Info("Check if autofollow task exist")
-	if replicationManager.AutofollowTaskExists() {
-		if err := replicationManager.RemoveReplicationRule(); err != nil {
-			r.logger.Error(err, "can not delete autofollow replication rule")
-			return err
-		}
-		r.logger.Info("Autofollow task was stopped.")
-	} else {
-		r.logger.Info("Autofollow task does not exist. ")
-	}
-
-	r.logger.Info("Try to stop running replication for indices.")
-	if err := replicationManager.StopReplication(); err != nil {
-		r.logger.Error(err, "can not stop all running replication tasks")
+	if err := r.removePreviousReplication(replicationManager); err != nil {
 		return err
 	}
 	r.logger.Info("Delete indices by pattern `.tasks`")
 	_ = replicationManager.DeleteIndicesByPattern(".tasks")
-
-	r.logger.Info(fmt.Sprintf("Try to stop running replication for all indices match replication pattern [%s].", replicationManager.pattern))
-	if err := replicationManager.StopIndicesByPattern(replicationManager.pattern); err != nil {
-		r.logger.Error(err, "can not stop OpenSearch indices by pattern during switchover process to `active` state.")
-		return err
-	}
-
-	if err := replicationManager.DeleteAdminReplicationTask(); err != nil {
-		r.logger.Error(err, "can not delete replication tasks during switchover process to `active` state.")
-		return err
-	}
 
 	r.logger.Info("Replication has been stopped")
 	return nil

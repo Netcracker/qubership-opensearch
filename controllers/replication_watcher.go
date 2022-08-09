@@ -11,34 +11,42 @@ import (
 )
 
 const (
-	failedStatus = "FAILED"
-	runningState = "running"
-	pausedState  = "paused"
+	failedStatus         = "FAILED"
+	runningState         = "running"
+	pausedState          = "paused"
+	defaultWatchInterval = 30
 )
 
-var state = "paused"
-
 type ReplicationWatcher struct {
-	Lock *sync.Mutex
+	Lock  *sync.Mutex
+	state *string
+}
+
+func NewReplicationWatcher(lock *sync.Mutex) ReplicationWatcher {
+	state := pausedState
+	return ReplicationWatcher{
+		Lock:  lock,
+		state: &state,
+	}
 }
 
 func (rw ReplicationWatcher) start(drr DisasterRecoveryReconciler, logger logr.Logger) {
-	if state == runningState {
+	if *rw.state == runningState {
 		return
 	} else {
-		state = runningState
+		*rw.state = runningState
 	}
 	logger.Info("Start Replication Watcher")
 	interval := drr.cr.Spec.DisasterRecovery.ReplicationWatcherInterval
 	if interval <= 0 {
-		interval = 30
+		interval = defaultWatchInterval
 	}
 	go rw.watch(drr, logger, interval)
 }
 
 func (rw ReplicationWatcher) watch(drr DisasterRecoveryReconciler, logger logr.Logger, interval int) {
 	for {
-		if state == pausedState {
+		if *rw.state == pausedState {
 			logger.Info("Replication Watcher was stopped, exit from watch loop")
 			return
 		}
@@ -110,7 +118,7 @@ func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, lo
 
 func (rw ReplicationWatcher) pause(logger logr.Logger) {
 	logger.Info("Stop Replication Watcher")
-	state = pausedState
+	*rw.state = pausedState
 }
 
 func (rw ReplicationWatcher) restartReplication(drr DisasterRecoveryReconciler, logger logr.Logger, replicationManager ReplicationManager) {

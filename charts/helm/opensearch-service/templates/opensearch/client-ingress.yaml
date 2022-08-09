@@ -44,6 +44,7 @@ spec:
                   number: 9200
             {{- else }}
             backend:
+              {{/* Currently ingress is not a business access point for OpenSearch and used only for debugging. Need to be use defaul client service if external access became business case for OpenSearch. */}}
               serviceName: {{ $fullName }}-internal
               servicePort: 9200
             {{- end }}

@@ -526,7 +526,7 @@ func (rm ReplicationManager) AutofollowTaskExists() bool {
 			return true
 		}
 	}
-	rm.logger.Info("can not find existed DR replication rule")
+	rm.logger.Info("can not find existing DR replication rule")
 	return false
 }
 
@@ -547,6 +547,6 @@ func (rm ReplicationManager) GetAutoFollowRuleStats() (*RuleStats, error) {
 			return &rule, nil
 		}
 	}
-	rm.logger.Info("can not find existed DR replication rule")
+	rm.logger.Info("can not find existing DR replication rule")
 	return nil, nil
 }
