@@ -159,7 +159,7 @@ func (r *OpenSearchReconciler) getS3Credentials() (string, string) {
 }
 
 func (r *OpenSearchReconciler) configureClient() (http.Client, error) {
-	client := http.Client{}
+	client := r.reconciler.createHttpClient()
 	if _, err := os.Stat(certificateFilePath); errors.Is(err, os.ErrNotExist) {
 		return client, nil
 	}

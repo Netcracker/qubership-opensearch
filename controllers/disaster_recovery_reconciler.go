@@ -5,7 +5,6 @@ import (
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
-	"net/http"
 	"strings"
 	"time"
 )
@@ -17,17 +16,19 @@ const (
 )
 
 type DisasterRecoveryReconciler struct {
-	cr         *opensearchservice.OpenSearchService
-	logger     logr.Logger
-	reconciler *OpenSearchServiceReconciler
+	cr                 *opensearchservice.OpenSearchService
+	logger             logr.Logger
+	reconciler         *OpenSearchServiceReconciler
+	replicationWatcher ReplicationWatcher
 }
 
 func NewDisasterRecoveryReconciler(r *OpenSearchServiceReconciler, cr *opensearchservice.OpenSearchService,
 	logger logr.Logger) DisasterRecoveryReconciler {
 	return DisasterRecoveryReconciler{
-		cr:         cr,
-		logger:     logger,
-		reconciler: r,
+		cr:                 cr,
+		logger:             logger,
+		reconciler:         r,
+		replicationWatcher: r.ReplicationWatcher,
 	}
 }
 
@@ -52,11 +53,18 @@ func (r DisasterRecoveryReconciler) Configure() error {
 	drConfigHashChanged := r.reconciler.ResourceHashes[drConfigHashName] != "" && r.reconciler.ResourceHashes[drConfigHashName] != drConfigHash
 
 	if crCondition || drConfigHashChanged {
+		r.replicationWatcher.Lock.Lock()
 		checkNeeded := isReplicationCheckNeeded(r.cr)
 		if err := r.updateDisasterRecoveryStatus("running",
 			"The switchover process for OpenSearch has been started"); err != nil {
 			return err
 		}
+
+		r.logger.Info("Disable client service")
+		if err := r.reconciler.disableClientService(r.cr.Name, r.cr.Namespace, r.logger); err != nil {
+			return err
+		}
+		time.Sleep(time.Second * 2)
 
 		status := "done"
 		comment := "replication has finished successfully"
@@ -74,10 +82,12 @@ func (r DisasterRecoveryReconciler) Configure() error {
 
 		if r.cr.Spec.DisasterRecovery.Mode == "active" || r.cr.Spec.DisasterRecovery.Mode == "disable" {
 			if checkNeeded {
-				indexNames, err := replicationManager.getReplicatedIndices()
+				var indexNames []string
+				indexNames, err = replicationManager.getReplicatedIndices()
 				if err != nil {
 					log.Error(err, "Can not get replication indices. Replication check is failed.")
 				}
+				log.Info("Start replication check")
 				if err = replicationManager.executeReplicationCheck(indexNames); err != nil {
 					log.Error(err, "Replication check is failed.")
 				}
@@ -87,9 +97,14 @@ func (r DisasterRecoveryReconciler) Configure() error {
 			if err == nil {
 				err = r.stopReplication(replicationManager)
 			}
+			r.logger.Info("Enable client service")
+			if err := r.reconciler.enableClientService(r.cr.Name, r.cr.Namespace, r.logger); err != nil {
+				return err
+			}
 		}
 
 		defer func() {
+			r.replicationWatcher.Lock.Unlock()
 			if status == "failed" {
 				_ = r.updateDisasterRecoveryStatus(status, comment)
 			} else {
@@ -99,12 +114,20 @@ func (r DisasterRecoveryReconciler) Configure() error {
 				}
 				_ = r.updateDisasterRecoveryStatus(status, comment)
 			}
+			if r.cr.Spec.DisasterRecovery.Mode == "active" {
+				_ = r.reconciler.enableClientService(r.cr.Name, r.cr.Namespace, r.logger)
+			}
 			r.logger.Info("Disaster recovery status was updated.")
 		}()
 	}
 
 	r.reconciler.ResourceHashes[drConfigHashName] = drConfigHash
 
+	if r.cr.Spec.DisasterRecovery.ReplicationWatcherEnabled {
+		r.replicationWatcher.start(r, r.logger)
+	} else {
+		r.replicationWatcher.pause(r.logger)
+	}
 	return err
 }
 
@@ -119,32 +142,50 @@ func (r DisasterRecoveryReconciler) updateDisasterRecoveryStatus(status string, 
 }
 
 func (r DisasterRecoveryReconciler) removePreviousReplication(replicationManager ReplicationManager) error {
-	if !replicationManager.AutofollowTaskExists() {
-		r.logger.Info("Autofollower task does not exist")
-		return nil
+	r.logger.Info("Check if autofollow task exists")
+	if replicationManager.AutofollowTaskExists() {
+		if err := replicationManager.RemoveReplicationRule(); err != nil {
+			r.logger.Error(err, "can not delete autofollow replication rule")
+			return err
+		}
+		r.logger.Info("Autofollow task was stopped.")
+	} else {
+		r.logger.Info("Autofollow task does not exist. ")
 	}
-	if err := replicationManager.RemoveReplicationRule(); err != nil {
-		r.logger.Error(err, "can not delete autofollow replication rule")
-		return err
-	}
+
+	r.logger.Info("Try to stop running replication for indices.")
 	if err := replicationManager.StopReplication(); err != nil {
 		r.logger.Error(err, "can not stop all running replication tasks")
 		return err
 	}
-	replicationManager.DeleteAdminReplicationTask()
+	r.logger.Info(fmt.Sprintf("Try to stop running replication for all indices match replication pattern [%s].", replicationManager.pattern))
+	if err := replicationManager.StopIndicesByPattern(replicationManager.pattern); err != nil {
+		r.logger.Error(err, "can not stop OpenSearch indices by pattern during switchover process to `active` state.")
+		return err
+	}
+
+	if err := replicationManager.DeleteAdminReplicationTask(); err != nil {
+		r.logger.Error(err, "can not delete replication tasks during switchover process to `active` state.")
+		return err
+	}
+
+	r.logger.Info("Replication has been stopped")
 	return nil
 }
 
 func (r DisasterRecoveryReconciler) runReplicationProcess(replicationManager ReplicationManager) error {
+	r.logger.Info("Delete replication indices")
 	if err := replicationManager.DeleteIndices(); err != nil {
 		r.logger.Error(err, "can not delete OpenSearch indices by pattern during switchover process to `standby` state.")
 		return err
 	}
 	time.Sleep(time.Second * 2)
+	r.logger.Info("Configure replication connection between clusters")
 	if err := replicationManager.Configure(); err != nil {
 		r.logger.Error(err, "can not configure replication connection between DR OpenSearch clusters.")
 		return err
 	}
+	r.logger.Info("Start autofollow replication")
 	if err := replicationManager.Start(); err != nil {
 		r.logger.Error(err, "can not create autofollow replication rule")
 		return err
@@ -154,24 +195,11 @@ func (r DisasterRecoveryReconciler) runReplicationProcess(replicationManager Rep
 }
 
 func (r DisasterRecoveryReconciler) stopReplication(replicationManager ReplicationManager) error {
-	if !replicationManager.AutofollowTaskExists() {
-		r.logger.Info("Autofollow task does not exist. Replication was stopped.")
-		return nil
-	}
-	if err := replicationManager.RemoveReplicationRule(); err != nil {
-		r.logger.Error(err, "can not delete autofollow replication rule")
+	if err := r.removePreviousReplication(replicationManager); err != nil {
 		return err
 	}
-	if err := replicationManager.StopReplication(); err != nil {
-		r.logger.Error(err, "can not stop all running replication tasks")
-		return err
-	}
+	r.logger.Info("Delete indices by pattern `.tasks`")
 	_ = replicationManager.DeleteIndicesByPattern(".tasks")
-
-	if err := replicationManager.StopIndicesByPattern(replicationManager.pattern); err != nil {
-		r.logger.Error(err, "can not stop OpenSearch indices by pattern during switchover process to `active` state.")
-		return err
-	}
 
 	r.logger.Info("Replication has been stopped")
 	return nil
@@ -184,7 +212,7 @@ func (r DisasterRecoveryReconciler) getReplicationManager() ReplicationManager {
 	pattern := configMap.Data[replicationPatternKey]
 	credentials := r.reconciler.parseSecretCredentials(r.cr, r.logger)
 	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
-	restClient := NewRestClient(url, http.Client{}, credentials)
+	restClient := NewRestClient(url, r.reconciler.createHttpClient(), credentials)
 	return *NewReplicationManager(*restClient, remoteService, pattern, r.logger)
 }
 
