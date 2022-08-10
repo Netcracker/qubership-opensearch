@@ -32,7 +32,7 @@ spec:
             - name: NAMESPACE
               value: {{ .Release.Namespace }}
             - name: ES_HOST
-              value: {{ default (printf "%s:9200" (include "opensearch.fullname" .)) (.Values.global.externalOpensearch.enabled | ternary (printf "%s:%s" (include "external.opensearch-host" .) (include "external.opensearch-port" .)) .Values.curator.opensearchHost) }}
+              value: {{ default (printf "%s-internal:9200" (include "opensearch.fullname" .)) (.Values.global.externalOpensearch.enabled | ternary (printf "%s:%s" (include "external.opensearch-host" .) (include "external.opensearch-port" .)) .Values.curator.opensearchHost) }}
             - name: ES_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -106,7 +106,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: ELASTICSEARCH_HOST
-              value: {{ default (printf "%s:9200" (include "opensearch.fullname" .)) (.Values.global.externalOpensearch.enabled | ternary (printf "%s:%s" (include "external.opensearch-host" .) (include "external.opensearch-port" .)) .Values.curator.opensearchHost) }}
+              value: {{ default (printf "%s-internal:9200" (include "opensearch.fullname" .)) (.Values.global.externalOpensearch.enabled | ternary (printf "%s:%s" (include "external.opensearch-host" .) (include "external.opensearch-port" .)) .Values.curator.opensearchHost) }}
             - name: ES_USERNAME
               valueFrom:
                 secretKeyRef:

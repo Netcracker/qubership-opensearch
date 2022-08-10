@@ -6,6 +6,7 @@ require (
 	github.com/go-logr/logr v0.4.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.7.2
+	github.com/hashicorp/go-retryablehttp v0.6.7
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.15.0
 	k8s.io/api v0.22.1
@@ -37,6 +38,7 @@ require (
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect

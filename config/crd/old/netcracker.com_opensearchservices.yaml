@@ -65,6 +65,10 @@ spec:
                   type: string
                 noWait:
                   type: boolean
+                replicationWatcherEnabled:
+                  type: boolean
+                replicationWatcherInterval:
+                  type: integer
               required:
               - configMapName
               - mode

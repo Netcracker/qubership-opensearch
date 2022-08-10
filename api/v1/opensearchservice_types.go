@@ -61,9 +61,11 @@ type Curator struct {
 
 // DisasterRecovery shows Disaster Recovery configuration
 type DisasterRecovery struct {
-	Mode          string `json:"mode"`
-	NoWait        bool   `json:"noWait,omitempty"`
-	ConfigMapName string `json:"configMapName"`
+	Mode                       string `json:"mode"`
+	NoWait                     bool   `json:"noWait,omitempty"`
+	ConfigMapName              string `json:"configMapName"`
+	ReplicationWatcherEnabled  bool   `json:"replicationWatcherEnabled,omitempty"`
+	ReplicationWatcherInterval int    `json:"replicationWatcherInterval,omitempty"`
 }
 
 // OpenSearchServiceSpec defines the desired state of OpenSearchService

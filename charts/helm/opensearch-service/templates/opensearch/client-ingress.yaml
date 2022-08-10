@@ -39,12 +39,13 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: {{ $fullName }}
+                name: {{ $fullName }}-internal
                 port:
                   number: 9200
             {{- else }}
             backend:
-              serviceName: {{ $fullName }}
+              {{/* Currently ingress is not a business access point for OpenSearch and used only for debugging. Need to be use defaul client service if external access became business case for OpenSearch. */}}
+              serviceName: {{ $fullName }}-internal
               servicePort: 9200
             {{- end }}
   {{- end }}
