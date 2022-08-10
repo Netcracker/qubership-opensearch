@@ -1,0 +1,137 @@
+package controllers
+
+import (
+	"context"
+	"fmt"
+	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
+	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/types"
+	"sync"
+	"time"
+)
+
+const (
+	failedStatus         = "FAILED"
+	runningState         = "running"
+	pausedState          = "paused"
+	defaultWatchInterval = 30
+)
+
+type ReplicationWatcher struct {
+	Lock  *sync.Mutex
+	state *string
+}
+
+func NewReplicationWatcher(lock *sync.Mutex) ReplicationWatcher {
+	state := pausedState
+	return ReplicationWatcher{
+		Lock:  lock,
+		state: &state,
+	}
+}
+
+func (rw ReplicationWatcher) start(drr DisasterRecoveryReconciler, logger logr.Logger) {
+	if *rw.state == runningState {
+		return
+	} else {
+		*rw.state = runningState
+	}
+	logger.Info("Start Replication Watcher")
+	interval := drr.cr.Spec.DisasterRecovery.ReplicationWatcherInterval
+	if interval <= 0 {
+		interval = defaultWatchInterval
+	}
+	go rw.watch(drr, logger, interval)
+}
+
+func (rw ReplicationWatcher) watch(drr DisasterRecoveryReconciler, logger logr.Logger, interval int) {
+	for {
+		if *rw.state == pausedState {
+			logger.Info("Replication Watcher was stopped, exit from watch loop")
+			return
+		}
+		// Fetch the OpenSearchService instance
+		instance := &opensearchservice.OpenSearchService{}
+		var err error
+		if err = drr.reconciler.Client.Get(context.TODO(), types.NamespacedName{
+			Namespace: drr.cr.Namespace,
+			Name:      drr.cr.Name,
+		}, instance); err != nil {
+			logger.Error(err, "")
+		} else {
+			if instance.Spec.DisasterRecovery.Mode == "standby" &&
+				instance.Status.DisasterRecoveryStatus.Mode == "standby" &&
+				instance.Status.DisasterRecoveryStatus.Status == "done" {
+				rw.checkReplication(drr, logger)
+			}
+		}
+
+		time.Sleep(time.Duration(interval) * time.Second)
+	}
+}
+
+func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, logger logr.Logger) {
+	defer rw.Lock.Unlock()
+	rw.Lock.Lock()
+	logger.Info("Start checking for replication status")
+	replicationManager := drr.getReplicationManager()
+	autoFollowRuleStats, err := replicationManager.GetAutoFollowRuleStats()
+	if err != nil {
+		logger.Error(err, "Cannot check autofollow replication rule")
+	}
+	if autoFollowRuleStats != nil {
+		if len(autoFollowRuleStats.FailedIndices) > 0 {
+			logger.Info(fmt.Sprintf("Replication does not work correctly, there are failed_indices: %s", autoFollowRuleStats.FailedIndices))
+			rw.restartReplication(drr, logger, replicationManager)
+		} else {
+			indices, err := replicationManager.GetIndicesByPatternExcludeService(replicationManager.pattern)
+			if err != nil {
+				log.Error(err, fmt.Sprintf("Cannot get indices by pattern [%s]", replicationManager.pattern))
+			} else {
+				var failedReplications []string
+				for _, index := range indices {
+					replicationStatus, err := replicationManager.getIndexReplicationStatus(index)
+					if err != nil {
+						log.Error(err, fmt.Sprintf("Cannot get replication status of [%s] index", index))
+					} else if replicationStatus.Status == failedStatus {
+						failedReplications = append(failedReplications, index)
+					}
+					//TODO: Need to investigate shall we restart full replication for paused tasks (e.g. if index was removed on leader side)?
+					//} else if replicationStatus.Status == "PAUSED" && replicationStatus.Reason == "IndexNotFoundException" {
+					//	failedReplications = append(failedReplications, index)
+					//}
+				}
+				if len(failedReplications) > 0 {
+					logger.Info(fmt.Sprintf("Replication does not work correctly, there are failed_indices: %s", failedReplications))
+					rw.restartReplication(drr, logger, replicationManager)
+				} else {
+					logger.Info("Replication works correctly, there are no failed_indices")
+				}
+			}
+
+		}
+	} else {
+		logger.Info("There is no autofollow rule, try to start replication")
+		rw.restartReplication(drr, logger, replicationManager)
+	}
+}
+
+func (rw ReplicationWatcher) pause(logger logr.Logger) {
+	logger.Info("Stop Replication Watcher")
+	*rw.state = pausedState
+}
+
+func (rw ReplicationWatcher) restartReplication(drr DisasterRecoveryReconciler, logger logr.Logger, replicationManager ReplicationManager) {
+	logger.Info("Restart replication")
+	err := drr.removePreviousReplication(replicationManager)
+	if err != nil {
+		logger.Error(err, "Previous replication cannot be stopped")
+		return
+	}
+	err = drr.runReplicationProcess(replicationManager)
+	if err != nil {
+		logger.Error(err, "Replication cannot be started")
+		return
+	}
+	logger.Info("Replication was restarted")
+}

@@ -37,7 +37,7 @@ spec:
                 fieldRef:
                   fieldPath: "metadata.namespace"
             - name: ELASTICSEARCH_HOST
-              value: {{ default (include "opensearch.fullname" .) (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-host" .) .Values.monitoring.opensearchHost) }}
+              value: {{ default (printf "%s-internal" (include "opensearch.fullname" .)) (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-host" .) .Values.monitoring.opensearchHost) }}
             - name: ELASTICSEARCH_PORT
               value: "{{ default 9200 (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-port" .) .Values.monitoring.opensearchPort) }}"
             - name: ELASTICSEARCH_DBAAS_ADAPTER_HOST

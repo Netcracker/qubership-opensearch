@@ -10,6 +10,7 @@ The topics covered in this section are:
 - [OpenSearch Cross Cluster Replication](#opensearch-cross-cluster-replication)
 - [Switchover](#switchover)
 - [REST API](#rest-api)
+- [Troubleshooting Guide](../../maintenance-guide/troubleshooting-guide/README.md)
 
 # Common Information
 
@@ -149,6 +150,8 @@ opensearch:
 monitoring:
   enabled: false
 ```
+
+**NOTE:** Clients cannot use OpenSearch on `standby` side, corresponding service is disabled.
 
 ## Google Kubernetes Engine Features
 

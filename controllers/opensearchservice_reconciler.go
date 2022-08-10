@@ -6,12 +6,15 @@ import (
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
+	"github.com/hashicorp/go-retryablehttp"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"time"
 )
 
 const (
@@ -21,8 +24,9 @@ const (
 // OpenSearchServiceReconciler reconciles a OpenSearchService object
 type OpenSearchServiceReconciler struct {
 	client.Client
-	Scheme         *runtime.Scheme
-	ResourceHashes map[string]string
+	Scheme             *runtime.Scheme
+	ResourceHashes     map[string]string
+	ReplicationWatcher ReplicationWatcher
 }
 
 // findSecret returns the secret found by name and namespace and error if it occurred
@@ -186,6 +190,21 @@ func (r *OpenSearchServiceReconciler) updateStatefulSet(statefulSet *appsv1.Stat
 	return r.Client.Update(context.TODO(), statefulSet)
 }
 
+// findService returns the service found by name and namespace and error if it occurred
+func (r *OpenSearchServiceReconciler) findService(name string, namespace string, logger logr.Logger) (*corev1.Service, error) {
+	logger.Info(fmt.Sprintf("Checking existence of [%s] service", name))
+	service := &corev1.Service{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, service)
+	return service, err
+}
+
+// updateService tries to update specified service
+func (r *OpenSearchServiceReconciler) updateService(service *corev1.Service, logger logr.Logger) error {
+	logger.Info("Updating the service",
+		"Service.Namespace", service.Namespace, "Service.Name", service.Name)
+	return r.Client.Update(context.TODO(), service)
+}
+
 // addAnnotationsToStatefulSet adds necessary annotations to stateful set with specified name and namespace
 func (r *OpenSearchServiceReconciler) addAnnotationsToStatefulSet(name string, namespace string, annotations map[string]string,
 	logger logr.Logger) error {
@@ -203,6 +222,33 @@ func (r *OpenSearchServiceReconciler) addAnnotationsToStatefulSet(name string, n
 	return r.updateStatefulSet(statefulSet, logger)
 }
 
+// disableClientService disables OpenSearch client service
+func (r *OpenSearchServiceReconciler) disableClientService(name string, namespace string, logger logr.Logger) error {
+	service, err := r.findService(name, namespace, logger)
+	if err != nil {
+		return err
+	}
+	service.Spec.Selector["none"] = "true"
+	return r.updateService(service, logger)
+}
+
+// enableClientService enables OpenSearch client service
+func (r *OpenSearchServiceReconciler) enableClientService(name string, namespace string, logger logr.Logger) error {
+	service, err := r.findService(name, namespace, logger)
+	if err != nil {
+		return err
+	}
+	delete(service.Spec.Selector, "none")
+	return r.updateService(service, logger)
+}
+
 func (r *OpenSearchServiceReconciler) createUrl(host string, port int) string {
-	return fmt.Sprintf("http://%s:%d", host, port)
+	return fmt.Sprintf("http://%s-internal:%d", host, port)
+}
+
+func (r *OpenSearchServiceReconciler) createHttpClient() http.Client {
+	retryClient := retryablehttp.NewClient()
+	retryClient.RetryMax = 6
+	retryClient.RetryWaitMax = time.Second * 10
+	return *retryClient.StandardClient()
 }

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sync"
 
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/disasterrecovery"
 
@@ -79,10 +80,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	var mutex sync.Mutex
 	if err = (&controllers.OpenSearchServiceReconciler{
-		Client:         mgr.GetClient(),
-		Scheme:         mgr.GetScheme(),
-		ResourceHashes: map[string]string{},
+		Client:             mgr.GetClient(),
+		Scheme:             mgr.GetScheme(),
+		ResourceHashes:     map[string]string{},
+		ReplicationWatcher: controllers.NewReplicationWatcher(&mutex),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "OpenSearchService")
 		os.Exit(1)

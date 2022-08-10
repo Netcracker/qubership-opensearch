@@ -12,11 +12,13 @@ import (
 )
 
 const (
-	leaderAlias               = "leader-cluster"
-	startFullReplicationPath  = "_plugins/_replication/_autofollow"
-	replicationName           = "dr-replication"
-	replicationAttemptsNumber = 5
-	replicationCheckTimeout   = time.Second * 15
+	leaderAlias                    = "leader-cluster"
+	startFullReplicationPath       = "_plugins/_replication/_autofollow"
+	indexReplicationStatusPattern  = "_plugins/_replication/%s/_status"
+	replicationName                = "dr-replication"
+	replicationNotInProgressStatus = "REPLICATION NOT IN PROGRESS"
+	replicationAttemptsNumber      = 5
+	replicationCheckTimeout        = time.Second * 15
 )
 
 type ReplicationManager struct {
@@ -118,6 +120,7 @@ type AutofollowStats struct {
 
 type ReplicationIndexStats struct {
 	Status  string       `json:"status"`
+	Reason  string       `json:"reason,omitempty"`
 	Details IndexDetails `json:"syncing_details,omitempty"`
 }
 
@@ -235,6 +238,9 @@ func (rm ReplicationManager) StopReplication() error {
 	if err != nil {
 		return err
 	}
+	if len(indexNames) == 0 {
+		return nil
+	}
 
 	if err = rm.stopIndicesReplication(indexNames); err != nil {
 		return err
@@ -263,7 +269,6 @@ func (rm ReplicationManager) getReplicatedIndices() ([]string, error) {
 
 func (rm ReplicationManager) executeReplicationCheck(indexNames []string) error {
 	//TODO: should we execute replication health check here?
-	pathTemplate := "_plugins/_replication/%s/_status"
 	inProgressIndices := make(map[string]int)
 	var failedIndices []string
 	for _, index := range indexNames {
@@ -279,8 +284,7 @@ func (rm ReplicationManager) executeReplicationCheck(indexNames []string) error 
 		if !matched {
 			continue
 		}
-		path := fmt.Sprintf(pathTemplate, index)
-		replicationIndexStats, err := rm.getReplicationIndexStats(path)
+		replicationIndexStats, err := rm.getIndexReplicationStatus(index)
 		if err != nil {
 			rm.logger.Error(err, fmt.Sprintf("Can not get replication index stats for [%s] index", index))
 			return err
@@ -318,6 +322,16 @@ func (rm ReplicationManager) executeReplicationCheck(indexNames []string) error 
 	return fmt.Errorf("replication check was failed after 5 attempts")
 }
 
+func (rm ReplicationManager) getIndexReplicationStatus(index string) (ReplicationIndexStats, error) {
+	path := fmt.Sprintf(indexReplicationStatusPattern, index)
+	replicationIndexStats, err := rm.getReplicationIndexStats(path)
+	if err != nil {
+		rm.logger.Error(err, fmt.Sprintf("Can not get replication index stats for [%s] index", index))
+		return ReplicationIndexStats{}, err
+	}
+	return replicationIndexStats, nil
+}
+
 func (rm ReplicationManager) getReplicationIndexStats(path string) (ReplicationIndexStats, error) {
 	_, body, err := rm.restClient.SendRequest(http.MethodGet, path, nil)
 	if err != nil {
@@ -353,7 +367,7 @@ func (rm ReplicationManager) updateInProgressIndices(inProgressIndices map[strin
 func (rm ReplicationManager) stopIndicesReplication(indexNames []string) error {
 	stopIndexReplicationTemplate := "_plugins/_replication/%s/_stop"
 	for _, index := range indexNames {
-		statusCode, _, err :=
+		statusCode, responseBody, err :=
 			rm.restClient.SendRequest(http.MethodPost,
 				fmt.Sprintf(stopIndexReplicationTemplate, index),
 				strings.NewReader(`{}`))
@@ -361,9 +375,10 @@ func (rm ReplicationManager) stopIndicesReplication(indexNames []string) error {
 			return err
 		}
 		if statusCode >= 400 {
-			return errors.New(fmt.Sprintf("can not stop replication for [%s] index with status code - [%d]",
-				index, statusCode))
+			return errors.New(fmt.Sprintf("can not stop replication for [%s] index with status code - [%d], response - [%s]",
+				index, statusCode, string(responseBody)))
 		}
+		rm.logger.Info(fmt.Sprintf("Replication was stopped for index [%s]", index))
 	}
 	//TODO: Check that Replication is stopped
 	time.Sleep(time.Second * 3)
@@ -395,8 +410,16 @@ func (rm ReplicationManager) DeleteIndices() error {
 
 func (rm ReplicationManager) StopIndicesByPattern(pattern string) error {
 	path := fmt.Sprintf("_cat/indices/%s?h=index", pattern)
-	indices, err := rm.restClient.GetArrayData(path, "index", func(s string) bool {
-		return !strings.HasPrefix(s, ".")
+	indices, err := rm.restClient.GetArrayData(path, "index", func(index string) bool {
+		if strings.HasPrefix(index, ".") {
+			return false
+		}
+		replicationStatus, err := rm.getIndexReplicationStatus(index)
+		if err != nil {
+			log.Error(err, fmt.Sprintf("Cannot get replication status of [%s] index, skip it", index))
+			return false
+		}
+		return replicationStatus.Status != replicationNotInProgressStatus
 	})
 	if err != nil {
 		return err
@@ -410,10 +433,7 @@ func (rm ReplicationManager) DeleteIndicesByPatternWithUnlock(pattern string) er
 		return err
 	}
 	if statusCode == 403 {
-		path := fmt.Sprintf("_cat/indices/%s?h=index", pattern)
-		indices, err := rm.restClient.GetArrayData(path, "index", func(s string) bool {
-			return !strings.HasPrefix(s, ".")
-		})
+		indices, err := rm.GetIndicesByPatternExcludeService(pattern)
 		if err != nil {
 			return err
 		}
@@ -429,6 +449,14 @@ func (rm ReplicationManager) DeleteIndicesByPatternWithUnlock(pattern string) er
 			pattern, statusCode))
 	}
 	return nil
+}
+
+func (rm ReplicationManager) GetIndicesByPatternExcludeService(pattern string) ([]string, error) {
+	path := fmt.Sprintf("_cat/indices/%s?h=index", pattern)
+	indices, err := rm.restClient.GetArrayData(path, "index", func(s string) bool {
+		return !strings.HasPrefix(s, ".")
+	})
+	return indices, err
 }
 
 func (rm ReplicationManager) DeleteIndicesByPattern(pattern string) error {
@@ -498,6 +526,27 @@ func (rm ReplicationManager) AutofollowTaskExists() bool {
 			return true
 		}
 	}
-	rm.logger.Info("can not find existed DR replication rule")
+	rm.logger.Info("can not find existing DR replication rule")
 	return false
+}
+
+func (rm ReplicationManager) GetAutoFollowRuleStats() (*RuleStats, error) {
+	_, body, err := rm.restClient.SendRequest(http.MethodGet, "_plugins/_replication/autofollow_stats", nil)
+	if err != nil {
+		rm.logger.Error(err, "can not read autofollow statistic")
+		return nil, err
+	}
+	var stats AutofollowStats
+	err = json.Unmarshal(body, &stats)
+	if err != nil {
+		rm.logger.Error(err, "can not unmarshal autofollow statistic")
+		return nil, err
+	}
+	for _, rule := range stats.AutofollowRuleStats {
+		if rule.Name == replicationName {
+			return &rule, nil
+		}
+	}
+	rm.logger.Info("can not find existing DR replication rule")
+	return nil, nil
 }

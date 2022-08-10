@@ -16,7 +16,7 @@ dashboards:
       cpu: "100m"
       memory: "512M"
 
-  opensearchHosts: "http://opensearch:9200"
+  opensearchHosts: "http://opensearch-internal:9200"
 
   # A list of secrets and their paths to mount inside the pod
   # This is useful for mounting certificates for security and for mounting
@@ -166,16 +166,18 @@ global:
     remoteCluster: ""
     siteManagerEnabled: true
     afterServices: []
+    replicationWatcherEnabled: true
+    replicationWatcherIntervalSeconds: 30
     serviceExport:
       enabled: false
       region: ""
     resources:
       limits:
-        cpu: "32m"
-        memory: "32Mi"
+        cpu: "100m"
+        memory: "128Mi"
       requests:
-        cpu: "10m"
-        memory: "10Mi"
+        cpu: "25m"
+        memory: "32Mi"
   customLabels: {}
 
 operator:
