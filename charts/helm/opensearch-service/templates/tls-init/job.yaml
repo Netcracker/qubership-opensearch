@@ -35,6 +35,14 @@ spec:
               value: {{ template "opensearch.transport-cert-secret-name" . }}
             - name: ADMIN_CERTIFICATES_SECRET_NAME
               value: {{ template "opensearch.admin-cert-secret-name" . }}
+          resources:
+            requests:
+              memory: {{ default "128Mi" .Values.opensearch.tlsInit.resources.requests.memory  }}
+              cpu: {{ default "25m" .Values.opensearch.tlsInit.resources.requests.cpu  }}
+            limits:
+              memory: {{ default "128Mi" .Values.opensearch.tlsInit.resources.limits.memory  }}
+              cpu: {{ default "100m" .Values.opensearch.tlsInit.resources.limits.cpu  }}
+
           command:
             - "/bin/sh"
             - "-ec"
