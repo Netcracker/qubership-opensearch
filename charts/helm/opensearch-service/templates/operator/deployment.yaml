@@ -55,12 +55,12 @@ spec:
                   key: password
                   name: {{ template "opensearch.fullname" . }}-secret
           resources:
-            requests:
-              memory: 128Mi
-              cpu: 25m
             limits:
-              memory: 128Mi
-              cpu: 100m
+              cpu: {{ default "100m" .Values.operator.resources.limits.cpu  }}
+              memory: {{ default "128Mi" .Values.operator.resources.limits.memory }}
+            requests:
+              cpu: {{ default "25m" .Values.operator.resources.requests.cpu }}
+              memory: {{ default "128Mi" .Values.operator.resources.requests.memory }}
         {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}
         - name: {{ template "opensearch.fullname" . }}-disaster-recovery
           image: {{ template "disasterRecovery.image" . }}
