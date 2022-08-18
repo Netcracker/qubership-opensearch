@@ -6,6 +6,7 @@ import (
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/types"
+	"strings"
 	"sync"
 	"time"
 )
@@ -95,11 +96,13 @@ func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, lo
 						log.Error(err, fmt.Sprintf("Cannot get replication status of [%s] index", index))
 					} else if replicationStatus.Status == failedStatus {
 						failedReplications = append(failedReplications, index)
+					} else if replicationStatus.Status == "PAUSED" {
+						if strings.Contains(replicationStatus.Reason, "IndexNotFoundException") {
+							logger.Info(fmt.Sprintf("Replication for index [%s] is paused because index was lost on active side, make sure active side has right content and remove standby index", index))
+						} else {
+							failedReplications = append(failedReplications, index)
+						}
 					}
-					//TODO: Need to investigate shall we restart full replication for paused tasks (e.g. if index was removed on leader side)?
-					//} else if replicationStatus.Status == "PAUSED" && replicationStatus.Reason == "IndexNotFoundException" {
-					//	failedReplications = append(failedReplications, index)
-					//}
 				}
 				if len(failedReplications) > 0 {
 					logger.Info(fmt.Sprintf("Replication does not work correctly, there are failed_indices: %s", failedReplications))
