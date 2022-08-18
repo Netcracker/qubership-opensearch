@@ -141,6 +141,7 @@ spec:
                 secretKeyRef:
                   key: password
                   name: {{ template "opensearch.fullname" . }}-curator-secret
+            {{- end }}
             {{- if .Values.integrationTests.statusWritingEnabled }}
             - name: STATUS_CUSTOM_RESOURCE_GROUP
               value: apps
@@ -160,7 +161,6 @@ spec:
               value: "false"
             - name: IS_SHORT_STATUS_MESSAGE
               value: "{{ .Values.integrationTests.isShortStatusMessage }}"
-            {{- end }}
             {{- end }}
             - name: RANDOM_RUN_TRIGGER
               value: {{ randAlphaNum 10 | quote }}
