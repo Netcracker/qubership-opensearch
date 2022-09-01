@@ -45,7 +45,7 @@ func NewReplicationChecker(opensearchName string, username string, password stri
 	if username != "" && password != "" {
 		credentials = []string{username, password}
 	}
-	restClient := controllers.NewRestClient(createUrl(opensearchName, 9200), createHttpClient(), credentials)
+	restClient := controllers.NewRestClient(createUrl(opensearchName, 9200), http.Client{}, credentials)
 	return ReplicationChecker{
 		restClient: *restClient,
 	}
@@ -174,9 +174,9 @@ func createUrl(host string, port int) string {
 	return fmt.Sprintf("http://%s-internal:%d", host, port)
 }
 
-func createHttpClient() http.Client {
-	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 3
-	retryClient.RetryWaitMax = time.Second * 10
-	return *retryClient.StandardClient()
-}
+//func createHttpClient() http.Client {
+//	retryClient := retryablehttp.NewClient()
+//	retryClient.RetryMax = 3
+//	retryClient.RetryWaitMax = time.Second * 10
+//	return *retryClient.StandardClient()
+//}
