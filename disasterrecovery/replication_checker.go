@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/controllers"
-	"github.com/hashicorp/go-retryablehttp"
 	"net/http"
 	"regexp"
 	"strings"
-	"time"
 )
 
 const (
@@ -173,10 +171,3 @@ func (rc ReplicationChecker) getIndexReplicationStatus(indexName string) (IndexR
 func createUrl(host string, port int) string {
 	return fmt.Sprintf("http://%s-internal:%d", host, port)
 }
-
-//func createHttpClient() http.Client {
-//	retryClient := retryablehttp.NewClient()
-//	retryClient.RetryMax = 3
-//	retryClient.RetryWaitMax = time.Second * 10
-//	return *retryClient.StandardClient()
-//}
