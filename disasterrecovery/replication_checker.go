@@ -96,7 +96,7 @@ func (rc ReplicationChecker) checkReplication() (string, error) {
 			return "", err
 		}
 		if failedReplicationsFound {
-			log.Info("The replication failed for some indices: %v")
+			log.Info("The replication failed for some indices")
 			return DEGRADED, nil
 		} else {
 			return UP, nil
