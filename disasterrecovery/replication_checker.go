@@ -91,7 +91,7 @@ func (rc ReplicationChecker) checkReplication() (string, error) {
 			log.Info(fmt.Sprintf("The following indices are not healthy: %v", unhealthyIndices))
 			return DEGRADED, nil
 		}
-		failedReplicationsFound, err := rc.checkFailedReplications(rule.Pattern)
+		failedReplicationsFound, err := rc.areFailedReplicationsFound(rule.Pattern)
 		if err != nil {
 			return "", err
 		}
@@ -128,7 +128,7 @@ func (rc ReplicationChecker) listUnhealthyIndices(pattern string) ([]string, err
 	return indices, nil
 }
 
-func (rc ReplicationChecker) checkFailedReplications(pattern string) (bool, error) {
+func (rc ReplicationChecker) areFailedReplicationsFound(pattern string) (bool, error) {
 	responseBody, err := rc.restClient.SendRequestWithStatusCodeCheck(http.MethodGet, pattern, nil)
 	if err != nil {
 		log.Error(err, "An error occurred during getting OpenSearch indices")
