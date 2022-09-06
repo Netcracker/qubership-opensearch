@@ -91,12 +91,12 @@ func (rc ReplicationChecker) checkReplication() (string, error) {
 			log.Info(fmt.Sprintf("The following indices are not healthy: %v", unhealthyIndices))
 			return DEGRADED, nil
 		}
-		failedReplications, err := rc.listFailedReplications(rule.Pattern)
+		failedReplicationsFound, err := rc.checkFailedReplications(rule.Pattern)
 		if err != nil {
 			return "", err
 		}
-		if len(failedReplications) > 0 {
-			log.Info(fmt.Sprintf("The replication failed for the following indices: %v", failedReplications))
+		if failedReplicationsFound {
+			log.Info("The replication failed for some indices: %v")
 			return DEGRADED, nil
 		} else {
 			return UP, nil
@@ -128,18 +128,17 @@ func (rc ReplicationChecker) listUnhealthyIndices(pattern string) ([]string, err
 	return indices, nil
 }
 
-func (rc ReplicationChecker) listFailedReplications(pattern string) ([]string, error) {
-	var failedReplications []string
+func (rc ReplicationChecker) checkFailedReplications(pattern string) (bool, error) {
 	responseBody, err := rc.restClient.SendRequestWithStatusCodeCheck(http.MethodGet, pattern, nil)
 	if err != nil {
 		log.Error(err, "An error occurred during getting OpenSearch indices")
-		return failedReplications, err
+		return true, err
 	}
 	var indices map[string]interface{}
 	err = json.Unmarshal(responseBody, &indices)
 	if err != nil {
 		log.Error(err, "An error occurred during unmarshalling OpenSearch indices response")
-		return failedReplications, err
+		return true, err
 	}
 	for index := range indices {
 		if strings.HasPrefix(index, ".") {
@@ -148,13 +147,14 @@ func (rc ReplicationChecker) listFailedReplications(pattern string) ([]string, e
 		replicationStatus, err := rc.getIndexReplicationStatus(index)
 		if err != nil {
 			log.Error(err, fmt.Sprintf("Cannot get replication status of [%s] index", index))
-			return failedReplications, err
+			return true, err
 		}
 		if replicationStatus.Status == failedStatus {
-			failedReplications = append(failedReplications, index)
+			log.Error(err, fmt.Sprintf("Replication of [%s] index failed", index))
+			return true, nil
 		}
 	}
-	return failedReplications, nil
+	return false, nil
 }
 
 func (rc ReplicationChecker) getIndexReplicationStatus(indexName string) (IndexReplicationStatus, error) {
