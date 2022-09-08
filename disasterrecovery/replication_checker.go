@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/controllers"
-	"github.com/hashicorp/go-retryablehttp"
 	"net/http"
 	"regexp"
 	"strings"
-	"time"
 )
 
 const (
@@ -45,7 +43,7 @@ func NewReplicationChecker(opensearchName string, username string, password stri
 	if username != "" && password != "" {
 		credentials = []string{username, password}
 	}
-	restClient := controllers.NewRestClient(createUrl(opensearchName, 9200), createHttpClient(), credentials)
+	restClient := controllers.NewRestClient(createUrl(opensearchName, 9200), http.Client{}, credentials)
 	return ReplicationChecker{
 		restClient: *restClient,
 	}
@@ -93,12 +91,12 @@ func (rc ReplicationChecker) checkReplication() (string, error) {
 			log.Info(fmt.Sprintf("The following indices are not healthy: %v", unhealthyIndices))
 			return DEGRADED, nil
 		}
-		failedReplications, err := rc.listFailedReplications(rule.Pattern)
+		failedReplicationsFound, err := rc.areFailedReplicationsFound(rule.Pattern)
 		if err != nil {
 			return "", err
 		}
-		if len(failedReplications) > 0 {
-			log.Info(fmt.Sprintf("The replication failed for the following indices: %v", failedReplications))
+		if failedReplicationsFound {
+			log.Info("The replication failed for some indices")
 			return DEGRADED, nil
 		} else {
 			return UP, nil
@@ -130,18 +128,17 @@ func (rc ReplicationChecker) listUnhealthyIndices(pattern string) ([]string, err
 	return indices, nil
 }
 
-func (rc ReplicationChecker) listFailedReplications(pattern string) ([]string, error) {
-	var failedReplications []string
+func (rc ReplicationChecker) areFailedReplicationsFound(pattern string) (bool, error) {
 	responseBody, err := rc.restClient.SendRequestWithStatusCodeCheck(http.MethodGet, pattern, nil)
 	if err != nil {
 		log.Error(err, "An error occurred during getting OpenSearch indices")
-		return failedReplications, err
+		return true, err
 	}
 	var indices map[string]interface{}
 	err = json.Unmarshal(responseBody, &indices)
 	if err != nil {
 		log.Error(err, "An error occurred during unmarshalling OpenSearch indices response")
-		return failedReplications, err
+		return true, err
 	}
 	for index := range indices {
 		if strings.HasPrefix(index, ".") {
@@ -150,13 +147,14 @@ func (rc ReplicationChecker) listFailedReplications(pattern string) ([]string, e
 		replicationStatus, err := rc.getIndexReplicationStatus(index)
 		if err != nil {
 			log.Error(err, fmt.Sprintf("Cannot get replication status of [%s] index", index))
-			return failedReplications, err
+			return true, err
 		}
 		if replicationStatus.Status == failedStatus {
-			failedReplications = append(failedReplications, index)
+			log.Error(err, fmt.Sprintf("Replication of [%s] index failed", index))
+			return true, nil
 		}
 	}
-	return failedReplications, nil
+	return false, nil
 }
 
 func (rc ReplicationChecker) getIndexReplicationStatus(indexName string) (IndexReplicationStatus, error) {
@@ -172,11 +170,4 @@ func (rc ReplicationChecker) getIndexReplicationStatus(indexName string) (IndexR
 
 func createUrl(host string, port int) string {
 	return fmt.Sprintf("http://%s-internal:%d", host, port)
-}
-
-func createHttpClient() http.Client {
-	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 3
-	retryClient.RetryWaitMax = time.Second * 10
-	return *retryClient.StandardClient()
 }
