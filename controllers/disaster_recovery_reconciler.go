@@ -1,16 +1,19 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
+	"net/http"
 	"strings"
 	"time"
 )
 
 const (
 	drConfigHashName            = "config.disasterRecovery"
+	leaderStatsPath             = "_plugins/_replication/leader_stats"
 	replicationRemoteServiceKey = "remoteCluster"
 	replicationPatternKey       = "indicesPattern"
 )
@@ -72,6 +75,7 @@ func (r DisasterRecoveryReconciler) Configure() error {
 		replicationManager := r.getReplicationManager()
 		if r.cr.Spec.DisasterRecovery.Mode == "standby" {
 			if r.cr.Status.DisasterRecoveryStatus.Mode != "active" {
+				err = r.checkExistingReplications(replicationManager)
 				r.logger.Info("Removing previous replication rule")
 				err = r.removePreviousReplication(replicationManager)
 			}
@@ -202,6 +206,27 @@ func (r DisasterRecoveryReconciler) stopReplication(replicationManager Replicati
 	_ = replicationManager.DeleteIndicesByPattern(".tasks")
 
 	r.logger.Info("Replication has been stopped")
+	return nil
+}
+
+func (r DisasterRecoveryReconciler) checkExistingReplications(replicationManager ReplicationManager) error {
+	responseBody, err := replicationManager.restClient.SendRequestWithStatusCodeCheck(http.MethodGet, leaderStatsPath, nil)
+	if err != nil {
+		log.Error(err, "An error occurred during getting OpenSearch leader stats")
+		return err
+	}
+	var indexStats []map[string]string
+	err = json.Unmarshal(responseBody, &indexStats)
+	if err != nil {
+		log.Error(err, "An error occurred during unmarshalling OpenSearch leader stats response")
+		return err
+	}
+	if len(indexStats) > 0 {
+		log.Error(err, "There is active replication on other side. To move current side into standby mode, need to move opposite side to active mode first.")
+		return err
+	}
+
+	r.logger.Info("There are no replications from other side")
 	return nil
 }
 
