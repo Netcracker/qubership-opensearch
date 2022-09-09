@@ -25,6 +25,18 @@ type DisasterRecoveryReconciler struct {
 	replicationWatcher ReplicationWatcher
 }
 
+type LeaderStats struct {
+	NumReplicatedIndices        string              `json:"num_replicated_indices"`
+	OperationsRead              string              `json:"operations_read"`
+	TranslogSizeBytes           string              `json:"translog_size_bytes"`
+	OperationsReadLucene        string              `json:"operations_read_lucene"`
+	OperationsReadTranslog      string              `json:"operations_read_translog"`
+	TotalReadTimeLuceneMillis   string              `json:"total_read_time_lucene_millis"`
+	TotalReadTimeTranslogMillis string              `json:"total_read_time_translog_millis"`
+	BytesRead                   string              `json:"bytes_read"`
+	IndexStats                  []map[string]string `json:"index_stats"`
+}
+
 func NewDisasterRecoveryReconciler(r *OpenSearchServiceReconciler, cr *opensearchservice.OpenSearchService,
 	logger logr.Logger) DisasterRecoveryReconciler {
 	return DisasterRecoveryReconciler{
@@ -215,13 +227,13 @@ func (r DisasterRecoveryReconciler) checkExistingReplications(replicationManager
 		log.Error(err, "An error occurred during getting OpenSearch leader stats")
 		return err
 	}
-	var indexStats []map[string]string
-	err = json.Unmarshal(responseBody, &indexStats)
+	var leaderStats LeaderStats
+	err = json.Unmarshal(responseBody, &leaderStats)
 	if err != nil {
 		log.Error(err, "An error occurred during unmarshalling OpenSearch leader stats response")
 		return err
 	}
-	if len(indexStats) > 0 {
+	if len(leaderStats.IndexStats) > 0 {
 		log.Error(err, "There is active replication on other side. To move current side into standby mode, need to move opposite side to active mode first.")
 		return err
 	}
