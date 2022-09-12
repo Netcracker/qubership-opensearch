@@ -26,15 +26,15 @@ type DisasterRecoveryReconciler struct {
 }
 
 type LeaderStats struct {
-	NumReplicatedIndices        string              `json:"num_replicated_indices"`
-	OperationsRead              string              `json:"operations_read"`
-	TranslogSizeBytes           string              `json:"translog_size_bytes"`
-	OperationsReadLucene        string              `json:"operations_read_lucene"`
-	OperationsReadTranslog      string              `json:"operations_read_translog"`
-	TotalReadTimeLuceneMillis   string              `json:"total_read_time_lucene_millis"`
-	TotalReadTimeTranslogMillis string              `json:"total_read_time_translog_millis"`
-	BytesRead                   string              `json:"bytes_read"`
-	IndexStats                  []map[string]string `json:"index_stats"`
+	NumReplicatedIndices        int              `json:"num_replicated_indices"`
+	OperationsRead              int              `json:"operations_read"`
+	TranslogSizeBytes           int              `json:"translog_size_bytes"`
+	OperationsReadLucene        int              `json:"operations_read_lucene"`
+	OperationsReadTranslog      int              `json:"operations_read_translog"`
+	TotalReadTimeLuceneMillis   int              `json:"total_read_time_lucene_millis"`
+	TotalReadTimeTranslogMillis int              `json:"total_read_time_translog_millis"`
+	BytesRead                   int              `json:"bytes_read"`
+	IndexStats                  map[string]map[string]int `json:"index_stats"`
 }
 
 func NewDisasterRecoveryReconciler(r *OpenSearchServiceReconciler, cr *opensearchservice.OpenSearchService,
