@@ -34,7 +34,11 @@ type LeaderStats struct {
 	TotalReadTimeLuceneMillis   int              `json:"total_read_time_lucene_millis"`
 	TotalReadTimeTranslogMillis int              `json:"total_read_time_translog_millis"`
 	BytesRead                   int              `json:"bytes_read"`
-	IndexStats                  map[string]map[string]int `json:"index_stats"`
+	IndexStats                  map[string]IndexStat `json:"index_stats"`
+}
+
+type IndexStat struct {
+	Stat map[string]int
 }
 
 func NewDisasterRecoveryReconciler(r *OpenSearchServiceReconciler, cr *opensearchservice.OpenSearchService,
@@ -86,8 +90,9 @@ func (r DisasterRecoveryReconciler) Configure() error {
 
 		replicationManager := r.getReplicationManager()
 		if r.cr.Spec.DisasterRecovery.Mode == "standby" {
-			if r.cr.Status.DisasterRecoveryStatus.Mode != "active" {
-				err = r.checkExistingReplications(replicationManager)
+			r.logger.Info("Checking existence of active replications")
+			err = r.checkExistingReplications(replicationManager)
+			if err == nil && r.cr.Status.DisasterRecoveryStatus.Mode != "active" {
 				r.logger.Info("Removing previous replication rule")
 				err = r.removePreviousReplication(replicationManager)
 			}
