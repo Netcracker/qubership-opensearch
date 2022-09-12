@@ -243,7 +243,7 @@ func (r *OpenSearchServiceReconciler) enableClientService(name string, namespace
 }
 
 func (r *OpenSearchServiceReconciler) createUrl(host string, port int) string {
-	return "http://opensearch-opensearch-cluster.k8s-1.openshift.sdntest.netcracker.com/"
+	return "http://opensearch-opensearch-cluster.k8s-1.openshift.sdntest.netcracker.com"
 }
 
 func (r *OpenSearchServiceReconciler) createHttpClient() http.Client {
