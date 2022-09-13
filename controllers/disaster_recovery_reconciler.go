@@ -90,7 +90,7 @@ func (r DisasterRecoveryReconciler) Configure() error {
 				r.logger.Info("Removing previous replication rule")
 				err = r.removePreviousReplication(replicationManager)
 			}
-			if err == nil && !r.cr.Spec.DisasterRecovery.NoWait {
+			if err == nil {
 				r.logger.Info("Checking existence of active replications")
 				err = r.checkExistingReplications(replicationManager)
 			}
