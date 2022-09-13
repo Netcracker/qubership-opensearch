@@ -12,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"net/http"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"time"
@@ -19,6 +20,7 @@ import (
 
 const (
 	opensearchHttpPort = 9200
+	opensearchHostEnvVar = "OPENSEARCH_HOST"
 )
 
 // OpenSearchServiceReconciler reconciles a OpenSearchService object
@@ -243,7 +245,11 @@ func (r *OpenSearchServiceReconciler) enableClientService(name string, namespace
 }
 
 func (r *OpenSearchServiceReconciler) createUrl(host string, port int) string {
-	return "http://opensearch-opensearch-cluster.k8s-1.openshift.sdntest.netcracker.com"
+	osHost := os.Getenv(opensearchHostEnvVar)
+	if osHost != "" {
+		return osHost
+	}
+	return fmt.Sprintf("http://%s-internal:%d", host, port)
 }
 
 func (r *OpenSearchServiceReconciler) createHttpClient() http.Client {

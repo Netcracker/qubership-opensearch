@@ -42,6 +42,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: OPENSEARCH_HOST
+              value: {{ .Values.operator.opensearchHost }}
             - name: OPENSEARCH_NAME
               value: {{ template "opensearch.fullname" . }}
             - name: OPENSEARCH_USERNAME
