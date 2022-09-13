@@ -147,6 +147,8 @@ global:
     url: ""
     username: ""
     password: ""
+    nodesCount: 3
+    dataNodesCount: 3
 
   psp:
     create: false

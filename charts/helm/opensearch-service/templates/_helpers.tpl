@@ -63,27 +63,35 @@ failureThreshold: 5
 Define OpenSearch data nodes count.
 */}}
 {{- define "opensearch.dataNodes.count" -}}
-{{- if .Values.opensearch.data.dedicatedPod.enabled }}
-  {{- .Values.opensearch.data.replicas }}
+{{- if .Values.global.externalOpensearch.enabled }}
+  {{- .Values.global.externalOpensearch.dataNodesCount }}
 {{- else }}
-  {{- .Values.opensearch.master.replicas }}
-{{- end }}
+  {{- if .Values.opensearch.data.dedicatedPod.enabled }}
+    {{- .Values.opensearch.data.replicas }}
+  {{- else }}
+    {{- .Values.opensearch.master.replicas }}
+  {{- end }}
+{{- end -}}
 {{- end -}}
 
 {{/*
 Define OpenSearch total nodes count.
 */}}
 {{- define "opensearch.nodes.count" -}}
-{{- $masterNodes := .Values.opensearch.master.replicas }}
-{{- $dataNodes := 0 }}
-{{- if .Values.opensearch.data.dedicatedPod.enabled }}
-  {{- $dataNodes = .Values.opensearch.data.replicas | int }}
-{{- end }}
-{{- $clientNodes := 0 }}
-{{- if .Values.opensearch.client.dedicatedPod.enabled }}
-  {{- $clientNodes = .Values.opensearch.client.replicas | int }}
-{{- end }}
-{{- add $masterNodes $dataNodes $clientNodes }}
+{{- if .Values.global.externalOpensearch.enabled }}
+  {{- .Values.global.externalOpensearch.nodesCount }}
+{{- else }}
+  {{- $masterNodes := .Values.opensearch.master.replicas }}
+  {{- $dataNodes := 0 }}
+  {{- if .Values.opensearch.data.dedicatedPod.enabled }}
+    {{- $dataNodes = .Values.opensearch.data.replicas | int }}
+  {{- end }}
+  {{- $clientNodes := 0 }}
+  {{- if .Values.opensearch.client.dedicatedPod.enabled }}
+    {{- $clientNodes = .Values.opensearch.client.replicas | int }}
+  {{- end }}
+  {{- add $masterNodes $dataNodes $clientNodes }}
+{{- end -}}
 {{- end -}}
 
 {{/*
