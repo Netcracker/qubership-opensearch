@@ -86,11 +86,13 @@ func (r DisasterRecoveryReconciler) Configure() error {
 
 		replicationManager := r.getReplicationManager()
 		if r.cr.Spec.DisasterRecovery.Mode == "standby" {
-			r.logger.Info("Checking existence of active replications")
-			err = r.checkExistingReplications(replicationManager)
-			if err == nil && r.cr.Status.DisasterRecoveryStatus.Mode != "active" {
+			if r.cr.Status.DisasterRecoveryStatus.Mode != "active" {
 				r.logger.Info("Removing previous replication rule")
 				err = r.removePreviousReplication(replicationManager)
+			}
+			if err == nil && !r.cr.Spec.DisasterRecovery.NoWait {
+				r.logger.Info("Checking existence of active replications")
+				err = r.checkExistingReplications(replicationManager)
 			}
 			if err == nil {
 				err = r.runReplicationProcess(replicationManager)
