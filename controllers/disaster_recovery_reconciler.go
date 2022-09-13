@@ -236,7 +236,7 @@ func (r DisasterRecoveryReconciler) checkExistingReplications(replicationManager
 	}
 	if len(leaderStats.IndexStats) > 0 {
 		log.Error(err, "There is active replication on other side. To move current side into standby mode, need to move opposite side to active mode first.")
-		return err
+		return fmt.Errorf("there is active replication on other side")
 	}
 
 	r.logger.Info("There are no replications from other side")
