@@ -1,16 +1,19 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
+	"net/http"
 	"strings"
 	"time"
 )
 
 const (
 	drConfigHashName            = "config.disasterRecovery"
+	leaderStatsPath             = "_plugins/_replication/leader_stats"
 	replicationRemoteServiceKey = "remoteCluster"
 	replicationPatternKey       = "indicesPattern"
 )
@@ -20,6 +23,18 @@ type DisasterRecoveryReconciler struct {
 	logger             logr.Logger
 	reconciler         *OpenSearchServiceReconciler
 	replicationWatcher ReplicationWatcher
+}
+
+type LeaderStats struct {
+	NumReplicatedIndices        int                    `json:"num_replicated_indices"`
+	OperationsRead              int                    `json:"operations_read"`
+	TranslogSizeBytes           int                    `json:"translog_size_bytes"`
+	OperationsReadLucene        int                    `json:"operations_read_lucene"`
+	OperationsReadTranslog      int                    `json:"operations_read_translog"`
+	TotalReadTimeLuceneMillis   int                    `json:"total_read_time_lucene_millis"`
+	TotalReadTimeTranslogMillis int                    `json:"total_read_time_translog_millis"`
+	BytesRead                   int                    `json:"bytes_read"`
+	IndexStats                  map[string]interface{} `json:"index_stats"`
 }
 
 func NewDisasterRecoveryReconciler(r *OpenSearchServiceReconciler, cr *opensearchservice.OpenSearchService,
@@ -74,6 +89,10 @@ func (r DisasterRecoveryReconciler) Configure() error {
 			if r.cr.Status.DisasterRecoveryStatus.Mode != "active" {
 				r.logger.Info("Removing previous replication rule")
 				err = r.removePreviousReplication(replicationManager)
+			}
+			if err == nil {
+				r.logger.Info("Checking existence of active replications")
+				err = r.checkExistingReplications(replicationManager)
 			}
 			if err == nil {
 				err = r.runReplicationProcess(replicationManager)
@@ -202,6 +221,27 @@ func (r DisasterRecoveryReconciler) stopReplication(replicationManager Replicati
 	_ = replicationManager.DeleteIndicesByPattern(".tasks")
 
 	r.logger.Info("Replication has been stopped")
+	return nil
+}
+
+func (r DisasterRecoveryReconciler) checkExistingReplications(replicationManager ReplicationManager) error {
+	responseBody, err := replicationManager.restClient.SendRequestWithStatusCodeCheck(http.MethodGet, leaderStatsPath, nil)
+	if err != nil {
+		log.Error(err, "An error occurred during getting OpenSearch leader stats")
+		return err
+	}
+	var leaderStats LeaderStats
+	err = json.Unmarshal(responseBody, &leaderStats)
+	if err != nil {
+		log.Error(err, "An error occurred during unmarshalling OpenSearch leader stats response")
+		return err
+	}
+	if len(leaderStats.IndexStats) > 0 {
+		log.Error(err, "There is active replication on the other side. To move current side into standby mode, need to move opposite side to active mode first.")
+		return fmt.Errorf("there is active replication on the other side")
+	}
+
+	r.logger.Info("There are no replications from the other side")
 	return nil
 }
 
