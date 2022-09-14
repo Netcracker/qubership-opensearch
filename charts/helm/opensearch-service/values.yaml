@@ -149,7 +149,7 @@ global:
     password: ""
 
   psp:
-    create: false
+    create: true
 
   rbac:
     enabled: true
