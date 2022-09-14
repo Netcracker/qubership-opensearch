@@ -245,6 +245,7 @@ func (r *OpenSearchServiceReconciler) enableClientService(name string, namespace
 }
 
 func (r *OpenSearchServiceReconciler) createUrl(host string, port int) string {
+	// if OpenSearch host specified, you can connect to operator remotely
 	osHost := os.Getenv(opensearchHostEnvVar)
 	if osHost != "" {
 		return osHost
