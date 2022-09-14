@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 )
 
 const (
@@ -43,7 +44,7 @@ func NewReplicationChecker(opensearchName string, username string, password stri
 	if username != "" && password != "" {
 		credentials = []string{username, password}
 	}
-	restClient := controllers.NewRestClient(createUrl(opensearchName, 9200), http.Client{}, credentials)
+	restClient := controllers.NewRestClient(createUrl(opensearchName, 9200), http.Client{Timeout: time.Second * 5}, credentials)
 	return ReplicationChecker{
 		restClient: *restClient,
 	}
