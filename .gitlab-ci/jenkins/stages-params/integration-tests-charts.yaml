@@ -26,7 +26,7 @@ DESCRIPTION_YAML: |
         idp:
           username: "sysadm"
           password: "netcracker"
-          registrationToken: "ixw3OzDKQqMupaDqb_LrofCsBwNjNviz"
+          registrationToken: "default_client_registration_secret"
         dbaasAdapter:
           username: "dbaas-aggregator"
           password: "dbaas-aggregator"
@@ -39,7 +39,7 @@ DESCRIPTION_YAML: |
         opensearchHost: "opensearch"
         opensearchPort: 9200
         opensearchMasterNodesName: "opensearch"
-        identityProviderUrl: "http://identity-management-security-services-ci.dr311dev.openshift.sdntest.netcracker.com"
+        identityProviderUrl: "http://idp.framework-ci-services:8080"
         opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"
         opensearchDbaasAdapterPort: 8080
         opensearchDbaasAdapterRepository: "snapshots"
