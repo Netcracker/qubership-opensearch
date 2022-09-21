@@ -1,0 +1,9 @@
+{{- if and .Values.global.tls.generateCerts.enabled (eq (include "certProvider" .) "cert-manager") (not (.Values.global.tls.generateCerts.clusterIssuerName)) }}
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ template "opensearch.fullname" . }}-service-tls-issuer
+  namespace: {{ .Release.Namespace }}
+spec:
+  selfSigned: {}
+{{- end }}

@@ -1,15 +1,10 @@
 package controllers
 
 import (
-	"crypto/tls"
-	"crypto/x509"
-	"errors"
 	"fmt"
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
 	"github.com/go-logr/logr"
-	"io/ioutil"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -82,7 +77,7 @@ func (r OpenSearchReconciler) Status() error {
 
 func (r OpenSearchReconciler) Configure() error {
 	if r.cr.Spec.OpenSearch.Snapshots != nil {
-		client, err := r.configureClient()
+		client, err := r.reconciler.configureClient()
 		if err != nil {
 			return err
 		}
@@ -101,7 +96,7 @@ func (r OpenSearchReconciler) Configure() error {
 }
 
 // createSnapshotsRepository creates snapshots repository in OpenSearch
-func (r *OpenSearchReconciler) createSnapshotsRepository(client http.Client, credentials []string, attemptsNumber int) error {
+func (r OpenSearchReconciler) createSnapshotsRepository(client http.Client, credentials []string, attemptsNumber int) error {
 	r.logger.Info(fmt.Sprintf("Create a snapshot repository with name [%s]", r.cr.Spec.OpenSearch.Snapshots.RepositoryName))
 	requestPath := fmt.Sprintf("_snapshot/%s", r.cr.Spec.OpenSearch.Snapshots.RepositoryName)
 	requestBody := ""
@@ -131,7 +126,7 @@ func (r *OpenSearchReconciler) createSnapshotsRepository(client http.Client, cre
 	return fmt.Errorf("snapshots repository is not created; response status code is %d", statusCode)
 }
 
-func (r *OpenSearchReconciler) enableCompatibilityMode(client http.Client, credentials []string) error {
+func (r OpenSearchReconciler) enableCompatibilityMode(client http.Client, credentials []string) error {
 	r.logger.Info("Enable compatibility mode")
 	requestPath := "_cluster/settings"
 	requestBody := `{"persistent": {"compatibility.override_main_response_version": true}}`
@@ -145,7 +140,7 @@ func (r *OpenSearchReconciler) enableCompatibilityMode(client http.Client, crede
 	return err
 }
 
-func (r *OpenSearchReconciler) getS3Credentials() (string, string) {
+func (r OpenSearchReconciler) getS3Credentials() (string, string) {
 	secret, err := r.reconciler.findSecret(r.cr.Spec.OpenSearch.Snapshots.S3.SecretName, r.cr.Namespace, r.logger)
 	if err != nil {
 		r.logger.Info("Can not find s3-credentials secret, use empty user/password")
@@ -156,23 +151,4 @@ func (r *OpenSearchReconciler) getS3Credentials() (string, string) {
 	keyId = secret.Data["s3-key-id"]
 	keySecret = secret.Data["s3-key-secret"]
 	return string(keyId), string(keySecret)
-}
-
-func (r *OpenSearchReconciler) configureClient() (http.Client, error) {
-	client := r.reconciler.createHttpClient()
-	if _, err := os.Stat(certificateFilePath); errors.Is(err, os.ErrNotExist) {
-		return client, nil
-	}
-	caCert, err := ioutil.ReadFile(certificateFilePath)
-	if err != nil {
-		return client, err
-	}
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
-	client.Transport = &http.Transport{
-		TLSClientConfig: &tls.Config{
-			RootCAs: caCertPool,
-		},
-	}
-	return client, nil
 }

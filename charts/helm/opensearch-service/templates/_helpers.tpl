@@ -128,13 +128,64 @@ Define if OpenSearch is to be deployed in 'joint' mode.
 {{- end -}}
 
 {{/*
+Provider used to generate TLS certificates
+*/}}
+{{- define "certProvider" -}}
+  {{- .Values.global.tls.enabled | ternary (default "dev" .Values.global.tls.generateCerts.certProvider) "dev" }}
+{{- end -}}
+
+{{/*
+Whether TLS for OpenSearch is enabled
+*/}}
+{{- define "opensearch.tlsEnabled" -}}
+  {{- and (not .Values.global.externalOpensearch.enabled) .Values.global.tls.enabled .Values.opensearch.tls.enabled -}}
+{{- end -}}
+
+{{/*
+OpenSearch configuration
+*/}}
+{{- define "opensearch.config" -}}
+{{ toYaml .Values.opensearch.config }}
+{{- if and (eq (include "opensearch.tlsEnabled" .) "true") (or .Values.opensearch.tls.cipherSuites .Values.global.tls.cipherSuites) }}
+plugins.security.ssl.http.enabled_ciphers:
+{{- range (coalesce .Values.opensearch.tls.cipherSuites .Values.global.tls.cipherSuites) }}
+- {{ . | quote }}
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{/*
+DNS names used to generate TLS certificate with "Subject Alternative Name" field
+*/}}
+{{- define "opensearch.certDnsNames" -}}
+  {{- $opensearchName := include "opensearch.fullname" . -}}
+  {{- $dnsNames := list "localhost" $opensearchName (printf "%s.%s" $opensearchName .Release.Namespace) (printf "%s.%s.svc" $opensearchName .Release.Namespace) (printf "%s-internal" $opensearchName) (printf "%s-internal.%s" $opensearchName .Release.Namespace) (printf "%s-internal.%s.svc" $opensearchName .Release.Namespace) -}}
+  {{- $dnsNames = concat $dnsNames .Values.opensearch.client.ingress.hosts }}
+  {{- $dnsNames = concat $dnsNames .Values.opensearch.tls.subjectAlternativeName.additionalDnsNames -}}
+  {{- $dnsNames | toYaml -}}
+{{- end -}}
+
+{{/*
+IP addresses used to generate TLS certificate with "Subject Alternative Name" field
+*/}}
+{{- define "opensearch.certIpAddresses" -}}
+  {{- $ipAddresses := (list "127.0.0.1") -}}
+  {{- $ipAddresses = concat $ipAddresses .Values.opensearch.tls.subjectAlternativeName.additionalIpAddresses -}}
+  {{- $ipAddresses | toYaml -}}
+{{- end -}}
+
+{{/*
 Define the name of the transport certificates secret.
 */}}
 {{- define "opensearch.transport-cert-secret-name" -}}
-{{- if .Values.opensearch.ssl.transport.existingCertSecret }}
-  {{- .Values.opensearch.ssl.transport.existingCertSecret -}}
+{{- if and (not .Values.global.tls.generateCerts.enabled) .Values.opensearch.tls.transport.existingCertSecret }}
+  {{- .Values.opensearch.tls.transport.existingCertSecret -}}
 {{- else }}
-  {{- template "opensearch.fullname" . -}}-transport-certs
+  {{- if and .Values.global.tls.generateCerts.enabled (eq (include "certProvider" .) "cert-manager") }}
+    {{- template "opensearch.fullname" . -}}-transport-issuer-certs
+  {{- else -}}
+    {{- template "opensearch.fullname" . -}}-transport-certs
+  {{- end }}
 {{- end -}}
 {{- end -}}
 
@@ -142,10 +193,10 @@ Define the name of the transport certificates secret.
 Define the path to the transport certificate in secret.
 */}}
 {{- define "opensearch.transport-cert-path" -}}
-{{- if .Values.opensearch.ssl.transport.existingCertSecret }}
-  {{- .Values.opensearch.ssl.transport.existingCertSecretCertSubPath -}}
+{{- if .Values.global.tls.generateCerts.enabled }}
+  {{- eq (include "certProvider" .) "cert-manager" | ternary "tls.crt" "transport-crt.pem" }}
 {{- else }}
-  {{- "transport-crt.pem" -}}
+  {{- .Values.opensearch.tls.transport.existingCertSecretCertSubPath -}}
 {{- end -}}
 {{- end -}}
 
@@ -153,10 +204,10 @@ Define the path to the transport certificate in secret.
 Define the path to the transport private key in secret.
 */}}
 {{- define "opensearch.transport-key-path" -}}
-{{- if .Values.opensearch.ssl.transport.existingCertSecret }}
-  {{- .Values.opensearch.ssl.transport.existingCertSecretKeySubPath -}}
+{{- if .Values.global.tls.generateCerts.enabled }}
+  {{- eq (include "certProvider" .) "cert-manager" | ternary "tls.key" "transport-key.pem" }}
 {{- else }}
-  {{- "transport-key.pem" -}}
+  {{- .Values.opensearch.tls.transport.existingCertSecretKeySubPath -}}
 {{- end -}}
 {{- end -}}
 
@@ -164,10 +215,10 @@ Define the path to the transport private key in secret.
 Define the path to the transport root CA in secret.
 */}}
 {{- define "opensearch.transport-root-ca-path" -}}
-{{- if .Values.opensearch.ssl.transport.existingCertSecret }}
-  {{- .Values.opensearch.ssl.transport.existingCertSecretRootCASubPath -}}
-{{- else }}
-  {{- "transport-root-ca.pem" -}}
+{{- if .Values.global.tls.generateCerts.enabled }}
+  {{- eq (include "certProvider" .) "cert-manager" | ternary "ca.crt" "transport-root-ca.pem" }}
+{{- else -}}
+  {{- .Values.opensearch.tls.transport.existingCertSecretRootCASubPath -}}
 {{- end -}}
 {{- end -}}
 
@@ -175,10 +226,14 @@ Define the path to the transport root CA in secret.
 Define the name of the admin certificates secret.
 */}}
 {{- define "opensearch.admin-cert-secret-name" -}}
-{{- if .Values.opensearch.ssl.admin.existingCertSecret }}
-  {{- .Values.opensearch.ssl.admin.existingCertSecret -}}
-{{- else }}
-  {{- template "opensearch.fullname" . -}}-admin-certs
+{{- if and (not .Values.global.tls.generateCerts.enabled) .Values.opensearch.tls.admin.existingCertSecret }}
+  {{- .Values.opensearch.tls.admin.existingCertSecret -}}
+{{- else -}}
+  {{- if and .Values.global.tls.generateCerts.enabled (eq (include "certProvider" .) "cert-manager") }}
+    {{- template "opensearch.fullname" . -}}-admin-issuer-certs
+  {{- else -}}
+    {{- template "opensearch.fullname" . -}}-admin-certs
+  {{- end }}
 {{- end -}}
 {{- end -}}
 
@@ -186,10 +241,10 @@ Define the name of the admin certificates secret.
 Define the path to the admin certificate in secret.
 */}}
 {{- define "opensearch.admin-cert-path" -}}
-{{- if .Values.opensearch.ssl.admin.existingCertSecret }}
-  {{- .Values.opensearch.ssl.admin.existingCertSecretCertSubPath -}}
-{{- else }}
-  {{- "admin-crt.pem" -}}
+{{- if .Values.global.tls.generateCerts.enabled }}
+  {{- eq (include "certProvider" .) "cert-manager" | ternary "tls.crt" "admin-crt.pem" }}
+{{- else -}}
+  {{- .Values.opensearch.tls.admin.existingCertSecretCertSubPath -}}
 {{- end -}}
 {{- end -}}
 
@@ -197,10 +252,10 @@ Define the path to the admin certificate in secret.
 Define the path to the admin private key in secret.
 */}}
 {{- define "opensearch.admin-key-path" -}}
-{{- if .Values.opensearch.ssl.admin.existingCertSecret }}
-  {{- .Values.opensearch.ssl.admin.existingCertSecretKeySubPath -}}
-{{- else }}
-  {{- "admin-key.pem" -}}
+{{- if .Values.global.tls.generateCerts.enabled }}
+  {{- eq (include "certProvider" .) "cert-manager" | ternary "tls.key" "admin-key.pem" }}
+{{- else -}}
+  {{- .Values.opensearch.tls.admin.existingCertSecretKeySubPath -}}
 {{- end -}}
 {{- end -}}
 
@@ -208,10 +263,58 @@ Define the path to the admin private key in secret.
 Define the path to the admin root CA in secret.
 */}}
 {{- define "opensearch.admin-root-ca-path" -}}
-{{- if .Values.opensearch.ssl.admin.existingCertSecret }}
-  {{- .Values.opensearch.ssl.admin.existingCertSecretRootCASubPath -}}
+{{- if .Values.global.tls.generateCerts.enabled }}
+  {{- eq (include "certProvider" .) "cert-manager" | ternary "ca.crt" "admin-root-ca.pem" }}
+{{- else -}}
+  {{- .Values.opensearch.tls.admin.existingCertSecretRootCASubPath -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Define the name of the REST certificates secret.
+*/}}
+{{- define "opensearch.rest-cert-secret-name" -}}
+{{- if and (not .Values.global.tls.generateCerts.enabled) .Values.opensearch.tls.rest.existingCertSecret }}
+  {{- .Values.opensearch.tls.rest.existingCertSecret -}}
 {{- else }}
-  {{- "admin-root-ca.pem" -}}
+  {{- if and .Values.global.tls.generateCerts.enabled (eq (include "certProvider" .) "cert-manager") }}
+    {{- template "opensearch.fullname" . -}}-rest-issuer-certs
+  {{- else -}}
+    {{- template "opensearch.fullname" . -}}-rest-certs
+  {{- end }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Define the path to the REST certificate in secret.
+*/}}
+{{- define "opensearch.rest-cert-path" -}}
+{{- if .Values.global.tls.generateCerts.enabled }}
+  {{- eq (include "certProvider" .) "cert-manager" | ternary "tls.crt" "rest-crt.pem" }}
+{{- else -}}
+  {{- .Values.opensearch.tls.rest.existingCertSecretCertSubPath -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Define the path to the REST private key in secret.
+*/}}
+{{- define "opensearch.rest-key-path" -}}
+{{- if .Values.global.tls.generateCerts.enabled }}
+  {{- eq (include "certProvider" .) "cert-manager" | ternary "tls.key" "rest-key.pem" }}
+{{- else -}}
+  {{- .Values.opensearch.tls.rest.existingCertSecretKeySubPath -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Define the path to the REST root CA in secret.
+*/}}
+{{- define "opensearch.rest-root-ca-path" -}}
+{{- if .Values.global.tls.generateCerts.enabled }}
+  {{- eq (include "certProvider" .) "cert-manager" | ternary "ca.crt" "rest-root-ca.pem" }}
+{{- else -}}
+  {{- .Values.opensearch.tls.rest.existingCertSecretRootCASubPath -}}
 {{- end -}}
 {{- end -}}
 
@@ -221,7 +324,7 @@ Define name for OpenSearch master nodes.
 {{- define "master-nodes" -}}
 {{- if eq (include "joint-mode" .) "true" }}
   {{- template "opensearch.fullname" . -}}
-{{- else }}
+{{- else -}}
   {{- template "opensearch.fullname" . -}}-master
 {{- end }}
 {{- end -}}
@@ -248,7 +351,7 @@ Define if persistent volumes are to be enabled for OpenSearch master nodes.
 {{- define "master-nodes-volumes-enabled" -}}
 {{- if and .Values.opensearch.master.persistence.enabled .Values.opensearch.master.persistence.nodes }}
   {{- "true" -}}
-{{- else }}
+{{- else -}}
   {{- "false" -}}
 {{- end -}}
 {{- end -}}
@@ -284,6 +387,65 @@ Configure OpenSearch service 'enableDisasterRecovery' property
 {{- else -}}
   {{- printf "false" }}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Whether TLS for Disaster Recovery is enabled
+*/}}
+{{- define "disasterRecovery.tlsEnabled" -}}
+{{- and (eq (include "opensearch.enableDisasterRecovery" .) "true") .Values.global.tls.enabled .Values.global.disasterRecovery.tls.enabled -}}
+{{- end -}}
+
+{{/*
+Cipher suites that can be used in Disaster Recovery
+*/}}
+{{- define "disasterRecovery.cipherSuites" -}}
+  {{- join "," (coalesce .Values.global.disasterRecovery.tls.cipherSuites .Values.global.tls.cipherSuites) -}}
+{{- end -}}
+
+{{/*
+TLS secret name for Disaster Recovery
+*/}}
+{{- define "disasterRecovery.certSecretName" -}}
+{{- if and (not .Values.global.tls.generateCerts.enabled) .Values.global.disasterRecovery.tls.secretName }}
+  {{- .Values.global.disasterRecovery.tls.secretName -}}
+{{- else }}
+  {{- template "opensearch.fullname" . -}}-drd-tls-secret
+{{- end -}}
+{{- end -}}
+
+{{/*
+DNS names used to generate TLS certificate with "Subject Alternative Name" field for Disaster Recovery
+*/}}
+{{- define "disasterRecovery.certDnsNames" -}}
+  {{- $drdNamespace := .Release.Namespace -}}
+  {{- $dnsNames := list "localhost" (printf "%s-disaster-recovery" (include "opensearch.fullname" .)) (printf "%s-disaster-recovery.%s" (include "opensearch.fullname" .) .Release.Namespace) (printf "%s-disaster-recovery.%s.svc.cluster.local" (include "opensearch.fullname" .) .Release.Namespace) -}}
+  {{- $dnsNames = concat $dnsNames .Values.global.disasterRecovery.tls.subjectAlternativeName.additionalDnsNames -}}
+  {{- $dnsNames | toYaml -}}
+{{- end -}}
+
+{{/*
+IP addresses used to generate TLS certificate with "Subject Alternative Name" field for Disaster Recovery
+*/}}
+{{- define "disasterRecovery.certIpAddresses" -}}
+  {{- $ipAddresses := list "127.0.0.1" -}}
+  {{- $ipAddresses = concat $ipAddresses .Values.global.disasterRecovery.tls.subjectAlternativeName.additionalIpAddresses -}}
+  {{- $ipAddresses | toYaml -}}
+{{- end -}}
+
+{{/*
+Generate certificates for Disaster Recovery
+*/}}
+{{- define "disasterRecovery.generateCerts" -}}
+{{- $dnsNames := include "disasterRecovery.certDnsNames" . | fromYamlArray -}}
+{{- $ipAddresses := include "disasterRecovery.certIpAddresses" . | fromYamlArray -}}
+{{- $duration := default 365 .Values.global.tls.generateCerts.durationDays | int -}}
+{{- $ca := genCA "opensearch-drd-ca" $duration -}}
+{{- $drdName := "drd" -}}
+{{- $cert := genSignedCert $drdName $ipAddresses $dnsNames $duration $ca -}}
+tls.crt: {{ $cert.Cert | b64enc }}
+tls.key: {{ $cert.Key | b64enc }}
+ca.crt: {{ $ca.Cert | b64enc }}
 {{- end -}}
 
 {{- define "pod-scheduler-enabled" -}}
@@ -334,7 +496,11 @@ Opensearch protocol for dbaas adapter
     {{- printf "http" }}
  {{- end -}}
 {{- else }}
-    {{- default "http" .Values.dbaasAdapter.opensearchProtocol }}
+  {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+    {{- "https" -}}
+  {{- else }}
+    {{- default "http" .Values.dbaasAdapter.opensearchProtocol -}}
+  {{- end }}
 {{- end -}}
 {{- end -}}
 
@@ -351,6 +517,56 @@ Elastic protocol for dbaas adapter
 {{- else }}
     {{- default "http" .Values.elasticsearchDbaasAdapter.opensearchProtocol }}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Whether TLS for OpenSearch curator is enabled
+*/}}
+{{- define "curator.tlsEnabled" -}}
+{{- and .Values.curator.enabled .Values.global.tls.enabled .Values.curator.tls.enabled -}}
+{{- end -}}
+
+{{/*
+TLS secret name for OpenSearch curator
+*/}}
+{{- define "curator.certSecretName" -}}
+{{- if and (not .Values.global.tls.generateCerts.enabled) .Values.curator.tls.secretName }}
+  {{- .Values.curator.tls.secretName -}}
+{{- else }}
+  {{- template "opensearch.fullname" . }}-curator-tls-secret
+{{- end -}}
+{{- end }}
+
+{{/*
+DNS names used to generate TLS certificate with "Subject Alternative Name" field for OpenSearch curator
+*/}}
+{{- define "curator.certDnsNames" -}}
+  {{- $dnsNames := list "localhost" (printf "%s-curator" (include "opensearch.fullname" .)) (printf "%s-curator.%s" (include "opensearch.fullname" .) .Release.Namespace) (printf "%s-curator.%s.svc" (include "opensearch.fullname" .) .Release.Namespace) -}}
+  {{- $dnsNames = concat $dnsNames .Values.curator.tls.subjectAlternativeName.additionalDnsNames -}}
+  {{- $dnsNames | toYaml -}}
+{{- end -}}
+
+{{/*
+IP addresses used to generate TLS certificate with "Subject Alternative Name" field for OpenSearch curator
+*/}}
+{{- define "curator.certIpAddresses" -}}
+  {{- $ipAddresses := list "127.0.0.1" -}}
+  {{- $ipAddresses = concat $ipAddresses .Values.curator.tls.subjectAlternativeName.additionalIpAddresses -}}
+  {{- $ipAddresses | toYaml -}}
+{{- end -}}
+
+{{/*
+Generate certificates for OpenSearch curator
+*/}}
+{{- define "curator.generateCerts" -}}
+{{- $dnsNames := include "curator.certDnsNames" . | fromYamlArray -}}
+{{- $ipAddresses := include "curator.certIpAddresses" . | fromYamlArray -}}
+{{- $duration := default 365 .Values.global.tls.generateCerts.durationDays | int -}}
+{{- $ca := genCA "opensearch-curator-ca" $duration -}}
+{{- $cert := genSignedCert "curator" $ipAddresses $dnsNames $duration $ca -}}
+tls.crt: {{ $cert.Cert | b64enc }}
+tls.key: {{ $cert.Key | b64enc }}
+ca.crt: {{ $ca.Cert | b64enc }}
 {{- end -}}
 
 {{/*

@@ -1,19 +1,26 @@
 package disasterrecovery
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/controllers"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"time"
 )
 
 const (
+	certificateFilePath           = "/certs/crt.pem"
 	catIndicesPath                = "_cat/indices?h=index,health&format=json"
 	indexReplicationStatusPattern = "_plugins/_replication/%s/_status"
 	failedStatus                  = "FAILED"
+	opensearchHostEnvVar          = "OPENSEARCH_HOST"
 )
 
 type RuleStats struct {
@@ -39,12 +46,13 @@ type Index struct {
 	Health string `json:"health"`
 }
 
-func NewReplicationChecker(opensearchName string, username string, password string) ReplicationChecker {
+func NewReplicationChecker(opensearchName string, opensearchProtocol string, username string, password string) ReplicationChecker {
 	var credentials []string
 	if username != "" && password != "" {
 		credentials = []string{username, password}
 	}
-	restClient := controllers.NewRestClient(createUrl(opensearchName, 9200), http.Client{Timeout: time.Second * 5}, credentials)
+	url := createUrl(opensearchProtocol, opensearchName, 9200)
+	restClient := controllers.NewRestClient(url, configureClient(), credentials)
 	return ReplicationChecker{
 		restClient: *restClient,
 	}
@@ -169,6 +177,26 @@ func (rc ReplicationChecker) getIndexReplicationStatus(indexName string) (IndexR
 	return indexReplicationStatus, err
 }
 
-func createUrl(host string, port int) string {
-	return fmt.Sprintf("http://%s-internal:%d", host, port)
+func configureClient() http.Client {
+	httpClient := http.Client{Timeout: time.Second * 5}
+	if _, err := os.Stat(certificateFilePath); errors.Is(err, os.ErrNotExist) {
+		return httpClient
+	}
+	caCert, _ := ioutil.ReadFile(certificateFilePath)
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+	httpClient.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{
+			RootCAs: caCertPool,
+		},
+	}
+	return httpClient
+}
+
+func createUrl(protocol string, host string, port int) string {
+	osHost := os.Getenv(opensearchHostEnvVar)
+	if osHost != "" {
+		return osHost
+	}
+	return fmt.Sprintf("%s://%s-internal:%d", protocol, host, port)
 }

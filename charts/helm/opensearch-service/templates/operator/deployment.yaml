@@ -28,11 +28,11 @@ spec:
             - containerPort: 8069
               protocol: TCP
               name: rep-health
-          {{- if and .Values.opensearch.ssl.rest.enabled .Values.opensearch.ssl.rest.existingCertSecret }}
+          {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
           volumeMounts:
             - mountPath: /certs/crt.pem
-              name: certs
-              subPath: {{ .Values.opensearch.ssl.rest.existingCertSecretCertSubPath }}
+              name: opensearch-certs
+              subPath: {{ template "opensearch.rest-root-ca-path" . }}
           {{- end }}
           command:
             - /manager
@@ -42,6 +42,12 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: OPENSEARCH_PROTOCOL
+              {{ if or .Values.global.externalOpensearch.enabled (eq (include "opensearch.tlsEnabled" .) "true") }}
+              value: "https"
+              {{ else }}
+              value: "http"
+              {{ end }}
             - name: OPENSEARCH_NAME
               value: {{ template "opensearch.fullname" . }}
             - name: OPENSEARCH_USERNAME
@@ -65,6 +71,11 @@ spec:
         - name: {{ template "opensearch.fullname" . }}-disaster-recovery
           image: {{ template "disasterRecovery.image" . }}
           imagePullPolicy: Always
+          {{- if eq (include "disasterRecovery.tlsEnabled" .) "true" }}
+          volumeMounts:
+            - name: drd-certs
+              mountPath: /tls
+          {{- end }}
           ports:
             - containerPort: 8068
               protocol: TCP
@@ -74,6 +85,14 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            {{- if eq (include "disasterRecovery.tlsEnabled" .) "true" }}
+            - name: TLS_ENABLED
+              value: "true"
+            - name: CERTS_PATH
+              value: "/tls"
+            - name: CIPHER_SUITES
+              value: "{{ include "disasterRecovery.cipherSuites" . }}"
+            {{- end }}
             - name: RESOURCE_FOR_DR
               value: "netcracker.com v1 opensearchservices {{ template "opensearch.fullname" . }}"
             - name: USE_DEFAULT_PATHS
@@ -104,11 +123,18 @@ spec:
               cpu: {{ default "10m" .Values.global.disasterRecovery.resources.requests.cpu }}
               memory: {{ default "10Mi" .Values.global.disasterRecovery.resources.requests.memory }}
         {{- end }}
-      {{- if and .Values.opensearch.ssl.rest.enabled .Values.opensearch.ssl.rest.existingCertSecret }}
+      {{- if or (eq (include "opensearch.tlsEnabled" .) "true") (eq (include "disasterRecovery.tlsEnabled" .) "true") }}
       volumes:
-        - name: certs
+        {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+        - name: opensearch-certs
           secret:
-            secretName: {{ .Values.opensearch.ssl.rest.existingCertSecret }}
+            secretName: {{ template "opensearch.rest-cert-secret-name" . }}
+        {{- end }}
+        {{- if eq (include "disasterRecovery.tlsEnabled" .) "true" }}
+        - name: drd-certs
+          secret:
+            secretName: {{ template "disasterRecovery.certSecretName" . }}
+        {{- end }}
       {{- end }}
       {{- with .Values.operator.affinity }}
       affinity:

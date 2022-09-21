@@ -46,11 +46,9 @@ spec:
             - name: ES_AUTH
               value: "$(ES_USERNAME):$(ES_PASSWORD)"
             - name: TLS_HTTP_ENABLED
-              {{ if or .Values.global.externalOpensearch.enabled .Values.opensearch.ssl.rest.enabled }}
-              value: "true"
-              {{ else }}
-              value: "false"
-              {{ end }}
+              value: "{{ or .Values.global.externalOpensearch.enabled (eq (include "opensearch.tlsEnabled" .) "true") }}"
+            - name: TLS_ENABLED
+              value: "{{ template "curator.tlsEnabled" . }}"
             - name: SNAPSHOT_REPOSITORY_NAME
               value: {{ .Values.curator.snapshotRepositoryName | default "snapshots" }}
           {{- if .Values.curator.backupSchedule }}
@@ -97,6 +95,15 @@ spec:
           volumeMounts:
             - mountPath: /backup-storage
               name: backup-storage
+            {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+            - mountPath: /trusted-certs/root-ca.pem
+              name: opensearch-certs
+              subPath: {{ template "opensearch.rest-root-ca-path" . }}
+            {{- end }}
+            {{ if eq (include "curator.tlsEnabled" .) "true" }}
+            - mountPath: /tls
+              name: certs
+            {{- end }}
           ports:
             - protocol: TCP
               containerPort: 8080
@@ -120,7 +127,7 @@ spec:
             - name: ES_AUTH
               value: "$(ES_USERNAME):$(ES_PASSWORD)"
             - name: TLS_HTTP_ENABLED
-              value: "false"
+              value: "{{ or .Values.global.externalOpensearch.enabled (eq (include "opensearch.tlsEnabled" .) "true") }}"
             - name: INDICES_CLEANER_SCHEDULER_UNIT
               value: {{ .Values.curator.indicesCleanerSchedulerUnit | default "days" }}
             - name: INDICES_CLEANER_SCHEDULER_UNIT_COUNT
@@ -147,6 +154,11 @@ spec:
             - mountPath: /opt/elasticsearch-indices-cleaner/cleaner.yml
               name: config
               subPath: cleaner.yml
+            {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+            - mountPath: /trusted-certs/root-ca.pem
+              name: opensearch-certs
+              subPath: {{ template "opensearch.rest-root-ca-path" . }}
+            {{- end }}
       volumes:
         {{- if or (not .Values.opensearch.snapshots.enabled) .Values.opensearch.snapshots.s3.enabled }}
         - name: backup-storage
@@ -155,13 +167,23 @@ spec:
         - name: backup-storage
           persistentVolumeClaim:
             claimName: {{ .Values.opensearch.snapshots.persistentVolumeClaim | default (printf "pvc-%s-snapshots" (include "opensearch.fullname" .))  }}
-      {{- end }}
+        {{- end }}
         - name: config
           configMap:
             name: {{ template "opensearch.fullname" . }}-indices-cleaner-configuration
             items:
               - path: cleaner.yml
                 key: config
+        {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+        - name: opensearch-certs
+          secret:
+            secretName: {{ template "opensearch.rest-cert-secret-name" . }}
+        {{- end }}
+        {{ if eq (include "curator.tlsEnabled" .) "true" }}
+        - name: certs
+          secret:
+            secretName: {{ template "curator.certSecretName" . }}
+        {{- end }}
     {{- with .Values.curator.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}

@@ -29,7 +29,7 @@ The Disaster Recovery (DR) configuration requires two separate OpenSearch cluste
         mode: "active"
     ```
 
-1. The parameter that describes services after which OpenSearch service switchover has to be run.
+2. The parameter that describes services after which OpenSearch service switchover has to be run.
 
     ```
     global:
@@ -40,7 +40,7 @@ The Disaster Recovery (DR) configuration requires two separate OpenSearch cluste
 
    In common case OpenSearch service is a base service and does not have any `after` services.
 
-2. In DR scheme, OpenSearch must be deployed with indicating OpenSearch service from opposite side. For example, if you deploy `standby` OpenSearch cluster you should specify path to the OpenSearch from `active` side to start replication from `active` OpenSearch to `standby`.
+3. In DR scheme, OpenSearch must be deployed with indicating OpenSearch service from opposite side. For example, if you deploy `standby` OpenSearch cluster you should specify path to the OpenSearch from `active` side to start replication from `active` OpenSearch to `standby`.
    Even if you deploy `active` side you need to specify path to `standby` OpenSearch cluster to support switch over process. You can also specify some regular expression as `indicesPattern` which is used for look up `active` indices to replicate them.
    You need to specify the following parameters in the OpenSearch configuration:
 
@@ -52,10 +52,22 @@ The Disaster Recovery (DR) configuration requires two separate OpenSearch cluste
         remoteCluster: "opensearch:9300"
    ```
 
+4. If you enable TLS encryption for OpenSearch (`global.tls.enabled` and `opensearch.tls.enabled` parameters set to `true`), don't forget to specify its DNS name in `opensearch.tls.subjectAlternativeName.additionalDnsNames` parameter. For example, for `northamerica` region the following parameter should be specified:
+
+   ```
+   opensearch:
+     tls:
+       subjectAlternativeName:
+         additionalDnsNames:
+           - opensearch-northamerica.opensearch-service.svc.clusterset.local
+   ```
+
 ## Manual Steps Before Installation
 
-The OpenSearch cross cluster replication is allowed only for OpenSearch services from union cluster. It means that both OpenSearch nodes must have the same `admin` and `transport` certificates.
-You should install `active` service and then copy `opensearch-admin-certs` and `opensearch-transport-certs` Kubernetes secrets to the Kubernetes namespace for `standby` service *before* its installation.
+The OpenSearch cross cluster replication is allowed only for OpenSearch services from union cluster. It means that both OpenSearch nodes must have the same `admin`, `transport` and `rest` certificates.
+You should install `active` service and perform one of the following actions:
+* If `global.tls.generateCerts.certProvider` is set to `cert-manager`, copy `opensearch-admin-issuer-certs` and `opensearch-transport-issuer-certs` Kubernetes secrets to the Kubernetes namespace for `standby` service *before* its installation. If `global.tls.enabled` and `opensearch.tls.enabled` parameters are set to `true`, you also need to copy `opensearch-rest-issuer-certs` Kubernetes secrets.
+* If `global.tls.generateCerts.certProvider` is set to `dev`, copy `opensearch-admin-certs` and `opensearch-transport-certs` Kubernetes secrets to the Kubernetes namespace for `standby` service *before* its installation. If `global.tls.enabled` and `opensearch.tls.enabled` parameters are set to `true`, you also need to copy `opensearch-rest-certs` Kubernetes secrets.
 
 ## Example
 
@@ -218,7 +230,16 @@ opensearch:
         memory: 1024Mi
 ```
 
-**NOTE:** You should install `active` service and then copy `opensearch-admin-certs` and `opensearch-transport-certs` Kubernetes secrets to the Kubernetes namespace for `standby` service *before* its installation.
+**NOTE:** You should install `active` service and perform one of the following actions:
+* If `global.tls.generateCerts.certProvider` is set to `cert-manager`, copy `opensearch-admin-issuer-certs` and `opensearch-transport-issuer-certs` Kubernetes secrets to the Kubernetes namespace for `standby` service *before* its installation. If `global.tls.enabled` and `opensearch.tls.enabled` parameters are set to `true`, you also need to copy `opensearch-rest-issuer-certs` Kubernetes secrets.
+* If `global.tls.generateCerts.certProvider` is set to `dev`, copy `opensearch-admin-certs` and `opensearch-transport-certs` Kubernetes secrets to the Kubernetes namespace for `standby` service *before* its installation. If `global.tls.enabled` and `opensearch.tls.enabled` parameters are set to `true`, you also need to copy `opensearch-rest-certs` Kubernetes secrets. Moreover, you should add the following parameters to `standby` side configuration:
+
+  ```yaml
+  opensearch:
+    tls:
+      generateCerts:
+        enabled: false
+  ```
 
 The example of configuration for `standby` OpenSearch cluster in `northamerica` region is as follows:
 

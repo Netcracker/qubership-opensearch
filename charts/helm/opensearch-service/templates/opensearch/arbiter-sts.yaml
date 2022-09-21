@@ -146,6 +146,8 @@ spec:
               valueFrom:
                 resourceFieldRef:
                   resource: limits.cpu
+            - name: TLS_ENABLED
+              value: "{{ include "opensearch.tlsEnabled" . }}"
             - name: OPENSEARCH_JAVA_OPTS
               value: {{ .Values.opensearch.arbiter.javaOpts }}
             - name: OPENSEARCH_SECURITY_CONFIG_PATH
@@ -220,17 +222,17 @@ spec:
             - mountPath: {{ .Values.opensearch.configDirectory }}/transport-root-ca.pem
               name: transport-certs
               subPath: {{ template "opensearch.transport-root-ca-path" . }}
-        {{- if and .Values.opensearch.ssl.rest.enabled .Values.opensearch.ssl.rest.existingCertSecret }}
+            {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/rest-crt.pem
               name: rest-certs
-              subPath: {{ .Values.opensearch.ssl.rest.existingCertSecretCertSubPath }}
+              subPath: {{ template "opensearch.rest-cert-path" . }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/rest-key.pem
               name: rest-certs
-              subPath: {{ .Values.opensearch.ssl.rest.existingCertSecretKeySubPath }}
+              subPath: {{ template "opensearch.rest-key-path" . }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/rest-root-ca.pem
               name: rest-certs
-              subPath: {{ .Values.opensearch.ssl.rest.existingCertSecretRootCASubPath }}
-        {{- end }}
+              subPath: {{ template "opensearch.rest-root-ca-path" . }}
+            {{- end }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/admin-crt.pem
               name: admin-certs
               subPath: {{ template "opensearch.admin-cert-path" . }}
@@ -275,11 +277,11 @@ spec:
         - name: transport-certs
           secret:
             secretName: {{ template "opensearch.transport-cert-secret-name" . }}
-      {{- if and .Values.opensearch.ssl.rest.enabled .Values.opensearch.ssl.rest.existingCertSecret }}
+        {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
         - name: rest-certs
           secret:
-            secretName: {{ .Values.opensearch.ssl.rest.existingCertSecret }}
-      {{- end }}
+            secretName: {{ template "opensearch.rest-cert-secret-name" . }}
+        {{- end }}
         - name: admin-certs
           secret:
             secretName: {{ template "opensearch.admin-cert-secret-name" . }}

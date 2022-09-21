@@ -1,4 +1,5 @@
 *** Variables ***
+${OPENSEARCH_CURATOR_PROTOCOL}   %{OPENSEARCH_CURATOR_PROTOCOL}
 ${OPENSEARCH_CURATOR_HOST}       %{OPENSEARCH_CURATOR_HOST}
 ${OPENSEARCH_CURATOR_PORT}       %{OPENSEARCH_CURATOR_PORT}
 ${OPENSEARCH_CURATOR_USERNAME}   %{OPENSEARCH_CURATOR_USERNAME=}
@@ -22,7 +23,8 @@ Prepare
 
 Prepare Curator
     ${auth}=  Create List  ${OPENSEARCH_CURATOR_USERNAME}  ${OPENSEARCH_CURATOR_PASSWORD}
-    Create Session  curatorsession  http://${OPENSEARCH_CURATOR_HOST}:${OPENSEARCH_CURATOR_PORT}  auth=${auth}
+    ${verify}=  Set Variable If  '${OPENSEARCH_CURATOR_PROTOCOL}' == 'https'  /certs/curator/root-ca.pem  ${True}
+    Create Session  curatorsession  ${OPENSEARCH_CURATOR_PROTOCOL}://${OPENSEARCH_CURATOR_HOST}:${OPENSEARCH_CURATOR_PORT}  auth=${auth}  verify=${verify}
 
 Delete Data
     Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}
@@ -128,7 +130,7 @@ Delete Backup By ID
 
 Unauthorized Access
     [Tags]  opensearch  backup  unauthorized_access
-    Create Session  curator_unauthorized  http://${OPENSEARCH_CURATOR_HOST}:${OPENSEARCH_CURATOR_PORT}
+    Create Session  curator_unauthorized  ${OPENSEARCH_CURATOR_PROTOCOL}://${OPENSEARCH_CURATOR_HOST}:${OPENSEARCH_CURATOR_PORT}
     ...  disable_warnings=1
     ${response}=  Post Request  curator_unauthorized  /backup
     Should Be Equal As Strings  ${response.status_code}  401

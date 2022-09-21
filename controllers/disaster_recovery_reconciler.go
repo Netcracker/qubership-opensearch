@@ -252,7 +252,8 @@ func (r DisasterRecoveryReconciler) getReplicationManager() ReplicationManager {
 	pattern := configMap.Data[replicationPatternKey]
 	credentials := r.reconciler.parseSecretCredentials(r.cr, r.logger)
 	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
-	restClient := NewRestClient(url, r.reconciler.createHttpClient(), credentials)
+	client, _ := r.reconciler.configureClient()
+	restClient := NewRestClient(url, client, credentials)
 	return *NewReplicationManager(*restClient, remoteService, pattern, r.logger)
 }
 
