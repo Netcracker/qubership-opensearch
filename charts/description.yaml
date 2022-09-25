@@ -41,7 +41,7 @@ deployment:
             username: "netcrk"
             password: "crknet"
           oidc:
-            openid_connect_url: "http://identity-management-security-services-ci.dr311dev.openshift.sdntest.netcracker.com/.well-known/openid-configuration"
+            openid_connect_url: "http://idp.framework-ci-services:8080/.well-known/openid-configuration"
       master:
         enabled: true
         replicas: 3
