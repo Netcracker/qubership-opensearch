@@ -22,7 +22,8 @@ Prepare OpenSearch
 Login To OpenSearch
     [Arguments]  ${username}  ${password}  ${need_auth}=True
     ${auth}=  Run Keyword If  ${need_auth}  Create List  ${username}  ${password}
-    Create Session  opensearch  ${OPENSEARCH_PROTOCOL}://${OPENSEARCH_HOST}:${OPENSEARCH_PORT}  auth=${auth}  disable_warnings=1
+    ${verify}=  Set Variable If  '${OPENSEARCH_PROTOCOL}' == 'https'  /certs/opensearch/root-ca.pem  ${True}
+    Create Session  opensearch  ${OPENSEARCH_PROTOCOL}://${OPENSEARCH_HOST}:${OPENSEARCH_PORT}  auth=${auth}  verify=${verify}  disable_warnings=1
     &{headers}=  Create Dictionary  Content-Type=application/json  Accept=application/json
     Set Global Variable  ${headers}
 

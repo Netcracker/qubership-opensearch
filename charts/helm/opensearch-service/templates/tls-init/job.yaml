@@ -1,4 +1,4 @@
-{{ if not .Values.opensearch.ssl.transport.existingCertSecret }}
+{{ if and (not .Values.global.externalOpensearch.enabled) .Values.global.tls.generateCerts.enabled (ne (include "certProvider" .) "cert-manager") }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -25,16 +25,24 @@ spec:
           env:
             - name: OPENSEARCH_FULLNAME
               value: {{ template "opensearch.fullname" . }}
-            - name: CLIENT_INGRESSES
-              value: "{{ range .Values.opensearch.client.ingress.hosts }}{{ . }} {{ end }}"
             - name: NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: ADDITIONAL_DNS_NAMES
+              value: "{{ join " " (include "opensearch.certDnsNames" . | fromYamlArray) }}"
+            - name: ADDITIONAL_IP_ADDRESSES
+              value: "{{ join " " (include "opensearch.certIpAddresses" . | fromYamlArray) }}"
+            - name: DURATION_DAYS
+              value: "{{ .Values.global.tls.generateCerts.durationDays | default 365 }}"
             - name: TRANSPORT_CERTIFICATES_SECRET_NAME
               value: {{ template "opensearch.transport-cert-secret-name" . }}
             - name: ADMIN_CERTIFICATES_SECRET_NAME
               value: {{ template "opensearch.admin-cert-secret-name" . }}
+            {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+            - name: REST_CERTIFICATES_SECRET_NAME
+              value: {{ template "opensearch.rest-cert-secret-name" . }}
+            {{- end }}
           resources:
             requests:
               memory: {{ default "128Mi" .Values.opensearch.tlsInit.resources.requests.memory  }}
@@ -42,7 +50,6 @@ spec:
             limits:
               memory: {{ default "128Mi" .Values.opensearch.tlsInit.resources.limits.memory  }}
               cpu: {{ default "100m" .Values.opensearch.tlsInit.resources.limits.cpu  }}
-
           command:
             - "/bin/sh"
             - "-ec"

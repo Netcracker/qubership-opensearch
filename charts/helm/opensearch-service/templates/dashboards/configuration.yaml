@@ -1,4 +1,4 @@
-{{- if  not .Values.global.externalOpensearch.enabled }}
+{{- if not .Values.global.externalOpensearch.enabled }}
 {{- if and .Values.dashboards.enabled .Values.dashboards.config -}}
 apiVersion: v1
 kind: ConfigMap

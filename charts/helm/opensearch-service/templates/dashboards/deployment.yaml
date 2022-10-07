@@ -32,7 +32,7 @@ spec:
         {{- end }}
         {{- /* This forces a restart if the configmap has changed */}}
         {{- if .Values.dashboards.config }}
-        configchecksum: {{ include (print .Template.BasePath "/configuration.yaml") . | sha256sum | trunc 63 }}
+        configchecksum: {{ include (print .Template.BasePath "/dashboards/configuration.yaml") . | sha256sum | trunc 63 }}
         {{- end }}
     spec:
       {{- if .Values.dashboards.priorityClassName }}
@@ -56,6 +56,11 @@ spec:
         - name: config
           configMap:
             name: {{ template "opensearch.fullname" . }}-dashboards-config
+        {{- end }}
+        {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+        - name: opensearch-certs
+          secret:
+            secretName: {{ template "opensearch.rest-cert-secret-name" . }}
         {{- end }}
         {{- if .Values.dashboards.extraVolumes }}
 {{ toYaml .Values.dashboards.extraVolumes | indent 8 }}
@@ -87,10 +92,12 @@ spec:
           image: "{{ template "dashboards.image" . }}"
           imagePullPolicy: "{{ .Values.dashboards.imagePullPolicy | default "Always" }}"
           env:
-            {{- if .Values.dashboards.opensearchHosts }}
             - name: OPENSEARCH_HOSTS
+              {{- if .Values.dashboards.opensearchHosts }}
               value: "{{ .Values.dashboards.opensearchHosts }}"
-            {{- end }}
+              {{- else }}
+              value: {{ printf "%s://%s-internal:9200" (ternary "https" "http" (eq (include "opensearch.tlsEnabled" .) "true")) (include "opensearch.fullname" .) }}
+              {{- end }}
             - name: SERVER_HOST
               value: "{{ .Values.dashboards.serverHost }}"
             - name: OPENSEARCH_USERNAME
@@ -143,6 +150,11 @@ spec:
             - name: config
               mountPath: /usr/share/opensearch-dashboards/config/{{ $path }}
               subPath: {{ $path }}
+            {{- end }}
+            {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+            - name: opensearch-certs
+              mountPath: /usr/share/opensearch-dashboards/certs/opensearch-root-ca.pem
+              subPath: {{ template "opensearch.rest-root-ca-path" . }}
             {{- end }}
             {{- if .Values.dashboards.extraVolumeMounts }}
 {{ toYaml .Values.dashboards.extraVolumeMounts | indent 10 }}

@@ -254,7 +254,7 @@ data:
       ## specify a list of one or more OpenSearch servers
       # you can add username and password to your url to use basic authentication:
       # servers = ["http://user:pass@localhost:9200"]
-      servers = ["$ELASTICSEARCH_PROTOCOL://$ELASTICSEARCH_CREDENTIALS@$ELASTICSEARCH_HOST:$ELASTICSEARCH_PORT"]
+      servers = ["$ELASTICSEARCH_PROTOCOL://$ELASTICSEARCH_HOST:$ELASTICSEARCH_PORT"]
 
       ## Timeout for HTTP requests to the OpenSearch server(s)
       http_timeout = "8s"
@@ -276,12 +276,19 @@ data:
       indices_include = ["_all"]
     {{- end }}
 
+      ## HTTP Basic Authentication username and password.
+      username = "$ELASTICSEARCH_USERNAME"
+      password = "$ELASTICSEARCH_PASSWORD"
+
       ## Optional SSL Config
       # ssl_ca = "/etc/telegraf/ca.pem"
       # ssl_cert = "/etc/telegraf/cert.pem"
       # ssl_key = "/etc/telegraf/key.pem"
       ## Use SSL but skip chain & host verification
-      insecure_skip_verify = true
+    {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+      insecure_skip_verify = false
+      ssl_ca = "/trusted-certs/root-ca.pem"
+    {{- end }}
 
       ##Specifies a prefix to attach to the measurement name.
 

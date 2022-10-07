@@ -1,0 +1,27 @@
+{{- $install := and (not .Values.global.externalOpensearch.enabled) .Values.global.tls.generateCerts.enabled .Values.opensearch.tls.generateCerts.enabled (not (.Values.global.tls.generateCerts.clusterIssuerName)) }}
+{{- if and $install (eq (include "certProvider" .) "cert-manager") }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ template "opensearch.fullname" . }}-root-ca-certificate
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretName: {{ template "opensearch.fullname" . }}-ca-cert
+  duration: {{ default 730 .Values.global.tls.generateCerts.durationDays | mul 24 }}h
+  commonName: opensearch
+  isCA: true
+  privateKey:
+    rotationPolicy: Always
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  issuerRef:
+  {{- if .Values.global.tls.generateCerts.clusterIssuerName }}
+    name: {{ .Values.global.tls.generateCerts.clusterIssuerName }}
+    kind: ClusterIssuer
+  {{- else }}
+    name: {{ template "opensearch.fullname" . }}-service-tls-issuer
+    kind: Issuer
+  {{- end }}
+    group: cert-manager.io
+{{- end }}

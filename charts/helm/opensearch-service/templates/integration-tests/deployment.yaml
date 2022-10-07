@@ -45,7 +45,7 @@ spec:
             - name: OPENSEARCH_PORT
               value: "{{ default 9200 (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-port" .) .Values.integrationTests.opensearchPort) }}"
             - name: OPENSEARCH_PROTOCOL
-              {{ if or .Values.global.externalOpensearch.enabled .Values.opensearch.ssl.rest.enabled }}
+              {{ if or .Values.global.externalOpensearch.enabled (eq (include "opensearch.tlsEnabled" .) "true") }}
               value: "https"
               {{ else }}
               value: "http"
@@ -127,6 +127,8 @@ spec:
                   name: {{ .Values.elasticsearchDbaasAdapter.name }}-secret
             {{- end }}
             {{- if .Values.curator.enabled }}
+            - name: OPENSEARCH_CURATOR_PROTOCOL
+              value: {{ eq (include "curator.tlsEnabled" .) "true" | ternary "https" "http" }}
             - name: OPENSEARCH_CURATOR_HOST
               value: {{ template "opensearch.fullname" . }}-curator
             - name: OPENSEARCH_CURATOR_PORT
@@ -174,8 +176,28 @@ spec:
           volumeMounts:
             - name: output
               mountPath: /opt/robot/output
+            {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+            - mountPath: /certs/opensearch/root-ca.pem
+              name: opensearch-certs
+              subPath: {{ template "opensearch.rest-root-ca-path" . }}
+            {{- end }}
+            {{- if eq (include "curator.tlsEnabled" .) "true" }}
+            - mountPath: /certs/curator/root-ca.pem
+              name: curator-certs
+              subPath: "ca.crt"
+            {{- end }}
           terminationMessagePath: /dev/termination-log
       volumes:
         - name: output
           emptyDir: {}
+        {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+        - name: opensearch-certs
+          secret:
+            secretName: {{ template "opensearch.rest-cert-secret-name" . }}
+        {{- end }}
+        {{- if eq (include "curator.tlsEnabled" .) "true" }}
+        - name: curator-certs
+          secret:
+            secretName: {{ template "curator.certSecretName" . }}
+        {{- end }}
   {{- end }}

@@ -2,11 +2,15 @@ package controllers
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
 	"fmt"
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/go-retryablehttp"
+	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -19,7 +23,7 @@ import (
 )
 
 const (
-	opensearchHttpPort = 9200
+	opensearchHttpPort   = 9200
 	opensearchHostEnvVar = "OPENSEARCH_HOST"
 )
 
@@ -250,7 +254,11 @@ func (r *OpenSearchServiceReconciler) createUrl(host string, port int) string {
 	if osHost != "" {
 		return osHost
 	}
-	return fmt.Sprintf("http://%s-internal:%d", host, port)
+	protocol := "https"
+	if _, err := os.Stat(certificateFilePath); errors.Is(err, os.ErrNotExist) {
+		protocol = "http"
+	}
+	return fmt.Sprintf("%s://%s-internal:%d", protocol, host, port)
 }
 
 func (r *OpenSearchServiceReconciler) createHttpClient() http.Client {
@@ -258,4 +266,23 @@ func (r *OpenSearchServiceReconciler) createHttpClient() http.Client {
 	retryClient.RetryMax = 6
 	retryClient.RetryWaitMax = time.Second * 10
 	return *retryClient.StandardClient()
+}
+
+func (r *OpenSearchServiceReconciler) configureClient() (http.Client, error) {
+	httpClient := r.createHttpClient()
+	if _, err := os.Stat(certificateFilePath); errors.Is(err, os.ErrNotExist) {
+		return httpClient, nil
+	}
+	caCert, err := ioutil.ReadFile(certificateFilePath)
+	if err != nil {
+		return httpClient, err
+	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+	httpClient.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{
+			RootCAs: caCertPool,
+		},
+	}
+	return httpClient, nil
 }

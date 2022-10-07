@@ -51,7 +51,7 @@ spec:
             - name: ELASTICSEARCH_EXEC_PLUGIN_TIMEOUT
               value: {{ .Values.monitoring.opensearchExecPluginTimeout | default "15s" }}
             - name: ELASTICSEARCH_PROTOCOL
-              {{ if or .Values.global.externalOpensearch.enabled .Values.opensearch.ssl.rest.enabled }}
+              {{ if or .Values.global.externalOpensearch.enabled (eq (include "opensearch.tlsEnabled" .) "true") }}
               value: "https"
               {{ else }}
               value: "http"
@@ -82,8 +82,6 @@ spec:
                 secretKeyRef:
                   key: password
                   name: {{ template "opensearch.fullname" . }}-secret
-            - name: ELASTICSEARCH_CREDENTIALS
-              value: "$(ELASTICSEARCH_USERNAME):$(ELASTICSEARCH_PASSWORD)"
           image: {{ template "monitoring.image" . }}
           imagePullPolicy: {{ .Values.monitoring.imagePullPolicy | default "Always" | quote }}
           resources:
@@ -92,6 +90,11 @@ spec:
           volumeMounts:
             - mountPath: "/etc/telegraf"
               name: config
+            {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+            - mountPath: /trusted-certs/root-ca.pem
+              name: opensearch-certs
+              subPath: {{ template "opensearch.rest-root-ca-path" . }}
+            {{- end }}
           ports:
             - protocol: TCP
               containerPort: 8125
@@ -110,6 +113,11 @@ spec:
             items:
               - key: config
                 path: telegraf.conf
+        {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+        - name: opensearch-certs
+          secret:
+            secretName: {{ template "opensearch.rest-cert-secret-name" . }}
+        {{- end }}
     {{- with .Values.monitoring.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}

@@ -62,6 +62,12 @@ It can be empty if authentication is disabled for OpenSearch Curator.
 The `secret.curator.password` parameter specifies the password of the OpenSearch Curator API user.
 It can be empty if authentication is disabled for OpenSearch Curator.
 
+The `tls.opensearch.secretName` parameter specifies the name of the secret that contains TLS certificates for OpenSearch REST layer. By default, it is empty.
+
+The `tls.opensearch.secretCaKey` parameter specifies the key of root CA certificate in `tls.opensearch.secretName` secret. The default value is `ca.crt`.
+
+The `tls.curator.secretName` parameter specifies the name of the secret that contains TLS certificates for OpenSearch curator. By default, it is empty.
+
 The `integrationTests.dockerImage` parameter specifies the docker image of OpenSearch Service integration tests.
 The default value is `artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests`.
 
@@ -93,6 +99,8 @@ The default value is `snapshots`.
 
 The `integrationTests.opensearchDbaasAdapterApiVersion` parameter specifies the DBaaS Adapter API version which tests should use.
 The default value is `v1`.
+
+The `integrationTests.opensearchCuratorProtocol` parameter specifies the protocol of OpenSearch Curator. The default value is `http`.
 
 The `integrationTests.opensearchCuratorHost` parameter specifies the host name of OpenSearch Curator.
 The default value is `opensearch-curator`.
