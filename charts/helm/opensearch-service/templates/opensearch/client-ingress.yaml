@@ -14,13 +14,26 @@ metadata:
   name: {{ $fullName }}
   labels:
 {{ include "opensearch.labels.standard" . | indent 4 }}
-{{- with .Values.opensearch.client.ingress.annotations }}
+  {{- if or .Values.opensearch.client.ingress.annotations (eq (include "opensearch.tlsEnabled" .) "true") }}
   annotations:
-{{ toYaml . | indent 4 }}
-{{- end }}
+    {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/ssl-passthrough: 'true'
+    {{- end }}
+    {{- with .Values.opensearch.client.ingress.annotations }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
 spec:
-{{- if .Values.opensearch.client.ingress.tls }}
+{{- if or .Values.opensearch.client.ingress.tls (eq (include "opensearch.tlsEnabled" .) "true") }}
   tls:
+    {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+    - hosts:
+      {{- range .Values.opensearch.client.ingress.hosts }}
+      - {{ . | quote }}
+      {{- end }}
+      secretName: {{ template "opensearch.rest-cert-secret-name" . }}
+    {{- end }}
   {{- range .Values.opensearch.client.ingress.tls }}
     - hosts:
       {{- range .hosts }}

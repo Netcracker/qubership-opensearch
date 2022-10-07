@@ -104,6 +104,8 @@ spec:
                   name: {{ .Values.service.name }}-secret
             - name: OPENSEARCH_DBAAS_ADAPTER_API_VERSION
               value: {{ .Values.integrationTests.opensearchDbaasAdapterApiVersion | quote }}
+            - name: OPENSEARCH_CURATOR_PROTOCOL
+              value: {{ .Values.integrationTests.opensearchCuratorProtocol | default "http" }}
             - name: OPENSEARCH_CURATOR_HOST
               value: {{ .Values.integrationTests.opensearchCuratorHost | default "opensearch-curator" }}
             - name: OPENSEARCH_CURATOR_PORT
@@ -130,7 +132,27 @@ spec:
           volumeMounts:
             - name: output
               mountPath: /opt/robot/output
+            {{- if .Values.tls.opensearch.secretName }}
+            - mountPath: /certs/opensearch/root-ca.pem
+              name: opensearch-certs
+              subPath: {{ .Values.tls.opensearch.secretCaKey | default "ca.crt" }}
+            {{- end }}
+            {{- if .Values.tls.curator.secretName }}
+            - mountPath: /certs/curator/root-ca.pem
+              name: curator-certs
+              subPath: "ca.crt"
+            {{- end }}
           terminationMessagePath: /dev/termination-log
       volumes:
         - name: output
           emptyDir: {}
+        {{- if .Values.tls.opensearch.secretName }}
+        - name: opensearch-certs
+          secret:
+            secretName: {{ .Values.tls.opensearch.secretName }}
+        {{- end }}
+        {{- if .Values.tls.curator.secretName }}
+        - name: curator-certs
+          secret:
+            secretName: {{ .Values.tls.curator.secretName }}
+        {{- end }}

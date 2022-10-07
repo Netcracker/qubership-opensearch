@@ -104,6 +104,11 @@ spec:
           volumeMounts:
             - mountPath: "/app/config/"
               name: dbaas-adapter-configs
+            {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+            - mountPath: /trusted-certs/root-ca.pem
+              name: opensearch-certs
+              subPath: {{ template "opensearch.rest-root-ca-path" . }}
+            {{- end }}
           ports:
             - protocol: TCP
               containerPort: 8080
@@ -111,6 +116,11 @@ spec:
         - name: dbaas-adapter-configs
           configMap:
             name: {{ .Values.elasticsearchDbaasAdapter.name }}-configs
+        {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+        - name: opensearch-certs
+          secret:
+            secretName: {{ template "opensearch.rest-cert-secret-name" . }}
+        {{- end }}
     {{- with .Values.elasticsearchDbaasAdapter.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}

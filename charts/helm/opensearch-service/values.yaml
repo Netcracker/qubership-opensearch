@@ -16,7 +16,7 @@ dashboards:
       cpu: "100m"
       memory: "512M"
 
-  opensearchHosts: "http://opensearch-internal:9200"
+  opensearchHosts: ""
 
   # A list of secrets and their paths to mount inside the pod
   # This is useful for mounting certificates for security and for mounting
@@ -79,7 +79,7 @@ dashboards:
 #      server:
 #        name: dashboards
 #        host: 0.0.0.0
-#        # Dashboards TLS Config (Ensure the cert files are present before enabling SSL
+#        # Dashboards TLS Config (Ensure the cert files are present before enabling SSL)
 #        ssl:
 #          enabled: true
 #          key: /usr/share/opensearch-dashboards/certs/dashboards-key.pem
@@ -150,6 +150,15 @@ global:
     nodesCount: 3
     dataNodesCount: 3
 
+  tls:
+    enabled: false
+    cipherSuites: []
+    generateCerts:
+      enabled: true
+      certProvider: cert-manager
+      durationDays: 365
+      clusterIssuerName: ""
+
   psp:
     create: false
 
@@ -158,6 +167,13 @@ global:
 
   disasterRecovery:
     image: artifactorycn.netcracker.com:17008/product/prod.platform.streaming_disaster-recovery-daemon:master_latest
+    tls:
+      enabled: true
+      secretName: ""
+      cipherSuites: []
+      subjectAlternativeName:
+        additionalDnsNames: []
+        additionalIpAddresses: []
     httpAuth:
       enabled: false
       smNamespace: "site-manager"
@@ -284,24 +300,30 @@ opensearch:
     securityContext: {}
 #      runAsUser: 0
 
-  ssl:
-    ## TLS is mandatory for the transport layer and can not be disabled
+  tls:
+    enabled: true
+    cipherSuites: []
+    generateCerts:
+      enabled: true
+    subjectAlternativeName:
+      additionalDnsNames: []
+      additionalIpAddresses: []
+    ## TLS is mandatory for the transport and admin layer and can not be disabled
     transport:
       existingCertSecret:
-      existingCertSecretCertSubPath: transport-crt.pem
-      existingCertSecretKeySubPath: transport-key.pem
-      existingCertSecretRootCASubPath: transport-root-ca.pem
+      existingCertSecretCertSubPath: tls.crt
+      existingCertSecretKeySubPath: tls.key
+      existingCertSecretRootCASubPath: ca.crt
     rest:
-      enabled: false
       existingCertSecret:
-      existingCertSecretCertSubPath: rest-crt.pem
-      existingCertSecretKeySubPath: rest-key.pem
-      existingCertSecretRootCASubPath: rest-root-ca.pem
+      existingCertSecretCertSubPath: tls.crt
+      existingCertSecretKeySubPath: tls.key
+      existingCertSecretRootCASubPath: ca.crt
     admin:
       existingCertSecret:
-      existingCertSecretCertSubPath: admin-crt.pem
-      existingCertSecretKeySubPath: admin-key.pem
-      existingCertSecretRootCASubPath: admin-root-ca.pem
+      existingCertSecretCertSubPath: tls.crt
+      existingCertSecretKeySubPath: tls.key
+      existingCertSecretRootCASubPath: ca.crt
 
   master:
     enabled: true
@@ -644,9 +666,12 @@ opensearch:
     plugins.security.audit.config.log4j.level: INFO
     plugins.security.unsupported.restapi.allow_securityconfig_modification: true
     plugins.security.restapi.roles_enabled: ["all_access", "security_rest_api_access"]
+    plugins.security.nodes_dn:
+      - CN=opensearch-node,OU=Opensearch,O=Opensearch,L=Opensearch,C=CA
     #Change it to generated certificate parameters
     plugins.security.authcz.admin_dn:
-      - C=CA,L=Opensearch,O=Opensearch,OU=Opensearch,CN=opensearch
+      - CN=opensearch-admin,OU=Opensearch,O=Opensearch,L=Opensearch,C=CA
+      - C=CA,L=Opensearch,O=Opensearch,OU=Opensearch,CN=opensearch-admin
     plugins.security.enable_snapshot_restore_privilege: true
     plugins.security.check_snapshot_restore_write_privileges: true
 
@@ -690,11 +715,11 @@ opensearch:
     plugins.security.ssl.transport.pemtrustedcas_filepath: transport-root-ca.pem
     plugins.security.ssl.transport.enforce_hostname_verification: false
 
-    # # TLS Configuration REST Layer
-    plugins.security.ssl.http.enabled: false
-    # plugins.security.ssl.http.pemcert_filepath: rest-crt.pem
-    # plugins.security.ssl.http.pemkey_filepath: rest-key.pem
-    # plugins.security.ssl.http.pemtrustedcas_filepath: rest-root-ca.pem
+    # TLS Configuration REST Layer
+    plugins.security.ssl.http.enabled: ${TLS_ENABLED}
+    plugins.security.ssl.http.pemcert_filepath: rest-crt.pem
+    plugins.security.ssl.http.pemkey_filepath: rest-key.pem
+    plugins.security.ssl.http.pemtrustedcas_filepath: rest-root-ca.pem
 
   log4jConfig: ""
 
@@ -738,7 +763,7 @@ opensearch:
     ## The name of the ServiceAccount to use.
     ## If not set and create is true, a name is generated using the fullname template
     name:
-  
+
   tlsInit:
     resources:
       requests:
@@ -981,6 +1006,13 @@ curator:
   username: ""
   password: ""
 
+  tls:
+    enabled: true
+    secretName: ""
+    subjectAlternativeName:
+      additionalDnsNames: []
+      additionalIpAddresses: []
+
   indicesCleanerSchedulerUnit: ""
   indicesCleanerSchedulerUnitCount: ""
   indicesCleanerConfigurationKey: "patterns_to_delete"
@@ -1032,7 +1064,7 @@ statusProvisioner:
   enabled: true
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.streaming_deployment-status-provisioner:master_latest
   lifetimeAfterCompletion: 600
-  podReadinessTimeout: 500
+  podReadinessTimeout: 600
   integrationTestsTimeout: 300
   resources:
     requests:

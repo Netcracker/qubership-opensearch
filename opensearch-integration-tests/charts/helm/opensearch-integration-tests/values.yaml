@@ -16,6 +16,13 @@ secret:
     username: ""
     password: ""
 
+tls:
+  opensearch:
+    secretName: ""
+    secretCaKey: "ca.crt"
+  curator:
+    secretName: ""
+
 integrationTests:
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests
   tags: "smoke"
@@ -29,6 +36,7 @@ integrationTests:
   opensearchDbaasAdapterPort: 8080
   opensearchDbaasAdapterRepository: "snapshots"
   opensearchDbaasAdapterApiVersion: v1
+  opensearchCuratorProtocol: "http"
   opensearchCuratorHost: "opensearch-curator"
   opensearchCuratorPort: 8080
 

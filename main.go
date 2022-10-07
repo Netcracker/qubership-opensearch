@@ -25,8 +25,9 @@ import (
 )
 
 const (
+	opensearchProtocolEnvVar = "OPENSEARCH_PROTOCOL"
 	opensearchNameEnvVar     = "OPENSEARCH_NAME"
-	opensearchUsrnameEnvVar  = "OPENSEARCH_USERNAME"
+	opensearchUsernameEnvVar = "OPENSEARCH_USERNAME"
 	opensearchPasswordEnvVar = "OPENSEARCH_PASSWORD"
 )
 
@@ -106,9 +107,10 @@ func main() {
 		setupLog.Error(fmt.Errorf("%s must be set", opensearchName), "The operator can't work with Opensearch because Opensearch name is not given")
 		os.Exit(1)
 	}
-	opensearchUsername := os.Getenv(opensearchUsrnameEnvVar)
+	opensearchProtocol := os.Getenv(opensearchProtocolEnvVar)
+	opensearchUsername := os.Getenv(opensearchUsernameEnvVar)
 	opensearchPassword := os.Getenv(opensearchPasswordEnvVar)
-	replicationChecker := disasterrecovery.NewReplicationChecker(opensearchName, opensearchUsername, opensearchPassword)
+	replicationChecker := disasterrecovery.NewReplicationChecker(opensearchName, opensearchProtocol, opensearchUsername, opensearchPassword)
 
 	setupLog.Info("Starting disaster recovery REST server.")
 	go func() {

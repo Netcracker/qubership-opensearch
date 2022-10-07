@@ -9,13 +9,12 @@ sys.path.append('./tests/shared/lib')
 from PlatformLibrary import PlatformLibrary
 
 environ = os.environ
+protocol = environ.get("OPENSEARCH_PROTOCOL", "http")
 host = environ.get("OPENSEARCH_HOST", "opensearch")
 port = environ.get("OPENSEARCH_PORT", "9200")
-master_nodes_name = environ.get("OPENSEARCH_MASTER_NODES_NAME")
 namespace = environ.get("OPENSEARCH_NAMESPACE")
 username = environ.get("OPENSEARCH_USERNAME")
 password = environ.get("OPENSEARCH_PASSWORD")
-protocol = environ.get("OPENSEARCH_PROTOCOL", "http")
 external = environ.get("EXTERNAL_OPENSEARCH", False)
 timeout = 300
 
@@ -32,11 +31,21 @@ if __name__ == '__main__':
     while timeout > time.time() - start_time:
         time.sleep(10)
         try:
+            wait_for_replicas_readiness = False
             if not external:
-                master_stateful_set = platform_library.get_stateful_set(master_nodes_name, namespace)
-                if master_stateful_set.status.replicas != master_stateful_set.status.ready_replicas:
-                    continue
-            response = requests.get(url, auth=auth, verify=False)
+                stateful_set_names = platform_library.get_stateful_set_names_by_label(namespace, host, 'app')
+                for stateful_set_name in stateful_set_names:
+                    stateful_set = platform_library.get_stateful_set(stateful_set_name, namespace)
+                    if not stateful_set.status.replicas \
+                            or stateful_set.status.replicas != stateful_set.status.ready_replicas \
+                            or stateful_set.status.replicas != stateful_set.status.updated_replicas:
+                        print(f'{stateful_set_name} is not ready yet')
+                        wait_for_replicas_readiness = True
+                        break
+            if wait_for_replicas_readiness:
+                continue
+            verify = '/certs/opensearch/root-ca.pem' if protocol == 'https' else None
+            response = requests.get(url, auth=auth, verify=verify)
             if response.status_code == 200:
                 status = json.loads(response.content.decode('utf-8'))[0]['status']
                 if status == 'green':
