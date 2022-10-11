@@ -152,13 +152,13 @@ Create OpenSearch Index Template
     [Arguments]  ${template_name}  ${index_pattern}  ${settings}={"number_of_shards":1}
     ${template}=  Set Variable  {"index_patterns":["${index_pattern}"],"template": {"settings":${settings}}}
     ${response}=  Put Request  opensearch  /_index_template/${template_name}  data=${template}  headers=${headers}
-    [Return]  ${response}
+    Should Be Equal As Strings  ${response.status_code}  200
 
 Create OpenSearch Template
     [Arguments]  ${template_name}  ${index_pattern}  ${settings}={"number_of_shards":1}
     ${template}=  Set Variable  {"index_patterns":["${index_pattern}"],"settings":${settings}}
     ${response}=  Put Request  opensearch  /_template/${template_name}  data=${template}  headers=${headers}
-    [Return]  ${response}
+    Should Be Equal As Strings  ${response.status_code}  200
 
 Get OpenSearch Alias
     [Arguments]  ${index_name}  ${alias}
