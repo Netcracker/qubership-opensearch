@@ -122,7 +122,7 @@ cloud:
 integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: 0.0.15
+    location: 0.1.0
     docker-image-id: timestamp
     deploy-param: opensearchOperator
   - type: find-latest-deployment-descriptor
@@ -132,7 +132,7 @@ integration:
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: 0.0.15
+    location: 0.1.0
     prefix: integration-tests
     docker-image-id: timestamp
     deploy-param: opensearchIntegrationTests
@@ -185,7 +185,7 @@ integration:
   
   - type: scripts
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: 0.0.15
+    location: 0.1.0
     alias: timestamp
     zip-name: migration-artifacts.zip
     name: migration-artifacts
