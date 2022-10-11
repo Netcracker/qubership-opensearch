@@ -187,7 +187,6 @@ PerformIntegrationTests:
     - python3 /ci/smoke_tests_runner.py -f "./.gitlab-ci/jenkins/stages-params/integration-tests-charts.yaml" --log="tests_result.log" --cloud-token="${CLOUD_TOKEN}" --notify --notify-title="OpenSearch Service Integration Tests Report"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
-    - if: $CI_COMMIT_TAG
 
 PerformIntegrationTestsManual:
   extends: .PerformIntegrationTestsTemplate
