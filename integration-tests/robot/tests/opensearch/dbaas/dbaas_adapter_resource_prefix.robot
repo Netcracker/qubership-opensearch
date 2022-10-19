@@ -66,8 +66,7 @@ Create Database Resource Prefix
     ${resourcePrefix}=  Set Variable  ${response['connectionProperties']['resourcePrefix']}
     Login To OpenSearch  ${username}  ${password}
 
-    ${response}=  Create OpenSearch Template  ${resourcePrefix}-template  ${resourcePrefix}*  {"number_of_shards":3}
-    Should Be Equal As Strings  ${response.status_code}  200
+    Create OpenSearch Template  ${resourcePrefix}-template  ${resourcePrefix}*  {"number_of_shards":3}
 
     ${response}=  Create OpenSearch Index  ${resourcePrefix}-test
     Should Be Equal As Strings  ${response.status_code}  200
@@ -100,10 +99,8 @@ Database Resource Prefix Authorization
     ${resourcePrefix_second}=  Set Variable  ${response['connectionProperties']['resourcePrefix']}
 
     Login To OpenSearch  ${username_first}  ${password_first}
-    ${response}=  Create OpenSearch Template  ${resourcePrefix_first}-template  ${resourcePrefix_first}*  {"number_of_shards":3}
-    Should Be Equal As Strings  ${response.status_code}  200
+    Create OpenSearch Template  ${resourcePrefix_first}-template  ${resourcePrefix_first}*  {"number_of_shards":3}
     Create OpenSearch Index Template  ${resourcePrefix_first}-index-template  ${resourcePrefix_first}*  {"number_of_shards":3}
-    Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Create OpenSearch Index  ${resourcePrefix_first}-test
     Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Create OpenSearch Index  test-${resourcePrefix_first}
@@ -124,10 +121,8 @@ Database Resource Prefix Authorization
     Should Be Equal As Strings  ${response.status_code}  200
 
     Login To OpenSearch  ${username_second}  ${password_second}
-    ${response}=  Create OpenSearch Template  ${resourcePrefix_second}-template  ${resourcePrefix_second}*  {"number_of_shards":3}
-    Should Be Equal As Strings  ${response.status_code}  200
+    Create OpenSearch Template  ${resourcePrefix_second}-template  ${resourcePrefix_second}*  {"number_of_shards":3}
     Create OpenSearch Index Template  ${resourcePrefix_second}-index-template  ${resourcePrefix_second}*  {"number_of_shards":3}
-    Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Create OpenSearch Index  ${resourcePrefix_second}-test
     Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Create OpenSearch Index  ${resourcePrefix_first}-test2
