@@ -774,7 +774,7 @@ opensearch:
         cpu: 100m
 
 podScheduler:
-  dockerImage: artifactorycn.netcracker.com:17064/bitnami/kubectl:1.23.12-debian-11-r6
+  dockerImage: artifactorycn.netcracker.com:17064/alpine/k8s:1.23.13
   enabled: true
   affinity: {}
   nodeSelector: {}
