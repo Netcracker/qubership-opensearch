@@ -179,7 +179,7 @@ integration:
     docker-image: artifactorycn.netcracker.com:17064/library/busybox:1.35.0
     deploy-param: busybox
   - type: image
-    docker-image: artifactorycn.netcracker.com:17008/product/prod.platform.streaming_docker-kubectl:feature_new_kubectl_image_20221026-110242
+    docker-image: artifactorycn.netcracker.com:17014/product/prod.platform.streaming_docker-kubectl:0.0.1_20221027-081543
     deploy-param: kubectl
   - type: scripts
     repo: PROD.Platform.ElasticStack/opensearch-service

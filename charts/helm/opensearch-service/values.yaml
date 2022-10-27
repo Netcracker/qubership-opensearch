@@ -774,7 +774,7 @@ opensearch:
         cpu: 100m
 
 podScheduler:
-  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.streaming_docker-kubectl:feature_new_kubectl_image_20221026-110242
+  dockerImage: artifactorycn.netcracker.com:17014/product/prod.platform.streaming_docker-kubectl:0.0.1_20221027-081543
   enabled: true
   affinity: {}
   nodeSelector: {}
