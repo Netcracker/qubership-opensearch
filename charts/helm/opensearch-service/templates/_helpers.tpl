@@ -390,6 +390,17 @@ Configure OpenSearch service 'enableDisasterRecovery' property
 {{- end -}}
 
 {{/*
+Configure OpenSearch service 'replicasForSingleService' property
+*/}}
+{{- define "opensearch.replicasForSingleService" -}}
+{{- if or (eq .Values.global.disasterRecovery.mode "standby") (eq .Values.global.disasterRecovery.mode "disabled") -}}
+  {{- 0 }}
+{{- else -}}
+  {{- 1 }}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Whether TLS for Disaster Recovery is enabled
 */}}
 {{- define "disasterRecovery.tlsEnabled" -}}
@@ -603,17 +614,22 @@ Calculates resources that should be monitored during deployment by Deployment St
     {{- if and (not .Values.global.externalOpensearch.enabled) .Values.dashboards.enabled }}
     {{- printf "Deployment %s-dashboards, " (include "opensearch.fullname" .) -}}
     {{- end }}
+    {{- if not (or (eq .Values.global.disasterRecovery.mode "standby") (eq .Values.global.disasterRecovery.mode "disabled")) -}}
     {{- if .Values.curator.enabled }}
     {{- printf "Deployment %s-curator, " (include "opensearch.fullname" .) -}}
-    {{- end }}
-    {{- if .Values.monitoring.enabled }}
-    {{- printf "Deployment %s-monitoring, " (include "opensearch.fullname" .) -}}
     {{- end }}
     {{- if .Values.dbaasAdapter.enabled }}
     {{- printf "Deployment dbaas-%s-adapter, " (include "opensearch.fullname" .) -}}
     {{- end }}
     {{- if .Values.elasticsearchDbaasAdapter.enabled }}
     {{- printf "Deployment %s, " .Values.elasticsearchDbaasAdapter.name -}}
+    {{- end }}
+    {{- if .Values.integrationTests.enabled }}
+    {{- printf "Deployment %s-integration-tests, " (include "opensearch.fullname" .) -}}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.monitoring.enabled }}
+    {{- printf "Deployment %s-monitoring, " (include "opensearch.fullname" .) -}}
     {{- end }}
     {{ if not .Values.global.externalOpensearch.enabled }}
     {{- if eq (include "joint-mode" .) "true" }}
@@ -631,9 +647,6 @@ Calculates resources that should be monitored during deployment by Deployment St
     {{- end }}
     {{- end }}
     {{ end }}
-    {{- if .Values.integrationTests.enabled }}
-    {{- printf "Deployment %s-integration-tests" (include "opensearch.fullname" .) -}}
-    {{- end }}
 {{- end -}}
 
 {{/*

@@ -15,6 +15,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/utils/pointer"
 	"net/http"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -23,8 +25,13 @@ import (
 )
 
 const (
-	opensearchHttpPort   = 9200
-	opensearchHostEnvVar = "OPENSEARCH_HOST"
+	opensearchHttpPort     = 9200
+	opensearchHostEnvVar   = "OPENSEARCH_HOST"
+	scaleMessageTemplate   = "Timeout occurred during scaling %s"
+	scaleTimeout           = time.Duration(180) * time.Second
+	waitingInterval        = 10 * time.Second
+	httpClientRetryMax     = 3
+	httpClientRetryWaitMax = time.Second * 10
 )
 
 // OpenSearchServiceReconciler reconciles a OpenSearchService object
@@ -228,6 +235,47 @@ func (r *OpenSearchServiceReconciler) addAnnotationsToStatefulSet(name string, n
 	return r.updateStatefulSet(statefulSet, logger)
 }
 
+func (r *OpenSearchServiceReconciler) scaleDeployment(name string, namespace string, replicas int32, logger logr.Logger) error {
+	deployment, err := r.findDeployment(name, namespace, logger)
+	if err == nil {
+		deployment.Spec.Replicas = pointer.Int32Ptr(replicas)
+		err := r.Client.Update(context.TODO(), deployment)
+		return err
+	}
+	return err
+}
+
+func (r *OpenSearchServiceReconciler) scaleDeploymentWithCheck(name string, namespace string, replicas int32, interval, timeout time.Duration, logger logr.Logger) error {
+	err := r.scaleDeployment(name, namespace, replicas, logger)
+	if err != nil {
+		logger.Error(err, "Deployment update failed")
+		return err
+	}
+	logger.Info(fmt.Sprintf("deployment %s scaled", name))
+	err = wait.PollImmediate(interval, timeout, func() (done bool, err error) {
+		return r.isDeploymentReady(name, namespace, logger), nil
+	})
+	if err != nil {
+		direction := "up"
+		if replicas == 0 {
+			direction = "down"
+		}
+		logger.Error(err, fmt.Sprintf(scaleMessageTemplate, direction))
+		return err
+	}
+	return nil
+}
+
+func (r *OpenSearchServiceReconciler) isDeploymentReady(deploymentName string, namespace string, logger logr.Logger) bool {
+	deployment, err := r.findDeployment(deploymentName, namespace, logger)
+	if err != nil {
+		logger.Error(err, "Cannot check deployment status")
+		return false
+	}
+	availableReplicas := util.Min(deployment.Status.ReadyReplicas, deployment.Status.UpdatedReplicas)
+	return *deployment.Spec.Replicas == availableReplicas
+}
+
 // disableClientService disables OpenSearch client service
 func (r *OpenSearchServiceReconciler) disableClientService(name string, namespace string, logger logr.Logger) error {
 	service, err := r.findService(name, namespace, logger)
@@ -263,8 +311,8 @@ func (r *OpenSearchServiceReconciler) createUrl(host string, port int) string {
 
 func (r *OpenSearchServiceReconciler) createHttpClient() http.Client {
 	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 6
-	retryClient.RetryWaitMax = time.Second * 10
+	retryClient.RetryMax = httpClientRetryMax
+	retryClient.RetryWaitMax = httpClientRetryWaitMax
 	return *retryClient.StandardClient()
 }
 

@@ -104,6 +104,9 @@ func (r *OpenSearchServiceReconciler) buildReconcilers(cr *opensearchservice.Ope
 	if cr.Spec.OpenSearch != nil {
 		reconcilers = append(reconcilers, NewOpenSearchReconciler(r, cr, logger))
 	}
+	if cr.Spec.DisasterRecovery != nil {
+		reconcilers = append(reconcilers, NewDisasterRecoveryReconciler(r, cr, logger))
+	}
 	if cr.Spec.Dashboards != nil {
 		reconcilers = append(reconcilers, NewDashboardsReconciler(r, cr, logger))
 	}
@@ -118,9 +121,6 @@ func (r *OpenSearchServiceReconciler) buildReconcilers(cr *opensearchservice.Ope
 	}
 	if cr.Spec.Curator != nil {
 		reconcilers = append(reconcilers, NewCuratorReconciler(r, cr, logger))
-	}
-	if cr.Spec.DisasterRecovery != nil {
-		reconcilers = append(reconcilers, NewDisasterRecoveryReconciler(r, cr, logger))
 	}
 	return reconcilers
 }
