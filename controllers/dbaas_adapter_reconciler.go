@@ -53,7 +53,7 @@ func (r DbaasAdapterReconciler) Status() error {
 }
 
 func (r DbaasAdapterReconciler) Configure() error {
-	if r.cr.Status.DisasterRecoveryStatus.Mode != r.cr.Spec.DisasterRecovery.Mode || r.cr.Status.DisasterRecoveryStatus.Status == "failed" {
+	if r.cr.Spec.DisasterRecovery != nil && (r.cr.Status.DisasterRecoveryStatus.Mode != r.cr.Spec.DisasterRecovery.Mode || r.cr.Status.DisasterRecoveryStatus.Status == "failed") {
 		r.logger.Info(fmt.Sprintf("Start switchover %s with mode: %s and no-wait: %t, current status mode is: %s",
 			r.cr.Spec.DbaasAdapter.Name,
 			r.cr.Spec.DisasterRecovery.Mode,

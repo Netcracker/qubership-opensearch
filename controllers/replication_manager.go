@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -31,58 +33,59 @@ type ReplicationManager struct {
 /*
 ReplicationStats is a struct to unmarshal http response
 The following json is expected as response:
-{
-	"num_syncing_indices": 3,
-	"num_bootstrapping_indices": 0,
-	"num_paused_indices": 0,
-	"num_failed_indices": 0,
-	"num_shard_tasks": 3,
-	"num_index_tasks": 3,
-	"operations_written": 6,
-	"operations_read": 6,
-	"failed_read_requests": 0,
-	"throttled_read_requests": 0,
-	"failed_write_requests": 0,
-	"throttled_write_requests": 0,
-	"follower_checkpoint": 3,
-	"leader_checkpoint": 5,
-	"total_write_time_millis": 194,
-	"index_stats": {
-		"my-demo45": {
-			"operations_written": 0,
-			"operations_read": 0,
-			"failed_read_requests": 0,
-			"throttled_read_requests": 0,
-			"failed_write_requests": 0,
-			"throttled_write_requests": 0,
-			"follower_checkpoint": -1,
-			"leader_checkpoint": 0,
-			"total_write_time_millis": 0
-		},
-		"my-demo": {
-			"operations_written": 0,
-			"operations_read": 0,
-			"failed_read_requests": 0,
-			"throttled_read_requests": 0,
-			"failed_write_requests": 0,
-			"throttled_write_requests": 0,
-			"follower_checkpoint": -1,
-			"leader_checkpoint": 0,
-			"total_write_time_millis": 0
-		},
-		"my-index1": {
-			"operations_written": 6,
-			"operations_read": 6,
-			"failed_read_requests": 0,
-			"throttled_read_requests": 0,
-			"failed_write_requests": 0,
-			"throttled_write_requests": 0,
-			"follower_checkpoint": 5,
-			"leader_checkpoint": 5,
-			"total_write_time_millis": 194
+
+	{
+		"num_syncing_indices": 3,
+		"num_bootstrapping_indices": 0,
+		"num_paused_indices": 0,
+		"num_failed_indices": 0,
+		"num_shard_tasks": 3,
+		"num_index_tasks": 3,
+		"operations_written": 6,
+		"operations_read": 6,
+		"failed_read_requests": 0,
+		"throttled_read_requests": 0,
+		"failed_write_requests": 0,
+		"throttled_write_requests": 0,
+		"follower_checkpoint": 3,
+		"leader_checkpoint": 5,
+		"total_write_time_millis": 194,
+		"index_stats": {
+			"my-demo45": {
+				"operations_written": 0,
+				"operations_read": 0,
+				"failed_read_requests": 0,
+				"throttled_read_requests": 0,
+				"failed_write_requests": 0,
+				"throttled_write_requests": 0,
+				"follower_checkpoint": -1,
+				"leader_checkpoint": 0,
+				"total_write_time_millis": 0
+			},
+			"my-demo": {
+				"operations_written": 0,
+				"operations_read": 0,
+				"failed_read_requests": 0,
+				"throttled_read_requests": 0,
+				"failed_write_requests": 0,
+				"throttled_write_requests": 0,
+				"follower_checkpoint": -1,
+				"leader_checkpoint": 0,
+				"total_write_time_millis": 0
+			},
+			"my-index1": {
+				"operations_written": 6,
+				"operations_read": 6,
+				"failed_read_requests": 0,
+				"throttled_read_requests": 0,
+				"failed_write_requests": 0,
+				"throttled_write_requests": 0,
+				"follower_checkpoint": 5,
+				"leader_checkpoint": 5,
+				"total_write_time_millis": 194
+			}
 		}
 	}
-}
 */
 type ReplicationStats struct {
 	SyncingIndicesCount       int                 `json:"num_syncing_indices"`
@@ -366,19 +369,28 @@ func (rm ReplicationManager) updateInProgressIndices(inProgressIndices map[strin
 
 func (rm ReplicationManager) stopIndicesReplication(indexNames []string) error {
 	stopIndexReplicationTemplate := "_plugins/_replication/%s/_stop"
+	eg := &errgroup.Group{}
 	for _, index := range indexNames {
-		statusCode, responseBody, err :=
-			rm.restClient.SendRequest(http.MethodPost,
-				fmt.Sprintf(stopIndexReplicationTemplate, index),
-				strings.NewReader(`{}`))
-		if err != nil {
-			return err
-		}
-		if statusCode >= 400 {
-			return errors.New(fmt.Sprintf("can not stop replication for [%s] index with status code - [%d], response - [%s]",
-				index, statusCode, string(responseBody)))
-		}
-		rm.logger.Info(fmt.Sprintf("Replication was stopped for index [%s]", index))
+		index := index
+		eg.Go(func() error {
+			statusCode, responseBody, err :=
+				rm.restClient.SendRequest(http.MethodPost,
+					fmt.Sprintf(stopIndexReplicationTemplate, index),
+					strings.NewReader(`{}`))
+			if err != nil {
+				return err
+			}
+			if statusCode >= 400 {
+				return errors.New(fmt.Sprintf("can not stop replication for [%s] index with status code - [%d], response - [%s]",
+					index, statusCode, string(responseBody)))
+			}
+			rm.logger.Info(fmt.Sprintf("Replication was stopped for index [%s]", index))
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		log.Error(err, "Cannot stop indices replication")
+		return err
 	}
 	//TODO: Check that Replication is stopped
 	time.Sleep(time.Second * 3)
