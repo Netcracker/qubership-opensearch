@@ -9,8 +9,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -369,28 +367,19 @@ func (rm ReplicationManager) updateInProgressIndices(inProgressIndices map[strin
 
 func (rm ReplicationManager) stopIndicesReplication(indexNames []string) error {
 	stopIndexReplicationTemplate := "_plugins/_replication/%s/_stop"
-	eg := &errgroup.Group{}
 	for _, index := range indexNames {
-		index := index
-		eg.Go(func() error {
-			statusCode, responseBody, err :=
-				rm.restClient.SendRequest(http.MethodPost,
-					fmt.Sprintf(stopIndexReplicationTemplate, index),
-					strings.NewReader(`{}`))
-			if err != nil {
-				return err
-			}
-			if statusCode >= 400 {
-				return errors.New(fmt.Sprintf("can not stop replication for [%s] index with status code - [%d], response - [%s]",
-					index, statusCode, string(responseBody)))
-			}
-			rm.logger.Info(fmt.Sprintf("Replication was stopped for index [%s]", index))
-			return nil
-		})
-	}
-	if err := eg.Wait(); err != nil {
-		log.Error(err, "Cannot stop indices replication")
-		return err
+		statusCode, responseBody, err :=
+			rm.restClient.SendRequest(http.MethodPost,
+				fmt.Sprintf(stopIndexReplicationTemplate, index),
+				strings.NewReader(`{}`))
+		if err != nil {
+			return err
+		}
+		if statusCode >= 400 {
+			return errors.New(fmt.Sprintf("can not stop replication for [%s] index with status code - [%d], response - [%s]",
+				index, statusCode, string(responseBody)))
+		}
+		rm.logger.Info(fmt.Sprintf("Replication was stopped for index [%s]", index))
 	}
 	//TODO: Check that Replication is stopped
 	time.Sleep(time.Second * 3)

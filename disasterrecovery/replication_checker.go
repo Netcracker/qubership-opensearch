@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/controllers"
-	"golang.org/x/sync/errgroup"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -150,26 +149,18 @@ func (rc ReplicationChecker) areFailedReplicationsFound(pattern string) (bool, e
 		log.Error(err, "An error occurred during unmarshalling OpenSearch indices response")
 		return true, err
 	}
-	eg := &errgroup.Group{}
 	for index := range indices {
 		if strings.HasPrefix(index, ".") {
 			continue
 		}
-		index := index
-		eg.Go(func() error {
-			replicationStatus, err := rc.getIndexReplicationStatus(index)
-			if err != nil {
-				log.Error(err, fmt.Sprintf("Cannot get replication status of [%s] index", index))
-				return err
-			}
-			if replicationStatus.Status == failedStatus {
-				return fmt.Errorf("replication of [%s] index failed", index)
-			}
-			return nil
-		})
-		if err := eg.Wait(); err != nil {
-			log.Error(err, "There is failed indices replication")
-			return true, nil // nil because it is not error for disaster recovery, opensearch can't answer due to lost active
+		replicationStatus, err := rc.getIndexReplicationStatus(index)
+		if err != nil {
+			log.Error(err, fmt.Sprintf("Cannot get replication status of [%s] index", index))
+			return true, err
+		}
+		if replicationStatus.Status == failedStatus {
+			log.Error(err, fmt.Sprintf("Replication of [%s] index failed", index))
+			return true, nil
 		}
 	}
 	return false, nil

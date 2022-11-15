@@ -183,6 +183,7 @@ global:
     indicesPattern: "*"
     remoteCluster: ""
     siteManagerEnabled: true
+    timeout: 600
     afterServices: []
     replicationWatcherEnabled: true
     replicationWatcherIntervalSeconds: 30

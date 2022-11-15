@@ -266,6 +266,14 @@ func (r *OpenSearchServiceReconciler) scaleDeploymentWithCheck(name string, name
 	return nil
 }
 
+func (r *OpenSearchServiceReconciler) scaleDeploymentForDR(name string, namespace string, replicas int32, noWait bool, logger logr.Logger) error {
+	if noWait {
+		return r.scaleDeployment(name, namespace, replicas, logger)
+	} else {
+		return r.scaleDeploymentWithCheck(name, namespace, replicas, waitingInterval, scaleTimeout, logger)
+	}
+}
+
 func (r *OpenSearchServiceReconciler) isDeploymentReady(deploymentName string, namespace string, logger logr.Logger) bool {
 	deployment, err := r.findDeployment(deploymentName, namespace, logger)
 	if err != nil {

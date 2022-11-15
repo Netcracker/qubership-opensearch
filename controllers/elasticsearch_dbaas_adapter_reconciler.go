@@ -55,7 +55,7 @@ func (r ElasticsearchDbaasAdapterReconciler) Status() error {
 }
 
 func (r ElasticsearchDbaasAdapterReconciler) Configure() error {
-	if r.cr.Spec.DisasterRecovery != nil && (r.cr.Status.DisasterRecoveryStatus.Mode != r.cr.Spec.DisasterRecovery.Mode || r.cr.Status.DisasterRecoveryStatus.Status == "failed") {
+	if r.cr.Spec.DisasterRecovery != nil && r.cr.Status.DisasterRecoveryStatus.Mode != "" {
 		r.logger.Info(fmt.Sprintf("Start switchover %s with mode: %s and no-wait: %t, current status mode is: %s",
 			r.cr.Spec.ElasticsearchDbaasAdapter.Name,
 			r.cr.Spec.DisasterRecovery.Mode,
@@ -63,7 +63,7 @@ func (r ElasticsearchDbaasAdapterReconciler) Configure() error {
 			r.cr.Status.DisasterRecoveryStatus.Mode))
 		if strings.ToLower(r.cr.Spec.DisasterRecovery.Mode) == "active" {
 			r.logger.Info(fmt.Sprintf("%s scale-up started", r.cr.Spec.ElasticsearchDbaasAdapter.Name))
-			err := r.reconciler.scaleDeploymentWithCheck(r.cr.Spec.ElasticsearchDbaasAdapter.Name, r.cr.Namespace, 1, waitingInterval, scaleTimeout, r.logger)
+			err := r.reconciler.scaleDeploymentForDR(r.cr.Spec.ElasticsearchDbaasAdapter.Name, r.cr.Namespace, 1, r.cr.Spec.DisasterRecovery.NoWait, r.logger)
 			if err != nil {
 				return err
 			}
@@ -71,7 +71,7 @@ func (r ElasticsearchDbaasAdapterReconciler) Configure() error {
 		} else if strings.ToLower(r.cr.Spec.DisasterRecovery.Mode) == "standby" || strings.ToLower(r.cr.Spec.DisasterRecovery.Mode) == "disable" {
 
 			r.logger.Info(fmt.Sprintf("%s scale-down started", r.cr.Spec.ElasticsearchDbaasAdapter.Name))
-			err := r.reconciler.scaleDeploymentWithCheck(r.cr.Spec.ElasticsearchDbaasAdapter.Name, r.cr.Namespace, 0, waitingInterval, scaleTimeout, r.logger)
+			err := r.reconciler.scaleDeploymentForDR(r.cr.Spec.ElasticsearchDbaasAdapter.Name, r.cr.Namespace, 0, r.cr.Spec.DisasterRecovery.NoWait, r.logger)
 			if err != nil {
 				return err
 			}
