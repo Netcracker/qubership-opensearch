@@ -1056,9 +1056,10 @@ curator:
   #            topologyKey: "kubernetes.io/hostname"
   #          weight: 100
 
-  securityContext:
-    runAsUser: 1000
-    fsGroup: 1000
+  securityContext: { }
+  #    runAsUser: 1000
+  #    fsGroup: 1000
+
   customLabels: {}
 
 statusProvisioner:

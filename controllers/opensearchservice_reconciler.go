@@ -21,6 +21,7 @@ import (
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"strings"
 	"time"
 )
 
@@ -28,10 +29,10 @@ const (
 	opensearchHttpPort     = 9200
 	opensearchHostEnvVar   = "OPENSEARCH_HOST"
 	scaleMessageTemplate   = "Timeout occurred during scaling %s"
-	scaleTimeout           = time.Duration(180) * time.Second
-	waitingInterval        = 10 * time.Second
 	httpClientRetryMax     = 3
-	httpClientRetryWaitMax = time.Second * 10
+	scaleTimeout           = 180 * time.Second
+	waitingInterval        = 10 * time.Second
+	httpClientRetryWaitMax = 10 * time.Second
 )
 
 // OpenSearchServiceReconciler reconciles a OpenSearchService object
@@ -266,12 +267,40 @@ func (r *OpenSearchServiceReconciler) scaleDeploymentWithCheck(name string, name
 	return nil
 }
 
-func (r *OpenSearchServiceReconciler) scaleDeploymentForDR(name string, namespace string, replicas int32, noWait bool, logger logr.Logger) error {
+func (r *OpenSearchServiceReconciler) scaleDeploymentForNoWait(name string, namespace string, replicas int32, noWait bool, logger logr.Logger) error {
 	if noWait {
 		return r.scaleDeployment(name, namespace, replicas, logger)
 	} else {
 		return r.scaleDeploymentWithCheck(name, namespace, replicas, waitingInterval, scaleTimeout, logger)
 	}
+}
+
+func (r *OpenSearchServiceReconciler) scaleDeploymentForDR(name string, cr *opensearchservice.OpenSearchService, logger logr.Logger) error {
+	if cr.Spec.DisasterRecovery != nil && cr.Status.DisasterRecoveryStatus.Mode != "" {
+		logger.Info(fmt.Sprintf("Start switchover %s with mode: %s and no-wait: %t, current status mode is: %s",
+			name,
+			cr.Spec.DisasterRecovery.Mode,
+			cr.Spec.DisasterRecovery.NoWait,
+			cr.Status.DisasterRecoveryStatus.Mode))
+		if strings.ToLower(cr.Spec.DisasterRecovery.Mode) == "active" {
+			logger.Info(fmt.Sprintf("%s scale-up started", name))
+			err := r.scaleDeploymentForNoWait(name, cr.Namespace, 1, cr.Spec.DisasterRecovery.NoWait, logger)
+			if err != nil {
+				return err
+			}
+			logger.Info(fmt.Sprintf("%s scale-up completed", name))
+		} else if strings.ToLower(cr.Spec.DisasterRecovery.Mode) == "standby" || strings.ToLower(cr.Spec.DisasterRecovery.Mode) == "disable" {
+
+			logger.Info(fmt.Sprintf("%s scale-down started", name))
+			err := r.scaleDeploymentForNoWait(name, cr.Namespace, 0, cr.Spec.DisasterRecovery.NoWait, logger)
+			if err != nil {
+				return err
+			}
+			logger.Info(fmt.Sprintf("%s scale-down completed", name))
+		}
+		logger.Info(fmt.Sprintf("Switchover %s finished successfully", name))
+	}
+	return nil
 }
 
 func (r *OpenSearchServiceReconciler) isDeploymentReady(deploymentName string, namespace string, logger logr.Logger) bool {
