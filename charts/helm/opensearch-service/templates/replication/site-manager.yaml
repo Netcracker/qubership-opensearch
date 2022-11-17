@@ -20,7 +20,7 @@ spec:
     before: []
     sequence: ["active", "standby"]
     timeout: {{ .Values.global.disasterRecovery.timeout }}
-    serviceEndpoint: "{{ template "opensearch.fullname" . }}-disaster-recovery.{{ .Release.Namespace }}.svc.cluster.local:8068/sitemanager"
-    healthzEndpoint: "{{ template "opensearch.fullname" . }}-disaster-recovery.{{ .Release.Namespace }}.svc.cluster.local:8068/healthz"
+    serviceEndpoint: "{{ template "disasterRecovery.protocol" . }}://{{ template "opensearch.fullname" . }}-disaster-recovery.{{ .Release.Namespace }}.svc.cluster.local:8068/sitemanager"
+    healthzEndpoint: "{{ template "disasterRecovery.protocol" . }}://{{ template "opensearch.fullname" . }}-disaster-recovery.{{ .Release.Namespace }}.svc.cluster.local:8068/healthz"
     ingressEndpoint: ""
 {{- end }}

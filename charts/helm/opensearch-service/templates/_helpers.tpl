@@ -459,6 +459,17 @@ tls.key: {{ $cert.Key | b64enc }}
 ca.crt: {{ $ca.Cert | b64enc }}
 {{- end -}}
 
+{{/*
+Protocol for DRD
+*/}}
+{{- define "disasterRecovery.protocol" -}}
+{{- if and .Values.global.tls.enabled .Values.global.disasterRecovery.tls.enabled -}}
+  {{- "https" -}}
+{{- else -}}
+  {{- "http" -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "pod-scheduler-enabled" -}}
 {{- if and .Values.podScheduler.enabled (or (eq (include "master-nodes-volumes-enabled" .) "true") (eq (include "data-nodes-volumes-enabled" .) "true")) }}
   {{- "true" -}}
