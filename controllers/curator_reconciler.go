@@ -52,5 +52,5 @@ func (r CuratorReconciler) Status() error {
 }
 
 func (r CuratorReconciler) Configure() error {
-	return nil
+	return r.reconciler.scaleDeploymentForDR(r.cr.Spec.Curator.Name, r.cr, r.logger)
 }

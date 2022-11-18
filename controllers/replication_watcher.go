@@ -64,6 +64,10 @@ func (rw ReplicationWatcher) watch(drr DisasterRecoveryReconciler, logger logr.L
 				instance.Status.DisasterRecoveryStatus.Mode == "standby" &&
 				instance.Status.DisasterRecoveryStatus.Status == "done" {
 				rw.checkReplication(drr, logger)
+				if *rw.state == pausedState {
+					logger.Info("Replication Watcher was stopped, exit from watch loop")
+					return
+				}
 			}
 		}
 
@@ -91,6 +95,10 @@ func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, lo
 			} else {
 				var failedReplications []string
 				for _, index := range indices {
+					if *rw.state == pausedState {
+						logger.Info("Replication Watcher was stopped, exit from watch loop")
+						return
+					}
 					replicationStatus, err := replicationManager.getIndexReplicationStatus(index)
 					if err != nil {
 						log.Error(err, fmt.Sprintf("Cannot get replication status of [%s] index", index))

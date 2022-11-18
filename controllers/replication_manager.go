@@ -31,58 +31,59 @@ type ReplicationManager struct {
 /*
 ReplicationStats is a struct to unmarshal http response
 The following json is expected as response:
-{
-	"num_syncing_indices": 3,
-	"num_bootstrapping_indices": 0,
-	"num_paused_indices": 0,
-	"num_failed_indices": 0,
-	"num_shard_tasks": 3,
-	"num_index_tasks": 3,
-	"operations_written": 6,
-	"operations_read": 6,
-	"failed_read_requests": 0,
-	"throttled_read_requests": 0,
-	"failed_write_requests": 0,
-	"throttled_write_requests": 0,
-	"follower_checkpoint": 3,
-	"leader_checkpoint": 5,
-	"total_write_time_millis": 194,
-	"index_stats": {
-		"my-demo45": {
-			"operations_written": 0,
-			"operations_read": 0,
-			"failed_read_requests": 0,
-			"throttled_read_requests": 0,
-			"failed_write_requests": 0,
-			"throttled_write_requests": 0,
-			"follower_checkpoint": -1,
-			"leader_checkpoint": 0,
-			"total_write_time_millis": 0
-		},
-		"my-demo": {
-			"operations_written": 0,
-			"operations_read": 0,
-			"failed_read_requests": 0,
-			"throttled_read_requests": 0,
-			"failed_write_requests": 0,
-			"throttled_write_requests": 0,
-			"follower_checkpoint": -1,
-			"leader_checkpoint": 0,
-			"total_write_time_millis": 0
-		},
-		"my-index1": {
-			"operations_written": 6,
-			"operations_read": 6,
-			"failed_read_requests": 0,
-			"throttled_read_requests": 0,
-			"failed_write_requests": 0,
-			"throttled_write_requests": 0,
-			"follower_checkpoint": 5,
-			"leader_checkpoint": 5,
-			"total_write_time_millis": 194
+
+	{
+		"num_syncing_indices": 3,
+		"num_bootstrapping_indices": 0,
+		"num_paused_indices": 0,
+		"num_failed_indices": 0,
+		"num_shard_tasks": 3,
+		"num_index_tasks": 3,
+		"operations_written": 6,
+		"operations_read": 6,
+		"failed_read_requests": 0,
+		"throttled_read_requests": 0,
+		"failed_write_requests": 0,
+		"throttled_write_requests": 0,
+		"follower_checkpoint": 3,
+		"leader_checkpoint": 5,
+		"total_write_time_millis": 194,
+		"index_stats": {
+			"my-demo45": {
+				"operations_written": 0,
+				"operations_read": 0,
+				"failed_read_requests": 0,
+				"throttled_read_requests": 0,
+				"failed_write_requests": 0,
+				"throttled_write_requests": 0,
+				"follower_checkpoint": -1,
+				"leader_checkpoint": 0,
+				"total_write_time_millis": 0
+			},
+			"my-demo": {
+				"operations_written": 0,
+				"operations_read": 0,
+				"failed_read_requests": 0,
+				"throttled_read_requests": 0,
+				"failed_write_requests": 0,
+				"throttled_write_requests": 0,
+				"follower_checkpoint": -1,
+				"leader_checkpoint": 0,
+				"total_write_time_millis": 0
+			},
+			"my-index1": {
+				"operations_written": 6,
+				"operations_read": 6,
+				"failed_read_requests": 0,
+				"throttled_read_requests": 0,
+				"failed_write_requests": 0,
+				"throttled_write_requests": 0,
+				"follower_checkpoint": 5,
+				"leader_checkpoint": 5,
+				"total_write_time_millis": 194
+			}
 		}
 	}
-}
 */
 type ReplicationStats struct {
 	SyncingIndicesCount       int                 `json:"num_syncing_indices"`

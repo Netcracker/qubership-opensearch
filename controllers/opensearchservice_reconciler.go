@@ -15,16 +15,24 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/utils/pointer"
 	"net/http"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"strings"
 	"time"
 )
 
 const (
-	opensearchHttpPort   = 9200
-	opensearchHostEnvVar = "OPENSEARCH_HOST"
+	opensearchHttpPort     = 9200
+	opensearchHostEnvVar   = "OPENSEARCH_HOST"
+	scaleMessageTemplate   = "Timeout occurred during scaling %s"
+	httpClientRetryMax     = 3
+	scaleTimeout           = 180 * time.Second
+	waitingInterval        = 10 * time.Second
+	httpClientRetryWaitMax = 10 * time.Second
 )
 
 // OpenSearchServiceReconciler reconciles a OpenSearchService object
@@ -228,6 +236,83 @@ func (r *OpenSearchServiceReconciler) addAnnotationsToStatefulSet(name string, n
 	return r.updateStatefulSet(statefulSet, logger)
 }
 
+func (r *OpenSearchServiceReconciler) scaleDeployment(name string, namespace string, replicas int32, logger logr.Logger) error {
+	deployment, err := r.findDeployment(name, namespace, logger)
+	if err == nil {
+		deployment.Spec.Replicas = pointer.Int32Ptr(replicas)
+		err := r.Client.Update(context.TODO(), deployment)
+		return err
+	}
+	return err
+}
+
+func (r *OpenSearchServiceReconciler) scaleDeploymentWithCheck(name string, namespace string, replicas int32, interval, timeout time.Duration, logger logr.Logger) error {
+	err := r.scaleDeployment(name, namespace, replicas, logger)
+	if err != nil {
+		logger.Error(err, "Deployment update failed")
+		return err
+	}
+	logger.Info(fmt.Sprintf("deployment %s scaled", name))
+	err = wait.PollImmediate(interval, timeout, func() (done bool, err error) {
+		return r.isDeploymentReady(name, namespace, logger), nil
+	})
+	if err != nil {
+		direction := "up"
+		if replicas == 0 {
+			direction = "down"
+		}
+		logger.Error(err, fmt.Sprintf(scaleMessageTemplate, direction))
+		return err
+	}
+	return nil
+}
+
+func (r *OpenSearchServiceReconciler) scaleDeploymentForNoWait(name string, namespace string, replicas int32, noWait bool, logger logr.Logger) error {
+	if noWait {
+		return r.scaleDeployment(name, namespace, replicas, logger)
+	} else {
+		return r.scaleDeploymentWithCheck(name, namespace, replicas, waitingInterval, scaleTimeout, logger)
+	}
+}
+
+func (r *OpenSearchServiceReconciler) scaleDeploymentForDR(name string, cr *opensearchservice.OpenSearchService, logger logr.Logger) error {
+	if cr.Spec.DisasterRecovery != nil && cr.Status.DisasterRecoveryStatus.Mode != "" {
+		logger.Info(fmt.Sprintf("Start switchover %s with mode: %s and no-wait: %t, current status mode is: %s",
+			name,
+			cr.Spec.DisasterRecovery.Mode,
+			cr.Spec.DisasterRecovery.NoWait,
+			cr.Status.DisasterRecoveryStatus.Mode))
+		if strings.ToLower(cr.Spec.DisasterRecovery.Mode) == "active" {
+			logger.Info(fmt.Sprintf("%s scale-up started", name))
+			err := r.scaleDeploymentForNoWait(name, cr.Namespace, 1, cr.Spec.DisasterRecovery.NoWait, logger)
+			if err != nil {
+				return err
+			}
+			logger.Info(fmt.Sprintf("%s scale-up completed", name))
+		} else if strings.ToLower(cr.Spec.DisasterRecovery.Mode) == "standby" || strings.ToLower(cr.Spec.DisasterRecovery.Mode) == "disable" {
+
+			logger.Info(fmt.Sprintf("%s scale-down started", name))
+			err := r.scaleDeploymentForNoWait(name, cr.Namespace, 0, cr.Spec.DisasterRecovery.NoWait, logger)
+			if err != nil {
+				return err
+			}
+			logger.Info(fmt.Sprintf("%s scale-down completed", name))
+		}
+		logger.Info(fmt.Sprintf("Switchover %s finished successfully", name))
+	}
+	return nil
+}
+
+func (r *OpenSearchServiceReconciler) isDeploymentReady(deploymentName string, namespace string, logger logr.Logger) bool {
+	deployment, err := r.findDeployment(deploymentName, namespace, logger)
+	if err != nil {
+		logger.Error(err, "Cannot check deployment status")
+		return false
+	}
+	availableReplicas := util.Min(deployment.Status.ReadyReplicas, deployment.Status.UpdatedReplicas)
+	return *deployment.Spec.Replicas == availableReplicas
+}
+
 // disableClientService disables OpenSearch client service
 func (r *OpenSearchServiceReconciler) disableClientService(name string, namespace string, logger logr.Logger) error {
 	service, err := r.findService(name, namespace, logger)
@@ -263,8 +348,8 @@ func (r *OpenSearchServiceReconciler) createUrl(host string, port int) string {
 
 func (r *OpenSearchServiceReconciler) createHttpClient() http.Client {
 	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 6
-	retryClient.RetryWaitMax = time.Second * 10
+	retryClient.RetryMax = httpClientRetryMax
+	retryClient.RetryWaitMax = httpClientRetryWaitMax
 	return *retryClient.StandardClient()
 }
 

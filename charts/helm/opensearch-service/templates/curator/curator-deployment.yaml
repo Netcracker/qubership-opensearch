@@ -8,7 +8,7 @@ metadata:
     component: opensearch-curator
   name: {{ template "opensearch.fullname" . }}-curator
 spec:
-  replicas: 1
+  replicas: {{ template "opensearch.replicasForSingleService" . }}
   selector:
     matchLabels:
 {{ include "opensearch.labels.selector" . | indent 6 }}
