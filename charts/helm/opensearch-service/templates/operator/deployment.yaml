@@ -19,6 +19,8 @@ spec:
 {{- end }}
         name: {{ template "opensearch.fullname" . }}-service-operator
         component: opensearch-service-operator
+      annotations:
+        pre.hook.backup.velero.io/command: '["/bin/sh", "-c", "curl -u ${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD} ${OPENSEARCH_PROTOCOL:-http}://${OPENSEARCH_NAME}.${WATCH_NAMESPACE}:${OPENSEARCH_INTERNAL_SERVICE_PORT}/_flush"]'
     spec:
       serviceAccountName: {{ template "opensearch.fullname" . }}-service-operator
       containers:
