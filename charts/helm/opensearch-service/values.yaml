@@ -159,6 +159,10 @@ global:
       durationDays: 365
       clusterIssuerName: ""
 
+  velero:
+    preHookBackup:
+      flushEnabled: true
+
   psp:
     create: false
 

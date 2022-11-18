@@ -19,8 +19,10 @@ spec:
 {{- end }}
         name: {{ template "opensearch.fullname" . }}-service-operator
         component: opensearch-service-operator
+      {{- if .Values.global.velero.preHookBackup.flushEnabled }}
       annotations:
-        pre.hook.backup.velero.io/command: '["/bin/sh", "-c", "curl -u ${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD} ${OPENSEARCH_PROTOCOL:-http}://${OPENSEARCH_NAME}.${WATCH_NAMESPACE}:${OPENSEARCH_INTERNAL_SERVICE_PORT}/_flush"]'
+        pre.hook.backup.velero.io/command: {{ template "opensearch.velero-pre-hook-backup-flush" . }}
+      {{- end }}
     spec:
       serviceAccountName: {{ template "opensearch.fullname" . }}-service-operator
       containers:

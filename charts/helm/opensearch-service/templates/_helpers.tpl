@@ -858,3 +858,14 @@ Find a Deployment Status Provisioner image in various places.
     {{- printf "%s" .Values.statusProvisioner.dockerImage -}}
   {{- end -}}
 {{- end -}}
+
+{{/*
+Configure pod annotation for Velero pre-hook backup
+*/}}
+{{- define "opensearch.velero-pre-hook-backup-flush" -}}
+  {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+    {{- printf "'[\"/bin/sh\", \"-c\", \"curl -u ${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD} ${OPENSEARCH_PROTOCOL:-http}://${OPENSEARCH_NAME}:9200/_flush --cacert ${OPENSEARCH_CONFIGS}/rest-crt.pem\"]'" }}
+  {{- else }}
+    {{- printf "'[\"/bin/sh\", \"-c\", \"curl -u ${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD} ${OPENSEARCH_PROTOCOL:-http}://${OPENSEARCH_NAME}:9200/_flush\"]'" }}
+  {{- end }}
+{{- end -}}
