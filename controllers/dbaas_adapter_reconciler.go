@@ -30,7 +30,6 @@ func (r DbaasAdapterReconciler) Reconcile() error {
 	if err != nil {
 		return err
 	}
-
 	if r.reconciler.ResourceHashes[opensearchSecretHashName] != "" && r.reconciler.ResourceHashes[opensearchSecretHashName] != opensearchSecretHash ||
 		r.reconciler.ResourceHashes[dbaasAdapterSecretHashName] != "" && r.reconciler.ResourceHashes[dbaasAdapterSecretHashName] != dbaasAdapterSecretHash {
 		annotations := map[string]string{
@@ -52,5 +51,5 @@ func (r DbaasAdapterReconciler) Status() error {
 }
 
 func (r DbaasAdapterReconciler) Configure() error {
-	return nil
+	return r.reconciler.scaleDeploymentForDR(r.cr.Spec.DbaasAdapter.Name, r.cr, r.logger)
 }

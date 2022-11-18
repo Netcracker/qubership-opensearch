@@ -53,5 +53,5 @@ func (r ElasticsearchDbaasAdapterReconciler) Status() error {
 }
 
 func (r ElasticsearchDbaasAdapterReconciler) Configure() error {
-	return nil
+	return r.reconciler.scaleDeploymentForDR(r.cr.Spec.ElasticsearchDbaasAdapter.Name, r.cr, r.logger)
 }
