@@ -68,6 +68,7 @@ func (r DisasterRecoveryReconciler) Configure() error {
 	drConfigHashChanged := r.reconciler.ResourceHashes[drConfigHashName] != "" && r.reconciler.ResourceHashes[drConfigHashName] != drConfigHash
 
 	if crCondition || drConfigHashChanged {
+		r.replicationWatcher.pause(r.logger)
 		r.replicationWatcher.Lock.Lock()
 		checkNeeded := isReplicationCheckNeeded(r.cr)
 		if err := r.updateDisasterRecoveryStatus("running",

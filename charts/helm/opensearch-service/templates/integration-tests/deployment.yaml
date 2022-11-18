@@ -9,7 +9,7 @@ spec:
       name: {{ template "opensearch.fullname" . }}-integration-tests
   strategy:
     type: RollingUpdate
-  replicas: 1
+  replicas: {{ template "opensearch.replicasForSingleService" . }}
   template:
     metadata:
       labels:

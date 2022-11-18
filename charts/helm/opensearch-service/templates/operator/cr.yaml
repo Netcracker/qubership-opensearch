@@ -67,6 +67,7 @@ spec:
   disasterRecovery:
     configMapName: {{ template "opensearch.fullname" . }}-replication-configuration
     mode: {{ .Values.global.disasterRecovery.mode }}
+    noWait: true
     replicationWatcherEnabled: {{ .Values.global.disasterRecovery.replicationWatcherEnabled }}
     replicationWatcherInterval: {{ .Values.global.disasterRecovery.replicationWatcherIntervalSeconds }}
   {{- end }}
