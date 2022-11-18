@@ -160,8 +160,7 @@ global:
       clusterIssuerName: ""
 
   velero:
-    preHookBackup:
-      flushEnabled: true
+    preHookBackupEnabled: true
 
   psp:
     create: false

@@ -19,7 +19,7 @@ spec:
 {{- end }}
         name: {{ template "opensearch.fullname" . }}-service-operator
         component: opensearch-service-operator
-      {{- if .Values.global.velero.preHookBackup.flushEnabled }}
+      {{- if .Values.global.velero.preHookBackupEnabled }}
       annotations:
         pre.hook.backup.velero.io/command: {{ template "opensearch.velero-pre-hook-backup-flush" . }}
       {{- end }}
