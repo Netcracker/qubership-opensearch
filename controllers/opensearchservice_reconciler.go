@@ -29,10 +29,11 @@ const (
 	opensearchHttpPort     = 9200
 	opensearchHostEnvVar   = "OPENSEARCH_HOST"
 	scaleMessageTemplate   = "Timeout occurred during scaling %s"
-	httpClientRetryMax     = 3
+	httpClientRetryMax     = 2
 	scaleTimeout           = 180 * time.Second
 	waitingInterval        = 10 * time.Second
-	httpClientRetryWaitMax = 10 * time.Second
+	httpClientRetryWaitMax = 5 * time.Second
+	httpClientTimeout      = 60 * time.Second
 )
 
 // OpenSearchServiceReconciler reconciles a OpenSearchService object
@@ -348,6 +349,7 @@ func (r *OpenSearchServiceReconciler) createUrl(host string, port int) string {
 
 func (r *OpenSearchServiceReconciler) createHttpClient() http.Client {
 	retryClient := retryablehttp.NewClient()
+	retryClient.HTTPClient = &http.Client{Timeout: httpClientTimeout}
 	retryClient.RetryMax = httpClientRetryMax
 	retryClient.RetryWaitMax = httpClientRetryWaitMax
 	return *retryClient.StandardClient()

@@ -56,7 +56,7 @@ spec:
                   key: registration-auth-password
                   name: {{ .Values.elasticsearchDbaasAdapter.name }}-secret
             - name: ELASTIC_HOST
-              value: {{ default (printf "%s.%s" (include "opensearch.fullname" .) .Release.Namespace) (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-host" .) .Values.dbaasAdapter.opensearchHost) }}
+              value: {{ default (printf "%s.%s" (include "opensearch.fullname" .) .Release.Namespace) (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-host" .) .Values.elasticsearchDbaasAdapter.opensearchHost) }}
             - name: ELASTIC_PORT
               value: "{{ default 9200 (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-port" .) .Values.elasticsearchDbaasAdapter.opensearchPort) }}"
             - name: ELASTIC_PROTO
