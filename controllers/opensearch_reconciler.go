@@ -100,16 +100,21 @@ func (r OpenSearchReconciler) createSnapshotsRepository(client http.Client, cred
 	r.logger.Info(fmt.Sprintf("Create a snapshot repository with name [%s]", r.cr.Spec.OpenSearch.Snapshots.RepositoryName))
 	requestPath := fmt.Sprintf("_snapshot/%s", r.cr.Spec.OpenSearch.Snapshots.RepositoryName)
 	requestBody := ""
-	if r.cr.Spec.OpenSearch.Snapshots.S3 != nil && r.cr.Spec.OpenSearch.Snapshots.S3.Enabled {
-		s3KeyId, s3KeySecret := r.getS3Credentials()
+	if  r.cr.Spec.OpenSearch.Snapshots.S3.GCSEnabled {
 		s3Bucket := r.cr.Spec.OpenSearch.Snapshots.S3.Bucket
-		s3Url := r.cr.Spec.OpenSearch.Snapshots.S3.Url
-		s3BasePath := r.cr.Spec.OpenSearch.Snapshots.S3.BasePath
-		s3Region := r.cr.Spec.OpenSearch.Snapshots.S3.Region
-		s3PathStyleAccess := strconv.FormatBool(r.cr.Spec.OpenSearch.Snapshots.S3.PathStyleAccess)
-		requestBody = fmt.Sprintf(`{"type": "s3", "settings": {"base_path": "%s", "bucket": "%s", "region": "%s", "endpoint": "%s", "protocol": "http", "access_key": "%s", "secret_key": "%s", "compress": true, "path_style_access": "%s"}}`, s3BasePath, s3Bucket, s3Region, s3Url, s3KeyId, s3KeySecret, s3PathStyleAccess)
+		requestBody = fmt.Sprintf(`{"type": "gcs", "settings": {"bucket": "%s", "client": "default"}}`, s3Bucket)
 	} else {
-		requestBody = `{"type": "fs", "settings": {"location": "/usr/share/opensearch/snapshots", "compress": true}}`
+		if r.cr.Spec.OpenSearch.Snapshots.S3 != nil && r.cr.Spec.OpenSearch.Snapshots.S3.Enabled {
+			s3KeyId, s3KeySecret := r.getS3Credentials()
+			s3Bucket := r.cr.Spec.OpenSearch.Snapshots.S3.Bucket
+			s3Url := r.cr.Spec.OpenSearch.Snapshots.S3.Url
+			s3BasePath := r.cr.Spec.OpenSearch.Snapshots.S3.BasePath
+			s3Region := r.cr.Spec.OpenSearch.Snapshots.S3.Region
+			s3PathStyleAccess := strconv.FormatBool(r.cr.Spec.OpenSearch.Snapshots.S3.PathStyleAccess)
+			requestBody = fmt.Sprintf(`{"type": "s3", "settings": {"base_path": "%s", "bucket": "%s", "region": "%s", "endpoint": "%s", "protocol": "http", "access_key": "%s", "secret_key": "%s", "compress": true, "path_style_access": "%s"}}`, s3BasePath, s3Bucket, s3Region, s3Url, s3KeyId, s3KeySecret, s3PathStyleAccess)
+		} else {
+			requestBody = `{"type": "fs", "settings": {"location": "/usr/share/opensearch/snapshots", "compress": true}}`
+		}
 	}
 	var statusCode int
 	var err error

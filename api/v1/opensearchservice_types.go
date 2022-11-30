@@ -27,6 +27,7 @@ type S3 struct {
 	BasePath        string `json:"basePath,omitempty"`
 	Region          string `json:"region,omitempty"`
 	SecretName      string `json:"secretName,omitempty"`
+	GCSEnabled      bool   `json:"enabled,omitempty"`
 }
 
 // Dashboards structure defines parameters necessary for interaction with Dashboards
