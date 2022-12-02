@@ -100,7 +100,7 @@ func (r OpenSearchReconciler) createSnapshotsRepository(client http.Client, cred
 	r.logger.Info(fmt.Sprintf("Create a snapshot repository with name [%s]", r.cr.Spec.OpenSearch.Snapshots.RepositoryName))
 	requestPath := fmt.Sprintf("_snapshot/%s", r.cr.Spec.OpenSearch.Snapshots.RepositoryName)
 	requestBody := ""
-	if  r.cr.Spec.OpenSearch.Snapshots.S3.GCSEnabled {
+	if r.cr.Spec.OpenSearch.Snapshots.S3.GCSEnabled {
 		s3Bucket := r.cr.Spec.OpenSearch.Snapshots.S3.Bucket
 		requestBody = fmt.Sprintf(`{"type": "gcs", "settings": {"bucket": "%s", "client": "default"}}`, s3Bucket)
 	} else {

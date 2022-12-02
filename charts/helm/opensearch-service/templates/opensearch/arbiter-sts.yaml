@@ -376,9 +376,9 @@ spec:
       {{- if and .Values.opensearch.snapshots.s3.enabled .Values.opensearch.snapshots.s3.gcs.secretName .Values.opensearch.snapshots.s3.gcs.secretKey }}
         - name: gcs
           secret:
-            secretName: .Values.opensearch.snapshots.s3.gcs.secretName
+            secretName: {{ .Values.opensearch.snapshots.s3.gcs.secretName }}
             items:
-              - key: .Values.opensearch.snapshots.s3.gcs.secretKey
+              - key: {{ .Values.opensearch.snapshots.s3.gcs.secretKey }}
                 path: key.json
             defaultMode: 420
       {{- end }}
