@@ -9,6 +9,7 @@ Topics covered in this section:
     - [Deployment via DP Deployer Job](#deployment-via-dp-deployer-job)
     - [Deployment via Groovy Deployer Job](#deployment-via-groovy-deployer-job)
     - [Deployment with Restricted Rights](#deployment-with-restricted-rights)
+    - [Automatic CRD Upgrade](#automatic-crd-upgrade)
 - [Migration from OpenDistro Elasticsearch](#migration-from-opendistro-elasticsearch)
     - [Automatic Migration with Deploy Hob](#automatic-migration-with-deploy-job)
     - [Manual Migration Steps](#manual-migration-steps)
@@ -774,6 +775,18 @@ To avoid using `cluster-admin` rights during the deployment, the following condi
   ```
 
 **Note**: If you deploy OpenSearch Service to Kubernetes version less than `1.16`, you have to manually install CRD from `config/crd/old/netcracker.com_opensearchservices.yaml` and disable automatic CRD creation by Helm.
+
+## Automatic CRD Upgrade
+
+It is possible to upgrade CRD automatically on environment to the latest one which is presented with installing version.
+This feature is enabled by default if parameter `DISABLE_CRD` is not `true`.
+
+Automatic CRD upgrade requires the following cluster rights for deploy user:
+```yaml
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "create", "patch"]
+```
 
 # Migration from OpenDistro Elasticsearch
 
