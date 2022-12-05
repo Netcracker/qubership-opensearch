@@ -103,17 +103,6 @@ func (r OpenSearchReconciler) createSnapshotsRepository(client http.Client, cred
 	if r.cr.Spec.OpenSearch.Snapshots.S3.GCSEnabled {
 		s3Bucket := r.cr.Spec.OpenSearch.Snapshots.S3.Bucket
 		requestBody = fmt.Sprintf(`{"type": "gcs", "settings": {"bucket": "%s", "client": "default"}}`, s3Bucket)
-		r.logger.Info("Reload secure settings")
-		var statusCode int
-		var err error
-		url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
-		restClient := NewRestClient(url, client, credentials)
-		statusCode, _, err = restClient.SendRequest(http.MethodPost, "_nodes/reload_secure_settings", strings.NewReader(""))
-		if err == nil && statusCode == 200 {
-			r.logger.Info("Secure settings is reloaded")
-		} else {
-			return fmt.Errorf("secure settings is not reloaded; response status code is %d", statusCode)
-		}
 	} else {
 		if r.cr.Spec.OpenSearch.Snapshots.S3 != nil && r.cr.Spec.OpenSearch.Snapshots.S3.Enabled {
 			s3KeyId, s3KeySecret := r.getS3Credentials()
