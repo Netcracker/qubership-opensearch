@@ -8,6 +8,7 @@ import requests
 sys.path.append('./tests/shared/lib')
 from PlatformLibrary import PlatformLibrary
 
+ROOT_CA_CERT_PATH = '/certs/opensearch/root-ca.pem'
 environ = os.environ
 protocol = environ.get("OPENSEARCH_PROTOCOL", "http")
 host = environ.get("OPENSEARCH_HOST", "opensearch")
@@ -44,7 +45,7 @@ if __name__ == '__main__':
                         break
             if wait_for_replicas_readiness:
                 continue
-            verify = '/certs/opensearch/root-ca.pem' if protocol == 'https' else None
+            verify = ROOT_CA_CERT_PATH if protocol == 'https' and os.path.exists(ROOT_CA_CERT_PATH) else None
             response = requests.get(url, auth=auth, verify=verify)
             if response.status_code == 200:
                 status = json.loads(response.content.decode('utf-8'))[0]['status']
