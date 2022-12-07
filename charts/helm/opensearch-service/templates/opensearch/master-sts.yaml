@@ -361,7 +361,6 @@ spec:
             items:
               - key: {{ .Values.opensearch.snapshots.s3.gcs.secretKey }}
                 path: key.json
-            defaultMode: 420
       {{- end }}
       {{- if not .Values.opensearch.master.persistence.enabled }}
         - name: pvc

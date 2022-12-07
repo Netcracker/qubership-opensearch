@@ -21,9 +21,7 @@ spec:
       s3:
         enabled: {{ .Values.opensearch.snapshots.s3.enabled }}
         {{- if .Values.opensearch.snapshots.s3.gcs.secretName }}
-        GCSEnabled: true
-        {{- else }}
-        GCSEnabled: false
+        gcsEnabled: true
         {{- end }}
         pathStyleAccess: {{ .Values.opensearch.snapshots.s3.pathStyleAccess }}
         url: {{ default "" .Values.opensearch.snapshots.s3.url | quote  }}

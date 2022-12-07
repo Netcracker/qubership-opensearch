@@ -380,7 +380,6 @@ spec:
             items:
               - key: {{ .Values.opensearch.snapshots.s3.gcs.secretKey }}
                 path: key.json
-            defaultMode: 420
       {{- end }}
 {{- if .Values.opensearch.extraVolumes }}
 {{ toYaml .Values.opensearch.extraVolumes | indent 8 }}

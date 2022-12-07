@@ -195,7 +195,6 @@ spec:
             items:
               - key: {{ .Values.opensearch.snapshots.s3.gcs.secretKey }}
                 path: key.json
-            defaultMode: 420
         {{- end }}
     {{- with .Values.curator.nodeSelector }}
       nodeSelector:
