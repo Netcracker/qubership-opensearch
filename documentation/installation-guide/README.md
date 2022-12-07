@@ -517,7 +517,7 @@ fullnameOverride: "opensearch"
 
 ## Google Cloud Storage for Snapshots
 
-1. Follow the guide [link](https://www.elastic.co/guide/en/elasticsearch/reference/8.4/repository-gcs.html#repository-gcs-using-service-account) to create SA Json.
+1. Follow the guide [link](https://www.elastic.co/guide/en/elasticsearch/reference/8.4/repository-gcs.html#repository-gcs-using-service-account) to create SA JSON.
 2. Create secret with JSON inside, example:
 ```yaml
 kind: Secret
