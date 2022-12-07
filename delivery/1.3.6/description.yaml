@@ -188,3 +188,10 @@ integration:
     zip-name: migration-artifacts.zip
     name: migration-artifacts
     pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh
+  - type: scripts
+    repo: PROD.Platform.ElasticStack/deployment-utils
+    location: 0.1.1
+    alias: timestamp
+    zip-name: devops-scripts.zip
+    name: crd-upgrade
+    pre-deploy-entry-point: crd-upgrade.sh
