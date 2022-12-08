@@ -264,6 +264,10 @@ spec:
               subPath: tenants.yml
         {{- end }}
         {{- end }}
+        {{- if and .Values.opensearch.snapshots.s3.enabled .Values.opensearch.snapshots.s3.gcs.secretName .Values.opensearch.snapshots.s3.gcs.secretKey }}
+            - name: gcs
+              mountPath: /usr/share/opensearch/gcs
+        {{- end }}
 {{- if .Values.opensearch.extraVolumeMounts }}
 {{ toYaml .Values.opensearch.extraVolumeMounts | indent 12 }}
 {{- end }}
@@ -368,6 +372,14 @@ spec:
         - name: snapshots-repository
           persistentVolumeClaim:
             claimName: {{ .Values.opensearch.snapshots.persistentVolumeClaim | default (printf "pvc-%s-snapshots" (include "opensearch.fullname" .))  }}
+      {{- end }}
+      {{- if and .Values.opensearch.snapshots.s3.enabled .Values.opensearch.snapshots.s3.gcs.secretName .Values.opensearch.snapshots.s3.gcs.secretKey }}
+        - name: gcs
+          secret:
+            secretName: {{ .Values.opensearch.snapshots.s3.gcs.secretName }}
+            items:
+              - key: {{ .Values.opensearch.snapshots.s3.gcs.secretKey }}
+                path: key.json
       {{- end }}
 {{- if .Values.opensearch.extraVolumes }}
 {{ toYaml .Values.opensearch.extraVolumes | indent 8 }}
