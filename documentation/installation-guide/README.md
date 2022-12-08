@@ -532,6 +532,8 @@ type: Opaque
 ```
 3. Set `opensearch.snapshots.s3.gcs.secretName` and `opensearch.snapshots.s3.gcs.secretKey` parameters:
 ```yaml
+opensearch:
+  snapshots:
     s3:
       gcs:
         secretName: "opensearch-gcs-secret"
