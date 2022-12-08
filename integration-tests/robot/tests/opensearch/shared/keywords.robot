@@ -24,7 +24,7 @@ Login To OpenSearch
     [Arguments]  ${username}  ${password}  ${need_auth}=True
     ${auth}=  Run Keyword If  ${need_auth}  Create List  ${username}  ${password}
     ${root_ca_path} = /certs/opensearch/root-ca.pem
-    ${verify}=  Set Variable If  '${OPENSEARCH_PROTOCOL}' == 'https'  And  File Exists  ${root_ca_path}  ${root_ca_path}  ${True}
+    ${verify}=  Set Variable If  '${OPENSEARCH_PROTOCOL}' == 'https'  and  File Exists  ${root_ca_path}  ${root_ca_path}  ${True}
     Create Session  opensearch  ${OPENSEARCH_PROTOCOL}://${OPENSEARCH_HOST}:${OPENSEARCH_PORT}  auth=${auth}  verify=${verify}  disable_warnings=1
     &{headers}=  Create Dictionary  Content-Type=application/json  Accept=application/json
     Set Global Variable  ${headers}
