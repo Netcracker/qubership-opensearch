@@ -49,8 +49,8 @@ if __name__ == '__main__':
             response = requests.get(url, auth=auth, verify=verify)
             if response.status_code == 200:
                 status = json.loads(response.content.decode('utf-8'))[0]['status']
-                if status == 'green':
-                    print('OpenSearch is in "green" status. Waiting for subsidiary components for 30 seconds')
+                if status == 'green' or status == 'yellow':
+                    print('OpenSearch is ready. Waiting for subsidiary components for 30 seconds')
                     time.sleep(30)
                     exit(0)
         except Exception as e:
