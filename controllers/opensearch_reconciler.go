@@ -99,23 +99,7 @@ func (r OpenSearchReconciler) Configure() error {
 func (r OpenSearchReconciler) createSnapshotsRepository(client http.Client, credentials []string, attemptsNumber int) error {
 	r.logger.Info(fmt.Sprintf("Create a snapshot repository with name [%s]", r.cr.Spec.OpenSearch.Snapshots.RepositoryName))
 	requestPath := fmt.Sprintf("_snapshot/%s", r.cr.Spec.OpenSearch.Snapshots.RepositoryName)
-	requestBody := ""
-	if r.cr.Spec.OpenSearch.Snapshots.S3 != nil && r.cr.Spec.OpenSearch.Snapshots.S3.GcsEnabled {
-		s3Bucket := r.cr.Spec.OpenSearch.Snapshots.S3.Bucket
-		requestBody = fmt.Sprintf(`{"type": "gcs", "settings": {"bucket": "%s", "client": "default"}}`, s3Bucket)
-	} else {
-		if r.cr.Spec.OpenSearch.Snapshots.S3 != nil && r.cr.Spec.OpenSearch.Snapshots.S3.Enabled {
-			s3KeyId, s3KeySecret := r.getS3Credentials()
-			s3Bucket := r.cr.Spec.OpenSearch.Snapshots.S3.Bucket
-			s3Url := r.cr.Spec.OpenSearch.Snapshots.S3.Url
-			s3BasePath := r.cr.Spec.OpenSearch.Snapshots.S3.BasePath
-			s3Region := r.cr.Spec.OpenSearch.Snapshots.S3.Region
-			s3PathStyleAccess := strconv.FormatBool(r.cr.Spec.OpenSearch.Snapshots.S3.PathStyleAccess)
-			requestBody = fmt.Sprintf(`{"type": "s3", "settings": {"base_path": "%s", "bucket": "%s", "region": "%s", "endpoint": "%s", "protocol": "http", "access_key": "%s", "secret_key": "%s", "compress": true, "path_style_access": "%s"}}`, s3BasePath, s3Bucket, s3Region, s3Url, s3KeyId, s3KeySecret, s3PathStyleAccess)
-		} else {
-			requestBody = `{"type": "fs", "settings": {"location": "/usr/share/opensearch/snapshots", "compress": true}}`
-		}
-	}
+	requestBody := r.getSnapshotsRepositoryBody()
 	var statusCode int
 	var err error
 	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
@@ -156,4 +140,25 @@ func (r OpenSearchReconciler) getS3Credentials() (string, string) {
 	keyId = secret.Data["s3-key-id"]
 	keySecret = secret.Data["s3-key-secret"]
 	return string(keyId), string(keySecret)
+}
+
+func (r OpenSearchReconciler) getSnapshotsRepositoryBody() string {
+	requestBody := ""
+	if r.cr.Spec.OpenSearch.Snapshots.S3 != nil && r.cr.Spec.OpenSearch.Snapshots.S3.GcsEnabled {
+		s3Bucket := r.cr.Spec.OpenSearch.Snapshots.S3.Bucket
+		requestBody = fmt.Sprintf(`{"type": "gcs", "settings": {"bucket": "%s", "client": "default"}}`, s3Bucket)
+	} else {
+		if r.cr.Spec.OpenSearch.Snapshots.S3 != nil && r.cr.Spec.OpenSearch.Snapshots.S3.Enabled {
+			s3KeyId, s3KeySecret := r.getS3Credentials()
+			s3Bucket := r.cr.Spec.OpenSearch.Snapshots.S3.Bucket
+			s3Url := r.cr.Spec.OpenSearch.Snapshots.S3.Url
+			s3BasePath := r.cr.Spec.OpenSearch.Snapshots.S3.BasePath
+			s3Region := r.cr.Spec.OpenSearch.Snapshots.S3.Region
+			s3PathStyleAccess := strconv.FormatBool(r.cr.Spec.OpenSearch.Snapshots.S3.PathStyleAccess)
+			requestBody = fmt.Sprintf(`{"type": "s3", "settings": {"base_path": "%s", "bucket": "%s", "region": "%s", "endpoint": "%s", "protocol": "http", "access_key": "%s", "secret_key": "%s", "compress": true, "path_style_access": "%s"}}`, s3BasePath, s3Bucket, s3Region, s3Url, s3KeyId, s3KeySecret, s3PathStyleAccess)
+		} else {
+			requestBody = `{"type": "fs", "settings": {"location": "/usr/share/opensearch/snapshots", "compress": true}}`
+		}
+	}
+	return requestBody
 }

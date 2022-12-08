@@ -517,14 +517,14 @@ fullnameOverride: "opensearch"
 
 ## Google Cloud Storage for Snapshots
 
-1. Follow the guide [link](https://www.elastic.co/guide/en/elasticsearch/reference/8.4/repository-gcs.html#repository-gcs-using-service-account) to create SA JSON.
-2. Create secret with JSON inside in `opensearch-namespace`, example:
+1. Follow the guide [link](https://www.elastic.co/guide/en/elasticsearch/reference/8.4/repository-gcs.html#repository-gcs-using-service-account) to create JSON service account file.
+2. Create secret with JSON in `opensearch` namespace. For example:
 ```yaml
 kind: Secret
 apiVersion: v1
 metadata:
   name: opensearch-gcs-secret
-  namespace: opensearch-namespace
+  namespace: opensearch
 data:
   key: >-
     ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAgInByb2plY3RfaWQiOiAidGVzdC1wcm9qZWN0IiwKICAicHJpdmF0ZV9rZXlfaWQiOiAidGVzdC1rZXkiLAogICJwcml2YXRlX2tleSI6ICItLS0tLUJFR0lOIFBSSVZBVEUgS0VZLS0tLS1cbk1JSUV2Z0lCQURBTkJnay4uLi5vSnl4ZVxuLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLVxuIiwKICAiY2xpZW50X2VtYWlsIjogInNhLW9wZW5zZWFyY2gtcnctYnVja2V0QHRlc3QtcHJvamVjdC5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsCiAgImNsaWVudF9pZCI6ICIxMTExMTExMTExMTExMTExMTExMTExMTExMTEiLAogICJhdXRoX3VyaSI6ICJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20vby9vYXV0aDIvYXV0aCIsCiAgInRva2VuX3VyaSI6ICJodHRwczovL29hdXRoMi5nb29nbGVhcGlzLmNvbS90b2tlbiIsCiAgImF1dGhfcHJvdmlkZXJfeDUwOV9jZXJ0X3VybCI6ICJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9vYXV0aDIvdjEvY2VydHMiLAogICJjbGllbnRfeDUwOV9jZXJ0X3VybCI6ICJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9yb2JvdC92MS9tZXRhZGF0YS94NTA5L3NhLW9wZW5zZWFyY2gtcnctYnVja2V0JTQwdGVzdC1wcm9qZWN0LmlhbS5nc2VydmljZWFjY291bnQuY29tIgp9
