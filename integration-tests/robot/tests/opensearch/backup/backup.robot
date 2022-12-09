@@ -121,7 +121,7 @@ Granular Backup And Restore
     Check That Document Exists By Field  ${OPENSEARCH_BACKUP_INDEX}-2  age  10
 
 Delete Backup By ID
-    [Tags]  opensearch  backup  backup_deletion full_backup
+    [Tags]  opensearch  backup  backup_deletion  full_backup
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}
     ${backup_id}=  Full Backup
     Delete Backup  ${backup_id}
