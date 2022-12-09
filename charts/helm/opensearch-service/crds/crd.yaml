@@ -110,6 +110,8 @@ spec:
                               type: string
                             enabled:
                               type: boolean
+                            gcsEnabled:
+                              type: boolean
                             pathStyleAccess:
                               type: boolean
                             region:

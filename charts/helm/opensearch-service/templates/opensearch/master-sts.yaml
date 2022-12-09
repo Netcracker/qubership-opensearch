@@ -241,6 +241,10 @@ spec:
             - mountPath: {{ .Values.opensearch.configDirectory }}/admin-root-ca.pem
               name: admin-certs
               subPath: {{ template "opensearch.admin-root-ca-path" . }}
+        {{- if and .Values.opensearch.snapshots.s3.enabled .Values.opensearch.snapshots.s3.gcs.secretName .Values.opensearch.snapshots.s3.gcs.secretKey }}
+            - name: gcs
+              mountPath: /usr/share/opensearch/gcs
+        {{- end }}
         {{- if .Values.opensearch.securityConfig.enabled }}
         {{- if and .Values.opensearch.securityConfig.config.securityConfigSecret .Values.opensearch.securityConfig.config.data }}
             - mountPath: {{ .Values.opensearch.securityConfig.path }}
@@ -349,6 +353,14 @@ spec:
               - key: tenants.yml
                 path: tenants.yml
       {{- end }}
+      {{- end }}
+      {{- if and .Values.opensearch.snapshots.s3.enabled .Values.opensearch.snapshots.s3.gcs.secretName .Values.opensearch.snapshots.s3.gcs.secretKey }}
+        - name: gcs
+          secret:
+            secretName: {{ .Values.opensearch.snapshots.s3.gcs.secretName }}
+            items:
+              - key: {{ .Values.opensearch.snapshots.s3.gcs.secretKey }}
+                path: key.json
       {{- end }}
       {{- if not .Values.opensearch.master.persistence.enabled }}
         - name: pvc

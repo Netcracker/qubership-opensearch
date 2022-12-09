@@ -661,6 +661,9 @@ opensearch:
       keySecret: ""
       basePath: ""
       region: ""
+      gcs:
+        secretName: ""
+        secretKey: ""
 
   config:
     ## Example Config
