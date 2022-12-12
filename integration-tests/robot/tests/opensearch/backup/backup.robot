@@ -58,7 +58,7 @@ Full Restore
     ${response}=  Post Request  curatorsession  /restore  data=${restore_data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Check Restore Status  ${response}
+    ...  Check Restore Status  ${response.content}
 
 Check Backup Status
     [Arguments]  ${backup_id}
