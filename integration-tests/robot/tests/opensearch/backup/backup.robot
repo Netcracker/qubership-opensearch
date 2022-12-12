@@ -55,8 +55,8 @@ Full Restore
     Check Restore Status  ${response}
 
 Check Backup Succeed
-    [Arguments] ${response_content}
-    ${response}=  Get Request  curatorsession  /listbackups/${backup_response.content}
+    [Arguments]  ${response_content}
+    ${response}=  Get Request  curatorsession  /listbackups/${response_content}
     ${content}=  Convert Json ${response.content} To Type
     Should Be Equal As Strings  ${content['failed']}  False
 
@@ -64,18 +64,18 @@ Check Backup Status
     [Arguments]  ${backup_response}
     Should Be Equal As Strings  ${backup_response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Check Backup Succeed
+    ...  Check Backup Succeed  ${backup_response.content}
 
 Check Restore Succeed
-    [Arguments] ${response_content}
-    ${response}=  Get Request  curatorsession  /jobstatus/${restore_response.content}
+    [Arguments]  ${response_content}
+    ${response}=  Get Request  curatorsession  /jobstatus/${response_content}
     Should Contain  str(${response.content})  Successful
 
 Check Restore Status
     [Arguments]  ${restore_response}
     Should Be Equal As Strings  ${restore_response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Check Restore Succeed
+    ...  Check Restore Succeed  ${restore_response.content}
 
 Check Backup Absence By Curator
     [Arguments]  ${backup_id}
@@ -131,7 +131,8 @@ Granular Backup And Restore
 
 Delete Backup By ID
     [Tags]  opensearch  backup  backup_deletion
-    Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}
+    Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-1
+    Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-2
     ${backup_id}=  Granular Backup
     Delete Backup  ${backup_id}
     Check Backup Absence By Curator  ${backup_id}
