@@ -34,13 +34,17 @@ Delete Data
 
 Full Backup
     ${response}=  Post Request  curatorsession  /backup
-    Check Backup Status  ${response}
+    Should Be Equal As Strings  ${response.status_code}  200
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Check Backup Status  ${response.content}
     [Return]  ${response.content}
 
 Granular Backup
     ${data}=  Set Variable  {"dbs":["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]}
     ${response}=  Post Request  curatorsession  /backup  data=${data}  headers=${headers}
-    Check Backup Status  ${response}
+    Should Be Equal As Strings  ${response.status_code}  200
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Check Backup Status  ${response.content}
     [Return]  ${response.content}
 
 Delete Backup
@@ -52,30 +56,20 @@ Full Restore
     [Arguments]  ${backup_id}  ${indices_list}
     ${restore_data}=  Set Variable  {"vault":"${backup_id}","dbs":${indices_list}}
     ${response}=  Post Request  curatorsession  /restore  data=${restore_data}  headers=${headers}
-    Check Restore Status  ${response}
+    Should Be Equal As Strings  ${response.status_code}  200
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Check Restore Status  ${response}
 
-Check Backup Succeed
-    [Arguments]  ${response_content}
-    ${response}=  Get Request  curatorsession  /listbackups/${response_content}
+Check Backup Status
+    [Arguments]  ${backup_id}
+    ${response}=  Get Request  curatorsession  /listbackups/${backup_id}
     ${content}=  Convert Json ${response.content} To Type
     Should Be Equal As Strings  ${content['failed']}  False
 
-Check Backup Status
-    [Arguments]  ${backup_response}
-    Should Be Equal As Strings  ${backup_response.status_code}  200
-    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Check Backup Succeed  ${backup_response.content}
-
-Check Restore Succeed
-    [Arguments]  ${response_content}
-    ${response}=  Get Request  curatorsession  /jobstatus/${response_content}
-    Should Contain  str(${response.content})  Successful
-
 Check Restore Status
-    [Arguments]  ${restore_response}
-    Should Be Equal As Strings  ${restore_response.status_code}  200
-    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Check Restore Succeed  ${restore_response.content}
+    [Arguments]  ${task_id}
+    ${response}=  Get Request  curatorsession  /jobstatus/${task_id}
+    Should Contain  str(${response.content})  Successful
 
 Check Backup Absence By Curator
     [Arguments]  ${backup_id}
