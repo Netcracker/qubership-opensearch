@@ -69,7 +69,8 @@ Check Backup Status
 Check Restore Status
     [Arguments]  ${task_id}
     ${response}=  Get Request  curatorsession  /jobstatus/${task_id}
-    Should Contain  str(${response.content})  Successful
+    ${content}=  Convert Json ${response.content} To Type
+    Should Be Equal As Strings  ${content['status']}  Successful
 
 Check Backup Absence By Curator
     [Arguments]  ${backup_id}
