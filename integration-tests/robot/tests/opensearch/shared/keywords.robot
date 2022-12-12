@@ -9,8 +9,8 @@ ${OPENSEARCH_NAMESPACE}          %{OPENSEARCH_NAMESPACE}
 
 *** Settings ***
 Library  Collections
+Library  ./lib/FileSystemLibrary.py
 Library  ./lib/OpenSearchUtils.py
-Library  ./lib/TLSUtils.py
 Library  PlatformLibrary  managed_by_operator=true
 Library  RequestsLibrary
 Library  json

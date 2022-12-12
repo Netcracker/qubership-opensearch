@@ -1,7 +1,7 @@
 import os
 
 
-class TLSUtils(object):
+class FileSystemLibrary(object):
 
     @staticmethod
     def file_exists(file_path):

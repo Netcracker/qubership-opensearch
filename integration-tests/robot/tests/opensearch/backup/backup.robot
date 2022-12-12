@@ -4,7 +4,8 @@ ${OPENSEARCH_CURATOR_HOST}       %{OPENSEARCH_CURATOR_HOST}
 ${OPENSEARCH_CURATOR_PORT}       %{OPENSEARCH_CURATOR_PORT}
 ${OPENSEARCH_CURATOR_USERNAME}   %{OPENSEARCH_CURATOR_USERNAME=}
 ${OPENSEARCH_CURATOR_PASSWORD}   %{OPENSEARCH_CURATOR_PASSWORD=}
-${BACKUP_RESTORE_TIMEOUT}        20s
+${RETRY_TIME}                    120s
+${RETRY_INTERVAL}                5s
 ${OPENSEARCH_BACKUP_INDEX}       opensearch_backup_index
 
 *** Settings ***
@@ -53,20 +54,28 @@ Full Restore
     ${response}=  Post Request  curatorsession  /restore  data=${restore_data}  headers=${headers}
     Check Restore Status  ${response}
 
-Check Backup Status
-    [Arguments]  ${backup_response}
-    Should Be Equal As Strings  ${backup_response.status_code}  200
-    Sleep  ${BACKUP_RESTORE_TIMEOUT}
+Check Backup Succeed
+    [Arguments] ${response_content}
     ${response}=  Get Request  curatorsession  /listbackups/${backup_response.content}
     ${content}=  Convert Json ${response.content} To Type
     Should Be Equal As Strings  ${content['failed']}  False
 
+Check Backup Status
+    [Arguments]  ${backup_response}
+    Should Be Equal As Strings  ${backup_response.status_code}  200
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Check Backup Succeed
+
+Check Restore Succeed
+    [Arguments] ${response_content}
+    ${response}=  Get Request  curatorsession  /jobstatus/${restore_response.content}
+    Should Contain  str(${response.content})  Successful
+
 Check Restore Status
     [Arguments]  ${restore_response}
     Should Be Equal As Strings  ${restore_response.status_code}  200
-    Sleep  ${BACKUP_RESTORE_TIMEOUT}
-    ${response}=  Get Request  curatorsession  /jobstatus/${restore_response.content}
-    Should Contain  str(${response.content})  Successful
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Check Restore Succeed
 
 Check Backup Absence By Curator
     [Arguments]  ${backup_id}
@@ -121,9 +130,9 @@ Granular Backup And Restore
     Check That Document Exists By Field  ${OPENSEARCH_BACKUP_INDEX}-2  age  10
 
 Delete Backup By ID
-    [Tags]  opensearch  backup  backup_deletion  full_backup
+    [Tags]  opensearch  backup  backup_deletion
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}
-    ${backup_id}=  Full Backup
+    ${backup_id}=  Granular Backup
     Delete Backup  ${backup_id}
     Check Backup Absence By Curator  ${backup_id}
     Check Backup Absence By OpenSearch  ${backup_id}

@@ -72,7 +72,8 @@ The `integrationTests.dockerImage` parameter specifies the docker image of OpenS
 The default value is `artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests`.
 
 The `integrationTests.tags` parameter specifies the tags combined with `AND`, `OR` and `NOT` operators that select test cases to run.
-You can use `smoke`, `authentication`, `backup`, `dbaas` and `ha` tags to run appropriate tests. The default value is `smoke`.
+You can use `smoke`, `authentication`, `backup`, `full_backup`, `dbaas` and `ha` tags to run appropriate tests. The default value is `smoke`.
+**Note**: It is not recommended to start `full_backup` tests on externally managed cloud with a lot of indices.
 
 The `integrationTests.opensearchProtocol` parameter specifies the OpenSearch protocol. The default value is `http`.
 
