@@ -7,5 +7,6 @@ def check_that_parameters_are_presented(environ, *variable_names) -> bool:
 
 def get_excluded_tags(environ) -> list:
     if not check_that_parameters_are_presented(environ,
-                                               'PROMETHEUS_URL'):
+                                               'PROMETHEUS_URL') \
+            or environ.get("EXTERNAL_OPENSEARCH", False):
         return ['prometheus']
