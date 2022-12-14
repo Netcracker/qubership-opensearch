@@ -183,7 +183,7 @@ integration:
     deploy-param: kubectl
   - type: scripts
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: 0.1.6
+    location: 0.1.4
     alias: timestamp
     zip-name: migration-artifacts.zip
     name: migration-artifacts
