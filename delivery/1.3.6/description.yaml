@@ -138,7 +138,7 @@ integration:
     deploy-param: opensearchIntegrationTests
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-opensearch
-    location: 0.0.6_1.3.6
+    location: 0.0.7_1.3.6
     docker-image-id: timestamp
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
