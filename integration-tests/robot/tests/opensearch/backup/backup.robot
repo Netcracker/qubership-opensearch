@@ -12,6 +12,7 @@ ${OPENSEARCH_BACKUP_INDEX}       opensearch_backup_index
 Library  String
 Library  Collections
 Library  RequestsLibrary
+Library  ../shared/lib/FileSystemLibrary.py
 Resource  ../shared/keywords.robot
 Suite Setup  Prepare
 Test Teardown  Delete Data
@@ -24,7 +25,9 @@ Prepare
 
 Prepare Curator
     ${auth}=  Create List  ${OPENSEARCH_CURATOR_USERNAME}  ${OPENSEARCH_CURATOR_PASSWORD}
-    ${verify}=  Set Variable If  '${OPENSEARCH_CURATOR_PROTOCOL}' == 'https'  /certs/curator/root-ca.pem  ${True}
+    ${root_ca_path}=  Set Variable  /certs/curator/root-ca.pem
+    ${root_ca_exists}=  File Exists  ${root_ca_path}
+    ${verify}=  Set Variable If  ${root_ca_exists}  ${root_ca_path}  ${True}
     Create Session  curatorsession  ${OPENSEARCH_CURATOR_PROTOCOL}://${OPENSEARCH_CURATOR_HOST}:${OPENSEARCH_CURATOR_PORT}  auth=${auth}  verify=${verify}
 
 Delete Data
