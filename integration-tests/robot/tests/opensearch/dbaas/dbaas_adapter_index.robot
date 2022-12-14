@@ -6,9 +6,9 @@ ${OPENSEARCH_DBAAS_ADAPTER_USERNAME}     %{OPENSEARCH_DBAAS_ADAPTER_USERNAME}
 ${OPENSEARCH_DBAAS_ADAPTER_PASSWORD}     %{OPENSEARCH_DBAAS_ADAPTER_PASSWORD}
 ${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}   %{OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}
 ${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}  %{OPENSEARCH_DBAAS_ADAPTER_API_VERSION=v1}
-${RETRY_TIME}                               20s
-${RETRY_INTERVAL}                           1s
-${SLEEP_TIME}                               5s
+${RETRY_TIME}                            20s
+${RETRY_INTERVAL}                        1s
+${SLEEP_TIME}                            5s
 
 *** Settings ***
 Library  DateTime
