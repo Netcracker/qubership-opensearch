@@ -36,9 +36,9 @@ Delete Data
     Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-2
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Run Keywords
-    ...  Check Index Absence ${OPENSEARCH_BACKUP_INDEX}
-    ...  Check Index Absence ${OPENSEARCH_BACKUP_INDEX}-1
-    ...  Check Index Absence ${OPENSEARCH_BACKUP_INDEX}-2
+    ...  Check Index Absence  ${OPENSEARCH_BACKUP_INDEX}
+    ...  Check Index Absence  ${OPENSEARCH_BACKUP_INDEX}-1
+    ...  Check Index Absence  ${OPENSEARCH_BACKUP_INDEX}-2
 
 Check Index Absence
     [Arguments]  ${index}
