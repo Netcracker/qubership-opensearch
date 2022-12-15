@@ -45,7 +45,7 @@ spec:
             - name: OPENSEARCH_PORT
               value: "{{ default 9200 (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-port" .) .Values.integrationTests.opensearchPort) }}"
             - name: OPENSEARCH_PROTOCOL
-              {{ if or .Values.global.externalOpensearch.enabled (eq (include "opensearch.tlsEnabled" .) "true") }}
+              {{ if or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}
               value: "https"
               {{ else }}
               value: "http"
