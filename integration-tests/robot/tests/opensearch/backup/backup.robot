@@ -34,6 +34,16 @@ Delete Data
     Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}
     Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
     Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-2
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Run Keywords
+    ...  Check Index Absence ${OPENSEARCH_BACKUP_INDEX}
+    ...  Check Index Absence ${OPENSEARCH_BACKUP_INDEX}-1
+    ...  Check Index Absence ${OPENSEARCH_BACKUP_INDEX}-2
+
+Check Index Absence
+    [Arguments]  ${index}
+    ${response}=  Get Request  opensearch  /${index}
+    Should Be Equal As Strings  ${response.status_code}  404
 
 Full Backup
     ${response}=  Post Request  curatorsession  /backup
