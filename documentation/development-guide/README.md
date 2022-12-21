@@ -3,6 +3,7 @@
 - [Build Custom Docker Image for Operator SDK](#build-custom-docker-image-for-operator-sdk)
 - [Useful Operator Commands](#useful-operator-commands)
 - [Useful Helm commands](#useful-helm-commands)
+- [Manual Linter Run](#manual-linter-run)
 
 # Introduction
 
@@ -137,3 +138,21 @@ _kubectl_:
 * `helm install --debug <your-release-name> charts/helm/opensearch-service/` is the command that prints additional logs which can help
   investigate issues with charts.
 * `helm test charts/helm/opensearch-service/` is the command to run test suite which is stored in directory `charts/helm/opensearch-service/tests`.
+
+# Manual Linter Run
+
+To run `golangci-lint` linter locally, you need to install it on your computer with the following command:
+
+```
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@<version>
+```
+
+where `<version>` is `golangci-lint` version. For example, `v1.50.1`.
+
+Make changes to the file with `golangci-lint` configuration (`.golangci.yml`) if it is necessary. Then run linter:
+
+```
+golangci-lint run ./... -v
+```
+
+More information about `golangci-lint` linter you can find in [official documentation](https://golangci-lint.run/).

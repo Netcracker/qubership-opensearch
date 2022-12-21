@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -39,7 +38,7 @@ func (rc RestClient) SendRequest(method string, path string, body io.Reader) (st
 	}
 	defer response.Body.Close()
 	statusCode = response.StatusCode
-	responseBody, err = ioutil.ReadAll(response.Body)
+	responseBody, err = io.ReadAll(response.Body)
 	return
 }
 
