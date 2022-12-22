@@ -1,12 +1,15 @@
 variables:
   DOCKER_REPOSITORY: "artifactorycn.netcracker.com:17023"
   CI_IMAGE: "artifactorycn.netcracker.com:17023/tools/monitoring-gitlab-ci:0.0.1"
+  GO_LINTER_IMAGE: "artifactorycn.netcracker.com:17064/golangci/golangci-lint:v1.50.1"
+  GO_PROXY: "https://artifactorycn.netcracker.com/pd.sandbox-staging.go.group"
   INTEGRATION_TESTS_POD_NAME: opensearch-integration-tests
   TAGS: NOTha
   # Name should be formed as follows: ci_master_openshift_sdntest_<namespace_name>_token
   CLOUD_TOKEN: ${ci_master_openshift_sdntest_opensearch_service_token}
 
 stages:
+  - linter
   - build
   - build_manifest_and_deploy
   - test
@@ -21,6 +24,16 @@ workflow:
     - charts/**/*
     - controllers/*
     - opensearch-integration-tests/**/*
+
+LinterGo:
+  allow_failure: true
+  image: ${GO_LINTER_IMAGE}
+  script:
+    - go env -w GOPROXY=${GO_PROXY}
+    - golangci-lint run ./... -v
+  stage: linter
+  tags:
+    - NETCRACKER
 
 BuildDockerImage:
   image: artifactorycn.netcracker.com:17010/docker:1.12.6

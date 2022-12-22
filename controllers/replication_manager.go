@@ -172,9 +172,8 @@ func (rm ReplicationManager) Configure() error {
 		return err
 	}
 	if statusCode >= 400 {
-		return errors.New(
-			fmt.Sprintf("asynchronous request to create connection with the remote opensearch cluster returned unexpected status code - [%d]",
-				statusCode))
+		return fmt.Errorf("asynchronous request to create connection with the remote opensearch cluster returned unexpected status code - [%d]",
+			statusCode)
 	}
 	return nil
 }
@@ -262,7 +261,7 @@ func (rm ReplicationManager) getReplicatedIndices() ([]string, error) {
 		return nil, err
 	}
 	var indices []string
-	for key, _ := range replicationStats.IndexStats {
+	for key := range replicationStats.IndexStats {
 		indices = append(indices, key)
 	}
 	return indices, nil
@@ -376,8 +375,8 @@ func (rm ReplicationManager) stopIndicesReplication(indexNames []string) error {
 			return err
 		}
 		if statusCode >= 400 {
-			return errors.New(fmt.Sprintf("can not stop replication for [%s] index with status code - [%d], response - [%s]",
-				index, statusCode, string(responseBody)))
+			return fmt.Errorf("can not stop replication for [%s] index with status code - [%d], response - [%s]",
+				index, statusCode, string(responseBody))
 		}
 		rm.logger.Info(fmt.Sprintf("Replication was stopped for index [%s]", index))
 	}
@@ -446,8 +445,8 @@ func (rm ReplicationManager) DeleteIndicesByPatternWithUnlock(pattern string) er
 		}
 	}
 	if statusCode >= 400 {
-		return errors.New(fmt.Sprintf("can not delete indices by pattern - [%s] with status code - [%d]",
-			pattern, statusCode))
+		return fmt.Errorf("can not delete indices by pattern - [%s] with status code - [%d]",
+			pattern, statusCode)
 	}
 	return nil
 }
@@ -470,8 +469,8 @@ func (rm ReplicationManager) DeleteIndicesByPattern(pattern string) error {
 		return errors.New("no permissions to delete opensearch indices by pattern")
 	}
 	if statusCode >= 400 {
-		return errors.New(fmt.Sprintf("can not delete indices by pattern - [%s] with status code - [%d]",
-			pattern, statusCode))
+		return fmt.Errorf("can not delete indices by pattern - [%s] with status code - [%d]",
+			pattern, statusCode)
 	}
 	return nil
 }

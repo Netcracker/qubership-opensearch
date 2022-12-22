@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/controllers"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"regexp"
@@ -182,7 +181,7 @@ func configureClient() http.Client {
 	if _, err := os.Stat(certificateFilePath); errors.Is(err, os.ErrNotExist) {
 		return httpClient
 	}
-	caCert, _ := ioutil.ReadFile(certificateFilePath)
+	caCert, _ := os.ReadFile(certificateFilePath)
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
 	httpClient.Transport = &http.Transport{

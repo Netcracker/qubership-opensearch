@@ -10,7 +10,6 @@ import (
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/go-retryablehttp"
-	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -360,7 +359,7 @@ func (r *OpenSearchServiceReconciler) configureClient() (http.Client, error) {
 	if _, err := os.Stat(certificateFilePath); errors.Is(err, os.ErrNotExist) {
 		return httpClient, nil
 	}
-	caCert, err := ioutil.ReadFile(certificateFilePath)
+	caCert, err := os.ReadFile(certificateFilePath)
 	if err != nil {
 		return httpClient, err
 	}

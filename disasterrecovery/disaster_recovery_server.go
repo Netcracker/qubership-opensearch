@@ -20,9 +20,8 @@ const (
 )
 
 var (
-	verbose   = GetEnv("DEBUG", "false")
-	namespace = GetEnv("OPERATOR_NAMESPACE", "")
-	log = logf.Log.WithName("dr_health_server")
+	verbose = GetEnv("DEBUG", "false")
+	log     = logf.Log.WithName("dr_health_server")
 )
 
 type ServerContext struct {
