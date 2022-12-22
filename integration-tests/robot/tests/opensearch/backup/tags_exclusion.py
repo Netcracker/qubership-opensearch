@@ -14,3 +14,5 @@ def get_excluded_tags(environ) -> list:
                                                'OPENSEARCH_CURATOR_USERNAME',
                                                'OPENSEARCH_CURATOR_PASSWORD'):
         return ['unauthorized_access']
+    if "full_backup" not in environ.get('TAGS'):
+        return ['full_backup']
