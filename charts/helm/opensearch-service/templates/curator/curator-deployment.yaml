@@ -46,7 +46,7 @@ spec:
             - name: ES_AUTH
               value: "$(ES_USERNAME):$(ES_PASSWORD)"
             - name: TLS_HTTP_ENABLED
-              value: "{{ or .Values.global.externalOpensearch.enabled (eq (include "opensearch.tlsEnabled" .) "true") }}"
+              value: "{{ or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}"
             - name: TLS_ENABLED
               value: "{{ template "curator.tlsEnabled" . }}"
             - name: SNAPSHOT_REPOSITORY_NAME
@@ -131,7 +131,7 @@ spec:
             - name: ES_AUTH
               value: "$(ES_USERNAME):$(ES_PASSWORD)"
             - name: TLS_HTTP_ENABLED
-              value: "{{ or .Values.global.externalOpensearch.enabled (eq (include "opensearch.tlsEnabled" .) "true") }}"
+              value: "{{ or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}"
             - name: INDICES_CLEANER_SCHEDULER_UNIT
               value: {{ .Values.curator.indicesCleanerSchedulerUnit | default "days" }}
             - name: INDICES_CLEANER_SCHEDULER_UNIT_COUNT

@@ -47,7 +47,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: OPENSEARCH_PROTOCOL
-              {{ if or .Values.global.externalOpensearch.enabled (eq (include "opensearch.tlsEnabled" .) "true") }}
+              {{ if or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}
               value: "https"
               {{ else }}
               value: "http"

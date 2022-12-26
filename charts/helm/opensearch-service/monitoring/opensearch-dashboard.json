@@ -40,6 +40,7 @@
       "tags": [
         "prometheus",
         "opensearch",
+        "opensearch_indices_namespace",
         "indices"
       ],
       "targetBlank": true,
