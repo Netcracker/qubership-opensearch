@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/controllers"
+	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"net/http"
 	"os"
 	"regexp"
@@ -51,17 +51,23 @@ func NewReplicationChecker(opensearchName string, opensearchProtocol string, use
 		credentials = []string{username, password}
 	}
 	url := createUrl(opensearchProtocol, opensearchName, 9200)
-	restClient := controllers.NewRestClient(url, configureClient(), credentials)
+	restClient := util.NewRestClient(url, configureClient(), credentials)
 	return ReplicationChecker{
 		restClient: *restClient,
 	}
 }
 
-type ReplicationChecker struct {
-	restClient controllers.RestClient
+func NewReplicationCheckerWithClient(restClient util.RestClient) ReplicationChecker {
+	return ReplicationChecker{
+		restClient: restClient,
+	}
 }
 
-func (rc ReplicationChecker) checkReplication() (string, error) {
+type ReplicationChecker struct {
+	restClient util.RestClient
+}
+
+func (rc ReplicationChecker) CheckReplication() (string, error) {
 	statusCode, responseBody, err := rc.restClient.SendRequest(http.MethodGet, "_plugins/_replication/autofollow_stats", nil)
 	if err != nil {
 		log.Error(err, "An error occurred during autofollow_stats HTTP request")
