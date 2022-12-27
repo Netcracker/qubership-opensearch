@@ -592,16 +592,23 @@ ca.crt: {{ $ca.Cert | b64enc }}
 {{- end -}}
 
 {{/*
+Whether TLS for external OpenSearch is enabled
+*/}}
+{{- define "external.tlsEnabled" -}}
+  {{- and .Values.global.externalOpensearch.enabled (contains "https" .Values.global.externalOpensearch.url) -}}
+{{- end -}}
+
+{{/*
 External Opensearch host
 */}}
 {{- define "external.opensearch-host" -}}
-{{$host := .Values.global.externalOpensearch.url}}
-{{- if contains "https" .Values.global.externalOpensearch.url }}
-  {{- $host = trimPrefix "https://" $host}}
-{{- else}}
-  {{- $host = trimPrefix "http://" $host}}
+{{- $host := .Values.global.externalOpensearch.url -}}
+{{- if contains "https" .Values.global.externalOpensearch.url -}}
+  {{- $host = trimPrefix "https://" $host -}}
+{{- else -}}
+  {{- $host = trimPrefix "http://" $host -}}
 {{- end -}}
-{{- $host = trimSuffix "/" $host}}
+{{- $host = trimSuffix "/" $host -}}
 {{- $host }}
 {{- end -}}
 
@@ -609,11 +616,11 @@ External Opensearch host
 External Opensearch port
 */}}
 {{- define "external.opensearch-port" -}}
-{{$host := .Values.global.externalOpensearch.url}}
-{{- if contains "https" .Values.global.externalOpensearch.url }}
-  {{- 443 }}
-{{- else}}
-  {{- 80 }}
+{{- $host := .Values.global.externalOpensearch.url -}}
+{{- if contains "https" .Values.global.externalOpensearch.url -}}
+  {{- 443 -}}
+{{- else -}}
+  {{- 80 -}}
 {{- end -}}
 {{- end -}}
 
@@ -642,7 +649,7 @@ Calculates resources that should be monitored during deployment by Deployment St
     {{- if .Values.monitoring.enabled }}
     {{- printf "Deployment %s-monitoring, " (include "opensearch.fullname" .) -}}
     {{- end }}
-    {{ if not .Values.global.externalOpensearch.enabled }}
+    {{- if not .Values.global.externalOpensearch.enabled -}}
     {{- if eq (include "joint-mode" .) "true" }}
     {{- printf "StatefulSet %s, " (include "opensearch.fullname" .) -}}
     {{- else }}
