@@ -111,8 +111,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-            - name: ADDITIONAL_HEALTH_ENDPOINT
-              value: http://$(POD_IP):8069/healthz
             {{- if .Values.global.disasterRecovery.httpAuth.enabled}}
             - name: SITE_MANAGER_NAMESPACE
               value: {{ .Values.global.disasterRecovery.httpAuth.smNamespace | quote }}
