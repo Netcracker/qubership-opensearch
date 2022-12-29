@@ -135,7 +135,7 @@ func (rc ReplicationChecker) listUnhealthyIndices(pattern string) ([]string, err
 	}
 	re := regexp.MustCompile(strings.ReplaceAll(pattern, "*", ".*"))
 	for _, index := range allIndices {
-		if re.MatchString(index.Index) && index.Health != "green" {
+		if re.MatchString(index.Index) && index.Health == "red" {
 			indices = append(indices, index.Index)
 		}
 	}
