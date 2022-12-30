@@ -4,8 +4,8 @@ ${OPENSEARCH_CURATOR_HOST}       %{OPENSEARCH_CURATOR_HOST}
 ${OPENSEARCH_CURATOR_PORT}       %{OPENSEARCH_CURATOR_PORT}
 ${OPENSEARCH_CURATOR_USERNAME}   %{OPENSEARCH_CURATOR_USERNAME=}
 ${OPENSEARCH_CURATOR_PASSWORD}   %{OPENSEARCH_CURATOR_PASSWORD=}
-${RETRY_TIME}                    120s
-${RETRY_INTERVAL}                5s
+${RETRY_TIME}                    300s
+${RETRY_INTERVAL}                10s
 ${OPENSEARCH_BACKUP_INDEX}       opensearch_backup_index
 
 *** Settings ***
@@ -34,6 +34,11 @@ Delete Data
     Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}
     Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
     Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-2
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Run Keywords
+    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}  AND
+    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}-1  AND
+    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}-2
 
 Full Backup
     ${response}=  Post Request  curatorsession  /backup
