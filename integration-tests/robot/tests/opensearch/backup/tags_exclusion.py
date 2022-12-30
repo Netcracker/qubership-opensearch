@@ -10,7 +10,11 @@ def get_excluded_tags(environ) -> list:
                                                'OPENSEARCH_CURATOR_HOST',
                                                'OPENSEARCH_CURATOR_PORT'):
         return ['backup']
+    excluded_tags = []
     if not check_that_parameters_are_presented(environ,
                                                'OPENSEARCH_CURATOR_USERNAME',
                                                'OPENSEARCH_CURATOR_PASSWORD'):
-        return ['unauthorized_access']
+        excluded_tags.append('unauthorized_access')
+    if "full_backup" not in environ.get('TAGS'):
+        excluded_tags.append('full_backup')
+    return excluded_tags
