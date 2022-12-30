@@ -6,11 +6,11 @@ def check_that_parameters_are_presented(environ, *variable_names) -> bool:
 
 
 def get_excluded_tags(environ) -> list:
-    excluded_tags = []
     if not check_that_parameters_are_presented(environ,
                                                'OPENSEARCH_CURATOR_HOST',
                                                'OPENSEARCH_CURATOR_PORT'):
-        excluded_tags.append('backup')
+        return ['backup']
+    excluded_tags = []
     if not check_that_parameters_are_presented(environ,
                                                'OPENSEARCH_CURATOR_USERNAME',
                                                'OPENSEARCH_CURATOR_PASSWORD'):
