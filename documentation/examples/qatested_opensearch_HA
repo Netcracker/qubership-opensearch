@@ -10,6 +10,15 @@ global:
       clusterIssuerName: qa-issuer-self
   velero:
     preHookBackupEnabled: true
+operator:
+  replicas: 1
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
 opensearch:
   securityConfig:
     authc:
@@ -81,11 +90,6 @@ dbaasAdapter:
 integrationTests:
   enabled: true
   tags: smoke
-secret:
-  idp:
-    username: ""
-    password: ""
-    registrationToken: ""
 monitoring:
   enabled: true
   includeIndices: true
@@ -100,15 +104,6 @@ dashboards:
       - host: dashboards-opensearch-service.qa-kubernetes.openshift.sdntest.netcracker.com
         paths:
           - path: /
-operator:
-  replicas: 1
-  resources:
-    limits:
-      cpu: 100m
-      memory: 128Mi
-    requests:
-      cpu: 50m
-      memory: 128Mi
 curator:
   enabled: true
   backupSchedule: 0 * * * *
