@@ -30,7 +30,7 @@ spec:
       containers:
         - env:
             - name: DBAAS_ADAPTER_ADDRESS
-              value: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (printf "http://%s.%s:8080" (include "dbaas-adapter.name" .) .Release.Namespace) }}
+              value: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (include "dbaas-adapter.address" .) }}
             - name: DBAAS_ADAPTER_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -44,7 +44,7 @@ spec:
             - name: API_VERSION
               value: {{ .Values.dbaasAdapter.apiVersion | quote }}
             - name: DBAAS_AGGREGATOR_REGISTRATION_ADDRESS
-              value: {{ .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress | default "http://dbaas-aggregator.dbaas:8080" }}
+              value: {{ .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress | default (printf "%s://dbaas-aggregator.dbaas:8080" (include "dbaas-adapter.protocol" .)) }}
             - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER
               value: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
             - name: DBAAS_AGGREGATOR_REGISTRATION_USERNAME
@@ -81,11 +81,13 @@ spec:
               value: "dbaas.physical_databases.registration.labels.json"
             - name: LABELS_FILE_LOCATION_DIR
               value: "/app/config/"
+            - name: INTERNAL_TLS_ENABLED
+              value: "{{ template "dbaas-adapter.tlsEnabled" }}"
           image: {{ template "dbaas-adapter.image" . }}
           imagePullPolicy: {{ .Values.dbaasAdapter.imagePullPolicy | default "Always" | quote }}
           livenessProbe:
             tcpSocket:
-              port: 8080
+              port: {{ template "dbaas-adapter.port" }}
             initialDelaySeconds: 60
             timeoutSeconds: 5
             periodSeconds: 10
@@ -93,7 +95,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              port: 8080
+              port: {{ template "dbaas-adapter.port" }}
               path: "/health"
             initialDelaySeconds: 10
             timeoutSeconds: 5
@@ -111,9 +113,13 @@ spec:
               name: opensearch-certs
               subPath: {{ template "opensearch.rest-root-ca-path" . }}
             {{- end }}
+            {{- if eq (include "dbaas-adapter.tlsEnabled" .) "true" }}
+            - mountPath: /tls
+              name: dbaas-adapter-certs
+            {{- end }}
           ports:
             - protocol: TCP
-              containerPort: 8080
+              containerPort: {{ template "dbaas-adapter.port" }}
       volumes:
         - name: dbaas-adapter-configs
           configMap:
@@ -122,6 +128,11 @@ spec:
         - name: opensearch-certs
           secret:
             secretName: {{ template "opensearch.rest-cert-secret-name" . }}
+        {{- end }}
+        {{- if eq (include "dbaas-adapter.tlsEnabled" .) "true" }}
+        - name: dbaas-adapter-certs
+          secret:
+           secretName: {{ template "dbaas-adapter.tlsSecretName" . }}
         {{- end }}
     {{- with .Values.dbaasAdapter.nodeSelector }}
       nodeSelector:

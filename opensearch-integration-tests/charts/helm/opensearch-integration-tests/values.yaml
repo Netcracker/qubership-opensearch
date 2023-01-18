@@ -34,6 +34,8 @@ integrationTests:
   dbaasAdapterType: "opensearch"
   opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"
   opensearchDbaasAdapterPort: 8080
+  opensearchDbaasAdapterProtocol: "http"
+  opensearchDbaasSecretName: "opensearch-dbaas-adapter-tls-secret"
   opensearchDbaasAdapterRepository: "snapshots"
   opensearchDbaasAdapterApiVersion: v1
   opensearchCuratorProtocol: "http"

@@ -90,6 +90,8 @@ spec:
               value: {{ .Values.integrationTests.opensearchDbaasAdapterHost | default "dbaas-opensearch-adapter" }}
             - name: OPENSEARCH_DBAAS_ADAPTER_PORT
               value: "{{ .Values.integrationTests.opensearchDbaasAdapterPort | default 8080 }}"
+            - name: OPENSEARCH_DBAAS_ADAPTER_PROTOCOL
+              value: {{ .Values.integrationTests.opensearchDbaasAdapterProtocol | default "http" }}
             - name: OPENSEARCH_DBAAS_ADAPTER_REPOSITORY
               value: {{ .Values.integrationTests.opensearchDbaasAdapterRepository | default "snapshots" }}
             - name: OPENSEARCH_DBAAS_ADAPTER_USERNAME
@@ -142,6 +144,10 @@ spec:
               name: curator-certs
               subPath: "ca.crt"
             {{- end }}
+            {{- if eq .Values.integrationTests.opensearchDbaasAdapterProtocol "https" }}
+            - mountPath: /certs/dbaas-adapter
+              name: dbaas-adapter-certs
+            {{- end }}
           terminationMessagePath: /dev/termination-log
       volumes:
         - name: output
@@ -155,4 +161,9 @@ spec:
         - name: curator-certs
           secret:
             secretName: {{ .Values.tls.curator.secretName }}
+        {{- end }}
+        {{- if eq .Values.integrationTests.opensearchDbaasAdapterProtocol "https" }}
+        - name: dbaas-adapter-certs
+          secret:
+            secretName: {{ .Values.integrationTests.opensearchDbaasSecretName }}
         {{- end }}

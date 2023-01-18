@@ -882,6 +882,13 @@ dbaasAdapter:
   opensearchClusterVersion: ""
   netcrackerOpensearchClusterVersion: ""
 
+  tls:
+    enabled: false
+    secretName: ""
+    subjectAlternativeName:
+      additionalDnsNames: [ ]
+      additionalIpAddresses: [ ]
+
   resources:
     requests:
       memory: 32Mi
@@ -1097,6 +1104,7 @@ integrationTests:
   tags: "smoke"
   opensearchPort: 9200
   opensearchDbaasAdapterPort: 8080
+  opensearchDbaasAdapterProtocol: "http"
   opensearchCuratorPort: 8080
   identityProviderUrl: ""
   prometheusUrl: ""
