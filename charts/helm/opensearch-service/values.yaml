@@ -883,7 +883,7 @@ dbaasAdapter:
   netcrackerOpensearchClusterVersion: ""
 
   tls:
-    enabled: false
+    enabled: true
     secretName: ""
     subjectAlternativeName:
       additionalDnsNames: [ ]
