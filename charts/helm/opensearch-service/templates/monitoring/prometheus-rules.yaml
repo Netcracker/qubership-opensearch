@@ -87,4 +87,20 @@ spec:
           labels:
             severity: high
         {{- end }}
+        - alert: OpenSearch_Replication_Failed_Alert
+          annotations:
+            description: 'OpenSearch Replication has Failed.'
+            summary: OpenSearch Replication Has Failed
+          expr: opensearch_replication_metric_status{namespace="{{ .Release.Namespace }}"} == 4
+          for: 3m
+          labels:
+            severity: high
+        - alert: OpenSearch_Replication_Too_High_Lag
+          annotations:
+            description: 'OpenSearch Replication Has Index With Too High Lag.'
+            summary: OpenSearch Replication Has Index With Too High Lag
+          expr: max(opensearch_replication_metric_status{namespace="{{ .Release.Namespace }}"}) > {{ .Values.monitoring.maxLag }}
+          for: 3m
+          labels:
+            severity: high
 {{- end }}
