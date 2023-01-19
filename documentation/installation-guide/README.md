@@ -942,20 +942,21 @@ The following rules require cluster-wide permissions. If it is not possible to p
     name: system:auth-delegator
   ```
 
-* To avoid applying manual CRD the following grants should be provided for the `ClusterRole` of deployment user:
+* Need to create/apply the Custom resource definition `OpenSearchService` for this version. There are 2 options:
+  * You can create/apply the CRD manually before installation. The CRD for this version is stored in [crd.yaml](/charts/helm/opensearch-service/crds/crd.yaml):
 
-  ```yaml
-    rules:
-      - apiGroups: ["apiextensions.k8s.io"]
-        resources: ["customresourcedefinitions"]
-        verbs: ["get", "create", "patch"]
+    ```
+    kubectl apply -f crd.yaml
     ```
 
-* Custom resource definition `OpenSearchService` should be created/applied before installation. The CRD for this version is stored in [crd.yaml](/charts/helm/opensearch-service/crds/crd.yaml):
+  * To avoid applying manual the CRD the following grants should be provided for the `ClusterRole` of deployment user:
+    ```yaml
+      rules:
+        - apiGroups: ["apiextensions.k8s.io"]
+          resources: ["customresourcedefinitions"]
+          verbs: ["get", "create", "patch"]
+      ```
 
-  ```
-  kubectl apply -f crd.yaml
-  ```
 * The parameter `global.psp.create` should be defined as `false`.
 
 **Note**: If you deploy OpenSearch Service to Kubernetes version less than `1.16`, you have to manually install CRD from `config/crd/old/netcracker.com_opensearchservices.yaml` and disable automatic CRD creation by Helm.
