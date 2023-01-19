@@ -44,7 +44,7 @@ spec:
             - name: API_VERSION
               value: {{ .Values.dbaasAdapter.apiVersion | quote }}
             - name: DBAAS_AGGREGATOR_REGISTRATION_ADDRESS
-              value: {{ .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress | default (printf "%s://dbaas-aggregator.dbaas:8080" (include "dbaas-adapter.protocol" .)) }}
+              value: {{ .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
             - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER
               value: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
             - name: DBAAS_AGGREGATOR_REGISTRATION_USERNAME
@@ -97,6 +97,7 @@ spec:
             httpGet:
               port: {{ template "dbaas-adapter.port" }}
               path: "/health"
+              scheme:
             initialDelaySeconds: 10
             timeoutSeconds: 5
             periodSeconds: 10
