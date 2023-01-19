@@ -675,7 +675,7 @@ DBaaS Adapter address
 DNS names used to generate TLS certificate with "Subject Alternative Name" field for OpenSearch DBaaS Addapter
 */}}
 {{- define "dbaas-adapter.certDnsNames" -}}
-  {{- $dnsNames := list "localhost" (printf "%s-dbaas-adapter" (include "opensearch.fullname" .)) (printf "%s-dbaas-adapter.%s" (include "opensearch.fullname" .) .Release.Namespace) (printf "%s-dbaas-adapter.%s.svc" (include "opensearch.fullname" .) .Release.Namespace) -}}
+  {{- $dnsNames := list "localhost" (printf "dbaas-%s-adapter" (include "opensearch.fullname" .)) (printf "dbaas-%s-adapter.%s" (include "opensearch.fullname" .) .Release.Namespace) (printf "dbaas-%s-adapter.%s.svc" (include "opensearch.fullname" .) .Release.Namespace) -}}
   {{- $dnsNames = concat $dnsNames .Values.dbaasAdapter.tls.subjectAlternativeName.additionalDnsNames -}}
   {{- $dnsNames | toYaml -}}
 {{- end -}}

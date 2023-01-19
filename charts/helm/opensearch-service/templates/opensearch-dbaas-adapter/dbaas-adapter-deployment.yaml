@@ -97,7 +97,7 @@ spec:
             httpGet:
               port: {{ template "dbaas-adapter.port" }}
               path: "/health"
-              scheme:
+              scheme: {{ upper (include "dbaas-adapter.protocol" .) }}
             initialDelaySeconds: 10
             timeoutSeconds: 5
             periodSeconds: 10
