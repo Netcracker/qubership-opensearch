@@ -8,5 +8,5 @@ metadata:
 spec:
   name: opensearch-replication-dashboard.json
   json: >
-    {{ .Files.Get "monitoring/replication-dashboard.json" | indent 4 | replace "opensearch_replication_namespace" .Release.Namespace }}
-  {{- end }}
+{{ .Files.Get "monitoring/replication-dashboard.json" | indent 4 | replace "opensearch_replication_namespace" .Release.Namespace }}
+{{- end }}

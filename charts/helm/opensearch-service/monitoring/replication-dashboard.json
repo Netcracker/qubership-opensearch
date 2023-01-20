@@ -26,31 +26,8 @@
   "fiscalYearStartMonth": 0,
   "gnetId": 61,
   "graphTooltip": 0,
-  "id": 67,
-  "links": [
-    {
-      "icon": "external link",
-      "tags": [
-        "k8s-pod-by-node"
-      ],
-      "targetBlank": true,
-      "title": "Kubernetes / Pod Resources",
-      "type": "dashboards"
-    },
-    {
-      "icon": "external link",
-      "tags": [
-        "prometheus",
-        "opensearch",
-        "opensearch-service",
-        "indices"
-      ],
-      "targetBlank": true,
-      "title": "OpenSearch Indices",
-      "tooltip": "Open OpenSearch Indices dashboard",
-      "type": "dashboards"
-    }
-  ],
+  "id": 92,
+  "links": [],
   "liveNow": false,
   "panels": [
     {
@@ -99,7 +76,7 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 4,
+        "w": 8,
         "x": 0,
         "y": 1
       },
@@ -169,7 +146,7 @@
           "dsType": "influxdb",
           "editorMode": "code",
           "exemplar": true,
-          "expr": "max(opensearch_replication_metric_status{namespace=\"$namespace\",cluster=\"$cluster\",status=\"\"})",
+          "expr": "max(opensearch_replication_metric_status{namespace=\"$namespace\",cluster=\"$cluster\"})",
           "groupBy": [
             {
               "params": [
@@ -212,6 +189,11 @@
       ],
       "thresholds": [
         {
+          "$$hashKey": "object:2720",
+          "color": "#ccccdc",
+          "value": -2
+        },
+        {
           "$$hashKey": "object:1348",
           "color": "#37872D",
           "value": 0
@@ -219,12 +201,17 @@
         {
           "$$hashKey": "object:1349",
           "color": "#E0B400",
-          "value": 6
+          "value": 2
         },
         {
           "$$hashKey": "object:1350",
+          "color": "#757575",
+          "value": 3
+        },
+        {
+          "$$hashKey": "object:2717",
           "color": "#C4162A",
-          "value": 10
+          "value": 4
         }
       ],
       "title": "Replication status",
@@ -244,7 +231,7 @@
         {
           "$$hashKey": "object:278",
           "op": "=",
-          "text": "ELASTICSEARCH IS UNAVAILABLE",
+          "text": "OPENSEARCH IS UNAVAILABLE",
           "value": "-2"
         },
         {
@@ -316,8 +303,8 @@
       },
       "gridPos": {
         "h": 3,
-        "w": 5,
-        "x": 4,
+        "w": 4,
+        "x": 8,
         "y": 1
       },
       "id": 65040,
@@ -441,8 +428,8 @@
       },
       "gridPos": {
         "h": 3,
-        "w": 5,
-        "x": 9,
+        "w": 4,
+        "x": 12,
         "y": 1
       },
       "id": 65924,
@@ -566,8 +553,8 @@
       },
       "gridPos": {
         "h": 3,
-        "w": 5,
-        "x": 14,
+        "w": 4,
+        "x": 16,
         "y": 1
       },
       "id": 65925,
@@ -691,8 +678,8 @@
       },
       "gridPos": {
         "h": 3,
-        "w": 5,
-        "x": 19,
+        "w": 4,
+        "x": 20,
         "y": 1
       },
       "id": 65926,
@@ -814,8 +801,8 @@
       "extendLastValue": true,
       "gridPos": {
         "h": 4,
-        "w": 20,
-        "x": 4,
+        "w": 16,
+        "x": 8,
         "y": 4
       },
       "highlightOnMouseover": true,
@@ -917,7 +904,7 @@
         {
           "$$hashKey": "object:322",
           "op": "=",
-          "text": "ELASTICSEARCH IS UNAVAILABLE",
+          "text": "OPENSEARCH IS UNAVAILABLE",
           "value": "-2"
         },
         {
@@ -977,7 +964,7 @@
                 },
                 "2": {
                   "index": 1,
-                  "text": "Bootstrapping"
+                  "text": "Bootstraping"
                 },
                 "3": {
                   "index": 2,
@@ -985,7 +972,7 @@
                 },
                 "4": {
                   "index": 3,
-                  "text": "Not in progress"
+                  "text": "Failed"
                 }
               },
               "type": "value"
@@ -1048,7 +1035,7 @@
           "dsType": "influxdb",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "max(opensearch_replication_metric_index_status{namespace=\"$namespace\",cluster=\"$cluster\", index=~\"$index\"}) by (index)",
+          "expr": "opensearch_replication_metric_index_status{namespace=\"$namespace\",cluster=\"$cluster\", index=~\"$index\"}",
           "format": "table",
           "groupBy": [
             {
@@ -1091,7 +1078,7 @@
           "tags": []
         }
       ],
-      "title": "Replicated indices status",
+      "title": "Indices status",
       "transformations": [
         {
           "id": "filterFieldsByName",
@@ -1118,12 +1105,22 @@
         {
           "$$hashKey": "object:513",
           "color": "#37872D",
-          "text": "SUCCESS"
+          "text": "SYNCING"
         },
         {
           "$$hashKey": "object:516",
-          "color": "#E02F44",
-          "text": "FAILURE"
+          "color": "#FADE2A",
+          "text": "BOOTSTRAPPING"
+        },
+        {
+          "$$hashKey": "object:693",
+          "color": "#ccccdc",
+          "text": "PAUSED"
+        },
+        {
+          "$$hashKey": "object:696",
+          "color": "#C4162A",
+          "text": "FAILED"
         }
       ],
       "crosshairColor": "#8F070C",
@@ -1176,10 +1173,11 @@
             "10": "e"
           },
           "editorMode": "code",
-          "exemplar": true,
-          "expr": "max(opensearch_replication_metric_index_status{namespace=\"$namespace\", index=~\"$index\", cluster=\"$cluster\"}) by (index)",
+          "exemplar": false,
+          "expr": "opensearch_replication_metric_index_status{namespace=\"$namespace\", index=~\"$index\", cluster=\"$cluster\"}",
+          "instant": false,
           "interval": "",
-          "legendFormat": "{{exported_pod}}",
+          "legendFormat": "{{index}}",
           "range": true,
           "refId": "A"
         }
@@ -1225,7 +1223,7 @@
         "value": "minutes"
       },
       "timeTextColor": "#d8d9da",
-      "title": "Indices Status Transitions",
+      "title": "Indices status transitions",
       "type": "natel-discrete-panel",
       "units": "short",
       "use12HourClock": false,
@@ -1240,14 +1238,26 @@
         {
           "$$hashKey": "object:519",
           "op": "=",
-          "text": "SUCCESS",
+          "text": "SYNCING",
           "value": "1"
         },
         {
           "$$hashKey": "object:521",
           "op": "=",
-          "text": "FAILURE",
-          "value": "0"
+          "text": "BOOTSTRAPPING",
+          "value": "2"
+        },
+        {
+          "$$hashKey": "object:699",
+          "op": "=",
+          "text": "PAUSED",
+          "value": "3"
+        },
+        {
+          "$$hashKey": "object:701",
+          "op": "=",
+          "text": "FAILED",
+          "value": "4"
         }
       ],
       "valueTextColor": "#000000",
@@ -1370,7 +1380,7 @@
       ],
       "thresholds": [],
       "timeRegions": [],
-      "title": "Replicated Indices Lag",
+      "title": "Syncing indices lag",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1514,7 +1524,7 @@
       ],
       "thresholds": [],
       "timeRegions": [],
-      "title": "Replicated Indices Rate",
+      "title": "Syncing indices rate",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1555,11 +1565,6 @@
     "list": [
       {
         "allFormat": "glob",
-        "current": {
-          "selected": true,
-          "text": "Platform Monitoring Promxy",
-          "value": "Platform Monitoring Promxy"
-        },
         "datasource": "telegraf",
         "hide": 0,
         "includeAll": false,
@@ -1575,11 +1580,6 @@
         "type": "datasource"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "k8s-2",
-          "value": "k8s-2"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "$datasource"
@@ -1602,11 +1602,6 @@
         "type": "query"
       },
       {
-        "current": {
-          "selected": false,
-          "text": "opensearch-service",
-          "value": "opensearch-service"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "$datasource"
