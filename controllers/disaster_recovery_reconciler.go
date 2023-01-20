@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
+	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/disasterrecovery"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"net/http"
 	"strings"
 	"time"
@@ -16,6 +18,8 @@ const (
 	leaderStatsPath             = "_plugins/_replication/leader_stats"
 	replicationRemoteServiceKey = "remoteCluster"
 	replicationPatternKey       = "indicesPattern"
+	interval                    = 10 * time.Second
+	timeout                     = 240 * time.Second
 )
 
 type DisasterRecoveryReconciler struct {
@@ -98,6 +102,9 @@ func (r DisasterRecoveryReconciler) Configure() error {
 			if err == nil {
 				err = r.runReplicationProcess(replicationManager)
 			}
+			if err == nil {
+				err = r.checkReplication(replicationManager.restClient)
+			}
 		}
 
 		if r.cr.Spec.DisasterRecovery.Mode == "active" || r.cr.Spec.DisasterRecovery.Mode == "disable" {
@@ -162,16 +169,11 @@ func (r DisasterRecoveryReconciler) updateDisasterRecoveryStatus(status string, 
 }
 
 func (r DisasterRecoveryReconciler) removePreviousReplication(replicationManager ReplicationManager) error {
-	r.logger.Info("Check if autofollow task exists")
-	if replicationManager.AutofollowTaskExists() {
-		if err := replicationManager.RemoveReplicationRule(); err != nil {
-			r.logger.Error(err, "can not delete autofollow replication rule")
-			return err
-		}
-		r.logger.Info("Autofollow task was stopped.")
-	} else {
-		r.logger.Info("Autofollow task does not exist. ")
+	if err := replicationManager.RemoveReplicationRule(); err != nil {
+		r.logger.Error(err, "can not delete autofollow replication rule")
+		return err
 	}
+	r.logger.Info("Autofollow task was stopped.")
 
 	r.logger.Info("Try to stop running replication for indices.")
 	if err := replicationManager.StopReplication(); err != nil {
@@ -179,12 +181,12 @@ func (r DisasterRecoveryReconciler) removePreviousReplication(replicationManager
 		return err
 	}
 	r.logger.Info(fmt.Sprintf("Try to stop running replication for all indices match replication pattern [%s].", replicationManager.pattern))
-	if err := replicationManager.StopIndicesByPattern(replicationManager.pattern); err != nil {
+	if err := replicationManager.StopIndicesReplicationByPattern(replicationManager.pattern); err != nil {
 		r.logger.Error(err, "can not stop OpenSearch indices by pattern during switchover process to `active` state.")
 		return err
 	}
 
-	if err := replicationManager.DeleteAdminReplicationTask(); err != nil {
+	if err := replicationManager.DeleteAdminReplicationTasks(); err != nil {
 		r.logger.Error(err, "can not delete replication tasks during switchover process to `active` state.")
 		return err
 	}
@@ -212,6 +214,24 @@ func (r DisasterRecoveryReconciler) runReplicationProcess(replicationManager Rep
 	}
 	r.logger.Info("Replication has been started")
 	return nil
+}
+
+func (r DisasterRecoveryReconciler) checkReplication(restClient util.RestClient) error {
+	replicationChecker := disasterrecovery.NewReplicationCheckerWithClient(restClient)
+	err := wait.Poll(interval, timeout, func() (bool, error) {
+		status, err := replicationChecker.CheckReplication()
+		if err != nil {
+			r.logger.Error(err, "Unable to get replication state")
+			return false, nil
+		}
+		if status != disasterrecovery.UP {
+			r.logger.Info("Replication is not healthy yet")
+			return false, nil
+		}
+		r.logger.Info("Replication is healthy")
+		return true, nil
+	})
+	return err
 }
 
 func (r DisasterRecoveryReconciler) stopReplication(replicationManager ReplicationManager) error {
@@ -254,7 +274,7 @@ func (r DisasterRecoveryReconciler) getReplicationManager() ReplicationManager {
 	credentials := r.reconciler.parseSecretCredentials(r.cr, r.logger)
 	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
 	client, _ := r.reconciler.configureClient()
-	restClient := NewRestClient(url, client, credentials)
+	restClient := util.NewRestClient(url, client, credentials)
 	return *NewReplicationManager(*restClient, remoteService, pattern, r.logger)
 }
 
