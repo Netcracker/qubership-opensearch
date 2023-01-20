@@ -628,7 +628,11 @@ External Opensearch port
 Whether TLS for DBaaS Adapter is enabled
 */}}
 {{- define "dbaas-adapter.tlsEnabled" -}}
-  {{- and .Values.global.tls.enabled .Values.dbaasAdapter.tls.enabled -}}
+  {{- if and .Values.global.tls.enabled .Values.dbaasAdapter.tls.enabled -}}
+    {{- printf "true" -}}
+  {{- else -}}
+    {{- printf "false" -}}
+  {{- end -}}
 {{- end -}}
 
 {{/*
@@ -646,7 +650,7 @@ TLS secret name for OpenSearch DBaaS Adapter
 DBaaS Adapter protocol
 */}}
 {{- define "dbaas-adapter.protocol" -}}
-  {{- if include "dbaas-adapter.tlsEnabled" . -}}
+  {{- if eq (include "dbaas-adapter.tlsEnabled" .) "true" -}}
     {{- printf "https" -}}
   {{- else -}}
     {{- printf "http" -}}
@@ -657,7 +661,7 @@ DBaaS Adapter protocol
 DBaaS Adapter port
 */}}
 {{- define "dbaas-adapter.port" -}}
-  {{- if include "dbaas-adapter.tlsEnabled" . -}}
+  {{- if eq (include "dbaas-adapter.tlsEnabled" .) "true" -}}
     {{- printf "8443" -}}
   {{- else -}}
     {{- printf "8080" -}}
@@ -675,7 +679,7 @@ DBaaS Adapter address
 DNS names used to generate TLS certificate with "Subject Alternative Name" field for OpenSearch DBaaS Addapter
 */}}
 {{- define "dbaas-adapter.certDnsNames" -}}
-  {{- $dnsNames := list "localhost" (printf "dbaas-%s-adapter" (include "opensearch.fullname" .)) (printf "dbaas-%s-adapter.%s" (include "opensearch.fullname" .) .Release.Namespace) (printf "dbaas-%s-adapter.%s.svc" (include "opensearch.fullname" .) .Release.Namespace) -}}
+  {{- $dnsNames := list "localhost" (include "dbaas-adapter.name" .) (printf "%s.%s" (include "dbaas-adapter.name" .) .Release.Namespace) (printf "%s.%s.svc" (include "dbaas-adapter.name" .) .Release.Namespace) -}}
   {{- $dnsNames = concat $dnsNames .Values.dbaasAdapter.tls.subjectAlternativeName.additionalDnsNames -}}
   {{- $dnsNames | toYaml -}}
 {{- end -}}

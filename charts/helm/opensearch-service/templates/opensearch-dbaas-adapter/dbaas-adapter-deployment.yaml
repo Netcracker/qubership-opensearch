@@ -81,13 +81,13 @@ spec:
               value: "dbaas.physical_databases.registration.labels.json"
             - name: LABELS_FILE_LOCATION_DIR
               value: "/app/config/"
-            - name: INTERNAL_TLS_ENABLED
-              value: "{{ template "dbaas-adapter.tlsEnabled" }}"
+            - name: TLS_ENABLED
+              value: "{{ template "dbaas-adapter.tlsEnabled" . }}"
           image: {{ template "dbaas-adapter.image" . }}
           imagePullPolicy: {{ .Values.dbaasAdapter.imagePullPolicy | default "Always" | quote }}
           livenessProbe:
             tcpSocket:
-              port: {{ template "dbaas-adapter.port" }}
+              port: {{ template "dbaas-adapter.port" . }}
             initialDelaySeconds: 60
             timeoutSeconds: 5
             periodSeconds: 10
@@ -95,7 +95,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              port: {{ template "dbaas-adapter.port" }}
+              port: {{ template "dbaas-adapter.port" . }}
               path: "/health"
               scheme: {{ upper (include "dbaas-adapter.protocol" .) }}
             initialDelaySeconds: 10

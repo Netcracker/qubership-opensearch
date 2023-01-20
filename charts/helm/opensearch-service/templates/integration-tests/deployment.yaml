@@ -93,7 +93,7 @@ spec:
             - name: OPENSEARCH_DBAAS_ADAPTER_PORT
               value: "{{ .Values.integrationTests.opensearchDbaasAdapterPort | default 8080 }}"
             - name: OPENSEARCH_DBAAS_ADAPTER_PROTOCOL
-              value: {{ .Values.integrationTests.opensearchDbaasAdapterProtocol | default "http" }}
+              value: {{ template "dbaas-adapter.protocol" .}}
             - name: OPENSEARCH_DBAAS_ADAPTER_REPOSITORY
               value: {{ .Values.dbaasAdapter.opensearchRepo | default "snapshots" }}
             - name: OPENSEARCH_DBAAS_ADAPTER_USERNAME
@@ -115,8 +115,6 @@ spec:
               value: {{ .Values.elasticsearchDbaasAdapter.name }}
             - name: OPENSEARCH_DBAAS_ADAPTER_PORT
               value: "{{ .Values.integrationTests.opensearchDbaasAdapterPort | default 8080 }}"
-            - name: OPENSEARCH_DBAAS_ADAPTER_PROTOCOL
-              value: {{ .Values.integrationTests.opensearchDbaasAdapterProtocol | default "http" }}
             - name: OPENSEARCH_DBAAS_ADAPTER_REPOSITORY
               value: {{ .Values.elasticsearchDbaasAdapter.opensearchRepo | default "snapshots" }}
             - name: OPENSEARCH_DBAAS_ADAPTER_USERNAME
@@ -193,6 +191,7 @@ spec:
             {{- if eq (include "dbaas-adapter.tlsEnabled" .) "true" }}
             - mountPath: /certs/dbaas-adapter
               name: dbaas-adapter-certs
+              subPath: "ca.crt"
             {{- end }}
           terminationMessagePath: /dev/termination-log
       volumes:

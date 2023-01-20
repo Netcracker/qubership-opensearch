@@ -144,9 +144,10 @@ spec:
               name: curator-certs
               subPath: "ca.crt"
             {{- end }}
-            {{- if eq .Values.integrationTests.opensearchDbaasAdapterProtocol "https" }}
+            {{- if .Values.integrationTests.tls.opensearchDbaasSecretName }}
             - mountPath: /certs/dbaas-adapter
               name: dbaas-adapter-certs
+              subPath: "ca.crt"
             {{- end }}
           terminationMessagePath: /dev/termination-log
       volumes:
@@ -162,8 +163,8 @@ spec:
           secret:
             secretName: {{ .Values.tls.curator.secretName }}
         {{- end }}
-        {{- if eq .Values.integrationTests.opensearchDbaasAdapterProtocol "https" }}
+        {{- if .Values.integrationTests.tls.opensearchDbaasSecretName }}
         - name: dbaas-adapter-certs
           secret:
-            secretName: {{ .Values.integrationTests.opensearchDbaasSecretName }}
+            secretName: {{ .Values.integrationTests.tls.opensearchDbaasSecretName }}
         {{- end }}

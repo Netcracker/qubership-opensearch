@@ -12,3 +12,4 @@ Find an OpenSearch integration tests image in various places.
     {{- printf "%s" .Values.integrationTests.dockerImage -}}
   {{- end -}}
 {{- end -}}
+
