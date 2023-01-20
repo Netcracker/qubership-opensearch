@@ -132,7 +132,7 @@ func (r *OpenSearchServiceReconciler) checkOpenSearchIsReady(cr *opensearchservi
 	if err != nil {
 		return NotReadyError{}
 	}
-	restClient := NewRestClient(url, httpClient, credentials)
+	restClient := util.NewRestClient(url, httpClient, credentials)
 	statusCode, _, err := restClient.SendRequest(http.MethodGet, "", nil)
 	if err != nil || statusCode != 200 {
 		return NotReadyError{}
