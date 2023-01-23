@@ -642,7 +642,7 @@ TLS secret name for OpenSearch DBaaS Adapter
   {{- if and (not .Values.global.tls.generateCerts.enabled) .Values.dbaasAdapter.tls.secretName -}}
     {{- .Values.dbaasAdapter.tls.secretName -}}
   {{- else }}
-    {{- template "opensearch.fullname" . }}-dbaas-adapter-tls-secret
+    {{- template "dbaas-adapter.name" . }}-tls-secret
   {{- end -}}
 {{- end }}
 

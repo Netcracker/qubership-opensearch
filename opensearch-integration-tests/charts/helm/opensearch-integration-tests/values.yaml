@@ -20,9 +20,10 @@ tls:
   opensearch:
     secretName: ""
     secretCaKey: "ca.crt"
-    dbaasAdapterSecretName: ""
   curator:
     secretName: ""
+  dbaasAdapter:
+    secretName:
 
 integrationTests:
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests
