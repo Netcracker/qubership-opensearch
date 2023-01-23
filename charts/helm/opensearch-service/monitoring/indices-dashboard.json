@@ -703,7 +703,7 @@
   "tags": [
     "prometheus",
     "opensearch",
-    "opensearch_indices_namespace",
+    "opensearch_name_and_namespace",
     "indices"
   ],
   "templating": {
