@@ -1557,9 +1557,9 @@
   "schemaVersion": 37,
   "style": "dark",
   "tags": [
-    "Prometheus",
-    "OpenSearch",
-    "Replication"
+    "prometheus",
+    "opensearch",
+    "replication"
   ],
   "templating": {
     "list": [
