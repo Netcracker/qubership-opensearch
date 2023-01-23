@@ -1652,7 +1652,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": "$datasource",
-          "description": "The number of open transport connections for each OpenSearch node",
+          "description": "The number of open transport connections for each OpenSearch node. May be not applicable for managed external OpenSearch.",
           "fieldConfig": {
             "defaults": {
               "links": []
@@ -1903,7 +1903,7 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": "$datasource",
-          "description": "The rate of change between subsequent size values of received (rx) and transmitted (tx) packages for each OpenSearch node",
+          "description": "The rate of change between subsequent size values of received (rx) and transmitted (tx) packages for each OpenSearch node. May be not applicable for managed external OpenSearch.",
           "editable": true,
           "error": false,
           "fieldConfig": {
@@ -1962,7 +1962,7 @@
               "alias": "$tag_node_name: rx",
               "datasource": "$datasource",
               "dsType": "influxdb",
-              "expr": "sum(irate(opensearch_transport_rx_size_in_bytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
+              "expr": "sum(irate(opensearch_transport_rx_size_in_bytes{namespace=\"$namespace\",node_name=~\"^$node_name*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
               "groupBy": [
                 {
                   "params": [
@@ -2008,7 +2008,7 @@
               "datasource": "$datasource",
               "dsType": "influxdb",
               "exemplar": true,
-              "expr": "sum(irate(opensearch_transport_tx_size_in_bytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
+              "expr": "sum(irate(opensearch_transport_tx_size_in_bytes{namespace=\"$namespace\",node_name=~\"^$node_name*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
               "groupBy": [
                 {
                   "params": [
@@ -3222,7 +3222,7 @@
               "_comment": "In the query 'count(io_stats_total_read_operations) / count(io_stats_total_read_operations)' part is added to have 'null' results, because by default 'non_negative_derivative' function returns nothing if interval does not contain values.",
               "alias": "$tag_node_name [$tag_node_host] $col",
               "dsType": "influxdb",
-              "expr": "sum(irate(opensearch_fs_io_stats_total_write_operations{namespace=\"$namespace\",node_name=~\"^opensearch.*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
+              "expr": "sum(irate(opensearch_fs_io_stats_total_write_operations{namespace=\"$namespace\",node_name=~\"^$node_name*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
               "groupBy": [
                 {
                   "params": [
@@ -3262,7 +3262,7 @@
               "tags": []
             },
             {
-              "expr": "sum(irate(opensearch_fs_io_stats_total_read_operations{namespace=\"$namespace\",node_name=~\"^opensearch.*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
+              "expr": "sum(irate(opensearch_fs_io_stats_total_read_operations{namespace=\"$namespace\",node_name=~\"^$node_name*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
               "interval": "",
               "legendFormat": "{{node_name}}[{{node_host}}]:read",
               "refId": "B"
@@ -3356,7 +3356,7 @@
               "alias": "$tag_node_name [$tag_node_host] $col",
               "datasource": "$datasource",
               "dsType": "influxdb",
-              "expr": "sum(irate(opensearch_fs_io_stats_total_read_kilobytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
+              "expr": "sum(irate(opensearch_fs_io_stats_total_read_kilobytes{namespace=\"$namespace\",node_name=~\"^$node_name*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
               "groupBy": [
                 {
                   "params": [
@@ -3398,7 +3398,7 @@
             {
               "datasource": "$datasource",
               "exemplar": true,
-              "expr": "sum(irate(opensearch_fs_io_stats_total_write_kilobytes{namespace=\"$namespace\",node_name=~\"^opensearch.*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
+              "expr": "sum(irate(opensearch_fs_io_stats_total_write_kilobytes{namespace=\"$namespace\",node_name=~\"^$node_name*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
               "interval": "",
               "legendFormat": "{{node_name}}[{{node_host}}:write]",
               "refId": "B"
