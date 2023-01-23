@@ -8,5 +8,5 @@ metadata:
 spec:
   name: opensearch-dashboard.json
   json: >
-{{ .Files.Get "monitoring/opensearch-dashboard.json" | indent 4 | replace "opensearch_indices_namespace" .Release.Namespace }}
+{{ .Files.Get "monitoring/opensearch-dashboard.json" | indent 4 | replace "opensearch_name_and_namespace" (printf "%s_%s" (include "opensearch.fullname" .) .Release.Namespace) }}
 {{- end }}
