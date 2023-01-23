@@ -144,7 +144,7 @@ spec:
               name: curator-certs
               subPath: "ca.crt"
             {{- end }}
-            {{- if .Values.integrationTests.tls.opensearchDbaasSecretName }}
+            {{- if .Values.tls.opensearch.dbaasAdapterSecretName }}
             - mountPath: /certs/dbaas-adapter
               name: dbaas-adapter-certs
               subPath: "ca.crt"
@@ -163,8 +163,8 @@ spec:
           secret:
             secretName: {{ .Values.tls.curator.secretName }}
         {{- end }}
-        {{- if .Values.integrationTests.tls.opensearchDbaasSecretName }}
+        {{- if .Values.tls.opensearch.dbaasAdapterSecretName }}
         - name: dbaas-adapter-certs
           secret:
-            secretName: {{ .Values.integrationTests.tls.opensearchDbaasSecretName }}
+            secretName: {{ .Values.tls.opensearch.dbaasAdapterSecretName }}
         {{- end }}

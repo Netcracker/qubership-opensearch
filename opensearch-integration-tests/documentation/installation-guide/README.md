@@ -68,6 +68,8 @@ The `tls.opensearch.secretCaKey` parameter specifies the key of root CA certific
 
 The `tls.curator.secretName` parameter specifies the name of the secret that contains TLS certificates for OpenSearch curator. By default, it is empty.
 
+The `tls.opensearch.dbaasAdapterSecretName` parameter specifies the name of the secret that contains TLS certificates for Opensearch DBaaS Adapter. By default, it is empty.
+
 The `integrationTests.dockerImage` parameter specifies the docker image of OpenSearch Service integration tests.
 The default value is `artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests`.
 

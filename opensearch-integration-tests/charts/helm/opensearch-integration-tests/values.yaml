@@ -20,6 +20,7 @@ tls:
   opensearch:
     secretName: ""
     secretCaKey: "ca.crt"
+    dbaasAdapterSecretName: ""
   curator:
     secretName: ""
 
@@ -40,9 +41,6 @@ integrationTests:
   opensearchCuratorProtocol: "http"
   opensearchCuratorHost: "opensearch-curator"
   opensearchCuratorPort: 8080
-
-  tls:
-    opensearchDbaasSecretName: ""
 
   prometheusUrl: ""
 
