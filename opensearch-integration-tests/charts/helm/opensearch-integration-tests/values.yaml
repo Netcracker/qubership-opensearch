@@ -23,7 +23,7 @@ tls:
   curator:
     secretName: ""
   dbaasAdapter:
-    secretName:
+    secretName: ""
 
 integrationTests:
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests
