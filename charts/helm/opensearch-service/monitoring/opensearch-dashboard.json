@@ -40,7 +40,7 @@
       "tags": [
         "prometheus",
         "opensearch",
-        "opensearch_indices_namespace",
+        "opensearch_name_and_namespace",
         "indices"
       ],
       "targetBlank": true,
@@ -53,7 +53,7 @@
       "tags": [
         "prometheus",
         "opensearch",
-        "opensearch_replication_namespace",
+        "opensearch_name_and_namespace",
         "replication"
       ],
       "targetBlank": true,

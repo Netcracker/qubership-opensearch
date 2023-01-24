@@ -1590,7 +1590,7 @@
   "tags": [
     "prometheus",
     "opensearch",
-    "opensearch-service",
+    "opensearch_name_and_namespace",
     "replication"
   ],
   "templating": {
