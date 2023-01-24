@@ -53,6 +53,7 @@
       "tags": [
         "prometheus",
         "opensearch",
+        "opensearch_replication_namespace",
         "replication"
       ],
       "targetBlank": true,

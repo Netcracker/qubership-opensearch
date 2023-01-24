@@ -1,4 +1,4 @@
-{{- if (and .Values.monitoring.enabled (ne .Values.monitoring.monitoringType "influxdb") .Values.monitoring.installDashboard) }}
+{{- if (and .Values.monitoring.enabled (ne .Values.monitoring.monitoringType "influxdb") .Values.monitoring.installDashboard (eq (include "opensearch.enableDisasterRecovery" .) "true")) }}
 apiVersion: integreatly.org/v1alpha1
 kind: GrafanaDashboard
 metadata:
