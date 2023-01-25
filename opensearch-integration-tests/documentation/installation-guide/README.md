@@ -68,6 +68,8 @@ The `tls.opensearch.secretCaKey` parameter specifies the key of root CA certific
 
 The `tls.curator.secretName` parameter specifies the name of the secret that contains TLS certificates for OpenSearch curator. By default, it is empty.
 
+The `tls.dbaasAdapter.secretName` parameter specifies the name of the secret that contains TLS certificates for OpenSearch DBaaS Adapter. By default, it is empty.
+
 The `integrationTests.dockerImage` parameter specifies the docker image of OpenSearch Service integration tests.
 The default value is `artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests`.
 
@@ -94,7 +96,10 @@ The `integrationTests.opensearchDbaasAdapterHost` parameter specifies the host n
 The default value is `dbaas-opensearch-adapter`.
 
 The `integrationTests.opensearchDbaasAdapterPort` parameter specifies the DBaaS OpenSearch adapter port.
-The default value is `8080`.
+The default value is `8080`. Use `8443` for TLS connection.
+
+The `integrationTests.opensearchDbaasAdapterProtocol` parameter specifies the DBaaS OpenSearch adapter protocol.
+The default value is `http`. Use `https` for TLS connection.
 
 The `integrationTests.opensearchDbaasAdapterRepository` parameter the name of snapshot repository in OpenSearch.
 The default value is `snapshots`.
@@ -172,6 +177,7 @@ integrationTests:
   identityProviderUrl: "http://identity-management.security-services-ci.svc:8080"
   opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"
   opensearchDbaasAdapterPort: 8080
+  opensearchDbaasAdapterProtocol: "http"
   opensearchDbaasAdapterRepository: "snapshots"
   opensearchCuratorHost: "opensearch-curator"
   opensearchCuratorPort: 8080
@@ -280,6 +286,7 @@ integrationTests:
   identityProviderUrl: "http://identity-management.security-services-ci.svc:8080"
   opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"
   opensearchDbaasAdapterPort: 8080
+  opensearchDbaasAdapterProtocol: "http"
   opensearchDbaasAdapterRepository: "snapshots"
   opensearchCuratorHost: "opensearch-curator"
   opensearchCuratorPort: 8080
