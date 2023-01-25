@@ -3,10 +3,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": {
-          "type": "datasource",
-          "uid": "grafana"
-        },
+        "datasource": "-- Grafana --",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -32,10 +29,7 @@
   "panels": [
     {
       "collapsed": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PC3E95692D54ABCC0"
-      },
+      "datasource": "$datasource",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -46,10 +40,7 @@
       "panels": [],
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PC3E95692D54ABCC0"
-          },
+          "datasource": "$datasource",
           "refId": "A"
         }
       ],
@@ -60,10 +51,7 @@
       "circleBackground": false,
       "colorBackground": false,
       "colorValue": true,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "defaultColor": "rgb(117, 117, 117)",
       "description": "Status of OpenSearch cross-cluster replication.\n\nIf the cluster status is `Degraded`, at least one replicated indices is in `Failed` state. \n   \nA `Failed` replication status indicates that all indices are in `Failed` state.\n\nA `Not in progress` status means that replication from remote cluster disabled.",
       "format": "none",
@@ -130,19 +118,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "datasource": {
-            "0": "$",
-            "1": "d",
-            "2": "a",
-            "3": "t",
-            "4": "a",
-            "5": "s",
-            "6": "o",
-            "7": "u",
-            "8": "r",
-            "9": "c",
-            "10": "e"
-          },
+          "datasource": "$datasource",
           "dsType": "influxdb",
           "editorMode": "code",
           "exemplar": true,
@@ -273,10 +249,7 @@
       "valueName": "current"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "description": "The number of indices that are in the `Syncing` state.",
       "fieldConfig": {
         "defaults": {
@@ -338,19 +311,7 @@
       "pluginVersion": "9.3.1",
       "targets": [
         {
-          "datasource": {
-            "0": "$",
-            "1": "d",
-            "2": "a",
-            "3": "t",
-            "4": "a",
-            "5": "s",
-            "6": "o",
-            "7": "u",
-            "8": "r",
-            "9": "c",
-            "10": "e"
-          },
+          "datasource": "$datasource",
           "dsType": "influxdb",
           "editorMode": "code",
           "expr": "opensearch_replication_metric_syncing_indices{cluster=\"$cluster\",namespace=\"$namespace\"}",
@@ -398,10 +359,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "description": "The number of indices that are in the `Bootstrapping` state.",
       "fieldConfig": {
         "defaults": {
@@ -463,19 +421,7 @@
       "pluginVersion": "9.3.1",
       "targets": [
         {
-          "datasource": {
-            "0": "$",
-            "1": "d",
-            "2": "a",
-            "3": "t",
-            "4": "a",
-            "5": "s",
-            "6": "o",
-            "7": "u",
-            "8": "r",
-            "9": "c",
-            "10": "e"
-          },
+          "datasource": "$datasource",
           "dsType": "influxdb",
           "editorMode": "code",
           "expr": "opensearch_replication_metric_bootstrapping_indices{cluster=\"$cluster\",namespace=\"$namespace\"}",
@@ -523,10 +469,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "description": "The number of indices that are in the `Paused` state.",
       "fieldConfig": {
         "defaults": {
@@ -588,19 +531,7 @@
       "pluginVersion": "9.3.1",
       "targets": [
         {
-          "datasource": {
-            "0": "$",
-            "1": "d",
-            "2": "a",
-            "3": "t",
-            "4": "a",
-            "5": "s",
-            "6": "o",
-            "7": "u",
-            "8": "r",
-            "9": "c",
-            "10": "e"
-          },
+          "datasource": "$datasource",
           "dsType": "influxdb",
           "editorMode": "code",
           "expr": "opensearch_replication_metric_paused_indices{cluster=\"$cluster\",namespace=\"$namespace\"}",
@@ -648,10 +579,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "description": "The number of indices that are in the `Failed` state.",
       "fieldConfig": {
         "defaults": {
@@ -713,19 +641,7 @@
       "pluginVersion": "9.3.1",
       "targets": [
         {
-          "datasource": {
-            "0": "$",
-            "1": "d",
-            "2": "a",
-            "3": "t",
-            "4": "a",
-            "5": "s",
-            "6": "o",
-            "7": "u",
-            "8": "r",
-            "9": "c",
-            "10": "e"
-          },
+          "datasource": "$datasource",
           "dsType": "influxdb",
           "editorMode": "code",
           "expr": "opensearch_replication_metric_failed_indices{cluster=\"$cluster\",namespace=\"$namespace\"}",
@@ -807,10 +723,7 @@
         }
       ],
       "crosshairColor": "#8F070C",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "description": "Transitions of OpenSearch replication status",
       "display": "timeline",
       "expandFromQueryS": 0,
@@ -842,19 +755,7 @@
       "showTimeAxis": true,
       "targets": [
         {
-          "datasource": {
-            "0": "$",
-            "1": "d",
-            "2": "a",
-            "3": "t",
-            "4": "a",
-            "5": "s",
-            "6": "o",
-            "7": "u",
-            "8": "r",
-            "9": "c",
-            "10": "e"
-          },
+          "datasource": "$datasource",
           "editorMode": "code",
           "exemplar": true,
           "expr": "max(opensearch_replication_metric_status{namespace=\"$namespace\",cluster=\"$cluster\",status=\"\"})",
@@ -960,10 +861,7 @@
       "writeMetricNames": false
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "description": "Status of OpenSearch replicated indices",
       "fieldConfig": {
         "defaults": {
@@ -995,6 +893,10 @@
                 "4": {
                   "index": 3,
                   "text": "Failed"
+                },
+                "-1": {
+                  "index": 4,
+                  "text": "No Data Fetched"
                 }
               },
               "type": "value"
@@ -1041,19 +943,7 @@
       "targets": [
         {
           "alias": "UP",
-          "datasource": {
-            "0": "$",
-            "1": "d",
-            "2": "a",
-            "3": "t",
-            "4": "a",
-            "5": "s",
-            "6": "o",
-            "7": "u",
-            "8": "r",
-            "9": "c",
-            "10": "e"
-          },
+          "datasource": "$datasource",
           "dsType": "influxdb",
           "editorMode": "code",
           "exemplar": false,
@@ -1143,13 +1033,15 @@
           "$$hashKey": "object:696",
           "color": "#C4162A",
           "text": "FAILED"
+        },
+        {
+          "$$hashKey": "object:1418",
+          "color": "#ccccdc",
+          "text": "NO DATA FETCHED"
         }
       ],
       "crosshairColor": "#8F070C",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "description": "Transitions of status for OpenSearch replicated indices",
       "display": "timeline",
       "expandFromQueryS": 0,
@@ -1181,22 +1073,10 @@
       "showTimeAxis": true,
       "targets": [
         {
-          "datasource": {
-            "0": "$",
-            "1": "d",
-            "2": "a",
-            "3": "t",
-            "4": "a",
-            "5": "s",
-            "6": "o",
-            "7": "u",
-            "8": "r",
-            "9": "c",
-            "10": "e"
-          },
+          "datasource": "$datasource",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "opensearch_replication_metric_index_status{namespace=\"$namespace\", index=~\"$index\", cluster=\"$cluster\"}",
+          "expr": "max(opensearch_replication_metric_index_status{namespace=\"$namespace\", index=~\"$index\", cluster=\"$cluster\"}) by (index)",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1281,6 +1161,12 @@
           "op": "=",
           "text": "FAILED",
           "value": "4"
+        },
+        {
+          "$$hashKey": "object:1416",
+          "op": "=",
+          "text": "NO DATA FETCHED",
+          "value": "-1"
         }
       ],
       "valueTextColor": "#000000",
@@ -1289,10 +1175,7 @@
       "writeMetricNames": true
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "description": "The replication lag between leader and follower sides. Evaluated as difference between `leader_checkpoint` and `follower_checkpoint`.",
       "fieldConfig": {
         "defaults": {
@@ -1376,19 +1259,7 @@
       "targets": [
         {
           "alias": "$tag_node_name",
-          "datasource": {
-            "0": "$",
-            "1": "d",
-            "2": "a",
-            "3": "t",
-            "4": "a",
-            "5": "s",
-            "6": "o",
-            "7": "u",
-            "8": "r",
-            "9": "c",
-            "10": "e"
-          },
+          "datasource": "$datasource",
           "dsType": "influxdb",
           "editorMode": "code",
           "expr": "max(opensearch_replication_metric_index_lag{index=~\"$index\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (index)",
@@ -1436,10 +1307,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "description": "Cross-cluster replication rate per second",
       "fieldConfig": {
         "defaults": {
@@ -1523,22 +1391,10 @@
       "targets": [
         {
           "alias": "$tag_node_name.$col",
-          "datasource": {
-            "0": "$",
-            "1": "d",
-            "2": "a",
-            "3": "t",
-            "4": "a",
-            "5": "s",
-            "6": "o",
-            "7": "u",
-            "8": "r",
-            "9": "c",
-            "10": "e"
-          },
+          "datasource": "$datasource",
           "dsType": "influxdb",
           "editorMode": "code",
-          "expr": "max(abs(rate(opensearch_replication_metric_index_rate{index=~\"$index\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m]))) by (index)",
+          "expr": "max(abs(rate(opensearch_replication_metric_index_operations_written{index=~\"$index\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m]))) by (index)",
           "groupBy": [
             {
               "params": [
@@ -1597,7 +1453,7 @@
     "list": [
       {
         "allFormat": "glob",
-        "datasource": "telegraf",
+        "datasource": "$datasource",
         "hide": 0,
         "includeAll": false,
         "label": "Cloud",
@@ -1612,10 +1468,7 @@
         "type": "datasource"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "$datasource"
-        },
+        "datasource": "$datasource",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1634,10 +1487,7 @@
         "type": "query"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "$datasource"
-        },
+        "datasource": "$datasource",
         "definition": "label_values(opensearch_cluster_health_status_code{cluster=\"$cluster\"}, namespace)",
         "hide": 0,
         "includeAll": false,
@@ -1668,10 +1518,7 @@
             "$__all"
           ]
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "$datasource"
-        },
+        "datasource": "$datasource",
         "definition": "label_values(opensearch_replication_metric_index_status{namespace=\"$namespace\",index=~\"$indices_regex\",cluster=\"$cluster\"}, index)",
         "hide": 0,
         "includeAll": true,
@@ -1789,10 +1636,7 @@
         "type": "interval"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "$datasource"
-        },
+        "datasource": "$datasource",
         "filters": [],
         "hide": 0,
         "name": "Filters",

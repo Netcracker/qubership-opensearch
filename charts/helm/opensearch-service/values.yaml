@@ -811,7 +811,9 @@ monitoring:
   smDbPassword: ""
 
   includeIndices: false
-  maxLag:
+  thresholds:
+    lagAlert:
+
 
   opensearchHost:
   opensearchPort: 9200

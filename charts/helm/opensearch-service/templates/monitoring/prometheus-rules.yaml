@@ -96,12 +96,12 @@ spec:
           for: 3m
           labels:
             severity: high
-        {{- if .Values.monitoring.maxLag }}
+        {{- if .Values.monitoring.thresholds.lagAlert }}
         - alert: OpenSearch_Replication_Too_High_Lag
           annotations:
             description: 'OpenSearch Replication Has Index With Too High Lag.'
             summary: OpenSearch Replication Has Index With Too High Lag
-          expr: max(opensearch_replication_metric_status{namespace="{{ .Release.Namespace }}"}) > {{ .Values.monitoring.maxLag }}
+          expr: max(opensearch_replication_metric_status{namespace="{{ .Release.Namespace }}"}) > {{ .Values.monitoring.thresholds.lagAlert }}
           for: 3m
           labels:
             severity: high
