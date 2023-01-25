@@ -132,7 +132,7 @@ integration:
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: feature/vulnerabilityfix
     prefix: integration-tests
     docker-image-id: timestamp
     deploy-param: opensearchIntegrationTests
@@ -158,12 +158,12 @@ integration:
     deploy-param: elasticsearchDbaasAdapterImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: feature/vulnerabilityfix
+    location: master
     docker-image-id: timestamp
     deploy-param: opensearchCurator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: feature/vulnerabilityfix
+    location: master
     prefix: elasticsearch_indices_cleaner
     docker-image-id: timestamp
     deploy-param: opensearchIndicesCleaner
