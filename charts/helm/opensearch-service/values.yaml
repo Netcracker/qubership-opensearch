@@ -882,6 +882,13 @@ dbaasAdapter:
   opensearchClusterVersion: ""
   netcrackerOpensearchClusterVersion: ""
 
+  tls:
+    enabled: true
+    secretName: ""
+    subjectAlternativeName:
+      additionalDnsNames: [ ]
+      additionalIpAddresses: [ ]
+
   resources:
     requests:
       memory: 32Mi
