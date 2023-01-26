@@ -1,4 +1,4 @@
-package controllers
+package util
 
 import (
 	"encoding/json"
@@ -45,7 +45,8 @@ func (rc RestClient) SendRequest(method string, path string, body io.Reader) (st
 func (rc RestClient) SendRequestWithStatusCodeCheck(method string, path string, body io.Reader) ([]byte, error) {
 	statusCode, responseBody, err := rc.SendRequest(method, path, body)
 	if statusCode >= 500 {
-		return responseBody, fmt.Errorf("opensearch returned [%d] status code: %s", statusCode, responseBody)
+		return responseBody, fmt.Errorf("%s request to %s/%s returned [%d] status code: %s", method, rc.url,
+			path, statusCode, responseBody)
 	}
 	return responseBody, err
 }

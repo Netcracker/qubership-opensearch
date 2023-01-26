@@ -2,6 +2,7 @@
 ${DBAAS_ADAPTER_TYPE}                    %{DBAAS_ADAPTER_TYPE}
 ${OPENSEARCH_DBAAS_ADAPTER_HOST}         %{OPENSEARCH_DBAAS_ADAPTER_HOST}
 ${OPENSEARCH_DBAAS_ADAPTER_PORT}         %{OPENSEARCH_DBAAS_ADAPTER_PORT}
+${OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}     %{OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}
 ${OPENSEARCH_DBAAS_ADAPTER_USERNAME}     %{OPENSEARCH_DBAAS_ADAPTER_USERNAME}
 ${OPENSEARCH_DBAAS_ADAPTER_PASSWORD}     %{OPENSEARCH_DBAAS_ADAPTER_PASSWORD}
 ${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}  %{OPENSEARCH_DBAAS_ADAPTER_API_VERSION=v1}
@@ -26,7 +27,10 @@ Prepare
 
 Prepare Dbaas Adapter
     ${auth}=  Create List  ${OPENSEARCH_DBAAS_ADAPTER_USERNAME}  ${OPENSEARCH_DBAAS_ADAPTER_PASSWORD}
-    Create Session  dbaas_admin_session  http://${OPENSEARCH_DBAAS_ADAPTER_HOST}:${OPENSEARCH_DBAAS_ADAPTER_PORT}  auth=${auth}
+    ${root_ca_path}=  Set Variable  /certs/dbaas-adapter/ca.crt
+    ${root_ca_exists}=  File Exists  ${root_ca_path}
+    ${verify}=  Set Variable If  ${root_ca_exists}  ${root_ca_path}  ${True}
+    Create Session  dbaas_admin_session  ${OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}://${OPENSEARCH_DBAAS_ADAPTER_HOST}:${OPENSEARCH_DBAAS_ADAPTER_PORT}  auth=${auth}  verify=${verify}
 
 Login To OpenSearch As User
     [Arguments]  ${username}  ${password}

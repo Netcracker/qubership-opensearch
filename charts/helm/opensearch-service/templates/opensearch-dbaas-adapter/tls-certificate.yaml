@@ -1,0 +1,29 @@
+{{- $install := and (eq (include "dbaas-adapter.tlsEnabled" .) "true") .Values.global.tls.generateCerts.enabled .Values.dbaasAdapter.enabled }}
+{{- if and $install (eq (include "certProvider" .) "cert-manager") }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ template "dbaas-adapter.name" . }}-tls-certificate
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretName: {{ template "dbaas-adapter.tlsSecretName" . }}
+  duration: {{ default 365 .Values.global.tls.generateCerts.durationDays | mul 24 }}h
+  commonName: opensearch-dbaas-adapter-ca
+  isCA: false
+  privateKey:
+    rotationPolicy: Always
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  dnsNames: {{ include "dbaas-adapter.certDnsNames" . | nindent 4 }}
+  ipAddresses: {{ include "dbaas-adapter.certIpAddresses" . | nindent 4 }}
+  issuerRef:
+  {{- if .Values.global.tls.generateCerts.clusterIssuerName }}
+    name: {{ .Values.global.tls.generateCerts.clusterIssuerName }}
+    kind: ClusterIssuer
+  {{- else }}
+    name: {{ template "opensearch.fullname" . }}-service-tls-issuer
+    kind: Issuer
+  {{- end }}
+    group: cert-manager.io
+{{- end }}

@@ -65,7 +65,7 @@ BuildOperator:
   extends: .BuildOperatorTemplate
   allow_failure: false
   script:
-    - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator.yaml" --notify-failed --notify-warning --notify-title="OpenSearch Operator Build Report"
+    - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator.yaml"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
     - if: $CI_COMMIT_TAG
@@ -99,7 +99,7 @@ BuildIntegrationTests:
   extends: .BuildIntegrationTestsTemplate
   allow_failure: false
   script:
-    - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/integration-tests.yaml" --notify-failed --notify-warning --notify-title="OpenSearch Integration Tests Build Report"
+    - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/integration-tests.yaml"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
     - if: $CI_COMMIT_TAG
@@ -136,7 +136,7 @@ BuildChartsManifestAndDeploy:
     - BuildIntegrationTests
   allow_failure: false
   script:
-    - python3 /ci/orchestrate_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator-charts.yaml" --notify --notify-title="OpenSearch Service Chart Build and Deploy Report"
+    - python3 /ci/orchestrate_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator-charts.yaml"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
 
@@ -149,7 +149,7 @@ BuildChartsManifestAndDeploy1.3.6:
   variables:
     PREFIX: delivery/1.3.6
   script:
-    - python3 /ci/orchestrate_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator-charts.yaml" --notify --notify-title="OpenSearch Service Chart Build and Deploy Report"
+    - python3 /ci/orchestrate_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator-charts.yaml"
   rules:
     - if: $CI_COMMIT_TAG
 
@@ -162,7 +162,7 @@ BuildChartsManifestAndDeploy1.2.4:
   variables:
     PREFIX: delivery/1.2.4
   script:
-    - python3 /ci/orchestrate_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator-charts.yaml" --notify --notify-title="OpenSearch Service Chart Build and Deploy Report"
+    - python3 /ci/orchestrate_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator-charts.yaml"
   rules:
     - if: $CI_COMMIT_TAG
 
@@ -197,7 +197,7 @@ PerformIntegrationTests:
     - BuildChartsManifestAndDeploy
   allow_failure: false
   script:
-    - python3 /ci/smoke_tests_runner.py -f "./.gitlab-ci/jenkins/stages-params/integration-tests-charts.yaml" --log="tests_result.log" --cloud-token="${CLOUD_TOKEN}" --notify --notify-title="OpenSearch Service Integration Tests Report"
+    - python3 /ci/smoke_tests_runner.py -f "./.gitlab-ci/jenkins/stages-params/integration-tests-charts.yaml" --log="tests_result.log" --cloud-token="${CLOUD_TOKEN}"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
 

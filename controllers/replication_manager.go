@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
 	"net/http"
 	"regexp"
@@ -22,7 +23,7 @@ const (
 )
 
 type ReplicationManager struct {
-	restClient RestClient
+	restClient util.RestClient
 	remoteUrl  string
 	pattern    string
 	logger     logr.Logger
@@ -143,7 +144,7 @@ type PluginReplicationError struct {
 	Status int `json:"status"`
 }
 
-func NewReplicationManager(restClient RestClient, remoteUrl string, indexPattern string, logger logr.Logger) *ReplicationManager {
+func NewReplicationManager(restClient util.RestClient, remoteUrl string, indexPattern string, logger logr.Logger) *ReplicationManager {
 	return &ReplicationManager{
 		restClient: restClient,
 		remoteUrl:  remoteUrl,
@@ -271,11 +272,8 @@ func (rm ReplicationManager) executeReplicationCheck(indexNames []string) error 
 	//TODO: should we execute replication health check here?
 	inProgressIndices := make(map[string]int)
 	var failedIndices []string
+	pattern := strings.ReplaceAll(rm.pattern, "*", ".*")
 	for _, index := range indexNames {
-		pattern := rm.pattern
-		if strings.HasPrefix(pattern, "*") {
-			pattern = fmt.Sprintf(".%s", pattern)
-		}
 		matched, err := regexp.MatchString(pattern, index)
 		if err != nil {
 			rm.logger.Error(err, fmt.Sprintf("Regular expression - [%s] is invalid", rm.pattern))
@@ -299,8 +297,8 @@ func (rm ReplicationManager) executeReplicationCheck(indexNames []string) error 
 	}
 
 	if len(failedIndices) > 0 {
-		err := fmt.Errorf("some replication indicies are failed")
-		rm.logger.Error(err, fmt.Sprintf("Replication check is failed because there are failed replication indicies - [%v]", failedIndices))
+		err := fmt.Errorf("some replication indices are failed")
+		rm.logger.Error(err, fmt.Sprintf("Replication check is failed because there are failed replication indices: [%v]", failedIndices))
 		return err
 	}
 
@@ -408,7 +406,7 @@ func (rm ReplicationManager) DeleteIndices() error {
 	return nil
 }
 
-func (rm ReplicationManager) StopIndicesByPattern(pattern string) error {
+func (rm ReplicationManager) StopIndicesReplicationByPattern(pattern string) error {
 	path := fmt.Sprintf("_cat/indices/%s?h=index", pattern)
 	indices, err := rm.restClient.GetArrayData(path, "index", func(index string) bool {
 		if strings.HasPrefix(index, ".") {
@@ -465,17 +463,16 @@ func (rm ReplicationManager) DeleteIndicesByPattern(pattern string) error {
 		return err
 	}
 	if statusCode == 403 {
-		rm.logger.Info(fmt.Sprintf("No permissions to delete Opensearch indicies by pattren - [%s]", pattern))
+		rm.logger.Info(fmt.Sprintf("No permissions to delete Opensearch indices by pattern: [%s]", pattern))
 		return errors.New("no permissions to delete opensearch indices by pattern")
 	}
 	if statusCode >= 400 {
-		return fmt.Errorf("can not delete indices by pattern - [%s] with status code - [%d]",
-			pattern, statusCode)
+		return fmt.Errorf("can not delete indices by [%s] pattern with [%d] status code", pattern, statusCode)
 	}
 	return nil
 }
 
-func (rm ReplicationManager) DeleteAdminReplicationTask() error {
+func (rm ReplicationManager) DeleteAdminReplicationTasks() error {
 	_, body, err := rm.restClient.SendRequest(http.MethodGet, "_tasks", nil)
 	if err != nil {
 		rm.logger.Error(err, "admin replication task was not deleted")

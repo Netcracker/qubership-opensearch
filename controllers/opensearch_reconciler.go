@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
+	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
 	"net/http"
 	"strconv"
@@ -77,18 +78,20 @@ func (r OpenSearchReconciler) Status() error {
 
 func (r OpenSearchReconciler) Configure() error {
 	if r.cr.Spec.OpenSearch.Snapshots != nil {
+		url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
 		client, err := r.reconciler.configureClient()
 		if err != nil {
 			return err
 		}
 		opensearchCredentials := r.reconciler.parseSecretCredentials(r.cr, r.logger)
+		restClient := util.NewRestClient(url, client, opensearchCredentials)
 
 		if r.cr.Spec.Curator != nil {
-			if err := r.enableCompatibilityMode(client, opensearchCredentials); err != nil {
+			if err := r.enableCompatibilityMode(restClient); err != nil {
 				return err
 			}
 		}
-		if err := r.createSnapshotsRepository(client, opensearchCredentials, 5); err != nil {
+		if err := r.createSnapshotsRepository(restClient, 5); err != nil {
 			return err
 		}
 	}
@@ -96,15 +99,13 @@ func (r OpenSearchReconciler) Configure() error {
 }
 
 // createSnapshotsRepository creates snapshots repository in OpenSearch
-func (r OpenSearchReconciler) createSnapshotsRepository(client http.Client, credentials []string, attemptsNumber int) error {
+func (r OpenSearchReconciler) createSnapshotsRepository(restClient *util.RestClient, attemptsNumber int) error {
 	r.logger.Info(fmt.Sprintf("Create a snapshot repository with name [%s]", r.cr.Spec.OpenSearch.Snapshots.RepositoryName))
 	requestPath := fmt.Sprintf("_snapshot/%s", r.cr.Spec.OpenSearch.Snapshots.RepositoryName)
 	requestBody := r.getSnapshotsRepositoryBody()
 	var statusCode int
 	var err error
-	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
 	for i := 0; i < attemptsNumber; i++ {
-		restClient := NewRestClient(url, client, credentials)
 		statusCode, _, err = restClient.SendRequest(http.MethodPut, requestPath, strings.NewReader(requestBody))
 		if err == nil && statusCode == 200 {
 			r.logger.Info("Snapshot repository is created")
@@ -115,12 +116,10 @@ func (r OpenSearchReconciler) createSnapshotsRepository(client http.Client, cred
 	return fmt.Errorf("snapshots repository is not created; response status code is %d", statusCode)
 }
 
-func (r OpenSearchReconciler) enableCompatibilityMode(client http.Client, credentials []string) error {
+func (r OpenSearchReconciler) enableCompatibilityMode(restClient *util.RestClient) error {
 	r.logger.Info("Enable compatibility mode")
 	requestPath := "_cluster/settings"
 	requestBody := `{"persistent": {"compatibility.override_main_response_version": true}}`
-	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
-	restClient := NewRestClient(url, client, credentials)
 	statusCode, _, err := restClient.SendRequest(http.MethodPut, requestPath, strings.NewReader(requestBody))
 	if err == nil && statusCode == 200 {
 		r.logger.Info("Compatibility mode is enabled")

@@ -67,7 +67,7 @@ func (serverContext ServerContext) GetClusterHealthStatus() func(w http.Response
 			sendFailedHealthResponse(w)
 			return
 		}
-		status, err := serverContext.replicationChecker.checkReplication()
+		status, err := serverContext.replicationChecker.CheckReplication()
 		if err != nil {
 			sendFailedHealthResponse(w)
 			return

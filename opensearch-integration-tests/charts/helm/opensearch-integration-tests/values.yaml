@@ -22,6 +22,8 @@ tls:
     secretCaKey: "ca.crt"
   curator:
     secretName: ""
+  dbaasAdapter:
+    secretName: ""
 
 integrationTests:
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests
@@ -34,6 +36,7 @@ integrationTests:
   dbaasAdapterType: "opensearch"
   opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"
   opensearchDbaasAdapterPort: 8080
+  opensearchDbaasAdapterProtocol: "http"
   opensearchDbaasAdapterRepository: "snapshots"
   opensearchDbaasAdapterApiVersion: v1
   opensearchCuratorProtocol: "http"
