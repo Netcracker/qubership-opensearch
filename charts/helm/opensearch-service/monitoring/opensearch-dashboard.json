@@ -47,6 +47,19 @@
       "title": "OpenSearch Indices",
       "tooltip": "Open OpenSearch Indices dashboard",
       "type": "dashboards"
+    },
+    {
+      "icon": "external link",
+      "tags": [
+        "prometheus",
+        "opensearch",
+        "opensearch_name_and_namespace",
+        "replication"
+      ],
+      "targetBlank": true,
+      "title": "OpenSearch Replication",
+      "tooltip": "Open OpenSearch Replication dashboard",
+      "type": "dashboards"
     }
   ],
   "liveNow": false,
