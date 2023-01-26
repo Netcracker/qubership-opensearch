@@ -242,7 +242,7 @@
         {
           "$$hashKey": "object:665",
           "op": "=",
-          "text": "NO DATA FETCHED",
+          "text": "LEADER CONNECTION LOST",
           "value": "-1"
         }
       ],
@@ -718,8 +718,8 @@
         },
         {
           "$$hashKey": "object:776",
-          "color": "#ccccdc",
-          "text": "NO DATA FETCHED"
+          "color": "#C4162A",
+          "text": "LEADER CONNECTION LOST"
         }
       ],
       "crosshairColor": "#8F070C",
@@ -851,7 +851,7 @@
         {
           "$$hashKey": "object:774",
           "op": "=",
-          "text": "NO DATA FETCHED",
+          "text": "LEADER CONNECTION LOST",
           "value": "-1"
         }
       ],
@@ -990,6 +990,7 @@
           "tags": []
         }
       ],
+      "timeFrom": "5m",
       "title": "Indices status",
       "transformations": [
         {

@@ -91,17 +91,33 @@ spec:
         - alert: OpenSearch_Replication_Failed_Alert
           annotations:
             description: 'OpenSearch Replication has Failed.'
-            summary: OpenSearch Replication Has Failed
+            summary: OpenSearch Replication has Failed
           expr: opensearch_replication_metric_status{namespace="{{ .Release.Namespace }}"} == 4
           for: 3m
           labels:
             severity: high
-        {{- if .Values.monitoring.thresholds.lagAlert }}
-        - alert: OpenSearch_Replication_Too_High_Lag
+        - alert: OpenSearch_Replication_Degraded_Alert
           annotations:
-            description: 'OpenSearch Replication Has Index With Too High Lag.'
-            summary: OpenSearch Replication Has Index With Too High Lag
-          expr: max(opensearch_replication_metric_status{namespace="{{ .Release.Namespace }}"}) > {{ .Values.monitoring.thresholds.lagAlert }}
+            description: 'OpenSearch Replication has Degraded.'
+            summary: OpenSearch Replication has Degraded
+          expr: opensearch_replication_metric_status{namespace="{{ .Release.Namespace }}"} == 2
+          for: 3m
+          labels:
+            severity: low
+        - alert: OpenSearch_Replication_Leader_Connection_Lost_Alert
+          annotations:
+            description: 'OpenSearch Replication Leader connection lost.'
+            summary: OpenSearch Replication Follower lost connection with Leader side
+          expr: opensearch_replication_metric_status{namespace="{{ .Release.Namespace }}"} == 2
+          for: 3m
+          labels:
+            severity: high
+        {{- if .Values.monitoring.thresholds.lagAlert }}
+        - alert: OpenSearch_Replication_Too_High_Lag_Alert
+          annotations:
+            description: 'OpenSearch Replication has Index with too high Lag.'
+            summary: OpenSearch Replication has Index with Lag higher than expected Maximum.
+          expr: max(opensearch_replication_metric_index_lag{namespace="{{ .Release.Namespace }}"}) > {{ .Values.monitoring.thresholds.lagAlert }}
           for: 3m
           labels:
             severity: high
