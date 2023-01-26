@@ -108,7 +108,7 @@ spec:
           annotations:
             description: 'OpenSearch Replication Leader connection lost.'
             summary: OpenSearch Replication Follower lost connection with Leader side
-          expr: opensearch_replication_metric_status{namespace="{{ .Release.Namespace }}"} == 2
+          expr: opensearch_replication_metric_status{namespace="{{ .Release.Namespace }}"} == -1
           for: 3m
           labels:
             severity: high
