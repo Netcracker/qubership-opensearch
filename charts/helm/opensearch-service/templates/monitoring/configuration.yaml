@@ -297,6 +297,9 @@ data:
     [[inputs.exec]]
       ## Commands array
       commands = [
+      {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}
+        "python3 /opt/elasticsearch-monitoring/exec-scripts/replication_metric.py",
+      {{- end }}
         "python3 /opt/elasticsearch-monitoring/exec-scripts/health_metric.py",
         "python3 /opt/elasticsearch-monitoring/exec-scripts/backup_metric.py",
         "python3 /opt/elasticsearch-monitoring/exec-scripts/dbaas_health_metric.py"
