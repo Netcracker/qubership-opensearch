@@ -9,8 +9,8 @@ metadata:
   name: {{ template "dbaas-adapter.name" . }}
 spec:
   ports:
-    - name: {{ template "dbaas-adapter.protocol" }}
-      port: {{ template "dbaas-adapter.port" }}
+    - name: {{ template "dbaas-adapter.protocol" . }}
+      port: {{ template "dbaas-adapter.port" . }}
       protocol: TCP
   selector:
     name: {{ template "dbaas-adapter.name" . }}
