@@ -228,8 +228,8 @@ func (rm ReplicationManager) RemoveReplicationRule() error {
 	if err != nil {
 		return err
 	}
-	if statusCode >= 400 {
-		return errors.New("internal server error")
+	if statusCode >= 400 && statusCode != http.StatusNotFound {
+		return fmt.Errorf("internal server error with %d status code", statusCode)
 	}
 	return nil
 }
