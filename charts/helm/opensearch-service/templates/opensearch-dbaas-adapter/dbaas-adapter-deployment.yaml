@@ -120,7 +120,7 @@ spec:
             {{- end }}
           ports:
             - protocol: TCP
-              containerPort: {{ template "dbaas-adapter.port" }}
+              containerPort: {{ template "dbaas-adapter.port" . }}
       volumes:
         - name: dbaas-adapter-configs
           configMap:
