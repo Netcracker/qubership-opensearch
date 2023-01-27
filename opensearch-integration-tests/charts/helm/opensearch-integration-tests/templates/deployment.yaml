@@ -145,7 +145,7 @@ spec:
               subPath: "ca.crt"
             {{- end }}
             {{- if .Values.tls.dbaasAdapter.secretName}}
-            - mountPath: /certs/dbaas-adapter
+            - mountPath: /certs/dbaas-adapter/ca.crt
               name: dbaas-adapter-certs
               subPath: "ca.crt"
             {{- end }}
