@@ -189,7 +189,7 @@ spec:
               subPath: "ca.crt"
             {{- end }}
             {{- if eq (include "dbaas-adapter.tlsEnabled" .) "true" }}
-            - mountPath: /certs/dbaas-adapter
+            - mountPath: /certs/dbaas-adapter/ca.crt
               name: dbaas-adapter-certs
               subPath: "ca.crt"
             {{- end }}
