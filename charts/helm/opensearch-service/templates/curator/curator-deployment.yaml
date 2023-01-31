@@ -90,7 +90,12 @@ spec:
           image: {{ template "curator.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
           resources:
-{{ toYaml .Values.curator.resources | indent 12 }}
+            requests:
+              memory: {{ default "256Mi" .Values.curator.resources.requests.memory }}
+              cpu: {{ default "200m" .Values.curator.resources.requests.cpu }}
+            limits:
+              memory: {{ default "256Mi" .Values.curator.resources.limits.memory }}
+              cpu: {{ default "200m" .Values.curator.resources.limits.cpu }}
           name: {{ template "opensearch.fullname" . }}-curator
           volumeMounts:
             - mountPath: /backup-storage
