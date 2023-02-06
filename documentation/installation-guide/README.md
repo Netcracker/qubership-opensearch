@@ -795,11 +795,169 @@ For information about:
 To avoid using `cluster-admin` rights during the deployment, the following conditions are required:
 
 * The cloud administrator creates the namespace/project in advance.
-* Custom resource definition `OpenSearchService` should be created/applied before installation. The CRD for this version is stored in [crd.yaml](/charts/helm/opensearch-service/crds/crd.yaml):
+* The following grants should be provided for the `Role` of deployment user:
 
+    ```yaml
+    rules:
+      - apiGroups:
+          - netcracker.com
+        resources:
+          - "*"
+        verbs:
+          - create
+          - get
+          - list
+          - patch
+          - update
+          - watch
+          - delete
+      - apiGroups:
+          - ""
+        resources:
+          - pods
+          - services
+          - endpoints
+          - persistentvolumeclaims
+          - configmaps
+          - secrets
+          - pods/exec
+          - pods/portforward
+          - pods/attach
+          - serviceaccounts
+        verbs:
+          - create
+          - get
+          - list
+          - patch
+          - update
+          - watch
+          - delete
+      - apiGroups:
+          - apps
+        resources:
+          - deployments
+          - deployments/scale
+          - deployments/status
+        verbs:
+          - create
+          - get
+          - list
+          - patch
+          - update
+          - watch
+          - delete
+          - deletecollection
+      - apiGroups:
+          - batch
+        resources:
+          - jobs
+        verbs:
+          - create
+          - get
+          - list
+          - patch
+          - update
+          - watch
+          - delete
+      - apiGroups:
+          - ""
+        resources:
+          - events
+        verbs:
+          - create
+      - apiGroups:
+          - apps
+        resources:
+          - statefulsets
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+      - apiGroups:
+          - networking.k8s.io
+        resources:
+          - ingresses
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+      - apiGroups:
+          - rbac.authorization.k8s.io
+        resources:
+          - roles
+          - rolebindings
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+      - apiGroups:
+          - integreatly.org
+        resources:
+          - grafanadashboards
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+      - apiGroups:
+          - monitoring.coreos.com
+        resources:
+          - servicemonitors
+          - prometheusrules
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+    ```
+The following rules require cluster-wide permissions. If it is not possible to provide them to the deployment user, you have to apply the resources manually.
+
+* If OpenSearch is installed in the disaster recovery mode and authentication on disaster recovery server is enabled, cluster role binding for `system:auth-delegator` role must be created.
+
+  ```yaml
+  kind: ClusterRoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: token-review-crb-NAMESPACE
+  subjects:
+    - kind: ServiceAccount
+      name: opensearch-service-operator
+      namespace: NAMESPACE
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: system:auth-delegator
   ```
-  kubectl apply -f crd.yaml
-  ```
+
+* Need to create/apply the Custom resource definition `OpenSearchService` for this version. There are 2 options:
+  * You can create/apply the CRD manually before installation. The CRD for this version is stored in [crd.yaml](/charts/helm/opensearch-service/crds/crd.yaml):
+
+    ```
+    kubectl apply -f crd.yaml
+    ```
+
+  * To avoid applying manual the CRD the following grants should be provided for the `ClusterRole` of deployment user:
+    ```yaml
+      rules:
+        - apiGroups: ["apiextensions.k8s.io"]
+          resources: ["customresourcedefinitions"]
+          verbs: ["get", "create", "patch"]
+      ```
+
+* The parameter `global.psp.create` should be defined as `false`.
 
 **Note**: If you deploy OpenSearch Service to Kubernetes version less than `1.16`, you have to manually install CRD from `config/crd/old/netcracker.com_opensearchservices.yaml` and disable automatic CRD creation by Helm.
 
