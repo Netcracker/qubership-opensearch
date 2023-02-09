@@ -81,7 +81,7 @@ spec:
               mountPath: /tls
           {{- end }}
           ports:
-            - containerPort: 8068
+            - containerPort: {{ template "disasterRecovery.port" . }}
               protocol: TCP
               name: dr
           env:

@@ -134,7 +134,7 @@ spec:
             - name: OPENSEARCH_CURATOR_HOST
               value: {{ template "opensearch.fullname" . }}-curator
             - name: OPENSEARCH_CURATOR_PORT
-              value: "{{ .Values.integrationTests.opensearchCuratorPort | default 8080 }}"
+              value: "{{ template "curator.port" . }}"
             - name: OPENSEARCH_CURATOR_USERNAME
               valueFrom:
                 secretKeyRef:

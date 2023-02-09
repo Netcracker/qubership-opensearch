@@ -122,12 +122,12 @@ cloud:
 integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: MANOPD-84159
     docker-image-id: timestamp
     deploy-param: opensearchOperator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/disaster-recovery-daemon
-    location: master
+    location: MANOPD-84158
     docker-image-id: timestamp
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
@@ -158,7 +158,7 @@ integration:
     deploy-param: elasticsearchDbaasAdapterImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: master
+    location: MANOPD-84159
     docker-image-id: timestamp
     deploy-param: opensearchCurator
   - type: find-latest-deployment-descriptor
