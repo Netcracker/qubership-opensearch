@@ -163,11 +163,6 @@ Delete Database Resource Prefix
     Clone Index  ${resourcePrefix}-test  ${resourcePrefix}-test-new
     Sleep  ${SLEEP_TIME}
 
-    Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}
-    ${response}=  Get OpenSearch User  ${username}
-    Should Be Equal As Strings  ${response.status_code}  200
-    ${response}=  Get OpenSearch Role  ${resourcePrefix}_role
-    Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Get OpenSearch Index  ${resourcePrefix}-test
     Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Get OpenSearch Index  ${resourcePrefix}-test-new
@@ -176,7 +171,13 @@ Delete Database Resource Prefix
     Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Get OpenSearch Template  ${resourcePrefix}-template
     Should Be Equal As Strings  ${response.status_code}  200
-    ${response}=  Get OpenSearch Alias  ${resourcePrefix}-test  ${resourcePrefix}-alias
+    ${response}=  Get OpenSearch Alias  ${resourcePrefix}-alias
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Get OpenSearch Alias For Index  ${resourcePrefix}-test  ${resourcePrefix}-alias
+    Should Be Equal As Strings  ${response.status_code}  200
+
+    Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}
+    ${response}=  Get OpenSearch User  ${username}
     Should Be Equal As Strings  ${response.status_code}  200
 
     Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
@@ -184,8 +185,6 @@ Delete Database Resource Prefix
 
     ${response}=  Get OpenSearch User  ${username}
     Should Be Equal As Strings  ${response.status_code}  404
-    ${response}=  Get OpenSearch Role  ${resourcePrefix}_role
-    Should Be Equal As Strings  ${response.status_code}  404
     ${response}=  Get OpenSearch Index  ${resourcePrefix}-test
     Should Be Equal As Strings  ${response.status_code}  404
     ${response}=  Get OpenSearch Index  ${resourcePrefix}-test-new
@@ -194,7 +193,9 @@ Delete Database Resource Prefix
     Should Be Equal As Strings  ${response.status_code}  404
     ${response}=  Get OpenSearch Template  ${resourcePrefix}-template
     Should Be Equal As Strings  ${response.status_code}  404
-    ${response}=  Get OpenSearch Alias  ${resourcePrefix}-test  ${resourcePrefix}-alias
+    ${response}=  Get OpenSearch Alias  ${resourcePrefix}-alias
+    Should Be Equal As Strings  ${response.status_code}  404
+    ${response}=  Get OpenSearch Alias For Index  ${resourcePrefix}-test  ${resourcePrefix}-alias
     Should Be Equal As Strings  ${response.status_code}  404
 
     [Teardown]  Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
@@ -252,13 +253,6 @@ Create Database Resource Prefix for Multiple Users
     ${response}=  Get OpenSearch User  ${username_dml}
     Should Be Equal As Strings  ${response.status_code}  404
     ${response}=  Get OpenSearch User  ${username_readonly}
-    Should Be Equal As Strings  ${response.status_code}  404
-
-    ${response}=  Get OpenSearch Role  ${resourcePrefix}_admin
-    Should Be Equal As Strings  ${response.status_code}  404
-    ${response}=  Get OpenSearch Role  ${resourcePrefix}_dml
-    Should Be Equal As Strings  ${response.status_code}  404
-    ${response}=  Get OpenSearch Role  ${resourcePrefix}_readonly
     Should Be Equal As Strings  ${response.status_code}  404
 
     ${response}=  Get OpenSearch Index  ${resourcePrefix}-test

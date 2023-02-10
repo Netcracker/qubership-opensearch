@@ -34,6 +34,7 @@ Create OpenSearch Index
     [Arguments]  ${name}  ${data}=${None}
     ${json}=  Run Keyword If  ${data}  To Json  ${data}
     ${response}=  Put Request  opensearch  /${name}  data=${json}  headers=${headers}
+    Log  ${response.content}
     [Return]  ${response}
 
 Get OpenSearch Index
@@ -74,6 +75,7 @@ Create Document ${document} For Index ${index_name}
 Add Document To Index By Id
     [Arguments]  ${index_name}  ${document}  ${id}
     ${response}=  Put Request  opensearch  /${index_name}/_create/${id}  data=${document}  headers=${headers}
+    Log  ${response.content}
     Should Be Equal As Strings  ${response.status_code}  201
 
 Update Document ${document} For Index ${index_name}
@@ -164,6 +166,11 @@ Create OpenSearch Template
     Should Be Equal As Strings  ${response.status_code}  200
 
 Get OpenSearch Alias
+    [Arguments]  ${alias}
+    ${response}=  Get Request  opensearch  /_alias/${alias}
+    [Return]  ${response}
+
+Get OpenSearch Alias For Index
     [Arguments]  ${index_name}  ${alias}
     ${response}=  Get Request  opensearch  /${index_name}/_alias/${alias}
     [Return]  ${response}
@@ -181,11 +188,6 @@ Get OpenSearch Index Template
 Get OpenSearch User
     [Arguments]  ${username}
     ${response}=  Get Request  opensearch  /_plugins/_security/api/internalusers/${username}
-    [Return]  ${response}
-
-Get OpenSearch Role
-    [Arguments]  ${rolename}
-    ${response}=  Get Request  opensearch  /_plugins/_security/api/roles/${rolename}
     [Return]  ${response}
 
 Make Index Read Only

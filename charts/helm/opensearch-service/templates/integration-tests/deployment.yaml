@@ -93,7 +93,7 @@ spec:
             - name: OPENSEARCH_DBAAS_ADAPTER_PORT
               value: "{{ .Values.integrationTests.opensearchDbaasAdapterPort | default 8080 }}"
             - name: OPENSEARCH_DBAAS_ADAPTER_PROTOCOL
-              value: {{ template "dbaas-adapter.protocol" .}}
+              value: {{ template "dbaas-adapter.protocol" . }}
             - name: OPENSEARCH_DBAAS_ADAPTER_REPOSITORY
               value: {{ .Values.dbaasAdapter.opensearchRepo | default "snapshots" }}
             - name: OPENSEARCH_DBAAS_ADAPTER_USERNAME

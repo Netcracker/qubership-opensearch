@@ -37,7 +37,7 @@ Create Index By Dbaas Agent
     ${content}=  Convert Json ${response.content} To Type
     [Return]  ${content}
 
-Delete Index By Dbaas Agent
+Delete Resources By Dbaas Agent
     [Arguments]  ${data}
     ${response}=  Post Request  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/resources/bulk-drop  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
@@ -49,9 +49,9 @@ Create Index By Dbaas Adapter
     ${db_name}=  Set Variable  dbaas-index
     ${index_name}=  Catenate  SEPARATOR=_  ${prefix}  ${db_name}
     Delete OpenSearch Index  ${index_name}
-    Create Index By Dbaas Agent  ${prefix}  ${db_name}
+    ${response}=  Create Index By Dbaas Agent  ${prefix}  ${db_name}
     Check OpenSearch Index Exists  ${index_name}
-    [Teardown]  Delete OpenSearch Index  ${index_name}
+    [Teardown]  Delete Resources By Dbaas Agent  ${response['resources']}
 
 Delete Index By Dbaas Adapter
     [Tags]  dbaas  dbaas_opensearch  dbaas_index  dbaas_delete_index  dbaas_v1
@@ -59,9 +59,8 @@ Delete Index By Dbaas Adapter
     ${db_name}=  Set Variable  dbaas-index
     ${index_name}=  Catenate  SEPARATOR=_  ${prefix}  ${db_name}
     ${response}=  Create Index By Dbaas Agent  ${prefix}  ${db_name}
-    ${resources}=  Set Variable  ${response['resources']}
     Check OpenSearch Index Exists  ${index_name}
-    Delete Index By Dbaas Agent  ${resources}
+    Delete Resources By Dbaas Agent  ${response['resources']}
     Check OpenSearch Index Does Not Exist  ${index_name}
     [Teardown]  Delete OpenSearch Index  ${index_name}
 
@@ -75,6 +74,7 @@ Create Index By Dbaas Adapter And Write Data
     Log  ${response}
     ${username}=  Set Variable  ${response['connectionProperties']['username']}
     ${password}=  Set Variable  ${response['connectionProperties']['password']}
+    ${resources}=  Set Variable  ${response['resources']}
     Check OpenSearch Index Exists  ${index_name}
 
     Login To OpenSearch  ${username}  ${password}
@@ -89,7 +89,8 @@ Create Index By Dbaas Adapter And Write Data
     ${response}=  Create OpenSearch Index  ${index_name}-test
     Should Be Equal As Strings  ${response.status_code}  403
 
-    [Teardown]  Run Keywords  Delete OpenSearch Index  ${index_name}*
+    [Teardown]  Run Keywords  Delete Resources By Dbaas Agent  ${resources}
+                ...  AND  Delete OpenSearch Index  ${index_name}*
                 ...  AND  Delete OpenSearch Index  ${prefix}-test
 
 
@@ -109,4 +110,4 @@ Create Index With User By Dbaas Adapter And Write Data
     ${document}=  Find Document By Field  ${index_name}  name  John
     Should Be Equal As Strings  ${document['age']}  25
 
-    [Teardown]  Delete OpenSearch Index  ${index_name}
+    [Teardown]  Delete Resources By Dbaas Agent  ${response['resources']}
