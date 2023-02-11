@@ -39,9 +39,7 @@ integrationTests:
   opensearchDbaasAdapterProtocol: "http"
   opensearchDbaasAdapterRepository: "snapshots"
   opensearchDbaasAdapterApiVersion: v1
-  opensearchCuratorProtocol: "http"
   opensearchCuratorHost: "opensearch-curator"
-  opensearchCuratorPort: 8080
 
   prometheusUrl: ""
 

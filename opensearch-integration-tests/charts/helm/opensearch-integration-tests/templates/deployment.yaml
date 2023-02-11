@@ -107,11 +107,19 @@ spec:
             - name: OPENSEARCH_DBAAS_ADAPTER_API_VERSION
               value: {{ .Values.integrationTests.opensearchDbaasAdapterApiVersion | quote }}
             - name: OPENSEARCH_CURATOR_PROTOCOL
-              value: {{ .Values.integrationTests.opensearchCuratorProtocol | default "http" }}
+              {{- if .Values.tls.curator.secretName }}
+              value: "https"
+              {{ else }}
+              value: "http"
+              {{- end }}
             - name: OPENSEARCH_CURATOR_HOST
               value: {{ .Values.integrationTests.opensearchCuratorHost | default "opensearch-curator" }}
             - name: OPENSEARCH_CURATOR_PORT
-              value: "{{ .Values.integrationTests.opensearchCuratorPort | default 8080 }}"
+              {{- if .Values.tls.curator.secretName }}
+              value: "8443"
+              {{- else }}
+              value: "8080"
+              {{- end }}
             - name: OPENSEARCH_CURATOR_USERNAME
               valueFrom:
                 secretKeyRef:

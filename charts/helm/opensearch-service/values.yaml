@@ -1107,7 +1107,6 @@ integrationTests:
   tags: "smoke"
   opensearchPort: 9200
   opensearchDbaasAdapterPort: 8080
-  opensearchCuratorPort: 8080
   identityProviderUrl: ""
   prometheusUrl: ""
 
