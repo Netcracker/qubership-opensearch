@@ -10,7 +10,7 @@ metadata:
 spec:
   ports:
     - name: opensearch-curator-backup
-      port: 8080
+      port: {{ template "curator.port" . }}
       protocol: TCP
   selector:
     name: {{ template "opensearch.fullname" . }}-curator

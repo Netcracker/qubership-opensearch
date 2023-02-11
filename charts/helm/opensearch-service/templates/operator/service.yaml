@@ -10,7 +10,7 @@ metadata:
 spec:
   ports:
     - name: disaster-recovery
-      port: 8068
+      port: {{ template "disasterRecovery.port" . }}
       protocol: TCP
   selector:
     name: {{ template "opensearch.fullname" . }}-service-operator

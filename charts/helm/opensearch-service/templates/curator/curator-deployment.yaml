@@ -115,7 +115,7 @@ spec:
             {{- end }}
           ports:
             - protocol: TCP
-              containerPort: 8080
+              containerPort: {{ template "curator.port" . }}
         - env:
             - name: CLOUD_NAMESPACE
               valueFrom:

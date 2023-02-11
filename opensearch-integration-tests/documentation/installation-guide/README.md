@@ -107,13 +107,8 @@ The default value is `snapshots`.
 The `integrationTests.opensearchDbaasAdapterApiVersion` parameter specifies the DBaaS Adapter API version which tests should use.
 The default value is `v1`.
 
-The `integrationTests.opensearchCuratorProtocol` parameter specifies the protocol of OpenSearch Curator. The default value is `http`.
-
 The `integrationTests.opensearchCuratorHost` parameter specifies the host name of OpenSearch Curator.
 The default value is `opensearch-curator`.
-
-The `integrationTests.opensearchCuratorPort` parameter specifies the OpenSearch Curator port. The default value is
-`8080`.
 
 The `integrationTests.prometheusUrl` parameter specifies the URL (with schema and port) to Prometheus.
 For example, `http://prometheus.cloud.openshift.sdntest.example.com:80`. This parameter must be

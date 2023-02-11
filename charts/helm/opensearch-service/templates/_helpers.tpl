@@ -470,6 +470,17 @@ Protocol for DRD
 {{- end -}}
 {{- end -}}
 
+{{/*
+DRD Port
+*/}}
+{{- define "disasterRecovery.port" -}}
+  {{- if and .Values.global.tls.enabled .Values.global.disasterRecovery.tls.enabled -}}
+    {{- "8443" -}}
+  {{- else -}}
+    {{- "8080" -}}
+  {{- end -}}
+{{- end -}}
+
 {{- define "pod-scheduler-enabled" -}}
 {{- if and .Values.podScheduler.enabled (or (eq (include "master-nodes-volumes-enabled" .) "true") (eq (include "data-nodes-volumes-enabled" .) "true")) }}
   {{- "true" -}}
@@ -546,6 +557,17 @@ Whether TLS for OpenSearch curator is enabled
 */}}
 {{- define "curator.tlsEnabled" -}}
 {{- and .Values.curator.enabled .Values.global.tls.enabled .Values.curator.tls.enabled -}}
+{{- end -}}
+
+{{/*
+OpenSearch curator Port
+*/}}
+{{- define "curator.port" -}}
+  {{- if and .Values.global.tls.enabled .Values.curator.tls.enabled -}}
+    {{- "8443" -}}
+  {{- else -}}
+    {{- "8080" -}}
+  {{- end -}}
 {{- end -}}
 
 {{/*
