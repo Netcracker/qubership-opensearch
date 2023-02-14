@@ -1004,3 +1004,32 @@ Configure pod annotation for Velero pre-hook backup
     {{- printf "'[\"/bin/sh\", \"-c\", \"curl -u ${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD} ${OPENSEARCH_PROTOCOL:-http}://${OPENSEARCH_NAME}:9200/_flush\"]'" }}
   {{- end }}
 {{- end -}}
+
+{{/*
+TLS Static Metric secret template
+Arguments:
+Dictionary with:
+* "namespace" is a namespace of application
+* "application" is name of application
+* "service" is a name of service
+* "enabledSsl" is ssl enabled for service
+* "secret" is a name of tls secret for service
+* "certProvider" is a type of tls certificates provider
+* "certificate" is a name of CertManger's Certificate resource for service
+Usage example:
+{{template "global.tlsStaticMetric" (dict "namespace" .Release.Namespace "application" .Chart.Name "service" .global.name "enabledSsl" (include "global.sslEnabled" .) "secret" (include "global.sslSecretName" .) "certProvider" (include "services.certProvider" .) "certificate" (printf "%s-tls-certificate" (include "global.name")) }}
+*/}}
+{{- define "global.tlsStaticMetric" -}}
+- expr: {{ ternary "1" "0" (eq .enabledSsl "true") }}
+  labels:
+    namespace: "{{ .namespace }}"
+    application: "{{ .application }}"
+    service: "{{ .service }}"
+    {{ if eq .enabledSsl "true" }}
+    secret: "{{ .secret }}"
+    {{ if eq .certProvider "cert-manager" }}
+    certificate: "{{ .certificate }}"
+    {{ end }}
+    {{ end }}
+  record: service:tls_status:info
+{{- end -}}

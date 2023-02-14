@@ -1,0 +1,25 @@
+{{- if (and .Values.monitoring.enabled (ne .Values.monitoring.monitoringType "influxdb") .Values.monitoring.installDashboard) }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/component: monitoring
+    prometheus: opensearch-tls-static-metrics-rules
+    role: record-rules
+  name: {{ template "opensearch.fullname" . }}-tls-static-metrics-rules
+spec:
+  groups:
+    - name: {{ .Release.Namespace }}-{{ .Release.Name }}
+      partial_response_strategy: ''
+      rules:
+        {{- include  "global.tlsStaticMetric" (dict "namespace" .Release.Namespace "application" "opensearch-service" "service" (include "opensearch.fullname" .) "enabledSsl" (include "opensearch.tlsEnabled" .) "secret" (include "opensearch.rest-cert-secret-name" .) "certProvider" (include "certProvider" .) "certificate" (printf "%s-tls-rest-certificate" (include "opensearch.fullname" .))) | nindent 8 }}
+        {{- if .Values.curator.enabled }}
+        {{- include  "global.tlsStaticMetric" (dict "namespace" .Release.Namespace "application" "opensearch-service" "service" (printf "%s-curator" (include "opensearch.fullname" .)) "enabledSsl" (include "curator.tlsEnabled" .) "secret" (include "curator.certSecretName" .) "certProvider" (include "certProvider" .) "certificate" (printf "%s-curator-tls-certificate" (include "opensearch.fullname" .))) | nindent 8 }}
+        {{- end }}
+        {{- if .Values.dbaasAdapter.enabled }}
+        {{- include  "global.tlsStaticMetric" (dict "namespace" .Release.Namespace "application" "opensearch-service" "service" (printf "dbaas-%s-adapter" (include "opensearch.fullname" .)) "enabledSsl" (include "dbaas-adapter.tlsEnabled" .) "secret" (include "dbaas-adapter.tlsSecretName" .) "certProvider" (include "certProvider" .) "certificate" (printf "dbaas-%s-adapter-tls-certificate" (include "opensearch.fullname" .))) | nindent 8 }}
+        {{- end }}
+        {{- if eq (include "opensearch.enableDisasterRecovery" .) "true" }}
+        {{- include  "global.tlsStaticMetric" (dict "namespace" .Release.Namespace "application" "opensearch-service" "service" (printf "%s-disaster-recovery-daemon" (include "opensearch.fullname" .)) "enabledSsl" (include "disasterRecovery.tlsEnabled" .) "secret" (include "disasterRecovery.certSecretName" .) "certProvider" (include "certProvider" .) "certificate" (printf "%s-drd-tls-certificate" (include "opensearch.fullname" .))) | nindent 8 }}
+        {{- end }}
+{{- end }}
