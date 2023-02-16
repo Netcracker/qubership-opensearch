@@ -1077,6 +1077,7 @@ curator:
   #    fsGroup: 1000
 
   customLabels: {}
+  compatibilityModeEnabled: true
 
 statusProvisioner:
   enabled: true

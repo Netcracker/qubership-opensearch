@@ -2,13 +2,14 @@ package controllers
 
 import (
 	"fmt"
-	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
-	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
-	"github.com/go-logr/logr"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
+	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
+	"github.com/go-logr/logr"
 )
 
 const (
@@ -86,11 +87,13 @@ func (r OpenSearchReconciler) Configure() error {
 		opensearchCredentials := r.reconciler.parseSecretCredentials(r.cr, r.logger)
 		restClient := util.NewRestClient(url, client, opensearchCredentials)
 
-		/*if r.cr.Spec.Curator != nil {
-			if err := r.enableCompatibilityMode(restClient); err != nil {
-				return err
+		if r.cr.Spec.Curator != nil {
+			if r.cr.Spec.Curator.CompatibilityModeEnabled {
+				if err := r.enableCompatibilityMode(restClient); err != nil {
+					return err
+				}
 			}
-		}*/
+		}
 		if err := r.createSnapshotsRepository(restClient, 5); err != nil {
 			return err
 		}
@@ -116,7 +119,6 @@ func (r OpenSearchReconciler) createSnapshotsRepository(restClient *util.RestCli
 	return fmt.Errorf("snapshots repository is not created; response status code is %d", statusCode)
 }
 
-/*
 func (r OpenSearchReconciler) enableCompatibilityMode(restClient *util.RestClient) error {
 	r.logger.Info("Enable compatibility mode")
 	requestPath := "_cluster/settings"
@@ -128,7 +130,6 @@ func (r OpenSearchReconciler) enableCompatibilityMode(restClient *util.RestClien
 	}
 	return err
 }
-*/
 
 func (r OpenSearchReconciler) getS3Credentials() (string, string) {
 	secret, err := r.reconciler.findSecret(r.cr.Spec.OpenSearch.Snapshots.S3.SecretName, r.cr.Namespace, r.logger)

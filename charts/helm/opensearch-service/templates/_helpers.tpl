@@ -1004,3 +1004,17 @@ Configure pod annotation for Velero pre-hook backup
     {{- printf "'[\"/bin/sh\", \"-c\", \"curl -u ${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD} ${OPENSEARCH_PROTOCOL:-http}://${OPENSEARCH_NAME}:9200/_flush\"]'" }}
   {{- end }}
 {{- end -}}
+
+{{/*
+Define curator compatibility mode
+*/}}
+{{- define "curator.compatibilityModeEnabled" -}}
+  {{- $compatibilityModeEnabled := .Values.curator.compatibilityModeEnabled | toString }}
+  {{- if eq $compatibilityModeEnabled "true" -}}
+    {{- printf "true" }}
+  {{- else if eq $compatibilityModeEnabled "false" -}}
+    {{- printf "false" -}}
+  {{- else -}}
+    {{- printf "true" }}
+  {{ end }}
+{{- end -}}

@@ -56,8 +56,9 @@ type ElasticsearchDbaasAdapter struct {
 
 // Curator structure defines parameters necessary for interaction with OpenSearch Curator
 type Curator struct {
-	Name       string `json:"name"`
-	SecretName string `json:"secretName"`
+	Name                     string `json:"name"`
+	SecretName               string `json:"secretName"`
+	CompatibilityModeEnabled bool   `json:"compatibilityModeEnabled"`
 }
 
 // DisasterRecovery shows Disaster Recovery configuration

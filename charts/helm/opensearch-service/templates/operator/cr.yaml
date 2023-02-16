@@ -65,6 +65,7 @@ spec:
   curator:
     name: {{ template "opensearch.fullname" . }}-curator
     secretName: {{ template "opensearch.fullname" . }}-curator-secret
+    compatibilityModeEnabled: {{ template "curator.compatibilityModeEnabled" . }}
   {{- end }}
   {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}
   disasterRecovery:
