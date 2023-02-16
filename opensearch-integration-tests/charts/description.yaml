@@ -30,7 +30,7 @@ cloud:
 integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: feature/physical_database_migration
     prefix: integration-tests
     docker-image-id: timestamp
     deploy-param: opensearchIntegrationTests
