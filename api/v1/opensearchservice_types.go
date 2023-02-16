@@ -12,7 +12,7 @@ type OpenSearch struct {
 	DedicatedDataPod          bool       `json:"dedicatedDataPod"`
 	Snapshots                 *Snapshots `json:"snapshots,omitempty"`
 	SecurityConfigurationName string     `json:"securityConfigurationName"`
-	CompatibilityModeEnabled  bool       `json:"compatibilityModeEnabled"`
+	CompatibilityModeEnabled  bool       `json:"compatibilityModeEnabled,omitempty"`
 }
 
 type Snapshots struct {
