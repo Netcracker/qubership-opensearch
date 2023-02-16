@@ -12,6 +12,7 @@ type OpenSearch struct {
 	DedicatedDataPod          bool       `json:"dedicatedDataPod"`
 	Snapshots                 *Snapshots `json:"snapshots,omitempty"`
 	SecurityConfigurationName string     `json:"securityConfigurationName"`
+	CompatibilityModeEnabled  bool       `json:"compatibilityModeEnabled"`
 }
 
 type Snapshots struct {
@@ -56,9 +57,8 @@ type ElasticsearchDbaasAdapter struct {
 
 // Curator structure defines parameters necessary for interaction with OpenSearch Curator
 type Curator struct {
-	Name                     string `json:"name"`
-	SecretName               string `json:"secretName"`
-	CompatibilityModeEnabled bool   `json:"compatibilityModeEnabled"`
+	Name       string `json:"name"`
+	SecretName string `json:"secretName"`
 }
 
 // DisasterRecovery shows Disaster Recovery configuration

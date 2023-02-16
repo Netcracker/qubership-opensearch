@@ -1006,10 +1006,10 @@ Configure pod annotation for Velero pre-hook backup
 {{- end -}}
 
 {{/*
-Define curator compatibility mode
+Define opensearch compatibility mode
 */}}
-{{- define "curator.compatibilityModeEnabled" -}}
-  {{- $compatibilityModeEnabled := .Values.curator.compatibilityModeEnabled | toString }}
+{{- define "opensearch.compatibilityModeEnabled" -}}
+  {{- $compatibilityModeEnabled := .Values.opensearch.compatibilityModeEnabled | toString }}
   {{- if eq $compatibilityModeEnabled "true" -}}
     {{- printf "true" }}
   {{- else if eq $compatibilityModeEnabled "false" -}}

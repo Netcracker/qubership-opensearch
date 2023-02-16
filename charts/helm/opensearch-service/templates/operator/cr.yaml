@@ -14,6 +14,7 @@ spec:
   opensearch:
     dedicatedClientPod: {{ .Values.opensearch.client.dedicatedPod.enabled }}
     dedicatedDataPod: {{ .Values.opensearch.data.dedicatedPod.enabled }}
+    compatibilityModeEnabled: {{ template "opensearch.compatibilityModeEnabled" . }}
     {{- if .Values.opensearch.snapshots.enabled }}
     snapshots:
       repositoryName: {{ coalesce .Values.opensearch.snapshots.repositoryName .Values.curator.snapshotRepositoryName | default "snapshots" }}
@@ -65,7 +66,6 @@ spec:
   curator:
     name: {{ template "opensearch.fullname" . }}-curator
     secretName: {{ template "opensearch.fullname" . }}-curator-secret
-    compatibilityModeEnabled: {{ template "curator.compatibilityModeEnabled" . }}
   {{- end }}
   {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}
   disasterRecovery:
