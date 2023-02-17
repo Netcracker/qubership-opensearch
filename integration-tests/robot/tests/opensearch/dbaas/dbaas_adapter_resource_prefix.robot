@@ -361,10 +361,10 @@ Change Password for DML User
     Should Be Equal As Strings  ${document['age']}  57
 
     ${new_password_dml} =  Set Variable  eX5l#RqbdQ
-    ${response}=  Change User Password By Dbaas Agent  ${username_dml}  ${new_password_dml}  dml
-    Should Be Equal As Strings  ${response.connectionProperties.resourcePrefix}  ${resource_prefix}
-    Should Be Equal As Strings  ${response.connectionProperties.username}  ${username_dml}
-    Should Be Equal As Strings  ${response.connectionProperties.password}  ${new_password_dml}
+    ${content}=  Change User Password By Dbaas Agent  ${username_dml}  ${new_password_dml}  dml
+    Should Be Equal As Strings  ${content['connectionProperties']['resourcePrefix']}  ${resource_prefix}
+    Should Be Equal As Strings  ${content['connectionProperties']['username']}  ${username_dml}
+    Should Be Equal As Strings  ${content['connectionProperties']['password']}  ${new_password_dml}
 
     Login To OpenSearch  ${username_dml}  ${new_password_dml}
     ${response}=  Create OpenSearch Index  ${resource_prefix}-test3
