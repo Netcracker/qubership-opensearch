@@ -83,15 +83,16 @@ Create Index By Dbaas Adapter And Write Data
     Sleep  ${SLEEP_TIME}
     ${document}=  Find Document By Field  ${index_name}  name  John
     Should Be Equal As Strings  ${document['age']}  25
-    Run Keyword And Expect Error  *  Create Document ${document} For Index ${index_name}-test
-    ${response}=  Create OpenSearch Index  ${prefix}-test
+    Run Keyword And Expect Error  *  Create Document ${document} For Index test-${index_name}
+    ${response}=  Create OpenSearch Index  test-${prefix}
     Should Be Equal As Strings  ${response.status_code}  403
-    ${response}=  Create OpenSearch Index  ${index_name}-test
+    ${response}=  Create OpenSearch Index  test-${index_name}
     Should Be Equal As Strings  ${response.status_code}  403
 
     [Teardown]  Run Keywords  Delete Resources By Dbaas Agent  ${resources}
                 ...  AND  Delete OpenSearch Index  ${index_name}*
-                ...  AND  Delete OpenSearch Index  ${prefix}-test
+                ...  AND  Delete OpenSearch Index  test-${index_name}
+                ...  AND  Delete OpenSearch Index  test-${prefix}
 
 
 Create Index With User By Dbaas Adapter And Write Data
