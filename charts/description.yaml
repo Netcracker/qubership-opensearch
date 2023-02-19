@@ -132,7 +132,7 @@ integration:
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: feature/physical_database_migration
+    location: master
     prefix: integration-tests
     docker-image-id: timestamp
     deploy-param: opensearchIntegrationTests
@@ -148,7 +148,7 @@ integration:
     deploy-param: opensearchMonitoring
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/dbaas-opensearch-adapter
-    location: feature/physical_database_migration
+    location: master
     docker-image-id: timestamp
     deploy-param: opensearchDbaasAdapter
   - type: find-latest-deployment-descriptor
