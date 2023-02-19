@@ -650,7 +650,7 @@ External Opensearch port
 Whether TLS for DBaaS Adapter is enabled
 */}}
 {{- define "dbaas-adapter.tlsEnabled" -}}
-  {{- if and .Values.global.tls.enabled .Values.dbaasAdapter.tls.enabled -}}
+  {{- if and .Values.global.tls.enabled .Values.dbaasAdapter.tls.enabled (contains "https" .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress) -}}
     {{- printf "true" -}}
   {{- else -}}
     {{- printf "false" -}}
