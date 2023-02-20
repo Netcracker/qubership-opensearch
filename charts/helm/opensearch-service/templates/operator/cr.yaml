@@ -14,6 +14,7 @@ spec:
   opensearch:
     dedicatedClientPod: {{ .Values.opensearch.client.dedicatedPod.enabled }}
     dedicatedDataPod: {{ .Values.opensearch.data.dedicatedPod.enabled }}
+    compatibilityModeEnabled: {{ template "opensearch.compatibilityModeEnabled" . }}
     {{- if .Values.opensearch.snapshots.enabled }}
     snapshots:
       repositoryName: {{ coalesce .Values.opensearch.snapshots.repositoryName .Values.curator.snapshotRepositoryName | default "snapshots" }}

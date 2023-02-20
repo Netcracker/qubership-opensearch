@@ -2,13 +2,14 @@ package controllers
 
 import (
 	"fmt"
-	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
-	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
-	"github.com/go-logr/logr"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
+	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
+	"github.com/go-logr/logr"
 )
 
 const (
@@ -86,7 +87,7 @@ func (r OpenSearchReconciler) Configure() error {
 		opensearchCredentials := r.reconciler.parseSecretCredentials(r.cr, r.logger)
 		restClient := util.NewRestClient(url, client, opensearchCredentials)
 
-		if r.cr.Spec.Curator != nil {
+		if r.cr.Spec.OpenSearch.CompatibilityModeEnabled {
 			if err := r.enableCompatibilityMode(restClient); err != nil {
 				return err
 			}

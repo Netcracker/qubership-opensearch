@@ -1033,3 +1033,10 @@ Usage example:
     {{ end }}
   record: service:tls_status:info
 {{- end -}}
+
+{{/*
+Define Opensearch compatibility mode
+*/}}
+{{- define "opensearch.compatibilityModeEnabled" -}}
+  {{- ne ( .Values.opensearch.compatibilityModeEnabled | toString ) "false" -}}
+{{- end -}}

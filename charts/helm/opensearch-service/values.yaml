@@ -235,6 +235,7 @@ opensearch:
   ## Used when deploying hot/warm architecture. Allows second aliased deployment to find cluster.
   ## Default {{ template opensearch.fullname }}-discovery.
   discoveryOverride: ""
+  compatibilityModeEnabled: true
   securityConfig:
     enabled: true
     path: "/usr/share/opensearch/plugins/opensearch-security/securityconfig"

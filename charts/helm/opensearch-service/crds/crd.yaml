@@ -92,6 +92,8 @@ spec:
                   type: object
                 opensearch:
                   properties:
+                    compatibilityModeEnabled:
+                      type: boolean
                     dedicatedClientPod:
                       type: boolean
                     dedicatedDataPod:
