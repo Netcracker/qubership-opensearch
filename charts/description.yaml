@@ -28,14 +28,14 @@ deployment:
       ingress:
         enabled: true
         hosts:
-          - host: dashboards-opensearch-service.ci-master.openshift.sdntest.netcracker.com
+          - host: dashboards-opensearch-service-v2.ci-master.openshift.sdntest.netcracker.com
             paths:
               - path: /
 
     opensearch:
       securityConfig:
         enabled: true
-        path: "/usr/share/opensearch/plugins/opensearch-security/securityconfig"
+        path: "/usr/share/opensearch/config/opensearch-security"
         authc:
           basic:
             username: "netcrk"
@@ -50,17 +50,18 @@ deployment:
           storageClass: "local-path"
         resources:
           limits:
-            cpu: 500m
-            memory: 1536Mi
+            cpu: 800m
+            memory: 2048Mi
           requests:
-            cpu: 50m
-            memory: 1536Mi
+            cpu: 300m
+            memory: 2048Mi
+        javaOpts: "-Xms1024m -Xmx1024m"
       client:
         ingress:
           enabled: true
           path: /
           hosts:
-            - opensearch-opensearch-service.ci-master.openshift.sdntest.netcracker.com
+            - opensearch-opensearch-service-v2.ci-master.openshift.sdntest.netcracker.com
       snapshots:
         enabled: true
         repositoryName: "snapshots"
@@ -117,7 +118,7 @@ deployment:
 cloud:
   type: helm
   url: https://ci-master.openshift.sdntest.netcracker.com:6443
-  project: opensearch-service
+  project: opensearch-service-v2
 
 integration:
   - type: find-latest-deployment-descriptor
@@ -138,7 +139,7 @@ integration:
     deploy-param: opensearchIntegrationTests
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-opensearch
-    location: support/1.3
+    location: master
     docker-image-id: timestamp
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
@@ -173,7 +174,7 @@ integration:
     docker-image-id: timestamp
     deploy-param: deploymentStatusProvisioner
   - type: image
-    docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:1.3.6
+    docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.4.1
     deploy-param: dockerDashboards
   - type: image
     docker-image: artifactorycn.netcracker.com:17064/library/busybox:1.35.0
