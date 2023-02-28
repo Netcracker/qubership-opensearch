@@ -78,25 +78,37 @@ func (r OpenSearchReconciler) Status() error {
 }
 
 func (r OpenSearchReconciler) Configure() error {
-	if r.cr.Spec.OpenSearch.Snapshots != nil {
-		url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
-		client, err := r.reconciler.configureClient()
-		if err != nil {
-			return err
-		}
-		opensearchCredentials := r.reconciler.parseSecretCredentials(r.cr, r.logger)
-		restClient := util.NewRestClient(url, client, opensearchCredentials)
+	restClient, err := r.createRestClient()
+	if err != nil {
+		return err
+	}
 
-		if r.cr.Spec.OpenSearch.CompatibilityModeEnabled {
-			if err := r.enableCompatibilityMode(restClient); err != nil {
-				return err
-			}
-		}
+	if r.cr.Spec.OpenSearch.Snapshots != nil {
 		if err := r.createSnapshotsRepository(restClient, 5); err != nil {
 			return err
 		}
 	}
+
+	if r.cr.Spec.OpenSearch.CompatibilityModeEnabled {
+		if err := r.enableCompatibilityMode(restClient); err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func (r OpenSearchReconciler) createRestClient() (*util.RestClient, error) {
+	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
+	client, err := r.reconciler.configureClient()
+	if err != nil {
+		return nil, err
+	}
+
+	opensearchCredentials := r.reconciler.parseSecretCredentials(r.cr, r.logger)
+	restClient := util.NewRestClient(url, client, opensearchCredentials)
+
+	return restClient, nil
 }
 
 // createSnapshotsRepository creates snapshots repository in OpenSearch
