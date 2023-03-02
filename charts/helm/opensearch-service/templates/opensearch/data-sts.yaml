@@ -93,11 +93,6 @@ spec:
 {{- end }}
       containers:
         - name: opensearch
-          securityContext:
-{{- if .Values.opensearch.sys_chroot.enabled }}
-            capabilities:
-              add: ["SYS_CHROOT"]
-{{- end }}
           env:
             - name: cluster.name
               value: {{ .Values.global.clusterName }}

@@ -138,7 +138,7 @@ integration:
     deploy-param: opensearchIntegrationTests
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-opensearch
-    location: master
+    location: support/1.3
     docker-image-id: timestamp
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
@@ -190,8 +190,15 @@ integration:
     pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh
   - type: scripts
     repo: PROD.Platform.ElasticStack/deployment-utils
-    location: 0.1.2
+    location: master
     alias: timestamp
     zip-name: devops-scripts.zip
     name: crd-upgrade
     pre-deploy-entry-point: crd-upgrade.sh
+  - type: scripts
+    repo: PROD.Platform.ElasticStack/deployment-utils
+    location: master
+    alias: timestamp
+    zip-name: devops-scripts.zip
+    name: privileged-pss
+    pre-deploy-entry-point: privileged-pss.sh
