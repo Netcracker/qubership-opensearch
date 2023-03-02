@@ -873,6 +873,7 @@ To avoid using `cluster-admin` rights during the deployment, the following condi
           - batch
         resources:
           - jobs
+          - jobs/status
         verbs:
           - create
           - get
