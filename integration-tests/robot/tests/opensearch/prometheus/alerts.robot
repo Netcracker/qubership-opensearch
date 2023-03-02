@@ -1,6 +1,6 @@
 *** Variables ***
-${OPENSEARCH_IS_DEGRADED_ALERT_NAME}  OpenSearch_Is_Degraded_Alert
-${OPENSEARCH_IS_DOWN_ALERT_NAME}      OpenSearch_Is_Down_Alert
+${OPENSEARCH_IS_DEGRADED_ALERT_NAME}  OpenSearchIsDegradedAlert
+${OPENSEARCH_IS_DOWN_ALERT_NAME}      OpenSearchIsDownAlert
 ${ALERT_RETRY_TIME}                   5min
 ${ALERT_RETRY_INTERVAL}               10s
 ${SLEEP_TIME}                         10s

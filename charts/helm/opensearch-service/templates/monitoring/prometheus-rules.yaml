@@ -104,7 +104,7 @@ spec:
           for: 3m
           labels:
             severity: warning
-        - alert: OpenSearch_Replication_Leader_Connection_Lost_Alert
+        - alert: OpenSearchReplicationLeaderConnectionLostAlert
           annotations:
             description: 'OpenSearch Replication Leader connection lost.'
             summary: OpenSearch Replication Follower lost connection with Leader side
