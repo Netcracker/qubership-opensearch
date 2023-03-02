@@ -9,9 +9,9 @@ metadata:
   name: prometheus-opensearch-service-rules
 spec:
   groups:
-    - name: opensearch.rules
+    - name: {{ .Release.Namespace }}-{{ .Release.Name }}
       rules:
-        - alert: OpenSearch_CPU_Load_Alert
+        - alert: OpenSearchCPULoadAlert
           annotations:
             description: 'OpenSearch CPU usage is above 95%.'
             summary: OpenSearch's CPU usage is above 95%
@@ -19,7 +19,7 @@ spec:
           for: 3m
           labels:
             severity: high
-        - alert: OpenSearch_Disk_Usage_Alert
+        - alert: OpenSearchDiskUsageAlert
           annotations:
             description: 'OpenSearch disk usage is above 90%'
             summary: OpenSearch's disk usage is above 90%
@@ -27,15 +27,15 @@ spec:
           for: 3m
           labels:
             severity: high
-        - alert: OpenSearch_Disk_Too_Much_Usage_Alert
+        - alert: OpenSearchDiskTooMuchUsageAlert
           annotations:
             description: 'OpenSearch disk usage is above 98%'
             summary: OpenSearch's disk usage is above 98%
           expr: 1 - sum(opensearch_fs_total_free_in_bytes{namespace="{{ .Release.Namespace }}"}) / sum(opensearch_fs_total_total_in_bytes{namespace="{{ .Release.Namespace }}"}) > 0.98
           for: 3m
           labels:
-            severity: disaster
-        - alert: OpenSearch_Memory_Usage_Alert
+            severity: critical
+        - alert: OpenSearchMemoryUsageAlert
           annotations:
             description: 'OpenSearch memory usage is above 95%.'
             summary: OpenSearch's memory usage is above 95%
@@ -43,7 +43,7 @@ spec:
           for: 3m
           labels:
             severity: high
-        - alert: OpenSearch_Heap_Memory_Usage_Alert
+        - alert: OpenSearchHeapMemoryUsageAlert
           annotations:
             description: 'OpenSearch heap memory usage is above 95%.'
             summary: OpenSearch's heap memory usage is above 95%
@@ -51,7 +51,7 @@ spec:
           for: 3m
           labels:
             severity: high
-        - alert: OpenSearch_Is_Degraded_Alert
+        - alert: OpenSearchIsDegradedAlert
           annotations:
             description: 'OpenSearch is Degraded.'
             summary: Some of OpenSearch Service pods are down
@@ -59,7 +59,7 @@ spec:
           for: 3m
           labels:
             severity: high
-        - alert: OpenSearch_Is_Down_Alert
+        - alert: OpenSearchIsDownAlert
           annotations:
             description: 'OpenSearch is Down.'
             summary: All of OpenSearch Service pods are down
@@ -68,7 +68,7 @@ spec:
           labels:
             severity: high
         {{- if (or .Values.dbaasAdapter.enabled .Values.elasticsearchDbaasAdapter.enabled) }}
-        - alert: OpenSearch_DBaaS_Is_Down_Alert
+        - alert: OpenSearchDBaaSIsDownAlert
           annotations:
             description: 'OpenSearch DBaaS agent is Down.'
             summary: OpenSearch DBaaS agent is Down
@@ -78,7 +78,7 @@ spec:
             severity: high
         {{- end }}
         {{- if .Values.curator.enabled }}
-        - alert: OpenSearch_Last_Backup_Has_Failed_Alert
+        - alert: OpenSearchLastBackupHasFailedAlert
           annotations:
             description: 'OpenSearch Last Backup Has Failed.'
             summary: OpenSearch Last Backup Has Failed
@@ -88,7 +88,7 @@ spec:
             severity: high
         {{- end }}
         {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}
-        - alert: OpenSearch_Replication_Failed_Alert
+        - alert: OpenSearchReplicationFailedAlert
           annotations:
             description: 'OpenSearch Replication has Failed.'
             summary: OpenSearch Replication has Failed
@@ -96,14 +96,14 @@ spec:
           for: 3m
           labels:
             severity: high
-        - alert: OpenSearch_Replication_Degraded_Alert
+        - alert: OpenSearchReplicationDegradedAlert
           annotations:
             description: 'OpenSearch Replication has Degraded.'
             summary: OpenSearch Replication has Degraded
           expr: opensearch_replication_metric_status{namespace="{{ .Release.Namespace }}"} == 2
           for: 3m
           labels:
-            severity: low
+            severity: warning
         - alert: OpenSearch_Replication_Leader_Connection_Lost_Alert
           annotations:
             description: 'OpenSearch Replication Leader connection lost.'
@@ -113,7 +113,7 @@ spec:
           labels:
             severity: high
         {{- if .Values.monitoring.thresholds.lagAlert }}
-        - alert: OpenSearch_Replication_Too_High_Lag_Alert
+        - alert: OpenSearchReplicationTooHighLagAlert
           annotations:
             description: 'OpenSearch Replication has Index with too high Lag.'
             summary: OpenSearch Replication has Index with Lag higher than expected Maximum.
