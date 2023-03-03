@@ -93,6 +93,8 @@ spec:
                 type: object
               opensearch:
                 properties:
+                  compatibilityModeEnabled:
+                    type: boolean
                   dedicatedClientPod:
                     type: boolean
                   dedicatedDataPod:
@@ -110,6 +112,8 @@ spec:
                           bucket:
                             type: string
                           enabled:
+                            type: boolean
+                          gcsEnabled:
                             type: boolean
                           pathStyleAccess:
                             type: boolean
