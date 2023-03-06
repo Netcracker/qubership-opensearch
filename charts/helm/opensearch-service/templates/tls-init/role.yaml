@@ -1,4 +1,4 @@
-{{ if and .Values.global.rbac.enabled (not .Values.global.externalOpensearch.enabled) .Values.global.tls.generateCerts.enabled (ne (include "certProvider" .) "cert-manager") }}
+{{ if and (not .Values.global.externalOpensearch.enabled) .Values.global.tls.generateCerts.enabled (ne (include "certProvider" .) "cert-manager") }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -17,13 +17,4 @@ rules:
       - create
       - get
       - update
-{{- if .Values.global.psp.create }}
-  - apiGroups: ["policy"]
-    resources:
-      - podsecuritypolicies
-    verbs:
-      - use
-    resourceNames:
-      - {{ template "opensearch.fullname" . }}-psp
-{{- end }}
 {{- end }}
