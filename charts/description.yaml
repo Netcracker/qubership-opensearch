@@ -198,7 +198,7 @@ integration:
   - type: scripts
     repo: PROD.Platform.ElasticStack/deployment-utils
     location: master
-    alias: timestamp
+    alias: latest
     zip-name: devops-scripts.zip
     name: privileged-pss
     pre-deploy-entry-point: privileged-pss.sh
