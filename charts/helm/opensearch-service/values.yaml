@@ -47,12 +47,9 @@ dashboards:
 
   ingress:
     enabled: false
-    # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
-    # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
-    # ingressClassName: nginx
     annotations: {}
-    # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
+    className: ""
     hosts:
       - host: chart-example.local
         paths:
@@ -164,9 +161,6 @@ global:
 
   psp:
     create: false
-
-  rbac:
-    enabled: true
 
   disasterRecovery:
     image: artifactorycn.netcracker.com:17008/product/prod.platform.streaming_disaster-recovery-daemon:master_latest
@@ -292,10 +286,6 @@ opensearch:
   ## Set optimal sysctl. This requires privilege. Can be disabled if
   ## the system has already been preconfigured.
   sysctl:
-    enabled: false
-
-  ## Give SYS_CHROOT cap to ES pods. This might not be necessary
-  sys_chroot:
     enabled: false
 
   ## init container to chown the mount volume. not necessary if setting a
@@ -599,11 +589,10 @@ opensearch:
       ## Set to true to enable ingress record generation
       enabled: false
       annotations: {}
-      #  kubernetes.io/ingress.class: nginx
       #  kubernetes.io/tls-acme: "true"
       #  # Depending on your Ingress Controller you may need to set one of the two below annotations to have NGINX call the backend using HTTPS
       #  nginx.org/ssl-services:"{{ template "opensearch.fullname" . }}-client-service"
-      #  nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      className: ""
       labels: {}
       path: /
       hosts:

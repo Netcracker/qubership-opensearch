@@ -32,19 +32,9 @@ rules:
       - watch
       - delete
   - apiGroups:
-      - ""
-    resources:
-      - events
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
       - apps
     resources:
       - deployments
-      - daemonsets
-      - replicasets
       - statefulsets
     verbs:
       - create
