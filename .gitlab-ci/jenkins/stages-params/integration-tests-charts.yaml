@@ -4,7 +4,7 @@ JENKINS_URL: https://cisrvrecn.netcracker.com
 REPOSITORY_NAME: PROD.Platform.ElasticStack/opensearch-service
 CLOUD_URL: https://ci-master.openshift.sdntest.netcracker.com:6443
 CLOUD_UI_URL: https://dashboard.ci-master.openshift.sdntest.netcracker.com/#/overview?namespace=
-CLOUD_NAMESPACE: opensearch-service
+CLOUD_NAMESPACE: opensearch-service-v2
 # Build Params
 LOCATION: ${CI_COMMIT_REF_NAME}
 PREFIX: opensearch-integration-tests/charts
@@ -34,10 +34,16 @@ DESCRIPTION_YAML: |
           username: "admin"
           password: "admin"
 
+      tls:
+        opensearch:
+          secretName: "opensearch-rest-certs"
+          secretCaKey: "rest-root-ca.pem"
+
       integrationTests:
         tags: ${TAGS}
         opensearchHost: "opensearch"
         opensearchPort: 9200
+        opensearchProtocol: "https"
         opensearchMasterNodesName: "opensearch"
         identityProviderUrl: "http://idp.framework-ci-services:8080"
         opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"

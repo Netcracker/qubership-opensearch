@@ -1,4 +1,4 @@
-{{- if  not .Values.global.externalOpensearch.enabled }}
+{{- if not .Values.global.externalOpensearch.enabled }}
 {{ if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled }}
 apiVersion: apps/v1
 kind: StatefulSet
@@ -96,10 +96,8 @@ spec:
           env:
             - name: cluster.name
               value: {{ .Values.global.clusterName }}
-            - name: node.master
-              value: "false"
-            - name: node.ingest
-              value: "false"
+            - name: node.roles
+              value: "data"
             - name: network.host
               value: "0.0.0.0"
             - name: node.name
@@ -112,8 +110,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            - name: node.data
-              value: "true"
             - name: PROCESSORS
               valueFrom:
                 resourceFieldRef:

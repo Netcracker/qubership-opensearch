@@ -1,4 +1,7 @@
-{{- if  not .Values.global.externalOpensearch.enabled }}
+{{- if not .Values.global.externalOpensearch.enabled }}
+{{- if not .Values.opensearch.tls.enabled }}
+{{ fail "OpenSearch must be installed with TLS for REST layer ('.Values.opensearch.tls.enabled' must be set to 'true')" }}
+{{- end }}
 {{- if .Values.opensearch.master.enabled }}
 apiVersion: apps/v1
 kind: StatefulSet
@@ -100,32 +103,20 @@ spec:
           env:
             - name: cluster.name
               value: {{ .Values.global.clusterName }}
-            - name: cluster.initial_master_nodes
+            - name: cluster.initial_cluster_manager_nodes
               value: {{ template "initial-master-nodes" . }}
-            - name: node.master
-              value: "true"
-            - name: node.ingest
-        {{- if .Values.opensearch.client.dedicatedPod.enabled }}
-              value: "false"
-        {{- else }}
-              value: "true"
-        {{- end }}
-            - name: node.data
-        {{- if .Values.opensearch.data.dedicatedPod.enabled }}
-              value: "false"
-        {{- else }}
-              value: "true"
-        {{- end }}
+            - name: node.roles
+              value: {{ template "cluster-manager-roles" . }}
             - name: network.host
               value: "0.0.0.0"
-    {{- if .Values.opensearch.transportKeyPassphrase.enabled}}
+            {{- if .Values.opensearch.transportKeyPassphrase.enabled}}
             - name: TRANSPORT_KEY_PASSPHRASE
               value: {{ .Values.opensearch.transportKeyPassphrase.passPhrase }}
-    {{- end }}
-    {{- if .Values.opensearch.transportKeyPassphrase.enabled}}
+            {{- end }}
+            {{- if .Values.opensearch.transportKeyPassphrase.enabled}}
             - name: SSL_KEY_PASSPHRASE
               value: {{ .Values.opensearch.sslKeyPassphrase.passPhrase }}
-    {{- end }}
+            {{- end }}
             - name: node.name
               valueFrom:
                 fieldRef:

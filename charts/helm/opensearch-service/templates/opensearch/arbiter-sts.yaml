@@ -1,4 +1,4 @@
-{{- if  not .Values.global.externalOpensearch.enabled }}
+{{- if not .Values.global.externalOpensearch.enabled }}
 {{- if .Values.opensearch.arbiter.enabled }}
 apiVersion: apps/v1
 kind: StatefulSet
@@ -109,24 +109,20 @@ spec:
           env:
             - name: cluster.name
               value: {{ .Values.global.clusterName }}
-            - name: cluster.initial_master_nodes
+            - name: cluster.initial_cluster_manager_nodes
               value: {{ template "initial-master-nodes" . }}
-            - name: node.master
-              value: "true"
-            - name: node.ingest
-              value: "false"
-            - name: node.data
-              value: "false"
+            - name: node.roles
+              value: "cluster_manager"
             - name: network.host
               value: "0.0.0.0"
-    {{- if .Values.opensearch.transportKeyPassphrase.enabled }}
+            {{- if .Values.opensearch.transportKeyPassphrase.enabled }}
             - name: TRANSPORT_KEY_PASSPHRASE
               value: {{ .Values.opensearch.transportKeyPassphrase.passPhrase }}
-    {{- end }}
-    {{- if .Values.opensearch.transportKeyPassphrase.enabled }}
+            {{- end }}
+            {{- if .Values.opensearch.transportKeyPassphrase.enabled }}
             - name: SSL_KEY_PASSPHRASE
               value: {{ .Values.opensearch.sslKeyPassphrase.passPhrase }}
-    {{- end }}
+            {{- end }}
             - name: node.name
               valueFrom:
                 fieldRef:
