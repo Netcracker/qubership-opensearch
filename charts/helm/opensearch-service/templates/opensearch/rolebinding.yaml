@@ -1,5 +1,4 @@
-{{- if  not .Values.global.externalOpensearch.enabled }}
-{{- if .Values.global.rbac.enabled }}
+{{- if not .Values.global.externalOpensearch.enabled }}
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -14,5 +13,4 @@ subjects:
   - kind: ServiceAccount
     name: {{ template "opensearch.serviceAccountName" . }}
     namespace: {{ .Release.Namespace }}
-{{- end }}
 {{- end }}

@@ -1,4 +1,4 @@
-{{- if  not .Values.global.externalOpensearch.enabled }}
+{{- if not .Values.global.externalOpensearch.enabled }}
 {{- if and .Values.opensearch.client.ingress.enabled .Values.opensearch.client.enabled }}
 {{- $fullName := printf "%s" (include "opensearch.fullname" .) }}
 {{- $ingressPath := .Values.opensearch.client.ingress.path }}
@@ -14,16 +14,17 @@ metadata:
   name: {{ $fullName }}
   labels:
 {{ include "opensearch.labels.standard" . | indent 4 }}
-  {{- if or .Values.opensearch.client.ingress.annotations (eq (include "opensearch.tlsEnabled" .) "true") }}
   annotations:
     {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS
     nginx.ingress.kubernetes.io/ssl-passthrough: 'true'
     {{- end }}
+    {{- if and .Values.opensearch.client.ingress.className (not (.Capabilities.APIVersions.Has "networking.k8s.io/v1/Ingress")) }}
+    kubernetes.io/ingress.class: {{ .Values.opensearch.client.ingress.className }}
+    {{- end }}
     {{- with .Values.opensearch.client.ingress.annotations }}
     {{ toYaml . | nindent 4 }}
     {{- end }}
-  {{- end }}
 spec:
 {{- if or .Values.opensearch.client.ingress.tls (eq (include "opensearch.tlsEnabled" .) "true") }}
   tls:
@@ -42,6 +43,9 @@ spec:
       secretName: {{ .secretName }}
   {{- end }}
 {{- end }}
+  {{- if and .Values.opensearch.client.ingress.className (.Capabilities.APIVersions.Has "networking.k8s.io/v1/Ingress") }}
+  ingressClassName: {{ .Values.opensearch.client.ingress.className }}
+  {{- end }}
   rules:
   {{- range .Values.opensearch.client.ingress.hosts }}
     - host: {{ . | quote }}
