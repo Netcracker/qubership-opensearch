@@ -33,6 +33,7 @@ Generate Data
     Should Be Equal As Strings  ${response.status_code}  200
     ${binary_data}=  Get Binary File  ${data_files.index_create_file}
     ${response}=  Bulk Update Index Data  ${index_name}  ${binary_data}  timeout=${timeout}
+    Log  ${response.content}
     Should Be Equal As Strings  ${response.status_code}  200
     Sleep  ${SLEEP_TIME}
 

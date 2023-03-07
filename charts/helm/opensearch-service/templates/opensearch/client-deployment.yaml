@@ -1,4 +1,4 @@
-{{- if  not .Values.global.externalOpensearch.enabled }}
+{{- if not .Values.global.externalOpensearch.enabled }}
 {{- if and .Values.opensearch.client.enabled .Values.opensearch.client.dedicatedPod.enabled }}
 apiVersion: apps/v1
 kind: Deployment
@@ -70,12 +70,8 @@ spec:
           env:
             - name: cluster.name
               value: {{ .Values.global.clusterName }}
-            - name: node.master
-              value: "false"
-            - name: node.ingest
-              value: "true"
-            - name: node.data
-              value: "false"
+            - name: node.roles
+              value: "ingest,remote_cluster_client"
             - name: network.host
               value: "0.0.0.0"
             - name: node.name

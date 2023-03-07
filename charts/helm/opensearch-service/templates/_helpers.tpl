@@ -138,7 +138,7 @@ Provider used to generate TLS certificates
 Whether TLS for OpenSearch is enabled
 */}}
 {{- define "opensearch.tlsEnabled" -}}
-  {{- and (not .Values.global.externalOpensearch.enabled) .Values.global.tls.enabled .Values.opensearch.tls.enabled -}}
+  {{- and (not .Values.global.externalOpensearch.enabled) .Values.opensearch.tls.enabled -}}
 {{- end -}}
 
 {{/*
@@ -328,6 +328,20 @@ Define name for OpenSearch master nodes.
   {{- template "opensearch.fullname" . -}}-master
 {{- end }}
 {{- end -}}
+
+{{/*
+Define roles for OpenSearch cluster manager nodes.
+*/}}
+{{- define "cluster-manager-roles" -}}
+{{- $roles := list "cluster_manager" }}
+{{- if not .Values.opensearch.client.dedicatedPod.enabled }}
+  {{- $roles = concat $roles (list "ingest" "remote_cluster_client") }}
+{{- end }}
+{{- if not .Values.opensearch.data.dedicatedPod.enabled }}
+  {{- $roles = append $roles "data" }}
+{{- end }}
+{{- join "," $roles }}
+{{- end }}
 
 {{/*
 Define the list of full names of OpenSearch master nodes.

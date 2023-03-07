@@ -6,7 +6,7 @@ variables:
   INTEGRATION_TESTS_POD_NAME: opensearch-integration-tests
   TAGS: NOTha
   # Name should be formed as follows: ci_master_openshift_sdntest_<namespace_name>_token
-  CLOUD_TOKEN: ${ci_master_openshift_sdntest_opensearch_service_token}
+  CLOUD_TOKEN: ${ci_master_openshift_sdntest_opensearch_service_v2_token}
 
 stages:
   - linter

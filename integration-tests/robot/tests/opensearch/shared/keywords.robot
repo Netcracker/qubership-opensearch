@@ -143,7 +143,7 @@ Get Index Information
     [Return]  ${content}
 
 Get Master Node Name
-    ${response}=  Get Request  opensearch  _cat/master?h=node  timeout=10
+    ${response}=  Get Request  opensearch  _cat/cluster_manager?h=node  timeout=10
     ${content}=  Decode Bytes To String  ${response.content}  UTF-8
     Should Be Equal As Strings  ${response.status_code}  200  OpenSearch returned ${response.status_code} code. Master node is not recognized
     [Return]  ${content.strip()}
