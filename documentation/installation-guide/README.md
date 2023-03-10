@@ -49,6 +49,9 @@ Environment:
    ```bash
    sysctl -w vm.max_map_count=262144
    ```
+  
+  If you deploy OpenSearch to managed Kuberentes cloud you can add this command as custom command of Kuberentes node initialization. 
+  E.g. custom user scripts for Amazon EKS [EKS Launch Templates](https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html).
 
   This operation can be performed automatically during installation if `opensearch.sysctl.enabled` is `true`, but it requires the permission to run `privileged` containers for the cluster.
 
