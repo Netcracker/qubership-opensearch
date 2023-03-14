@@ -10,7 +10,6 @@ metadata:
 spec:
   groups:
     - name: {{ .Release.Namespace }}-{{ .Release.Name }}
-      partial_response_strategy: ''
       rules:
         {{- include  "global.tlsStaticMetric" (dict "namespace" .Release.Namespace "application" "opensearch-service" "service" (include "opensearch.fullname" .) "enableTls" (include "opensearch.tlsEnabled" .) "secret" (include "opensearch.rest-cert-secret-name" .) "certProvider" (include "certProvider" .) "certificate" (printf "%s-tls-rest-certificate" (include "opensearch.fullname" .))) | nindent 8 }}
         {{- if .Values.curator.enabled }}
