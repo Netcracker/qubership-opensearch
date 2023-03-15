@@ -46,9 +46,9 @@ type Index struct {
 }
 
 func NewReplicationChecker(opensearchName string, opensearchProtocol string, username string, password string) ReplicationChecker {
-	var credentials []string
+	var credentials util.Credentials
 	if username != "" && password != "" {
-		credentials = []string{username, password}
+		credentials = util.NewCredentials(username, password)
 	}
 	url := createUrl(opensearchProtocol, opensearchName, 9200)
 	restClient := util.NewRestClient(url, configureClient(), credentials)

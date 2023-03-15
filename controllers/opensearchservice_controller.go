@@ -32,10 +32,20 @@ type ReconcileService interface {
 	Configure() error
 }
 
-type NotReadyError struct{}
+type NotReadyError struct {
+	StatusCode int
+	Err        error
+}
 
 func (nre NotReadyError) Error() string {
-	return "OpenSearch is not ready yet!"
+	message := "OpenSearch is not ready yet!"
+	if nre.StatusCode > 0 {
+		message = fmt.Sprintf("%s Status code - [%d].", message, nre.StatusCode)
+	}
+	if nre.Err != nil {
+		message = fmt.Sprintf("%s Error - [%s].", message, nre.Err.Error())
+	}
+	return message
 }
 
 //+kubebuilder:rbac:groups=netcracker.com,resources=opensearchservices,verbs=get;list;watch;create;update;patch;delete
@@ -126,16 +136,16 @@ func (r *OpenSearchServiceReconciler) buildReconcilers(cr *opensearchservice.Ope
 }
 
 func (r *OpenSearchServiceReconciler) checkOpenSearchIsReady(cr *opensearchservice.OpenSearchService) error {
-	credentials := r.parseSecretCredentials(cr, log)
+	credentials := r.parseOpenSearchCredentials(cr, log)
 	url := r.createUrl(cr.Name, opensearchHttpPort)
 	httpClient, err := r.configureClient()
 	if err != nil {
-		return NotReadyError{}
+		return NotReadyError{Err: err}
 	}
 	restClient := util.NewRestClient(url, httpClient, credentials)
 	statusCode, _, err := restClient.SendRequest(http.MethodGet, "", nil)
 	if err != nil || statusCode != 200 {
-		return NotReadyError{}
+		return NotReadyError{StatusCode: statusCode, Err: err}
 	}
 	return nil
 }

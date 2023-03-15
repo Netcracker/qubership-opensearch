@@ -271,7 +271,7 @@ func (r DisasterRecoveryReconciler) getReplicationManager() ReplicationManager {
 	configMap, _ := r.reconciler.findConfigMap(cmName, r.cr.Namespace, r.logger)
 	remoteService := configMap.Data[replicationRemoteServiceKey]
 	pattern := configMap.Data[replicationPatternKey]
-	credentials := r.reconciler.parseSecretCredentials(r.cr, r.logger)
+	credentials := r.reconciler.parseOpenSearchCredentials(r.cr, r.logger)
 	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
 	client, _ := r.reconciler.configureClient()
 	restClient := util.NewRestClient(url, client, credentials)

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -15,10 +16,14 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/utils/pointer"
 	"net/http"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	kubeconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"strings"
 	"time"
@@ -30,9 +35,12 @@ const (
 	scaleMessageTemplate   = "Timeout occurred during scaling %s"
 	httpClientRetryMax     = 2
 	scaleTimeout           = 180 * time.Second
+	updateTimeout          = 60 * time.Second
 	waitingInterval        = 10 * time.Second
 	httpClientRetryWaitMax = 5 * time.Second
 	httpClientTimeout      = 60 * time.Second
+	secretPattern          = "%s-secret"
+	oldSecretPattern       = "%s-secret-old"
 )
 
 // OpenSearchServiceReconciler reconciles a OpenSearchService object
@@ -74,6 +82,20 @@ func (r *OpenSearchServiceReconciler) updateSecret(secret *corev1.Secret, logger
 	return r.Client.Update(context.TODO(), secret)
 }
 
+// updateSecretWithCredentials tries to update specified secret with specified credentials
+func (r *OpenSearchServiceReconciler) updateSecretWithCredentials(name string, namespace string,
+	credentials util.Credentials, logger logr.Logger) error {
+	secret, err := r.findSecret(name, namespace, logger)
+	if err != nil {
+		return err
+	}
+	secret.StringData = map[string]string{
+		"username": credentials.Username,
+		"password": credentials.Password,
+	}
+	return r.updateSecret(secret, logger)
+}
+
 // calculateSecretDataHash calculates hash for data of specified secret
 func (r *OpenSearchServiceReconciler) calculateSecretDataHash(secretName string, hashName string,
 	cr *opensearchservice.OpenSearchService, logger logr.Logger) (string, error) {
@@ -93,15 +115,20 @@ func (r *OpenSearchServiceReconciler) calculateSecretDataHash(secretName string,
 	return util.Hash(secret.Data)
 }
 
-// parseSecretCredentials gets credentials from OpenSearch secret
-func (r *OpenSearchServiceReconciler) parseSecretCredentials(cr *opensearchservice.OpenSearchService, logger logr.Logger) []string {
-	secret, err := r.findSecret(fmt.Sprintf("%s-secret", cr.Name), cr.Namespace, logger)
-	var credentials []string
+// parseOpenSearchCredentials gets credentials from OpenSearch secret
+func (r *OpenSearchServiceReconciler) parseOpenSearchCredentials(cr *opensearchservice.OpenSearchService, logger logr.Logger) util.Credentials {
+	return r.parseSecretCredentials(fmt.Sprintf(oldSecretPattern, cr.Name), cr.Namespace, logger)
+}
+
+// parseSecretCredentials gets credentials from specified secret
+func (r *OpenSearchServiceReconciler) parseSecretCredentials(name string, namespace string, logger logr.Logger) util.Credentials {
+	var credentials util.Credentials
+	secret, err := r.findSecret(name, namespace, logger)
 	if err == nil {
-		user := string(secret.Data["username"])
+		username := string(secret.Data["username"])
 		password := string(secret.Data["password"])
-		if user != "" && password != "" {
-			credentials = append(credentials, user, password)
+		if username != "" && password != "" {
+			credentials = util.NewCredentials(username, password)
 		}
 	}
 	return credentials
@@ -157,6 +184,48 @@ func (r *OpenSearchServiceReconciler) calculateConfigDataHash(cmName string, has
 	return util.Hash(configMap.Data)
 }
 
+// runCommandInPod runs specified command in specified pod
+func (r *OpenSearchServiceReconciler) runCommandInPod(podName string, container string, namespace string, command []string) error {
+	config := kubeconfig.GetConfigOrDie()
+	kubeClient, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return err
+	}
+	request := kubeClient.CoreV1().RESTClient().Post().
+		Namespace(namespace).
+		Resource("pods").
+		Name(podName).
+		SubResource("exec").
+		VersionedParams(&corev1.PodExecOptions{
+			Stdout:    true,
+			Stderr:    true,
+			Container: container,
+			Command:   command,
+		}, scheme.ParameterCodec)
+	executor, err := remotecommand.NewSPDYExecutor(config, "POST", request.URL())
+	if err != nil {
+		return fmt.Errorf("unable execute command via SPDY: %+v", err)
+	}
+	var execOut bytes.Buffer
+	var execErr bytes.Buffer
+	err = executor.Stream(remotecommand.StreamOptions{
+		Stdout: &execOut,
+		Stderr: &execErr,
+		Tty:    false,
+	})
+	if err != nil {
+		if strings.Contains(err.Error(), "command terminated with exit code 127") {
+			return fmt.Errorf("the command %v is not found in '%s' pod", command, podName)
+		}
+		return fmt.Errorf("there is a problem during command execution: %+v", err)
+	}
+	if execErr.Len() > 0 {
+		return fmt.Errorf("there is a problem during command execution: %s", execErr.String())
+	}
+	log.Info(fmt.Sprintf("Executed command output: %s", execOut.String()))
+	return nil
+}
+
 // findDeployment returns the deployment found by name and namespace and error if it occurred
 func (r *OpenSearchServiceReconciler) findDeployment(name string, namespace string, logger logr.Logger) (*appsv1.Deployment, error) {
 	logger.Info(fmt.Sprintf("Checking existence of [%s] deployment", name))
@@ -189,21 +258,6 @@ func (r *OpenSearchServiceReconciler) addAnnotationsToDeployment(name string, na
 	return r.updateDeployment(deployment, logger)
 }
 
-// findStatefulSet returns the stateful set found by name and namespace and error if it occurred
-func (r *OpenSearchServiceReconciler) findStatefulSet(name string, namespace string, logger logr.Logger) (*appsv1.StatefulSet, error) {
-	logger.Info(fmt.Sprintf("Checking existence of [%s] stateful set", name))
-	foundStatefulSet := &appsv1.StatefulSet{}
-	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, foundStatefulSet)
-	return foundStatefulSet, err
-}
-
-// updateStatefulSet tries to update specified stateful set
-func (r *OpenSearchServiceReconciler) updateStatefulSet(statefulSet *appsv1.StatefulSet, logger logr.Logger) error {
-	logger.Info("Updating the stateful set",
-		"Deployment.Namespace", statefulSet.Namespace, "Deployment.Name", statefulSet.Name)
-	return r.Client.Update(context.TODO(), statefulSet)
-}
-
 // findService returns the service found by name and namespace and error if it occurred
 func (r *OpenSearchServiceReconciler) findService(name string, namespace string, logger logr.Logger) (*corev1.Service, error) {
 	logger.Info(fmt.Sprintf("Checking existence of [%s] service", name))
@@ -217,23 +271,6 @@ func (r *OpenSearchServiceReconciler) updateService(service *corev1.Service, log
 	logger.Info("Updating the service",
 		"Service.Namespace", service.Namespace, "Service.Name", service.Name)
 	return r.Client.Update(context.TODO(), service)
-}
-
-// addAnnotationsToStatefulSet adds necessary annotations to stateful set with specified name and namespace
-func (r *OpenSearchServiceReconciler) addAnnotationsToStatefulSet(name string, namespace string, annotations map[string]string,
-	logger logr.Logger) error {
-	statefulSet, err := r.findStatefulSet(name, namespace, logger)
-	if err != nil {
-		return err
-	}
-	if statefulSet.Spec.Template.Annotations == nil {
-		statefulSet.Spec.Template.Annotations = annotations
-	} else {
-		for key, value := range annotations {
-			statefulSet.Spec.Template.Annotations[key] = value
-		}
-	}
-	return r.updateStatefulSet(statefulSet, logger)
 }
 
 func (r *OpenSearchServiceReconciler) scaleDeployment(name string, namespace string, replicas int32, logger logr.Logger) error {
