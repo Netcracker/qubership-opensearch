@@ -32,6 +32,12 @@ rules:
       - watch
       - delete
   - apiGroups:
+      - ""
+    resources:
+      - pods/exec
+    verbs:
+      - create
+  - apiGroups:
       - apps
     resources:
       - deployments

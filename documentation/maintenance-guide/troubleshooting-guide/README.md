@@ -240,6 +240,24 @@ Comment or delete row `type: object`, and then apply the CRD manually.
 
 **Note**: You need to disable CRD creation during installation in case of such errors.
 
+## Operator Fails with Unauthorized Code on OpenSearch Readiness Check
+
+After change of OpenSearch credentials in operator logs you see the following error:
+
+```
+29T11:14:36.569Z ERROR controller.opensearchservice Reconciler error {"reconciler group": "netcracker.com", "reconciler kind": "OpenSearchService", "name": "opensearch", "namespace": "opensearch-security", "error": "OpenSearch is not ready yet! Status code - [401]."}
+sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).Start.func2.2
+ /go/pkg/mod/sigs.k8s.io/controller-runtime@v0.10.0/pkg/internal/controller/controller.go:227
+```
+
+**Problem**:
+
+During OpenSearch credentials change there was a problem to update the `opensearch-secret-old` secret in Kubernetes. It means that credentials are updated in OpenSearch, but secret used by operator is not actual.
+
+**Solution**:
+
+Actualize the `opensearch-secret-old` secret manually by specifying the credentials from the `opensearch-secret` secret.
+
 # DBaaS Adapter Health
 
 OpenSearch monitoring has `DBaaS Adapter Status` indicator of DBaaS Adapter health.
@@ -309,9 +327,9 @@ The description of the alarms monitored and raised by Zabbix are as follows:
 
 ### OpenSearch is Down
 
-|Problem|Severity|Possible Reasons|
-|---|---|---|
-|OpenSearch is Down|High|<ul><li>OpenSearch is unresponsive.</li><li>Disk failure</li><li>Lack of memory or CPU.</li><li>Long garbage collection time.</li><li>One or more primary shards are not allocated in the cluster.</li></ul>|
+| Problem            | Severity | Possible Reasons                                                                                                                                                                                             |
+|--------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| OpenSearch is Down | High     | <ul><li>OpenSearch is unresponsive.</li><li>Disk failure</li><li>Lack of memory or CPU.</li><li>Long garbage collection time.</li><li>One or more primary shards are not allocated in the cluster.</li></ul> |
 
 **Solution:**
 
@@ -359,9 +377,9 @@ The description of the alarms monitored and raised by Zabbix are as follows:
 
 ### OpenSearch is Degraded
 
-|Problem|Severity| Possible Reasons                                                                                                                                             |
-|---|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|OpenSearch is Degraded|High| <ul><li>One or more replica shards unassigned.</li><li>Lack of resources. For more information, refer to [OpenSearch is Down](#opensearch-is-down)</li></ul> |
+| Problem                | Severity | Possible Reasons                                                                                                                                             |
+|------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| OpenSearch is Degraded | High     | <ul><li>One or more replica shards unassigned.</li><li>Lack of resources. For more information, refer to [OpenSearch is Down](#opensearch-is-down)</li></ul> |
 
 **Solution**:
 
@@ -373,9 +391,9 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
 
 ### OpenSearch CPU usage
 
-|Problem|Severity|Possible Reasons|
-|---|---|---|
-|OpenSearch’s CPU usage|Warning|<ul><li>Heavy search request.</li><li>Indexing workload.</li></ul>|
+| Problem                | Severity | Possible Reasons                                                   |
+|------------------------|----------|--------------------------------------------------------------------|
+| OpenSearch’s CPU usage | Warning  | <ul><li>Heavy search request.</li><li>Indexing workload.</li></ul> |
 
 **Solution**:
 
@@ -405,9 +423,9 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
 
 ### OpenSearch Memory Usage
 
-|Problem|Severity|Possible Reason|
-|---|---|---|
-|OpenSearch Memory Usage|Warning|Heavy workload during execution.|
+| Problem                 | Severity | Possible Reason                  |
+|-------------------------|----------|----------------------------------|
+| OpenSearch Memory Usage | Warning  | Heavy workload during execution. |
 
 **Solution**:
 
@@ -437,9 +455,9 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
 
 ### OpenSearch Disk Usage
 
-|Problem|Severity|Possible Reason|
-|---|---|---|
-|OpenSearch Disk Usage|High|Low space on the disk.|
+| Problem               | Severity | Possible Reason        |
+|-----------------------|----------|------------------------|
+| OpenSearch Disk Usage | High     | Low space on the disk. |
 
 **Solution**:
 
@@ -466,9 +484,9 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
 
 ### OpenSearch DBaaS is Down
 
-|Problem|Severity|Possible Reason|
-|---|---|---|
-|OpenSearch DBaaS is down|Average|Incorrect credentials provided.|
+| Problem                  | Severity | Possible Reason                 |
+|--------------------------|----------|---------------------------------|
+| OpenSearch DBaaS is down | Average  | Incorrect credentials provided. |
 
 **Solution**:
 
@@ -489,9 +507,9 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
 
 ### OpenSearch Backup Failed
 
-|Problem|Severity|Possible Reason|
-|---|---|---|
-|OpenSearch backup failed|Average|The last backup execution failed.|
+| Problem                  | Severity | Possible Reason                   |
+|--------------------------|----------|-----------------------------------|
+| OpenSearch backup failed | Average  | The last backup execution failed. |
 
 **Solution**:
 
@@ -518,61 +536,61 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
 
 1. Navigate to the OpenSearch console on `standby` side and run the following command:
 
-```bash
-curl -u <username>:<password> -XGET http://opensearch.<opensearch_namespace>:9200/_cat/indices?h=index,health&v
-```
+   ```bash
+   curl -u <username>:<password> -XGET http://opensearch.<opensearch_namespace>:9200/_cat/indices?h=index,health&v
+   ```
 
-where:
-   * `<username>:<password>` are the credentials to OpenSearch.
-   * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
+   where:
+      * `<username>:<password>` are the credentials to OpenSearch.
+      * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
 
-The result can be as follows:
+   The result can be as follows:
 
-```
-health status index                  uuid                   pri rep docs.count docs.deleted store.size pri.store.size
-green  open   test_index_new         waIH2YgMRCaasksr28YkJg   5   1        198            0      1.3mb        672.3kb
-green  open   ha_test                wf2g8XAWT9SO31Q7L0DoBA   1   1    1772737           30    102.4mb         35.5mb
-green  open   test_index_1           WdE0LZzYR7e5Bl3WuoIj6A   5   1       1000            0      6.1mb            3mb
-green  open   test_index_new_one     rH0dn00iRh27hBmbC0tUog   5   1        200            0      1.3mb        693.9kb
-green  open   .opendistro_security   T6DvSm51R8eZc5IBpSGFcg   1   2          9            0    126.2kb           42kb
-green  open   .tasks                 bkWLpwKSRNe9YnVBecRRbA   1   1         19            0       38kb           19kb
-green  open   test_index_new_1       AXO1xAibTRa5f--S83B3oA   5   1        800            0      4.9mb          2.4mb
-green  open   test_index_new_one_1   MYVWZcsTT4KkJs8XBPGTvg   5   1        800            0      4.8mb          2.4mb
-green  open   test_index             tkKQhOZET6q0Fu4kMReO1Q   5   1        200            0      1.3mb          698kb
-```
+   ```
+   health status index                  uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+   green  open   test_index_new         waIH2YgMRCaasksr28YkJg   5   1        198            0      1.3mb        672.3kb
+   green  open   ha_test                wf2g8XAWT9SO31Q7L0DoBA   1   1    1772737           30    102.4mb         35.5mb
+   green  open   test_index_1           WdE0LZzYR7e5Bl3WuoIj6A   5   1       1000            0      6.1mb            3mb
+   green  open   test_index_new_one     rH0dn00iRh27hBmbC0tUog   5   1        200            0      1.3mb        693.9kb
+   green  open   .opendistro_security   T6DvSm51R8eZc5IBpSGFcg   1   2          9            0    126.2kb           42kb
+   green  open   .tasks                 bkWLpwKSRNe9YnVBecRRbA   1   1         19            0       38kb           19kb
+   green  open   test_index_new_1       AXO1xAibTRa5f--S83B3oA   5   1        800            0      4.9mb          2.4mb
+   green  open   test_index_new_one_1   MYVWZcsTT4KkJs8XBPGTvg   5   1        800            0      4.8mb          2.4mb
+   green  open   test_index             tkKQhOZET6q0Fu4kMReO1Q   5   1        200            0      1.3mb          698kb
+   ```
 
-Make sure that all indices required for replication have `green` health status.
+   Make sure that all indices required for replication have `green` health status.
 
 2. Navigate to the OpenSearch console on `standby` side and execute the following:
 
-```bash
-curl -u username:password http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/autofollow_stats
-```
+   ```bash
+   curl -u username:password http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/autofollow_stats
+   ```
 
-where `opensearch.<opensearch_namespace>` are service name and namespace for OpenSearch on the `standby` side.
+   where `opensearch.<opensearch_namespace>` are service name and namespace for OpenSearch on the `standby` side.
 
-The result can be as follows:
+   The result can be as follows:
 
-```json
-{
-    "num_success_start_replication": 2,
-    "num_failed_start_replication": 1,
-    "num_failed_leader_calls": 0,
-    "failed_indices": ["test_topic"],
-    "autofollow_stats": [
-        {
-            "name": "dr-replication",
-            "pattern": "*",
-            "num_success_start_replication": 3,
-            "num_failed_start_replication": 0,
-            "num_failed_leader_calls": 0,
-            "failed_indices": ["test_topic"]
-        }
-    ]
-}
-```
+   ```json
+   {
+       "num_success_start_replication": 2,
+       "num_failed_start_replication": 1,
+       "num_failed_leader_calls": 0,
+       "failed_indices": ["test_topic"],
+       "autofollow_stats": [
+           {
+               "name": "dr-replication",
+               "pattern": "*",
+               "num_success_start_replication": 3,
+               "num_failed_start_replication": 0,
+               "num_failed_leader_calls": 0,
+               "failed_indices": ["test_topic"]
+           }
+       ]
+   }
+   ```
 
-Please, recognize list of `failed_indices`.
+   Please, recognize list of `failed_indices`.
 
 3. For each index from the previous step do the following:
 
@@ -625,8 +643,8 @@ Please, recognize list of `failed_indices`.
 
 ## Index Is Not Replicated To Standby Side Without Any Errors
 
-| Problem                                           | Severity | Possible Reason                                                                                                                                              |
-|---------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Problem                                           | Severity | Possible Reason                                                                                                                      |
+|---------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------|
 | Index changes stopped replicating to standby side | Average  | Problem index was removed and created again on active side during replication and standby OpenSearch marked replication as `paused`. |
 
 **Solution**:
@@ -646,6 +664,7 @@ Please, recognize list of `failed_indices`.
    ```
    {"status":"PAUSED","reason":"AutoPaused: [[haindex2][0] - org.opensearch.index.IndexNotFoundException - \"no such index [haindex2]\"], ","leader_alias":"leader-cluster","leader_index":"haindex2","follower_index":"haindex2"}
    ```
+
 2. To run replication again you can remove presented index on standby side:
 
    ```bash
