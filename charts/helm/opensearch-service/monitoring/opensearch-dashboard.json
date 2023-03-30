@@ -3877,7 +3877,7 @@
             {
               "alias": "$tag_pod_name",
               "dsType": "influxdb",
-              "expr": "(sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$node_name\",container!=\"\",cluster=\"$cluster\"}[1m])) by (pod)) * 1000",
+              "expr": "(sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$node_name\",container!=\"\",cluster=\"$cluster\"}[$__rate_interval])) by (pod)) * 1000",
               "groupBy": [
                 {
                   "params": [
