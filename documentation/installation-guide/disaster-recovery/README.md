@@ -443,4 +443,4 @@ OpenSearch disaster recovery REST server provides three methods of interaction:
     * `status` is the state of the request on the REST server. The only possible value is `failed`, when something goes wrong while processing the request.
     * `comment` is the message which contains a detailed description of the problem and is only filled out if the `status` value is `failed`.
 
-**NOTE:** The default port for HTTPS is 443, so to avoid conflicts it uses 8443 instead of 443 just like 8080 for HTTP instead of 80.
+**NOTE:** If TLS is enabled, we must use https and 8443 in API requests rather than http and 8080.
