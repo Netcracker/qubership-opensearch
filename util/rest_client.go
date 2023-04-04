@@ -7,13 +7,25 @@ import (
 	"net/http"
 )
 
+type Credentials struct {
+	Username string
+	Password string
+}
+
+func NewCredentials(username, password string) Credentials {
+	return Credentials{
+		Username: username,
+		Password: password,
+	}
+}
+
 type RestClient struct {
 	url         string
 	httpClient  http.Client
-	credentials []string
+	credentials Credentials
 }
 
-func NewRestClient(url string, httpClient http.Client, credentials []string) *RestClient {
+func NewRestClient(url string, httpClient http.Client, credentials Credentials) *RestClient {
 	return &RestClient{
 		url:         url,
 		httpClient:  httpClient,
@@ -21,16 +33,22 @@ func NewRestClient(url string, httpClient http.Client, credentials []string) *Re
 	}
 }
 
-func (rc RestClient) SendRequest(method string, path string, body io.Reader) (statusCode int, responseBody []byte, err error) {
+func (rc RestClient) SendRequest(method string, path string, body io.Reader) (int, []byte, error) {
+	return rc.SendBasicRequest(method, path, body, true)
+}
+
+func (rc RestClient) SendBasicRequest(method string, path string, body io.Reader, useHeaders bool) (statusCode int, responseBody []byte, err error) {
 	requestUrl := fmt.Sprintf("%s/%s", rc.url, path)
 	request, err := http.NewRequest(method, requestUrl, body)
 	if err != nil {
 		return
 	}
-	request.Header.Add("Accept", "application/json")
-	request.Header.Add("Content-Type", "application/json")
-	if len(rc.credentials) == 2 {
-		request.SetBasicAuth(rc.credentials[0], rc.credentials[1])
+	if useHeaders {
+		request.Header.Add("Accept", "application/json")
+		request.Header.Add("Content-Type", "application/json")
+	}
+	if rc.credentials.Username != "" && rc.credentials.Password != "" {
+		request.SetBasicAuth(rc.credentials.Username, rc.credentials.Password)
 	}
 	response, err := rc.httpClient.Do(request)
 	if err != nil {
