@@ -307,13 +307,13 @@ For more information about `SiteManager`, refer to [Site Manager](https://git.ne
 If you want to perform a switchover manually, you need to switch `standby` OpenSearch cluster to `active` mode and then switch `active` OpenSearch cluster to `standby` mode. You need to run the following command from within any OpenSearch pod on the `standby` side:
 
 ```
-curl -XPOST -H "Content-Type: application/json" <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/sitemanager -d '{"mode":"active"}'
+curl -XPOST -H "Content-Type: application/json" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager -d '{"mode":"active"}'
 ```
 
 Then you should run the following command from within any OpenSearch pod on the `active` side:
 
 ```
-curl -XPOST -H "Content-Type: application/json" <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/sitemanager -d '{"mode":"standby"}'
+curl -XPOST -H "Content-Type: application/json" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager -d '{"mode":"standby"}'
 ```
 
 Where:
@@ -324,16 +324,18 @@ All OpenSearch disaster recovery REST server endpoints can be secured via Kubern
 The example for secured `sitemanager` GET endpoint is following:
 
 ```
-curl -XGET -H "Authorization: Bearer <TOKEN>" <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/sitemanager
+curl -XGET -H "Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager
 ```
 
 The example for secured `sitemanager` POST endpoint is following:
 
 ```
-curl -XPOST -H "Content-Type: application/json, Authorization: Bearer <TOKEN>" <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/sitemanager
+curl -XPOST -H "Content-Type: application/json, Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager
 ```
 
 Where `TOKEN` is Site Manager Kubernetes JWT Service Account Token. The verification service account name and namespace are specified in `global.disasterRecovery.httpAuth.smServiceAccountName` and `global.disasterRecovery.httpAuth.smNamespace` deploy parameters.
+
+**NOTE:** If TLS for Disaster Recovery is enabled (`global.tls.enabled` and `global.disasterRecovery.tls.enabled` parameters are set to `true`), use `https` protocol and `8443` port in API requests rather than `http` protocol and `8080` port.
 
 For more information about OpenSearch disaster recovery REST server API, see [REST API](#rest-api).
 
@@ -344,7 +346,7 @@ OpenSearch disaster recovery REST server provides three methods of interaction:
 * `GET` `healthz` method allows finding out the state of the current OpenSearch cluster side. If the current OpenSearch cluster side is `active` or `disabled`, only OpenSearch state is checked. You can run this method from within any OpenSearch pod as follows:
 
   ```
-  curl -XGET <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/healthz
+  curl -XGET http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/healthz
   ```
 
   Where:
@@ -355,7 +357,7 @@ OpenSearch disaster recovery REST server provides three methods of interaction:
   The example for secured `healthz` endpoint is following:
 
   ```
-  curl -XGET -H "Authorization: Bearer <TOKEN>" <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/healthz
+  curl -XGET -H "Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/healthz
   ```
 
   Where `TOKEN` is Site Manager Kubernetes JWT Service Account Token. The verification service account name and namespace are specified in `global.disasterRecovery.httpAuth.smServiceAccountName` and `global.disasterRecovery.httpAuth.smNamespace` deploy parameters.
@@ -376,7 +378,7 @@ OpenSearch disaster recovery REST server provides three methods of interaction:
 * `GET` `sitemanager` method allows finding out the mode of the current OpenSearch cluster side and the actual state of the switchover procedure. You can run this method from within any OpenSearch pod as follows:
 
   ```
-  curl -XGET <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/sitemanager
+  curl -XGET http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager
   ```
 
   Where:
@@ -387,7 +389,7 @@ OpenSearch disaster recovery REST server provides three methods of interaction:
   The example for secured `sitemanager` GET endpoint is following:
 
   ```
-  curl -XGET -H "Authorization: Bearer <TOKEN>" <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/sitemanager
+  curl -XGET -H "Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager
   ```
 
   Where `TOKEN` is Site Manager Kubernetes JWT Service Account Token. The verification service account name and namespace are specified in `global.disasterRecovery.httpAuth.smServiceAccountName` and `global.disasterRecovery.httpAuth.smNamespace` deploy parameters.
@@ -412,7 +414,7 @@ OpenSearch disaster recovery REST server provides three methods of interaction:
 * `POST` `sitemanager` method allows switching mode for the current side of OpenSearch cluster. You can run this method from within any OpenSearch pod as follows:
 
   ```
-  curl -XPOST -H "Content-Type: application/json" <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/sitemanager -d '{"mode":"<MODE>"}'
+  curl -XPOST -H "Content-Type: application/json" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager -d '{"mode":"<MODE>"}'
   ```
 
   Where:
@@ -429,7 +431,7 @@ OpenSearch disaster recovery REST server provides three methods of interaction:
   The example for secured `sitemanager` POST endpoint is following:
 
   ```
-  curl -XPOST -H "Content-Type: application/json, Authorization: Bearer <TOKEN>" <OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8068/sitemanager
+  curl -XPOST -H "Content-Type: application/json, Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager
   ```
 
   Where `TOKEN` is Site Manager Kubernetes JWT Service Account Token. The verification service account name and namespace are specified in `global.disasterRecovery.httpAuth.smServiceAccountName` and `global.disasterRecovery.httpAuth.smNamespace` deploy parameters.
@@ -442,3 +444,5 @@ OpenSearch disaster recovery REST server provides three methods of interaction:
     * `mode` is the mode which is applied to the OpenSearch cluster side. The possible values are `active`, `standby` and `disabled`.
     * `status` is the state of the request on the REST server. The only possible value is `failed`, when something goes wrong while processing the request.
     * `comment` is the message which contains a detailed description of the problem and is only filled out if the `status` value is `failed`.
+
+**NOTE:** If TLS for Disaster Recovery is enabled (`global.tls.enabled` and `global.disasterRecovery.tls.enabled` parameters are set to `true`), use `https` protocol and `8443` port in API requests rather than `http` protocol and `8080` port.
