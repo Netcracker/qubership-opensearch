@@ -1,5 +1,8 @@
 {{- if and .Values.global.externalOpensearch.enabled (or (not .Values.global.externalOpensearch.url) (not .Values.global.externalOpensearch.username) (not .Values.global.externalOpensearch.password)) }}
-  {{- fail "If external Opensearch is used the following fiels should be filled: `global.externalOpensearch.url`, `global.externalOpensearch.username`, `global.externalOpensearch.password`." }}
+  {{- fail "If external OpenSearch is used, the following fields should be filled: `global.externalOpensearch.url`, `global.externalOpensearch.username`, `global.externalOpensearch.password`." }}
+{{- end }}
+{{- if and .Values.deployDescriptor .Values.dockerOpensearch (ne (.Values.DEPLOY_W_HELM | toString) "true") }}
+  {{- fail "OpenSearch requires `DEPLOY_W_HELM` parameter to be set to `true` for App Deployer" }}
 {{- end }}
 apiVersion: netcracker.com/v1
 kind: OpenSearchService
