@@ -73,8 +73,66 @@ The `tls.dbaasAdapter.secretName` parameter specifies the name of the secret tha
 The `integrationTests.dockerImage` parameter specifies the docker image of OpenSearch Service integration tests.
 The default value is `artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests`.
 
-The `integrationTests.tags` parameter specifies the tags combined with `AND`, `OR` and `NOT` operators that select test cases to run.
-You can use `smoke`, `authentication`, `backup`, `full_backup`, `dbaas` and `ha` tags to run appropriate tests. The default value is `smoke`.
+The `integrationTests.tags` parameter specifies the tags combined with `AND`, `OR` and `NOT` operators that select test cases to run. The default value is `smoke`. You can use the following tags:
+* `authentication` tag runs all tests conntected to authentication scenarios:
+  * `basic_authentication`  tag runs all tests conntected to basic authentication scenarios:
+    * `Basic Authentication With Valid Credentials` test.
+    * `Basic Authentication With Invalid Credentials` test.
+  * `oauth` tag runs all tests conntected to OAUTH scenarios:
+    * `OAuth Request With Valid Token` test.
+    * `OAuth Request With Invalid Token` test.
+* `regression` tag runs all tests conntected to regression scenarios:
+  * `Basic Authentication With Valid Credentials` test.
+  * `Basic Authentication With Invalid Credentials` test.
+  * `OAuth Request With Valid Token` test.
+  * `OAuth Request With Invalid Token` test.
+* `opensearch` tag runs all tests conntected to Opensearch scenarios:
+  * `backup` tag runs all tests conntected to backup scenarios:
+    * `full_backup` tag runs `Full Backup And Restore` test.
+    * `granular_backup` tag runs `Granular Backup And Restore` test.
+    * `backup_deletion` tag runs `Delete Backup By ID` test.
+    * `unauthorized_access` tag runs `Unauthorized Access` test.
+  * `prometheus` tag runs all tests conntected to Prometheus scenarios:
+    * `opensearch_prometheus_alert` tag runs all tests conntected to Prometheus alerts scenarios:
+      * `opensearch_is_degraded_alert` tag runs `OpenSearch Is Degraded Alert` test.
+      * `opensearch_is_down_alert` tag runs `OpenSearch Is Down Alert` test.
+* `dbaas` tag runs all tests conntected to DBASS scenarios:
+  * `dbaas_backup` tag runs all tests conntected to DBASS backup scenarios:
+    * `dbaas_create_backup` tag runs `Create Backup By Dbaas Adapter` test.
+    * `dbaas_delete_backup` tag runs `Delete Backup By Dbaas Adapter` test.
+    * `dbaas_restore_backup` tag runs `Restore Backup By Dbaas Adapter` test.
+  * `dbaas_opensearch` tag runs all tests conntected to DBASS and Opensearch scenarios:
+    * `dbaas_index` tag runs all tests conntected to DBASS adapter index scenarios:
+      * `dbaas_create_index` tag runs `Create Index By Dbaas Adapter` test.
+      * `dbaas_delete_index` tag runs `Delete Index By Dbaas Adapter` test.
+      * `dbaas_create_index_and_write_data` tag runs `Create Index By Dbaas Adapter And Write Data` test.
+      * `dbaas_create_index_with_user_and_write_data` tag runs `Create Index With User By Dbaas Adapter And Write Data` test.
+    * `dbaas_resource_prefix` tag runs all tests conntected to DBASS adapter resource prefix scenarios:
+      * `dbaas_create_resource_prefix` tag runs `Create Database Resource Prefix` test.
+      * `dbaas_resource_prefix_authorization` tag runs `Database Resource Prefix Authorization` test.
+      * `dbaas_delete_resource_prefix` tag runs `Delete Database Resource Prefix` test.
+      * `dbaas_create_resource_prefix_for_multiple_users` tag runs `Create Database Resource Prefix for Multiple Users` test.
+      * `dbaas_create_with_custom_resource_prefix_for_multiple_users` tag runs `Create Database With Custom Resource Prefix for Multiple Users` test.
+      * `dbaas_change_password_for_dml_user` tag runs `Change Password for DML User` test.
+      * `dbaas_delete_resource_prefix_for_multiple_users` tag runs `Delete Database Resource Prefix for Multiple Users` test.
+  * `dbaas_v1` tag runs all tests conntected to DBASS v1 scenarios:
+    * `Create Index By Dbaas Adapter` test.
+    * `Delete Index By Dbaas Adapter` test.
+    * `Create Index By Dbaas Adapter And Write Data` test.
+    * `Create Index With User By Dbaas Adapter And Write Data` test.
+    * `Create Database Resource Prefix` test.
+    * `Database Resource Prefix Authorization` test.
+    * `Delete Database Resource Prefix` test.
+  * `dbaas_v2` tag runs all tests conntected to DBASS v2 scenarios:
+    * `Create Database Resource Prefix for Multiple Users` test.
+    * `Create Database With Custom Resource Prefix for Multiple Users` test.
+    * `Change Password for DML User` test.
+    * `Delete Database Resource Prefix for Multiple Users` test.
+* `ha` tag runs all tests conntected to HA scenarios:
+  * `opensearch_ha` tag runs all tests conntected to Opensearch HA scenarios:
+    * `ha_elected_master_is_crashed` tag runs `Elected Master Is Crashed` test.
+    * `ha_data_files_corrupted_on_primary_shard` tag runs `Data Files Corrupted On Primary Shard` test.
+    * `ha_data_files_corrupted_on_replica_shard` tag runs `Data Files Corrupted On Replica Shard` test.
 
 **Note**: It is not recommended to start `full_backup` tests on externally managed cloud with a lot of indices. To run `full_backup` tag need to specify this tag explicitly.
 
