@@ -62,8 +62,8 @@ Environment:
 * In case you deploy on *Openshift*, following annotations should be specified for the project:
 
   ```
-  oc annotate --overwrite ns ${OS_PROJECT} openshift.io/sa.scc.supplemental-groups='1000/1000'
-  oc annotate --overwrite ns ${OS_PROJECT} openshift.io/sa.scc.uid-range='1000/1000'
+  oc annotate --overwrite ns ${OS_PROJECT} openshift.io/sa.scc.supplemental-groups="1000/1000"
+  oc annotate --overwrite ns ${OS_PROJECT} openshift.io/sa.scc.uid-range="1000/1000"
   ```
 
 * If you use predefined `hostPath` persistent volumes, set the appropriate `UID` and `GID` on the `hostPath` directories and rule for SELinux:
