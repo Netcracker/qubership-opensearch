@@ -90,7 +90,11 @@ Define OpenSearch total nodes count.
   {{- if .Values.opensearch.client.dedicatedPod.enabled }}
     {{- $clientNodes = .Values.opensearch.client.replicas | int }}
   {{- end }}
-  {{- add $masterNodes $dataNodes $clientNodes }}
+  {{- $arbiterNodes := 0 }}
+  {{- if .Values.opensearch.arbiter.enabled }}
+    {{- $arbiterNodes = .Values.opensearch.arbiter.replicas | int }}
+  {{- end }}
+  {{- add $masterNodes $dataNodes $clientNodes $arbiterNodes }}
 {{- end -}}
 {{- end -}}
 
