@@ -142,7 +142,7 @@ spec:
           securityContext:
             {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
             {{- with .Values.dashboards.securityContext }}
-              {{ toYaml . | indent 12 }}
+              {{- toYaml . | nindent 12 -}}
             {{- end }}
           volumeMounts:
             {{- range .Values.dashboards.secretMounts }}
