@@ -26,6 +26,11 @@ spec:
       affinity:
       {{ .Values.integrationTests.affinity | toJson }}
       {{- end }}
+      securityContext:
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.integrationTests.securityContext }}
+          {{- toYaml . | nindent 8 -}}
+        {{- end }}
       containers:
         - name: {{ template "opensearch.fullname" . }}-integration-tests
           image: {{ template "integration-tests.image" . }}
@@ -175,6 +180,8 @@ spec:
             limits:
               memory: {{ default "256Mi" .Values.integrationTests.resources.limits.memory }}
               cpu: {{ default "400m" .Values.integrationTests.resources.limits.cpu }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
           volumeMounts:
             - name: output
               mountPath: /opt/robot/output

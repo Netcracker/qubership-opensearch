@@ -58,6 +58,11 @@ spec:
       affinity:
 {{ toYaml . | indent 8 }}
     {{- end }}
+      securityContext:
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.opensearch.master.securityContext }}
+          {{- toYaml . | nindent 8 -}}
+        {{- end }}
       initContainers:
 {{- if .Values.opensearch.sysctl.enabled }}
         - name: init-sysctl
@@ -67,6 +72,7 @@ spec:
             - -w
             - vm.max_map_count={{ .Values.opensearch.maxMapCount }}
           securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
             privileged: true
 {{- end }}
 {{- if .Values.opensearch.fixmount.enabled }}
@@ -168,6 +174,8 @@ spec:
           startupProbe:
 {{ toYaml . | indent 12 }}
     {{- end }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
           image: {{ template "opensearch.image" . }}
           imagePullPolicy: {{ .Values.opensearch.imagePullPolicy | default "Always" | quote }}
           ports:

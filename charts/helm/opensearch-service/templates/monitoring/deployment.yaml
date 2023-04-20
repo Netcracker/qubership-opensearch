@@ -86,6 +86,8 @@ spec:
           imagePullPolicy: {{ .Values.monitoring.imagePullPolicy | default "Always" | quote }}
           resources:
 {{ toYaml .Values.monitoring.resources | indent 12 }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
           name: {{ template "opensearch.fullname" . }}-monitoring
           volumeMounts:
             - mountPath: "/etc/telegraf"
@@ -122,10 +124,11 @@ spec:
       nodeSelector:
 {{ toYaml . | indent 8 }}
     {{- end }}
-    {{- with .Values.monitoring.securityContext }}
       securityContext:
-{{ toYaml . | indent 8 }}
-    {{- end }}
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.monitoring.securityContext }}
+          {{- toYaml . | nindent 8 -}}
+        {{- end }}
     {{- with .Values.monitoring.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}

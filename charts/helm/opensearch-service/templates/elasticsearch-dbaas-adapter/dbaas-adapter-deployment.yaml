@@ -100,6 +100,8 @@ spec:
             failureThreshold: 3
           resources:
 {{ toYaml .Values.elasticsearchDbaasAdapter.resources | indent 12 }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
           name: {{ .Values.elasticsearchDbaasAdapter.name }}
           volumeMounts:
             - mountPath: "/app/config/"
@@ -125,10 +127,11 @@ spec:
       nodeSelector:
 {{ toYaml . | indent 8 }}
     {{- end }}
-    {{- with .Values.elasticsearchDbaasAdapter.securityContext }}
       securityContext:
-{{ toYaml . | indent 8 }}
-    {{- end }}
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.dbaasAdapter.securityContext }}
+          {{- toYaml . | nindent 8 -}}
+        {{- end }}
     {{- with .Values.elasticsearchDbaasAdapter.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}
