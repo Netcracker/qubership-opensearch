@@ -138,6 +138,9 @@ The default value is `256Mi`.
 The `integrationTests.affinity` parameter specifies the affinity scheduling rules. The value should be specified in json
 format. The parameter can be empty.
 
+The `integrationTests.securityContext` Parameter allows specifying pod security context for the OpenSearch integration tests pod. 
+The parameter is empty by default.
+
 ## Manual Deployment
 
 ### Installation

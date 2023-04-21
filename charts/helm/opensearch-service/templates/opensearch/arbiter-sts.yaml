@@ -66,7 +66,7 @@ spec:
     {{- end }}
       securityContext:
         {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
-        {{- with .Values.opensearch.arbiter.securityContext }}
+        {{- with .Values.opensearch.securityContextCustom }}
           {{- toYaml . | nindent 8 -}}
         {{- end }}
       initContainers:

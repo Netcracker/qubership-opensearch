@@ -90,7 +90,7 @@ spec:
       serviceAccountName: {{ template "opensearch.serviceAccountName" . }}
       securityContext:
         {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
-        {{- with .Values.opensearch.data.securityContext }}
+        {{- with .Values.opensearch.securityContextCustom }}
           {{- toYaml . | nindent 8 -}}
         {{- end }}
       containers:
