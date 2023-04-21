@@ -523,7 +523,7 @@ The section lists the configurable parameters of the OpenSearch chart and their 
 | `statusProvisioner.customLabels`                                           | Custom labels to be specified in the Status Provisioner pod.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | `{}`                                                                                                                                       | false                                                                                            |
 | `integrationTests.enabled`                                                 | Enable the installation of OpenSearch integration tests.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | `false`                                                                                                                                    | false                                                                                            |
 | `integrationTests.dockerImage`                                             | The docker image of OpenSearch Service integration tests.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | `artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests`                 | false                                                                                            |
-| `integrationTests.tags`                                                    | The tags combined with `AND`, `OR` and `NOT` operators that select test cases to run. Information about available tags can be found in the [Integration test tags description](#Integration-test-tags-description) article.                                                                                                                                                                                                                                                                                                                                                                            | `smoke`                                                                                                                                    | false                                                                                            |
+| `integrationTests.tags`                                                    | The tags combined with `AND`, `OR` and `NOT` operators that select test cases to run. Information about available tags can be found in the [Integration test tags description](#integration-test-tags-description) article.                                                                                                                                                                                                                                                                                                                                                                            | `smoke`                                                                                                                                    | false                                                                                            |
 | `integrationTests.opensearchPort`                                          | The OpenSearch port                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | `9200`                                                                                                                                     | false                                                                                            |
 | `integrationTests.identityProviderUrl`                                     | The URL of Identity Provider. This parameter must be specified if you want to run integration tests with `authentication` tag.                                                                                                                                                                                                                                                                                                                                                                                                                                    | `""`                                                                                                                                       | false                                                                                            |
 | `integrationTests.identityProviderRegistrationToken`                       | The registration token for Identity Provider. This parameter must be specified if you want to run integration tests with `authentication` tag.                                                                                                                                                                                                                                                                                                                                                                                                                    | `""`                                                                                                                                       | false                                                                                            |
@@ -539,13 +539,15 @@ The section lists the configurable parameters of the OpenSearch chart and their 
 | `integrationTests.customLabels`                                            | Allows specifying custom labels for the OpenSearch integration tests pod.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | `{}`                                                                                                                                       | false                                                                                            |
 
 ## Integration test tags description
+This section contains information about integration test tags that can be used in order to test OpenSearch service. You can use the following tags:
+* `smoke` tag runs all tests connected to the smoke scenario.
 * `authentication` tag runs all tests connected to authentication scenarios:
   * `basic_authentication`  tag runs all tests connected to basic authentication scenarios.
   * `oauth` tag runs all tests connected to OAUTH scenarios.
 * `regression` tag runs all tests connected to regression scenarios.
-* `opensearch` tag runs all tests connected to Opensearch scenarios:
-  * `backup` tag runs all tests connected to backup scenarios:
-    * `full_backup` tag runs `Full Backup And Restore` test.
+* `opensearch` tag runs all tests connected to OpenSearch scenarios:
+  * `backup` tag runs all tests connected to backup scenarios except `Full Backup And Restore` test:
+    * `Full Backup And Restore` test is performed when `full_backup` tag is specified explicitly.
     * `granular_backup` tag runs `Granular Backup And Restore` test.
     * `backup_deletion` tag runs `Delete Backup By ID` test.
     * `unauthorized_access` tag runs `Unauthorized Access` test.
@@ -553,18 +555,18 @@ The section lists the configurable parameters of the OpenSearch chart and their 
     * `opensearch_prometheus_alert` tag runs all tests connected to Prometheus alerts scenarios:
       * `opensearch_is_degraded_alert` tag runs `OpenSearch Is Degraded Alert` test.
       * `opensearch_is_down_alert` tag runs `OpenSearch Is Down Alert` test.
-* `dbaas` tag runs all tests connected to DBASS scenarios:
-  * `dbaas_backup` tag runs all tests connected to DBASS backup scenarios:
+* `dbaas` tag runs all tests connected to DBaaS scenarios:
+  * `dbaas_backup` tag runs all tests connected to DBaaS backup scenarios:
     * `dbaas_create_backup` tag runs `Create Backup By Dbaas Adapter` test.
     * `dbaas_delete_backup` tag runs `Delete Backup By Dbaas Adapter` test.
     * `dbaas_restore_backup` tag runs `Restore Backup By Dbaas Adapter` test.
-  * `dbaas_opensearch` tag runs all tests connected to DBASS and Opensearch scenarios:
-    * `dbaas_index` tag runs all tests connected to DBASS adapter index scenarios:
+  * `dbaas_opensearch` tag runs all tests connected to DBaaS and OpenSearch scenarios:
+    * `dbaas_index` tag runs all tests connected to DBaaS adapter index scenarios with specific DBaaS API (`v1`):
       * `dbaas_create_index` tag runs `Create Index By Dbaas Adapter` test.
       * `dbaas_delete_index` tag runs `Delete Index By Dbaas Adapter` test.
       * `dbaas_create_index_and_write_data` tag runs `Create Index By Dbaas Adapter And Write Data` test.
       * `dbaas_create_index_with_user_and_write_data` tag runs `Create Index With User By Dbaas Adapter And Write Data` test.
-    * `dbaas_resource_prefix` tag runs all tests connected to DBASS adapter resource prefix scenarios:
+    * `dbaas_resource_prefix` tag runs all tests connected to DBaaS adapter resource prefix scenarios with specific DBaaS API (`v1`, `v2`):
       * `dbaas_create_resource_prefix` tag runs `Create Database Resource Prefix` test.
       * `dbaas_resource_prefix_authorization` tag runs `Database Resource Prefix Authorization` test.
       * `dbaas_delete_resource_prefix` tag runs `Delete Database Resource Prefix` test.
@@ -572,10 +574,10 @@ The section lists the configurable parameters of the OpenSearch chart and their 
       * `dbaas_create_with_custom_resource_prefix_for_multiple_users` tag runs `Create Database With Custom Resource Prefix for Multiple Users` test.
       * `dbaas_change_password_for_dml_user` tag runs `Change Password for DML User` test.
       * `dbaas_delete_resource_prefix_for_multiple_users` tag runs `Delete Database Resource Prefix for Multiple Users` test.
-  * `dbaas_v1` tag runs all tests connected to DBASS v1 scenarios.
-  * `dbaas_v2` tag runs all tests connected to DBASS v2 scenarios.
+    * `dbaas_v1` tag runs all tests connected to DBaaS v1 scenarios.
+    * `dbaas_v2` tag runs all tests connected to DBaaS v2 scenarios.
 * `ha` tag runs all tests connected to HA scenarios:
-  * `opensearch_ha` tag runs all tests connected to Opensearch HA scenarios:
+  * `opensearch_ha` tag runs all tests connected to OpenSearch HA scenarios:
     * `ha_elected_master_is_crashed` tag runs `Elected Master Is Crashed` test.
     * `ha_data_files_corrupted_on_primary_shard` tag runs `Data Files Corrupted On Primary Shard` test.
     * `ha_data_files_corrupted_on_replica_shard` tag runs `Data Files Corrupted On Replica Shard` test.
