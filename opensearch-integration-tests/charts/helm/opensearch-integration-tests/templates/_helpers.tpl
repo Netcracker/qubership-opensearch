@@ -13,3 +13,15 @@ Find an OpenSearch integration tests image in various places.
   {{- end -}}
 {{- end -}}
 
+{{- define "opensearch-service.globalPodSecurityContext" -}}
+runAsNonRoot: true
+seccompProfile:
+  type: "RuntimeDefault"
+{{- end -}}
+
+{{- define "opensearch-service.globalContainerSecurityContext" -}}
+allowPrivilegeEscalation: false
+capabilities:
+  drop: ["ALL"]
+{{- end -}}
+

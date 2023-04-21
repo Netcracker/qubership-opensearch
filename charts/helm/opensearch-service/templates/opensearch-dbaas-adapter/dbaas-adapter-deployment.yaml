@@ -105,6 +105,8 @@ spec:
             failureThreshold: 3
           resources:
 {{ toYaml .Values.dbaasAdapter.resources | indent 12 }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
           name: {{ template "dbaas-adapter.name" . }}
           volumeMounts:
             - mountPath: "/app/config/"
@@ -139,14 +141,15 @@ spec:
       nodeSelector:
 {{ toYaml . | indent 8 }}
     {{- end }}
-    {{- with .Values.dbaasAdapter.securityContext }}
-      securityContext:
-{{ toYaml . | indent 8 }}
-    {{- end }}
     {{- with .Values.dbaasAdapter.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}
     {{- end }}
+      securityContext:
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.dbaasAdapter.securityContext }}
+          {{- toYaml . | nindent 8 -}}
+        {{- end }}
     {{- with .Values.dbaasAdapter.tolerations }}
       tolerations:
 {{ toYaml . | indent 8 }}

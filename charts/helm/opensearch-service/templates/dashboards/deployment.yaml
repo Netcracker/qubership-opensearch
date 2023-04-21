@@ -38,10 +38,11 @@ spec:
       {{- if .Values.dashboards.priorityClassName }}
       priorityClassName: {{ .Values.dashboards.priorityClassName }}
       {{- end }}
-      {{- with .Values.dashboards.podSecurityContext }}
       securityContext:
-{{ toYaml . | indent 8 }}
-      {{- end }}
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.dashboards.podSecurityContext }}
+          {{- toYaml . | nindent 8 -}}
+        {{- end }}
       serviceAccountName: {{ template "dashboards.serviceAccountName" . }}
       {{- if .Values.dashboards.hostAliases }}
       hostAliases: {{ toYaml .Values.dashboards.hostAliases | nindent 6 }}
@@ -85,8 +86,9 @@ spec:
 {{ toYaml .Values.dashboards.extraInitContainers | indent 8 }}
       containers:
         - name: {{ template "opensearch.fullname" . }}-dashboards
-          {{- with .Values.dashboards.securityContext }}
           securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
+          {{- with .Values.dashboards.securityContext }}
 {{ toYaml . | indent 12 }}
           {{- end }}
           image: "{{ template "dashboards.image" . }}"
