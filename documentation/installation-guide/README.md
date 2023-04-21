@@ -539,7 +539,9 @@ The section lists the configurable parameters of the OpenSearch chart and their 
 | `integrationTests.customLabels`                                            | Allows specifying custom labels for the OpenSearch integration tests pod.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | `{}`                                                                                                                                       | false                                                                                            |
 
 ## Integration test tags description
+
 This section contains information about integration test tags that can be used in order to test OpenSearch service. You can use the following tags:
+
 * `smoke` tag runs all tests connected to the smoke scenario.
 * `authentication` tag runs all tests connected to authentication scenarios:
   * `basic_authentication`  tag runs all tests connected to basic authentication scenarios.
@@ -555,27 +557,27 @@ This section contains information about integration test tags that can be used i
     * `opensearch_prometheus_alert` tag runs all tests connected to Prometheus alerts scenarios:
       * `opensearch_is_degraded_alert` tag runs `OpenSearch Is Degraded Alert` test.
       * `opensearch_is_down_alert` tag runs `OpenSearch Is Down Alert` test.
-* `dbaas` tag runs all tests connected to DBaaS scenarios:
-  * `dbaas_backup` tag runs all tests connected to DBaaS backup scenarios:
+* `dbaas` tag runs all tests connected to DBaaS adapter scenarios:
+  * `dbaas_backup` tag runs all tests connected to DBaaS adapter backup scenarios:
     * `dbaas_create_backup` tag runs `Create Backup By Dbaas Adapter` test.
     * `dbaas_delete_backup` tag runs `Delete Backup By Dbaas Adapter` test.
     * `dbaas_restore_backup` tag runs `Restore Backup By Dbaas Adapter` test.
-  * `dbaas_opensearch` tag runs all tests connected to DBaaS and OpenSearch scenarios:
-    * `dbaas_index` tag runs all tests connected to DBaaS adapter index scenarios with specific DBaaS API (`v1`):
+  * `dbaas_opensearch` tag runs all tests connected to DBaaS adapter and OpenSearch scenarios:
+    * `dbaas_index` tag runs all tests connected to DBaaS adapter index scenarios with specific DBaaS adapter API (`v1`):
       * `dbaas_create_index` tag runs `Create Index By Dbaas Adapter` test.
       * `dbaas_delete_index` tag runs `Delete Index By Dbaas Adapter` test.
       * `dbaas_create_index_and_write_data` tag runs `Create Index By Dbaas Adapter And Write Data` test.
       * `dbaas_create_index_with_user_and_write_data` tag runs `Create Index With User By Dbaas Adapter And Write Data` test.
-    * `dbaas_resource_prefix` tag runs all tests connected to DBaaS adapter resource prefix scenarios with specific DBaaS API (`v1`, `v2`):
-      * `dbaas_create_resource_prefix` tag runs `Create Database Resource Prefix` test.
-      * `dbaas_resource_prefix_authorization` tag runs `Database Resource Prefix Authorization` test.
-      * `dbaas_delete_resource_prefix` tag runs `Delete Database Resource Prefix` test.
-      * `dbaas_create_resource_prefix_for_multiple_users` tag runs `Create Database Resource Prefix for Multiple Users` test.
-      * `dbaas_create_with_custom_resource_prefix_for_multiple_users` tag runs `Create Database With Custom Resource Prefix for Multiple Users` test.
-      * `dbaas_change_password_for_dml_user` tag runs `Change Password for DML User` test.
-      * `dbaas_delete_resource_prefix_for_multiple_users` tag runs `Delete Database Resource Prefix for Multiple Users` test.
-    * `dbaas_v1` tag runs all tests connected to DBaaS v1 scenarios.
-    * `dbaas_v2` tag runs all tests connected to DBaaS v2 scenarios.
+    * `dbaas_resource_prefix` tag runs all tests connected to DBaaS adapter resource prefix scenarios with specific DBaaS adapter API:
+      * `dbaas_create_resource_prefix` tag runs `Create Database Resource Prefix` test with DBaaS adapter `v1` API.
+      * `dbaas_resource_prefix_authorization` tag runs `Database Resource Prefix Authorization` test with DBaaS adapter `v1` API.
+      * `dbaas_delete_resource_prefix` tag runs `Delete Database Resource Prefix` test  with DBaaS adapter `v1` API.
+      * `dbaas_create_resource_prefix_for_multiple_users` tag runs `Create Database Resource Prefix for Multiple Users` test with DBaaS adapter `v2` API.
+      * `dbaas_create_with_custom_resource_prefix_for_multiple_users` tag runs `Create Database With Custom Resource Prefix for Multiple Users` test with DBaaS adapter `v2` API.
+      * `dbaas_change_password_for_dml_user` tag runs `Change Password for DML User` test with DBaaS adapter `v2` API.
+      * `dbaas_delete_resource_prefix_for_multiple_users` tag runs `Delete Database Resource Prefix for Multiple Users` test with DBaaS adapter `v2` API.
+    * `dbaas_v1` tag runs all tests connected to DBaaS adapter v1 scenarios.
+    * `dbaas_v2` tag runs all tests connected to DBaaS adapter v2 scenarios.
 * `ha` tag runs all tests connected to HA scenarios:
   * `opensearch_ha` tag runs all tests connected to OpenSearch HA scenarios:
     * `ha_elected_master_is_crashed` tag runs `Elected Master Is Crashed` test.
