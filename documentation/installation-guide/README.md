@@ -542,7 +542,16 @@ The section lists the configurable parameters of the OpenSearch chart and their 
 
 This section contains information about integration test tags that can be used in order to test OpenSearch service. You can use the following tags:
 
-* `smoke` tag runs all tests connected to the smoke scenario.
+* `smoke` tag runs all tests connected to the smoke scenario:
+  * `index` tag runs all tests connected to OpenSearch index scenarios:
+    * `create_index` tag runs `Create Index` test.
+    * `get_index` tag runs `Get Index` test.
+    * `delete_index` tag runs `Delete Index` test.
+  * `document` tag runs all tests connected to document scenarios:
+    * `create_document` tag runs `Create Document` test.
+    * `search_document` tag runs `Search Document` test.
+    * `update_document` tag runs `Update Document` test.
+    * `delete_document` tag tuns `Delete Document` test.
 * `authentication` tag runs all tests connected to authentication scenarios:
   * `basic_authentication`  tag runs all tests connected to basic authentication scenarios.
   * `oauth` tag runs all tests connected to OAUTH scenarios.

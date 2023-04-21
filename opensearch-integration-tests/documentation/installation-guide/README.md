@@ -74,7 +74,16 @@ The `integrationTests.dockerImage` parameter specifies the docker image of OpenS
 The default value is `artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests`.
 
 The `integrationTests.tags` parameter specifies the tags combined with `AND`, `OR` and `NOT` operators that select test cases to run. The default value is `smoke`. You can use the following tags:
-* `smoke` tag runs all tests connected to the smoke scenario.
+* `smoke` tag runs all tests connected to the smoke scenario:
+  * `index` tag runs all tests connected to OpenSearch index scenarios:
+    * `create_index` tag runs `Create Index` test.
+    * `get_index` tag runs `Get Index` test.
+    * `delete_index` tag runs `Delete Index` test.
+  * `document` tag runs all tests connected to document scenarios:
+    * `create_document` tag runs `Create Document` test.
+    * `search_document` tag runs `Search Document` test.
+    * `update_document` tag runs `Update Document` test.
+    * `delete_document` tag tuns `Delete Document` test.
 * `authentication` tag runs all tests connected to authentication scenarios:
   * `basic_authentication`  tag runs all tests connected to basic authentication scenarios.
   * `oauth` tag runs all tests connected to OAUTH scenarios.
