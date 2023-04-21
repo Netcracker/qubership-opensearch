@@ -46,6 +46,8 @@ integrationTests:
   statusWritingEnabled: true
   isShortStatusMessage: true
 
+  securityContext: {}
+
   resources:
     requests:
       memory: 256Mi

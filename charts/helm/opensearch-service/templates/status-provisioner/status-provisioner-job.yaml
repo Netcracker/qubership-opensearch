@@ -25,6 +25,11 @@ spec:
     spec:
       restartPolicy: Never
       serviceAccountName: {{ template "opensearch.fullname" . }}-status-provisioner
+      securityContext:
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.statusProvisioner.securityContext }}
+          {{- toYaml . | nindent 8 -}}
+        {{- end }}
       containers:
         - name: status-provisioner
           image: {{ template "deployment-status-provisioner.image" . }}
@@ -59,4 +64,6 @@ spec:
             limits:
               cpu: {{ default "100m" .Values.statusProvisioner.resources.limits.cpu }}
               memory: {{ default "100Mi" .Values.statusProvisioner.resources.limits.memory }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
 {{- end }}

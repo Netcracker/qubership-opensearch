@@ -96,6 +96,8 @@ spec:
             limits:
               memory: {{ default "256Mi" .Values.curator.resources.limits.memory }}
               cpu: {{ default "200m" .Values.curator.resources.limits.cpu }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
           name: {{ template "opensearch.fullname" . }}-curator
           volumeMounts:
             - mountPath: /backup-storage
@@ -164,6 +166,8 @@ spec:
             limits:
               memory: {{ default "256Mi" .Values.curator.resources.limits.memory }}
               cpu: {{ default "200m" .Values.curator.resources.limits.cpu }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
           volumeMounts:
             - mountPath: /opt/elasticsearch-indices-cleaner/cleaner.yml
               name: config
@@ -210,10 +214,11 @@ spec:
       nodeSelector:
 {{ toYaml . | indent 8 }}
     {{- end }}
-    {{- with .Values.curator.securityContext }}
       securityContext:
-{{ toYaml . | indent 8 }}
-    {{- end }}
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.curator.securityContext }}
+          {{- toYaml . | nindent 8 -}}
+        {{- end }}
     {{- with .Values.curator.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}

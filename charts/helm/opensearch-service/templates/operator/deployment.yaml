@@ -71,6 +71,8 @@ spec:
             requests:
               cpu: {{ default "25m" .Values.operator.resources.requests.cpu }}
               memory: {{ default "128Mi" .Values.operator.resources.requests.memory }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
         {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}
         - name: {{ template "opensearch.fullname" . }}-disaster-recovery
           image: {{ template "disasterRecovery.image" . }}
@@ -126,6 +128,8 @@ spec:
             requests:
               cpu: {{ default "10m" .Values.global.disasterRecovery.resources.requests.cpu }}
               memory: {{ default "10Mi" .Values.global.disasterRecovery.resources.requests.memory }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
         {{- end }}
       {{- if or (eq (include "opensearch.tlsEnabled" .) "true") (eq (include "disasterRecovery.tlsEnabled" .) "true") }}
       volumes:
@@ -140,6 +144,11 @@ spec:
             secretName: {{ template "disasterRecovery.certSecretName" . }}
         {{- end }}
       {{- end }}
+      securityContext:
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.operator.securityContext }}
+          {{- toYaml . | nindent 8 -}}
+        {{- end }}
       {{- with .Values.operator.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}
