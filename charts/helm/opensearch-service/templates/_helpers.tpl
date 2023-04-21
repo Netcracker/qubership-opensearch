@@ -1033,3 +1033,18 @@ Usage example:
     {{ end }}
   record: service:tls_status:info
 {{- end -}}
+
+{{- define "opensearch-service.globalPodSecurityContext" -}}
+runAsNonRoot: true
+seccompProfile:
+  type: "RuntimeDefault"
+{{- with .Values.global.securityContext }}
+{{ toYaml . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "opensearch-service.globalContainerSecurityContext" -}}
+allowPrivilegeEscalation: false
+capabilities:
+  drop: ["ALL"]
+{{- end -}}

@@ -55,6 +55,11 @@ spec:
       affinity:
 {{ toYaml . | indent 8 }}
     {{- end }}
+      securityContext:
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.opensearch.securityContextCustom }}
+          {{- toYaml . | nindent 8 -}}
+        {{- end }}
       initContainers:
 {{- if .Values.opensearch.sysctl.enabled }}
         - name: init-sysctl
@@ -90,10 +95,6 @@ spec:
 {{- end }}
 {{- if .Values.opensearch.master.extraInitContainers }}
 {{ toYaml .Values.opensearch.master.extraInitContainers| indent 8 }}
-{{- end }}
-{{- with .Values.opensearch.securityContextCustom }}
-      securityContext:
-{{ toYaml . | indent 8 }}
 {{- end }}
       containers:
         - name: opensearch
@@ -177,6 +178,8 @@ spec:
           startupProbe:
 {{ toYaml . | indent 12 }}
     {{- end }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
           image: {{ template "opensearch.image" . }}
           imagePullPolicy: {{ .Values.opensearch.imagePullPolicy | default "Always" | quote }}
           ports:

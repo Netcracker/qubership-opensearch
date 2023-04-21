@@ -77,6 +77,8 @@ spec:
           resources:
             {{ . | toYaml | indent 12 | trim }}
           {{- end }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
       serviceAccountName: {{ template "opensearch.fullname" . }}-pod-scheduler
       {{- with .Values.podScheduler.affinity }}
       affinity:
@@ -86,8 +88,9 @@ spec:
       nodeSelector:
         {{ toYaml . | indent 8 | trim }}
       {{- end }}
-      {{- with .Values.podScheduler.securityContext }}
       securityContext:
+      {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+      {{- with .Values.podScheduler.securityContext }}
         {{ toYaml . | indent 8 | trim }}
       {{- end }}
   {{- end }}

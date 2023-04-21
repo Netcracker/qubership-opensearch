@@ -195,6 +195,7 @@ global:
         cpu: "25m"
         memory: "32Mi"
   customLabels: {}
+  securityContext: {}
 
 operator:
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest
@@ -216,6 +217,7 @@ operator:
 #                  - opensearch-service-operator
 #          topologyKey: "kubernetes.io/hostname"
   customLabels: {}
+  securityContext: {}
 
   resources:
     requests:
@@ -1082,6 +1084,7 @@ statusProvisioner:
       memory: "100Mi"
       cpu: "100m"
   customLabels: {}
+  securityContext: {}
 
 integrationTests:
   enabled: false
@@ -1121,6 +1124,7 @@ integrationTests:
 #            topologyKey: "kubernetes.io/hostname"
 #          weight: 100
   customLabels: {}
+  securityContext: {}
 
 nameOverride: "opensearch"
 fullnameOverride: "opensearch"
