@@ -18,6 +18,8 @@ spec:
     spec:
       restartPolicy: Never
       serviceAccountName: {{ template "opensearch.fullname" . }}-tls-init
+      securityContext:
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
       containers:
         - name: tls-init
           image: {{ template "opensearch.image" . }}
@@ -54,4 +56,6 @@ spec:
             - "/bin/sh"
             - "-ec"
             - "bin/generate-certificates.sh"
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
 {{- end }}

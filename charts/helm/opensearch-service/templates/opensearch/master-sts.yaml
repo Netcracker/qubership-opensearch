@@ -72,7 +72,6 @@ spec:
             - -w
             - vm.max_map_count={{ .Values.opensearch.maxMapCount }}
           securityContext:
-            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
             privileged: true
 {{- end }}
 {{- if .Values.opensearch.fixmount.enabled }}
@@ -99,10 +98,6 @@ spec:
 {{- end }}
 {{- if .Values.opensearch.master.extraInitContainers }}
 {{ toYaml .Values.opensearch.master.extraInitContainers| indent 8 }}
-{{- end }}
-{{- with .Values.opensearch.securityContextCustom }}
-      securityContext:
-{{ toYaml . | indent 8 }}
 {{- end }}
       containers:
         - name: opensearch

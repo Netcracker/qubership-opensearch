@@ -86,8 +86,9 @@ spec:
 {{ toYaml .Values.dashboards.extraInitContainers | indent 8 }}
       containers:
         - name: {{ template "opensearch.fullname" . }}-dashboards
-          {{- with .Values.dashboards.securityContext }}
           securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
+          {{- with .Values.dashboards.securityContext }}
 {{ toYaml . | indent 12 }}
           {{- end }}
           image: "{{ template "dashboards.image" . }}"
@@ -139,11 +140,6 @@ spec:
               protocol: TCP
           resources:
 {{ toYaml .Values.dashboards.resources | indent 12 }}
-          securityContext:
-            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
-            {{- with .Values.dashboards.securityContext }}
-              {{- toYaml . | nindent 12 -}}
-            {{- end }}
           volumeMounts:
             {{- range .Values.dashboards.secretMounts }}
             - name: {{ .name }}

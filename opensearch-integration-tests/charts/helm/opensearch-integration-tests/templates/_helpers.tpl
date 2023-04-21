@@ -17,9 +17,6 @@ Find an OpenSearch integration tests image in various places.
 runAsNonRoot: true
 seccompProfile:
   type: "RuntimeDefault"
-{{- with .Values.global.securityContext }}
-{{ toYaml . }}
-{{- end -}}
 {{- end -}}
 
 {{- define "opensearch-service.globalContainerSecurityContext" -}}

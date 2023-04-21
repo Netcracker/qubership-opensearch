@@ -62,14 +62,9 @@ spec:
             - vm.max_map_count={{ .Values.opensearch.maxMapCount }}
           securityContext:
             privileged: true
-            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
 {{- end }}
 {{- if .Values.opensearch.extraInitContainers }}
 {{ toYaml .Values.opensearch.extraInitContainers| indent 8 }}
-{{- end }}
-{{- with .Values.opensearch.securityContextCustom }}
-      securityContext:
-{{ toYaml . | indent 8 }}
 {{- end }}
       containers:
         - name: opensearch

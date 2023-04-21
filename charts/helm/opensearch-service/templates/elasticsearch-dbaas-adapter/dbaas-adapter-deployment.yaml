@@ -129,7 +129,7 @@ spec:
     {{- end }}
       securityContext:
         {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
-        {{- with .Values.dbaasAdapter.securityContext }}
+        {{- with .Values.elasticsearchDbaasAdapter.securityContext }}
           {{- toYaml . | nindent 8 -}}
         {{- end }}
     {{- with .Values.elasticsearchDbaasAdapter.affinity }}

@@ -404,7 +404,11 @@ opensearch:
 #        image: busybox
 #        command: ['do', 'something']
     customLabels: {}
+    ## securityContext to apply to the pod. Allows for running as non-root
     securityContext: {}
+    #    fsGroup: 1000
+    #    runAsUser: 1000
+    #    runAsGroup: 1000
 
   arbiter:
     enabled: false
@@ -485,6 +489,11 @@ opensearch:
 #        image: busybox
 #        command: ['do', 'something']
     customLabels: {}
+    ## securityContext to apply to the pod. Allows for running as non-root
+    securityContext: { }
+    #    fsGroup: 1000
+    #    runAsUser: 1000
+    #    runAsGroup: 1000
 
   data:
     enabled: true
@@ -563,6 +572,11 @@ opensearch:
                   role: data
     podAnnotations: {}
     customLabels: {}
+    ## securityContext to apply to the pod. Allows for running as non-root
+    securityContext: { }
+    #    fsGroup: 1000
+    #    runAsUser: 1000
+    #    runAsGroup: 1000
 
   client:
     enabled: true
@@ -637,7 +651,11 @@ opensearch:
                   role: client
     podAnnotations: {}
     customLabels: {}
-    securityContext: {}
+    ## securityContext to apply to the pod. Allows for running as non-root
+    securityContext: { }
+    #    fsGroup: 1000
+    #    runAsUser: 1000
+    #    runAsGroup: 1000
 
   snapshots:
     enabled: false

@@ -141,10 +141,6 @@ spec:
       nodeSelector:
 {{ toYaml . | indent 8 }}
     {{- end }}
-    {{- with .Values.dbaasAdapter.securityContext }}
-      securityContext:
-{{ toYaml . | indent 8 }}
-    {{- end }}
     {{- with .Values.dbaasAdapter.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}

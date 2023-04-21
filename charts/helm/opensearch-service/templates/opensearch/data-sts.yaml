@@ -68,8 +68,9 @@ spec:
           command: [ 'sh', '-c', 'chown -R 1000:1000 /usr/share/opensearch/data' ]
         {{- end }}
           image: {{ template "busybox.image" . }}
-        {{- if .Values.opensearch.fixmount.securityContext }}
           securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
+        {{- if .Values.opensearch.fixmount.securityContext }}
         {{ .Values.opensearch.fixmount.securityContext | toYaml | indent 10}}
         {{- end }}
           volumeMounts:
@@ -87,10 +88,11 @@ spec:
 {{ toYaml . | indent 8 }}
     {{- end }}
       serviceAccountName: {{ template "opensearch.serviceAccountName" . }}
-{{- with .Values.opensearch.securityContextCustom }}
       securityContext:
-{{ toYaml . | indent 8 }}
-{{- end }}
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.opensearch.data.securityContext }}
+          {{- toYaml . | nindent 8 -}}
+        {{- end }}
       containers:
         - name: opensearch
           env:
@@ -129,6 +131,8 @@ spec:
               name: transport
           resources:
 {{ toYaml .Values.opensearch.data.resources | indent 12 }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
           readinessProbe:
         {{- if .Values.opensearch.data.readinessProbe }}
 {{ toYaml .Values.opensearch.data.readinessProbe | indent 10 }}
