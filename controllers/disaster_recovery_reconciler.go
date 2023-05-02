@@ -20,6 +20,10 @@ const (
 	replicationPatternKey       = "indicesPattern"
 	interval                    = 10 * time.Second
 	timeout                     = 240 * time.Second
+	usersRecoveryDoneState      = "done"
+	usersRecoveryFailedState    = "failed"
+	usersRecoveryIdleState      = "idle"
+	usersRecoveryRunningState   = "running"
 )
 
 type DisasterRecoveryReconciler struct {
@@ -128,6 +132,13 @@ func (r DisasterRecoveryReconciler) Configure() error {
 			if err := r.reconciler.enableClientService(r.cr.Name, r.cr.Namespace, r.logger); err != nil {
 				return err
 			}
+			if err == nil && crCondition && r.cr.Spec.DbaasAdapter != nil {
+				err = r.reconciler.scaleDeploymentForNoWait(r.cr.Spec.DbaasAdapter.Name, r.cr.Namespace, 1, false, r.logger)
+				if err == nil {
+					r.logger.Info("Start users recovery")
+					err = r.recoverUsers()
+				}
+			}
 		}
 
 		defer func() {
@@ -165,6 +176,13 @@ func (r DisasterRecoveryReconciler) updateDisasterRecoveryStatus(status string, 
 		instance.Status.DisasterRecoveryStatus.Mode = r.cr.Spec.DisasterRecovery.Mode
 		instance.Status.DisasterRecoveryStatus.Status = status
 		instance.Status.DisasterRecoveryStatus.Comment = comment
+	})
+}
+
+func (r DisasterRecoveryReconciler) updateUsersRecoveryStatus(state string) error {
+	statusUpdater := util.NewStatusUpdater(r.reconciler.Client, r.cr)
+	return statusUpdater.UpdateStatusWithRetry(func(cr *opensearchservice.OpenSearchService) {
+		cr.Status.DisasterRecoveryStatus.UsersRecoveryState = state
 	})
 }
 
@@ -243,6 +261,67 @@ func (r DisasterRecoveryReconciler) stopReplication(replicationManager Replicati
 
 	r.logger.Info("Replication has been stopped")
 	return nil
+}
+
+func (r DisasterRecoveryReconciler) recoverUsers() error {
+	aggregatorRestClient := r.buildAggregatorRestClient()
+	adapterRestClient := r.buildAdapterRestClient()
+	data := fmt.Sprintf(`{
+		"physicalDbId": "%s",
+		"type": "opensearch",
+		"settings": {}
+	}`, r.cr.Spec.DbaasAdapter.PhysicalDatabaseIdentifier)
+	state := r.cr.Status.DisasterRecoveryStatus.UsersRecoveryState
+	if state != usersRecoveryRunningState {
+		state = usersRecoveryIdleState
+	}
+	for state != usersRecoveryDoneState && state != usersRecoveryFailedState {
+		if state == usersRecoveryIdleState {
+			err := wait.PollImmediate(interval, timeout, func() (bool, error) {
+				statusCode, response, err := aggregatorRestClient.SendRequest(http.MethodPost,
+					"api/v3/dbaas/internal/physical_databases/users/restore-password", strings.NewReader(data))
+				if err != nil || statusCode != http.StatusOK {
+					r.logger.Error(err, fmt.Sprintf("Unable to restore user passwords via DBaaS aggregator: [%d] %s",
+						statusCode, string(response)))
+					return false, nil
+				}
+				return true, nil
+			})
+			if err != nil {
+				state = usersRecoveryFailedState
+				continue
+			}
+			if err = r.updateUsersRecoveryStatus(usersRecoveryRunningState); err != nil {
+				return err
+			}
+		}
+		time.Sleep(time.Second * 5)
+		statusCode, response, err := adapterRestClient.SendRequest(http.MethodGet,
+			"api/v2/dbaas/adapter/opensearch/users/restore-password/state", nil)
+		if err != nil || statusCode != http.StatusOK {
+			r.logger.Error(err, fmt.Sprintf("Unable to get state of procedure: %s", string(response)))
+			continue
+		}
+		state = string(response)
+	}
+	err := r.updateUsersRecoveryStatus(state)
+	if err == nil && state == usersRecoveryFailedState {
+		return fmt.Errorf("unable to restore OpenSearch users during switchover")
+	}
+	return err
+}
+
+func (r DisasterRecoveryReconciler) buildAggregatorRestClient() *util.RestClient {
+	client, _ := r.reconciler.configureClientWithCertificate(dbaasCertificateFilePath)
+	credentials := r.reconciler.parseSecretCredentialsByKeys(r.cr.Spec.DbaasAdapter.SecretName, r.cr.Namespace,
+		"registration-auth-username", "registration-auth-password", r.logger)
+	return util.NewRestClient(r.cr.Spec.DbaasAdapter.AggregatorAddress, client, credentials)
+}
+
+func (r DisasterRecoveryReconciler) buildAdapterRestClient() *util.RestClient {
+	client, _ := r.reconciler.configureClientWithCertificate(dbaasCertificateFilePath)
+	credentials := r.reconciler.parseSecretCredentials(r.cr.Spec.DbaasAdapter.SecretName, r.cr.Namespace, r.logger)
+	return util.NewRestClient(r.cr.Spec.DbaasAdapter.AdapterAddress, client, credentials)
 }
 
 func (r DisasterRecoveryReconciler) checkExistingReplications(replicationManager ReplicationManager) error {

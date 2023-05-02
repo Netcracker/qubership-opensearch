@@ -43,7 +43,7 @@ DESCRIPTION_YAML: |
         opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"
         opensearchDbaasAdapterPort: 8080
         opensearchDbaasAdapterRepository: "snapshots"
-        opensearchDbaasAdapterApiVersion: v1
+        opensearchDbaasAdapterApiVersion: v2
         opensearchCuratorHost: "opensearch-curator"
         opensearchCuratorPort: 8080
         prometheusUrl: "http://prometheus.ci-master.openshift.sdntest.netcracker.com:80"

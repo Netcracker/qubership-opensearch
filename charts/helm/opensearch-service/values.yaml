@@ -862,7 +862,7 @@ dbaasAdapter:
   dbaasAdapterAddress: ""
   dbaasUsername: ""
   dbaasPassword: ""
-  apiVersion: v1
+  apiVersion: v2
 
   dbaasAggregatorRegistrationAddress: ""
   dbaasAggregatorPhysicalDatabaseIdentifier: ""
