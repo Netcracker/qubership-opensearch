@@ -122,11 +122,16 @@ func (r *OpenSearchServiceReconciler) parseOpenSearchCredentials(cr *opensearchs
 
 // parseSecretCredentials gets credentials from specified secret
 func (r *OpenSearchServiceReconciler) parseSecretCredentials(name string, namespace string, logger logr.Logger) util.Credentials {
+	return r.parseSecretCredentialsByKeys(name, namespace, "username", "password", logger)
+}
+
+func (r *OpenSearchServiceReconciler) parseSecretCredentialsByKeys(name string, namespace string, usernameKey string,
+	passwordKey string, logger logr.Logger) util.Credentials {
 	var credentials util.Credentials
 	secret, err := r.findSecret(name, namespace, logger)
 	if err == nil {
-		username := string(secret.Data["username"])
-		password := string(secret.Data["password"])
+		username := string(secret.Data[usernameKey])
+		password := string(secret.Data[passwordKey])
 		if username != "" && password != "" {
 			credentials = util.NewCredentials(username, password)
 		}
@@ -392,12 +397,18 @@ func (r *OpenSearchServiceReconciler) createHttpClient() http.Client {
 }
 
 func (r *OpenSearchServiceReconciler) configureClient() (http.Client, error) {
+	return r.configureClientWithCertificate(certificateFilePath)
+}
+
+// configureClientWithCertificate configures client with certificates from specified file
+func (r *OpenSearchServiceReconciler) configureClientWithCertificate(certificatePath string) (http.Client, error) {
 	httpClient := r.createHttpClient()
-	if _, err := os.Stat(certificateFilePath); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(certificatePath); errors.Is(err, os.ErrNotExist) {
 		return httpClient, nil
 	}
-	caCert, err := os.ReadFile(certificateFilePath)
+	caCert, err := os.ReadFile(certificatePath)
 	if err != nil {
+		log.Error(err, fmt.Sprintf("Unable to read certificates from %s file", certificatePath))
 		return httpClient, err
 	}
 	caCertPool := x509.NewCertPool()

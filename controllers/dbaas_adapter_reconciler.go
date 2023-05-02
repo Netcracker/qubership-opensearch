@@ -7,6 +7,7 @@ import (
 
 const (
 	dbaasAdapterSecretHashName = "secret.dbaasAdapter"
+	dbaasCertificateFilePath   = "/certs/dbaas-adapter/crt.pem"
 )
 
 type DbaasAdapterReconciler struct {

@@ -16,6 +16,11 @@ The topics covered in this section are:
 
 The Disaster Recovery scheme implies two separate OpenSearch clusters, one of which is in the `active` mode, and the other is in the `standby` mode.
 
+The Disaster Recovery process for OpenSearch service includes the following parts:
+
+* Turning on/off replication of OpenSearch indices with data: when switching to `standby` mode we enable replication, when switching to `active` mode we disable it.
+* Users recovery when switching to the `active` side if DBaaS adapter is enabled.
+
 # Configuration
 
 The Disaster Recovery (DR) configuration requires two separate OpenSearch clusters installed on two Kubernetes/OpenShift clusters. First, you need to configure the parameters for OpenSearch and all the components that you need to deploy to cloud. Then, pay attention to the following steps that are significant for Disaster Recovery configuration:
@@ -45,10 +50,10 @@ The Disaster Recovery (DR) configuration requires two separate OpenSearch cluste
     global:
       ...
       disasterRecovery:
-        afterServices: ["app"]
+        afterServices: ["app", "postgres-service-site-manager"]
     ```
 
-   In common case OpenSearch service is a base service and does not have any `after` services.
+   In common case OpenSearch service is a base service and does not have any `after` services, but if you have DBaaS adapter enabled, you need to specify in this parameter `Postgres`, where the DBaaS aggregator stores its data.
 
 4. In DR scheme, OpenSearch must be deployed with indicating OpenSearch service from opposite side. For example, if you deploy `standby` OpenSearch cluster you should specify path to the OpenSearch from `active` side to start replication from `active` OpenSearch to `standby`.
    Even if you deploy `active` side you need to specify path to `standby` OpenSearch cluster to support switch over process. You can also specify some regular expression as `indicesPattern` which is used for look up `active` indices to replicate them.
@@ -61,6 +66,8 @@ The Disaster Recovery (DR) configuration requires two separate OpenSearch cluste
         indicesPattern: "test-*"
         remoteCluster: "opensearch:9300"
    ```
+
+5. DBaaS adapter should be installed only if DBaaS aggregator is on the cloud.
 
 ## Manual Steps Before Installation
 
