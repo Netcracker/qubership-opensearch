@@ -9,6 +9,7 @@ ${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}  %{OPENSEARCH_DBAAS_ADAPTER_API_VERSION=
 ${OPENSEARCH_HOST}                       %{OPENSEARCH_HOST}
 ${OPENSEARCH_PORT}                       %{OPENSEARCH_PORT}
 ${OPENSEARCH_PROTOCOL}                   %{OPENSEARCH_PROTOCOL}
+${DBAAS_MEATADATA_INDEX}                 dbaas_opensearch_metadata
 ${RETRY_TIME}                            20s
 ${RETRY_INTERVAL}                        1s
 ${SLEEP_TIME}                            5s
@@ -39,16 +40,12 @@ Login To OpenSearch As User
     [Return]  opensearch_user_session
 
 Create Database Resource Prefix By Dbaas Agent
-    [Arguments]  ${prefix}=
-    ${data}=  Set Variable  {"namePrefix": "${prefix}", "settings":{"resourcePrefix": true,"createOnly": ["user"]}}
-    ${response}=  Post Request  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  201
-    ${content}=  Convert Json ${response.content} To Type
-    [Return]  ${content}
-
-Create Database Resource Prefix By Dbaas Agent With Credentials
-    [Arguments]  ${username}  ${password}
-    ${data}=  Set Variable  {"settings":{"resourcePrefix": true,"createOnly": ["user"]}, "username": "${username}", "password": "${password}"}
+    [Arguments]  ${prefix}=${None}  ${metadata}=${None}
+    @{create_only}=  Create List  user
+    &{settings}=  Create Dictionary  resourcePrefix=${True}  createOnly=${create_only}
+    &{data}=  Create Dictionary  settings=${settings}
+    Run Keyword If  ${prefix}  Set To Dictionary  ${data}  namePrefix=${prefix}
+    Run Keyword If  ${metadata}  Set To Dictionary  ${data}  metadata=${metadata}
     ${response}=  Post Request  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  201
     ${content}=  Convert Json ${response.content} To Type
@@ -94,6 +91,26 @@ Create Database Resource Prefix
     ${document}=  Find Document By Field  ${resourcePrefix}-alias  name  John
     Should Be Equal As Strings  ${document['age']}  25
 
+    [Teardown]  Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
+
+Create Database Resource Prefix With Metadata
+    [Tags]  dbaas  dbaas_opensearch  dbaas_resource_prefix  dbaas_create_resource_prefix_with_metadata  dbaas_v1
+    &{metadata}=  Create Dictionary  scope=service-v1  microserviceName=integration-tests
+    ${response}=  Create Database Resource Prefix By Dbaas Agent  metadata=${metadata}
+    Log  ${response}
+    ${resourcePrefix}=  Set Variable  ${response['connectionProperties']['resourcePrefix']}
+    Log  Resource Prefix: ${resourcePrefix}
+    Sleep  ${SLEEP_TIME}
+
+    Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}
+    ${document}=  Find Document By Field  ${DBAAS_MEATADATA_INDEX}  _id  ${resourcePrefix}
+    Should Be Equal As Strings  ${document['microserviceName']}  integration-tests
+    Should Be Equal As Strings  ${document['scope']}  service-v1
+
+    Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
+    Sleep  ${SLEEP_TIME}
+
+    Check That Document Does Not Exist By Field  ${DBAAS_MEATADATA_INDEX}  _id  ${resourcePrefix}
     [Teardown]  Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
 
 Database Resource Prefix Authorization
@@ -187,6 +204,7 @@ Delete Database Resource Prefix
     Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}
     ${response}=  Get OpenSearch User  ${username}
     Should Be Equal As Strings  ${response.status_code}  200
+    Check That Document Does Not Exist By Field  ${DBAAS_MEATADATA_INDEX}  _id  ${resourcePrefix}
 
     Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
     Sleep  ${SLEEP_TIME}
@@ -272,11 +290,31 @@ Create Database Resource Prefix for Multiple Users
 
     [Teardown]  Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
 
+Create Database Resource Prefix With Metadata for Multiple Users
+    [Tags]  dbaas  dbaas_opensearch  dbaas_resource_prefix  dbaas_create_resource_prefix_with_metadata_for_multiple_users  dbaas_v2
+    &{metadata}=  Create Dictionary  scope=service-v2  microserviceName=integration-tests
+    ${response}=  Create Database Resource Prefix By Dbaas Agent  metadata=${metadata}
+    Log  ${response}
+    ${resourcePrefix}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="admin")].resourcePrefix
+    Log  Resource Prefix: ${resourcePrefix}
+    Sleep  ${SLEEP_TIME}
+
+    Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}
+    ${document}=  Find Document By Field  ${DBAAS_MEATADATA_INDEX}  _id  ${resourcePrefix}
+    Should Be Equal As Strings  ${document['microserviceName']}  integration-tests
+    Should Be Equal As Strings  ${document['scope']}  service-v2
+
+    Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
+    Sleep  ${SLEEP_TIME}
+
+    Check That Document Does Not Exist By Field  ${DBAAS_MEATADATA_INDEX}  _id  ${resourcePrefix}
+    [Teardown]  Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
+
 Create Database With Custom Resource Prefix for Multiple Users
     [Tags]  dbaas  dbaas_opensearch  dbaas_resource_prefix  dbaas_create_with_custom_resource_prefix_for_multiple_users  dbaas_v2
     ${resource_prefix}=  Set Variable  custom-2b9e-4cbc-8f7f-b98684b51073
     Log  Resource Prefix: ${resource_prefix}
-    ${response}=  Create Database Resource Prefix By Dbaas Agent  ${resource_prefix}
+    ${response}=  Create Database Resource Prefix By Dbaas Agent  prefix=${resource_prefix}
     Log  ${response}
     ${created_resource_prefix}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="admin")].resourcePrefix
     Should Be Equal As Strings  ${resource_prefix}  ${created_resource_prefix}
@@ -423,6 +461,7 @@ Delete Database Resource Prefix for Multiple Users
     Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Get OpenSearch User  ${username_readonly}
     Should Be Equal As Strings  ${response.status_code}  200
+    Check That Document Does Not Exist By Field  ${DBAAS_MEATADATA_INDEX}  _id  ${resourcePrefix}
 
     Delete Database Resource Prefix Dbaas Agent  ${resource_prefix}
     Sleep  ${SLEEP_TIME}
