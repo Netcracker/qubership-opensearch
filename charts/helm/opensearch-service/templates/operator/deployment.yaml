@@ -32,11 +32,16 @@ spec:
             - containerPort: 8069
               protocol: TCP
               name: rep-health
-          {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
           volumeMounts:
+          {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - mountPath: /certs/crt.pem
               name: opensearch-certs
               subPath: {{ template "opensearch.rest-root-ca-path" . }}
+          {{- end }}
+          {{ if and .Values.dbaasAdapter.enabled (eq (include "dbaas-adapter.tlsEnabled" .) "true") }}
+            - mountPath: /certs/dbaas-adapter/crt.pem
+              name: dbaas-adapter-certs
+              subPath: "ca.crt"
           {{- end }}
           command:
             - /manager
@@ -131,7 +136,6 @@ spec:
           securityContext:
             {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
         {{- end }}
-      {{- if or (eq (include "opensearch.tlsEnabled" .) "true") (eq (include "disasterRecovery.tlsEnabled" .) "true") }}
       volumes:
         {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
         - name: opensearch-certs
@@ -143,7 +147,11 @@ spec:
           secret:
             secretName: {{ template "disasterRecovery.certSecretName" . }}
         {{- end }}
-      {{- end }}
+        {{ if and .Values.dbaasAdapter.enabled (eq (include "dbaas-adapter.tlsEnabled" .) "true") }}
+        - name: dbaas-adapter-certs
+          secret:
+            secretName: {{ template "dbaas-adapter.tlsSecretName" . }}
+        {{- end }}
       securityContext:
         {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
         {{- with .Values.operator.securityContext }}

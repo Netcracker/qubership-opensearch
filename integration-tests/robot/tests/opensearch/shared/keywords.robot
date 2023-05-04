@@ -190,6 +190,11 @@ Get OpenSearch User
     ${response}=  Get Request  opensearch  /_plugins/_security/api/internalusers/${username}
     [Return]  ${response}
 
+Check OpenSearch User Exists
+    [Arguments]  ${username}
+    ${response}=  Get OpenSearch User  ${username}
+    Should Be Equal As Strings  ${response.status_code}  200
+
 Make Index Read Only
     [Arguments]  ${index_name}
     ${body}=  Set Variable  {"settings":{"index.blocks.write":true}}
