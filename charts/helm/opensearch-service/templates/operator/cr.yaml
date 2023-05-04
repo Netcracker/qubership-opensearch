@@ -59,6 +59,11 @@ spec:
   dbaasAdapter:
     name: {{ template "dbaas-adapter.name" . }}
     secretName: {{ template "dbaas-adapter.name" . }}-secret
+    {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}
+    adapterAddress: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (include "dbaas-adapter.address" .) }}
+    aggregatorAddress: {{ .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
+    physicalDatabaseIdentifier: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
+    {{- end }}
   {{- end }}
   {{- if .Values.elasticsearchDbaasAdapter.enabled }}
   elasticsearchDbaasAdapter:

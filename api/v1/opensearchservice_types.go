@@ -45,8 +45,11 @@ type Monitoring struct {
 
 // DbaasAdapter structure defines parameters necessary for interaction with DBaaS OpenSearch adapter
 type DbaasAdapter struct {
-	Name       string `json:"name"`
-	SecretName string `json:"secretName"`
+	AdapterAddress             string `json:"adapterAddress,omitempty"`
+	AggregatorAddress          string `json:"aggregatorAddress,omitempty"`
+	Name                       string `json:"name"`
+	PhysicalDatabaseIdentifier string `json:"physicalDatabaseIdentifier,omitempty"`
+	SecretName                 string `json:"secretName"`
 }
 
 // ElasticsearchDbaasAdapter structure defines parameters necessary for interaction with DBaaS Elasticsearch adapter
@@ -83,9 +86,10 @@ type OpenSearchServiceSpec struct {
 }
 
 type DisasterRecoveryStatus struct {
-	Mode    string `json:"mode"`
-	Status  string `json:"status"`
-	Comment string `json:"comment,omitempty"`
+	Mode               string `json:"mode"`
+	Status             string `json:"status"`
+	Comment            string `json:"comment,omitempty"`
+	UsersRecoveryState string `json:"usersRecoveryState,omitempty"`
 }
 
 // OpenSearchServiceStatus defines the observed state of OpenSearchService

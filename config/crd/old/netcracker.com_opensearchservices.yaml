@@ -49,7 +49,13 @@ spec:
               type: object
             dbaasAdapter:
               properties:
+                adapterAddress:
+                  type: string
+                aggregatorAddress:
+                  type: string
                 name:
+                  type: string
+                physicalDatabaseIdentifier:
                   type: string
                 secretName:
                   type: string
@@ -163,6 +169,8 @@ spec:
                 mode:
                   type: string
                 status:
+                  type: string
+                usersRecoveryState:
                   type: string
               required:
               - mode
