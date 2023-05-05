@@ -40,11 +40,11 @@ Login To OpenSearch As User
     [Return]  opensearch_user_session
 
 Create Database Resource Prefix By Dbaas Agent
-    [Arguments]  ${prefix}=${None}  ${metadata}=${None}
+    [Arguments]  ${prefix}=  ${metadata}={}
     @{create_only}=  Create List  user
     &{settings}=  Create Dictionary  resourcePrefix=${True}  createOnly=${create_only}
     &{data}=  Create Dictionary  settings=${settings}
-    Run Keyword If  ${prefix}  Set To Dictionary  ${data}  namePrefix=${prefix}
+    Run Keyword If  "${prefix}" != "${EMPTY}"  Set To Dictionary  ${data}  namePrefix=${prefix}
     Run Keyword If  ${metadata}  Set To Dictionary  ${data}  metadata=${metadata}
     ${response}=  Post Request  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  201

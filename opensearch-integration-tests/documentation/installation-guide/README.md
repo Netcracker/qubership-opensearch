@@ -74,6 +74,7 @@ The `integrationTests.dockerImage` parameter specifies the docker image of OpenS
 The default value is `artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests`.
 
 The `integrationTests.tags` parameter specifies the tags combined with `AND`, `OR` and `NOT` operators that select test cases to run. The default value is `smoke`. You can use the following tags:
+
 * `smoke` tag runs all tests connected to the smoke scenario:
   * `index` tag runs all tests connected to OpenSearch index scenarios:
     * `create_index` tag runs `Create Index` test.
@@ -111,12 +112,16 @@ The `integrationTests.tags` parameter specifies the tags combined with `AND`, `O
       * `dbaas_create_index_with_user_and_write_data` tag runs `Create Index With User By Dbaas Adapter And Write Data` test.
     * `dbaas_resource_prefix` tag runs all tests connected to DBaaS adapter resource prefix scenarios with specific DBaaS adapter API:
       * `dbaas_create_resource_prefix` tag runs `Create Database Resource Prefix` test with DBaaS adapter `v1` API.
+      * `dbaas_create_resource_prefix_with_metadata` tag runs `Create Database Resource Prefix With Metadata` test with DBaaS adapter `v1` API.
       * `dbaas_resource_prefix_authorization` tag runs `Database Resource Prefix Authorization` test with DBaaS adapter `v1` API.
-      * `dbaas_delete_resource_prefix` tag runs `Delete Database Resource Prefix` test  with DBaaS adapter `v1` API.
+      * `dbaas_delete_resource_prefix` tag runs `Delete Database Resource Prefix` test with DBaaS adapter `v1` API.
       * `dbaas_create_resource_prefix_for_multiple_users` tag runs `Create Database Resource Prefix for Multiple Users` test with DBaaS adapter `v2` API.
+      * `dbaas_create_resource_prefix_with_metadata_for_multiple_users` tag runs `Create Database Resource Prefix With Metadata for Multiple Users` test with DBaaS adapter `v2` API.
       * `dbaas_create_with_custom_resource_prefix_for_multiple_users` tag runs `Create Database With Custom Resource Prefix for Multiple Users` test with DBaaS adapter `v2` API.
       * `dbaas_change_password_for_dml_user` tag runs `Change Password for DML User` test with DBaaS adapter `v2` API.
       * `dbaas_delete_resource_prefix_for_multiple_users` tag runs `Delete Database Resource Prefix for Multiple Users` test with DBaaS adapter `v2` API.
+    * `dbaas_recovery` tag runs tests connected to recovery users in OpenSearch via DBaaS adapter:
+      * `dbaas_recover_users` tag runs `Recover Users In OpenSearch` test with DBaaS adapter `v2` API.
     * `dbaas_v1` tag runs all tests connected to DBaaS adapter v1 scenarios.
     * `dbaas_v2` tag runs all tests connected to DBaaS adapter v2 scenarios.
 * `ha` tag runs all tests connected to HA scenarios:
