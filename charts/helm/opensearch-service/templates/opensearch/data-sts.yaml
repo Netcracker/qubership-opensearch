@@ -71,7 +71,6 @@ spec:
           image: {{ template "busybox.image" . }}
           securityContext:
             runAsNonRoot: false
-            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
         {{- if .Values.opensearch.fixmount.securityContext }}
         {{ .Values.opensearch.fixmount.securityContext | toYaml | indent 10}}
         {{- end }}
