@@ -59,6 +59,7 @@ spec:
             - vm.max_map_count={{ .Values.opensearch.maxMapCount }}
           securityContext:
             privileged: true
+            runAsNonRoot: false
 {{- end }}
 {{- if .Values.opensearch.fixmount.enabled }}
         - name: fixmount
@@ -69,6 +70,7 @@ spec:
         {{- end }}
           image: {{ template "busybox.image" . }}
           securityContext:
+            runAsNonRoot: false
             {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
         {{- if .Values.opensearch.fixmount.securityContext }}
         {{ .Values.opensearch.fixmount.securityContext | toYaml | indent 10}}
