@@ -82,6 +82,7 @@ Recover Users In OpenSearch
     Login To OpenSearch  ${dml_username}  ${dml_password}
     ${document}=  Set Variable  {"name": "Theodore", "age": "44"}
     Create Document ${document} For Index ${resource_prefix}-test
+    Sleep  ${SLEEP_TIME}
 
     Login To OpenSearch  ${readonly_username}  ${readonly_password}
     ${document}=  Find Document By Field  ${resourcePrefix}-test  name  Theodore
