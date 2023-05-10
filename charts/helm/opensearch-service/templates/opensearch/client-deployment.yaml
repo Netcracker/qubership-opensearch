@@ -62,6 +62,7 @@ spec:
             - vm.max_map_count={{ .Values.opensearch.maxMapCount }}
           securityContext:
             privileged: true
+            runAsNonRoot: false
 {{- end }}
 {{- if .Values.opensearch.extraInitContainers }}
 {{ toYaml .Values.opensearch.extraInitContainers| indent 8 }}
