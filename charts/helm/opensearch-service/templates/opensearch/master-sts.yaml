@@ -70,6 +70,7 @@ spec:
             - vm.max_map_count={{ .Values.opensearch.maxMapCount }}
           securityContext:
             privileged: true
+            runAsNonRoot: false
 {{- end }}
 {{- if .Values.opensearch.fixmount.enabled }}
         - name: fixmount
@@ -79,8 +80,9 @@ spec:
           command: [ 'sh', '-c', 'chown -R 1000:1000 /usr/share/opensearch/data' ]
         {{- end }}
           image: {{ template "busybox.image" . }}
-        {{- if .Values.opensearch.fixmount.securityContext }}
           securityContext:
+            runAsNonRoot: false
+        {{- if .Values.opensearch.fixmount.securityContext }}
 {{ .Values.opensearch.fixmount.securityContext | toYaml | indent 12 | trim}}
         {{- end }}
           volumeMounts:
