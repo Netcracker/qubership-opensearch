@@ -641,6 +641,48 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
 
 4. For `standby` side switch OpenSearch cluster to the `active` side and return to the `standby` one. This action should restart replication properly. 
 
+### ResourceAlreadyExistsException: task with id {replication:index:test_index} already exist
+
+| Problem                                      | Severity | Possible Reason                                                                                     |
+|----------------------------------------------|----------|-----------------------------------------------------------------------------------------------------|
+| Indices are not replicated to `standby` side | Average  | OpenSearch data is corrupted: previous replication tasks for indices were cached in metadata files. |
+
+**Description**:
+
+OpenSearch disaster recovery health has `DEGRADED` status and indices are not replicated. The OpenSearch logs contain the following error:
+
+```
+[2023-05-18T12:03:27,684][WARN ][o.o.r.t.a.AutoFollowTask ] [opensearch-0][leader-cluster] Failed to start replication for leader-cluster:test_index -> test_index.
+org.opensearch.ResourceAlreadyExistsException: task with id {replication:index:test_index} already exist
+	at org.opensearch.persistent.PersistentTasksClusterService$1.execute(PersistentTasksClusterService.java:135) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.ClusterStateUpdateTask.execute(ClusterStateUpdateTask.java:63) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.service.MasterService.executeTasks(MasterService.java:804) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.service.MasterService.calculateTaskOutputs(MasterService.java:378) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.service.MasterService.runTasks(MasterService.java:249) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.service.MasterService.access$000(MasterService.java:86) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.service.MasterService$Batcher.run(MasterService.java:173) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.service.TaskBatcher.runIfNotProcessed(TaskBatcher.java:174) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.service.TaskBatcher$BatchedTask.run(TaskBatcher.java:212) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.common.util.concurrent.ThreadContext$ContextPreservingRunnable.run(ThreadContext.java:733) [opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.common.util.concurrent.PrioritizedOpenSearchThreadPoolExecutor$TieBreakingPrioritizedRunnable.runAndClean(PrioritizedOpenSearchThreadPoolExecutor.java:275) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.common.util.concurrent.PrioritizedOpenSearchThreadPoolExecutor$TieBreakingPrioritizedRunnable.run(PrioritizedOpenSearchThreadPoolExecutor.java:238) ~[opensearch-1.3.7.jar:1.3.7]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128) [?:?]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628) [?:?]
+	at java.lang.Thread.run(Thread.java:829) [?:?]
+```
+
+**Solution**:
+
+1. Scale down all pods related to OpenSearch (`master`, `data`, `ingest`, `arbiter`) on `standby` side.
+2. Clear OpenSearch data on `standby` side in one of the following ways:
+   * Remove OpenSearch persistent volumes
+   * Clear persistent volumes manually
+3. Scale up all pods related to OpenSearch (`master`, `data`, `ingest`, `arbiter`) on `standby` side.
+
+**Note**, it is safe as you need to perform these steps on `standby` side. All data will be replicated from the `active` side once the replication process has started successfully.
+
+For more information refer to [OpenSearch issue](https://github.com/opensearch-project/cross-cluster-replication/issues/840).
+
 ## Index Is Not Replicated To Standby Side Without Any Errors
 
 | Problem                                           | Severity | Possible Reason                                                                                                                      |
