@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
+	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/types"
 	"strings"
@@ -85,8 +86,11 @@ func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, lo
 		logger.Error(err, "Cannot check autofollow replication rule")
 	}
 	if autoFollowRuleStats != nil {
-		if len(autoFollowRuleStats.FailedIndices) > 0 {
-			logger.Info(fmt.Sprintf("Replication does not work correctly, there are failed_indices: %s", autoFollowRuleStats.FailedIndices))
+		failedIndices := util.FilterSlice(autoFollowRuleStats.FailedIndices, func(s string) bool {
+			return !strings.HasPrefix(s, ".")
+		})
+		if len(failedIndices) > 0 {
+			logger.Info(fmt.Sprintf("Replication does not work correctly, there are failed_indices: %s", failedIndices))
 			rw.restartReplication(drr, logger, replicationManager)
 		} else {
 			indices, err := replicationManager.GetIndicesByPatternExcludeService(replicationManager.pattern)

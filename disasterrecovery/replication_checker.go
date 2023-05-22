@@ -85,7 +85,10 @@ func (rc ReplicationChecker) CheckReplication() (string, error) {
 	}
 	for _, rule := range autofollowStats.AutofollowRuleStats {
 		if rule.Name == replicationName {
-			if len(rule.FailedIndices) == 0 {
+			failedIndices := util.FilterSlice(rule.FailedIndices, func(s string) bool {
+				return !strings.HasPrefix(s, ".")
+			})
+			if len(failedIndices) == 0 {
 				if rule.FailedStart > 0 {
 					return DEGRADED, nil
 				}
