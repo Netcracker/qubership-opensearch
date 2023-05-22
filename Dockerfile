@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM artifactorycn.netcracker.com:17064/golang:1.20.3-alpine3.17 as builder
+FROM artifactorycn.netcracker.com:17064/golang:1.19.8-alpine3.17 as builder
 
 ENV GOPROXY=https://artifactorycn.netcracker.com/pd.sandbox-staging.go.group \
     GOSUMDB=off
