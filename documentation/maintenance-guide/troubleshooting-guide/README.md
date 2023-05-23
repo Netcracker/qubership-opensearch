@@ -590,7 +590,7 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
    }
    ```
 
-   Please, recognize list of `failed_indices`.
+   Recognize the list of `failed_indices`.
 
 3. For each index from the previous step do the following:
 
@@ -617,13 +617,13 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
       {"error":{"root_cause":[{"type":"illegal_argument_exception","reason":"No replication in progress for index:test_topic"}],"type":"illegal_argument_exception","reason":"No replication in progress for index:test_topic"},"status":400}
       ```
 
-      the replication is not run on the `active` side for the specified failed `test_topic` index. Then you need to go to the `standby` side of OpenSearch cluster and check the status of replication for above index:
+      The replication is not run on the `active` side for the specified failed `test_topic` index. Then you need to go to the `standby` side of OpenSearch cluster and check the status of replication for above index:
 
       ```bash
       curl -u <username>:<password> -XGET http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/<index_name>/_status?pretty
       ```
 
-      where:
+      Where:
          * `<username>:<password>` are the credentials to OpenSearch.
          * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
          * `<index_name>` is the name of failed index. For example, `test_topic`.
@@ -634,7 +634,7 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
       curl -u <username>:<password> -XPOST  http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/<index_name>/_stop -H 'Content-Type: application/json' -d'{}'
       ```
 
-      where:
+      Where:
          * `<username>:<password>` are the credentials to OpenSearch.
          * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
          * `<index_name>` is the name of failed index. For example, `test_topic`.
@@ -697,22 +697,24 @@ For more information about OpenSearch issues, refer to [https://github.com/opens
       curl -u <username>:<password> -XGET http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/<index_name>/_status?pretty
       ```
 
-   where:
+   Where:
    * `<username>:<password>` are the credentials to OpenSearch.
    * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
    * `<index_name>` is the name of missed index. For example, `test_topic`.
 
-   the following response makes it clear that index was removed in active side:
+   The following response makes it clear that index was removed in active side:
+
    ```
    {"status":"PAUSED","reason":"AutoPaused: [[haindex2][0] - org.opensearch.index.IndexNotFoundException - \"no such index [haindex2]\"], ","leader_alias":"leader-cluster","leader_index":"haindex2","follower_index":"haindex2"}
    ```
 
-2. To run replication again you can remove presented index on standby side:
+2. To run the replication again, you can remove presented index on standby side:
 
    ```bash
    curl -u <username>:<password> -XDELETE http://opensearch.<opensearch_namespace>:9200/<index_name>
    ```
-   where:
+
+   Where:
    * `<username>:<password>` are the credentials to OpenSearch.
    * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
    * `<index_name>` is the name of missed index. For example, `test_topic`.
