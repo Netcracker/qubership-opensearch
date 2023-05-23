@@ -590,7 +590,7 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
    }
    ```
 
-   Please, recognize list of `failed_indices`.
+   Recognize the list of `failed_indices`.
 
 3. For each index from the previous step do the following:
 
@@ -617,13 +617,13 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
       {"error":{"root_cause":[{"type":"illegal_argument_exception","reason":"No replication in progress for index:test_topic"}],"type":"illegal_argument_exception","reason":"No replication in progress for index:test_topic"},"status":400}
       ```
 
-      the replication is not run on the `active` side for the specified failed `test_topic` index. Then you need to go to the `standby` side of OpenSearch cluster and check the status of replication for above index:
+      The replication is not run on the `active` side for the specified failed `test_topic` index. Then you need to go to the `standby` side of OpenSearch cluster and check the status of replication for above index:
 
       ```bash
       curl -u <username>:<password> -XGET http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/<index_name>/_status?pretty
       ```
 
-      where:
+      Where:
          * `<username>:<password>` are the credentials to OpenSearch.
          * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
          * `<index_name>` is the name of failed index. For example, `test_topic`.
@@ -634,12 +634,54 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
       curl -u <username>:<password> -XPOST  http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/<index_name>/_stop -H 'Content-Type: application/json' -d'{}'
       ```
 
-      where:
+      Where:
          * `<username>:<password>` are the credentials to OpenSearch.
          * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
          * `<index_name>` is the name of failed index. For example, `test_topic`.
 
 4. For `standby` side switch OpenSearch cluster to the `active` side and return to the `standby` one. This action should restart replication properly. 
+
+### ResourceAlreadyExistsException: task with id {replication:index:test_index} already exist
+
+| Problem                                           | Severity | Possible Reason                                                                                     |
+|---------------------------------------------------|----------|-----------------------------------------------------------------------------------------------------|
+| Indices are not replicated to the `standby` side. | Average  | OpenSearch data is corrupted: previous replication tasks for indices were cached in metadata files. |
+
+**Description**:
+
+OpenSearch disaster recovery health has `DEGRADED` status and indices are not replicated. The OpenSearch logs contain the following error:
+
+```
+[2023-05-18T12:03:27,684][WARN ][o.o.r.t.a.AutoFollowTask ] [opensearch-0][leader-cluster] Failed to start replication for leader-cluster:test_index -> test_index.
+org.opensearch.ResourceAlreadyExistsException: task with id {replication:index:test_index} already exist
+	at org.opensearch.persistent.PersistentTasksClusterService$1.execute(PersistentTasksClusterService.java:135) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.ClusterStateUpdateTask.execute(ClusterStateUpdateTask.java:63) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.service.MasterService.executeTasks(MasterService.java:804) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.service.MasterService.calculateTaskOutputs(MasterService.java:378) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.service.MasterService.runTasks(MasterService.java:249) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.service.MasterService.access$000(MasterService.java:86) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.service.MasterService$Batcher.run(MasterService.java:173) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.service.TaskBatcher.runIfNotProcessed(TaskBatcher.java:174) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.cluster.service.TaskBatcher$BatchedTask.run(TaskBatcher.java:212) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.common.util.concurrent.ThreadContext$ContextPreservingRunnable.run(ThreadContext.java:733) [opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.common.util.concurrent.PrioritizedOpenSearchThreadPoolExecutor$TieBreakingPrioritizedRunnable.runAndClean(PrioritizedOpenSearchThreadPoolExecutor.java:275) ~[opensearch-1.3.7.jar:1.3.7]
+	at org.opensearch.common.util.concurrent.PrioritizedOpenSearchThreadPoolExecutor$TieBreakingPrioritizedRunnable.run(PrioritizedOpenSearchThreadPoolExecutor.java:238) ~[opensearch-1.3.7.jar:1.3.7]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128) [?:?]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628) [?:?]
+	at java.lang.Thread.run(Thread.java:829) [?:?]
+```
+
+**Solution**:
+
+1. Scale down all pods related to OpenSearch (`master`, `data`, `ingest`, `arbiter`) on the `standby` side.
+2. Clear the OpenSearch data on the `standby` side in one of the following ways:
+   * Remove OpenSearch persistent volumes.
+   * Clear persistent volumes manually.
+3. Scale up all pods related to OpenSearch (`master`, `data`, `ingest`, `arbiter`) on the `standby` side.
+
+**Note**: It is safe as you need to perform these steps on the `standby` side. All the data is replicated from the `active` side once the replication process has started successfully.
+
+For more information about this issue, refer to [https://github.com/opensearch-project/cross-cluster-replication/issues/840](https://github.com/opensearch-project/cross-cluster-replication/issues/840).
 
 ## Index Is Not Replicated To Standby Side Without Any Errors
 
@@ -655,26 +697,28 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
       curl -u <username>:<password> -XGET http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/<index_name>/_status?pretty
       ```
 
-   where:
+   Where:
    * `<username>:<password>` are the credentials to OpenSearch.
    * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
    * `<index_name>` is the name of missed index. For example, `test_topic`.
 
-   the following response makes it clear that index was removed in active side:
+   The following response makes it clear that index was removed in active side:
+
    ```
    {"status":"PAUSED","reason":"AutoPaused: [[haindex2][0] - org.opensearch.index.IndexNotFoundException - \"no such index [haindex2]\"], ","leader_alias":"leader-cluster","leader_index":"haindex2","follower_index":"haindex2"}
    ```
 
-2. To run replication again you can remove presented index on standby side:
+2. To run the replication again, you can remove presented index on standby side:
 
    ```bash
    curl -u <username>:<password> -XDELETE http://opensearch.<opensearch_namespace>:9200/<index_name>
    ```
-   where:
+
+   Where:
    * `<username>:<password>` are the credentials to OpenSearch.
    * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
    * `<index_name>` is the name of missed index. For example, `test_topic`.
    
    Then wait some time for `autofollow` process run replication again.
  
-**NOTE:** This option cleans all index data presented on standby side. Make sure you need to remove this and OpenSearch on active side has correct changes.
+**Note**: This option cleans all index data presented on the standby side. Make sure to remove this and check whether OpenSearch on the active side has correct changes.
