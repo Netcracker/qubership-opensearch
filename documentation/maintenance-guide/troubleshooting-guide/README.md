@@ -645,7 +645,7 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
 
 | Problem                                      | Severity | Possible Reason                                                                                     |
 |----------------------------------------------|----------|-----------------------------------------------------------------------------------------------------|
-| Indices are not replicated to `standby` side | Average  | OpenSearch data is corrupted: previous replication tasks for indices were cached in metadata files. |
+| Indices are not replicated to the `standby` side. | Average  | OpenSearch data is corrupted: previous replication tasks for indices were cached in metadata files. |
 
 **Description**:
 
@@ -673,15 +673,15 @@ org.opensearch.ResourceAlreadyExistsException: task with id {replication:index:t
 
 **Solution**:
 
-1. Scale down all pods related to OpenSearch (`master`, `data`, `ingest`, `arbiter`) on `standby` side.
-2. Clear OpenSearch data on `standby` side in one of the following ways:
-   * Remove OpenSearch persistent volumes
-   * Clear persistent volumes manually
-3. Scale up all pods related to OpenSearch (`master`, `data`, `ingest`, `arbiter`) on `standby` side.
+1. Scale down all pods related to OpenSearch (`master`, `data`, `ingest`, `arbiter`) on the `standby` side.
+2. Clear the OpenSearch data on the `standby` side in one of the following ways:
+   * Remove OpenSearch persistent volumes.
+   * Clear persistent volumes manually.
+3. Scale up all pods related to OpenSearch (`master`, `data`, `ingest`, `arbiter`) on the /`standby` side.
 
-**Note**, it is safe as you need to perform these steps on `standby` side. All data will be replicated from the `active` side once the replication process has started successfully.
+**Note**: It is safe as you need to perform these steps on the `standby` side. All the data is replicated from the `active` side once the replication process has started successfully.
 
-For more information refer to [OpenSearch issue](https://github.com/opensearch-project/cross-cluster-replication/issues/840).
+For more information about OpenSearch issues, refer to [https://github.com/opensearch-project/cross-cluster-replication/issues/840](https://github.com/opensearch-project/cross-cluster-replication/issues/840).
 
 ## Index Is Not Replicated To Standby Side Without Any Errors
 
@@ -719,4 +719,4 @@ For more information refer to [OpenSearch issue](https://github.com/opensearch-p
    
    Then wait some time for `autofollow` process run replication again.
  
-**NOTE:** This option cleans all index data presented on standby side. Make sure you need to remove this and OpenSearch on active side has correct changes.
+**Note**: This option cleans all index data presented on the standby side. Make sure to remove this and check whether OpenSearch on the active side has correct changes.
