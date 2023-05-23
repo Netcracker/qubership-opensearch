@@ -643,8 +643,8 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
 
 ### ResourceAlreadyExistsException: task with id {replication:index:test_index} already exist
 
-| Problem                                      | Severity | Possible Reason                                                                                     |
-|----------------------------------------------|----------|-----------------------------------------------------------------------------------------------------|
+| Problem                                           | Severity | Possible Reason                                                                                     |
+|---------------------------------------------------|----------|-----------------------------------------------------------------------------------------------------|
 | Indices are not replicated to the `standby` side. | Average  | OpenSearch data is corrupted: previous replication tasks for indices were cached in metadata files. |
 
 **Description**:
@@ -677,11 +677,11 @@ org.opensearch.ResourceAlreadyExistsException: task with id {replication:index:t
 2. Clear the OpenSearch data on the `standby` side in one of the following ways:
    * Remove OpenSearch persistent volumes.
    * Clear persistent volumes manually.
-3. Scale up all pods related to OpenSearch (`master`, `data`, `ingest`, `arbiter`) on the /`standby` side.
+3. Scale up all pods related to OpenSearch (`master`, `data`, `ingest`, `arbiter`) on the `standby` side.
 
 **Note**: It is safe as you need to perform these steps on the `standby` side. All the data is replicated from the `active` side once the replication process has started successfully.
 
-For more information about OpenSearch issues, refer to [https://github.com/opensearch-project/cross-cluster-replication/issues/840](https://github.com/opensearch-project/cross-cluster-replication/issues/840).
+For more information about this issue, refer to [https://github.com/opensearch-project/cross-cluster-replication/issues/840](https://github.com/opensearch-project/cross-cluster-replication/issues/840).
 
 ## Index Is Not Replicated To Standby Side Without Any Errors
 
