@@ -128,7 +128,7 @@ integration:
     deploy-param: opensearchOperator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/disaster-recovery-daemon
-    location: master
+    location: bugfix/fix_vulnerabilities
     docker-image-id: timestamp
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
