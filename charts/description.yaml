@@ -133,7 +133,7 @@ integration:
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: feature/fix_vulnerabilities
     prefix: integration-tests
     docker-image-id: timestamp
     deploy-param: opensearchIntegrationTests
