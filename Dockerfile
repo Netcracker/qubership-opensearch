@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM artifactorycn.netcracker.com:17064/golang:1.19.7-alpine3.17 as builder
+FROM artifactorycn.netcracker.com:17064/golang:1.19.9-alpine3.17 as builder
 
 ENV GOPROXY=https://artifactorycn.netcracker.com/pd.sandbox-staging.go.group \
     GOSUMDB=off
@@ -25,7 +25,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager 
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM artifactorycn.netcracker.com:17064/alpine:3.17.2
+FROM artifactorycn.netcracker.com:17064/alpine:3.17.3
 
 ENV USER_UID=1001 \
     USER_NAME=opensearch-service-operator \
