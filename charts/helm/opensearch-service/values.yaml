@@ -295,7 +295,6 @@ opensearch:
   fixmount:
     enabled: false
     securityContext: {}
-#      runAsUser: 0
 
   tls:
     enabled: true
