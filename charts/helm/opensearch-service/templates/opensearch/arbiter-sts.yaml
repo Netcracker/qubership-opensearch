@@ -81,6 +81,7 @@ spec:
           securityContext:
             privileged: true
             runAsNonRoot: false
+            runAsUser: 0
 {{- end }}
 {{- if .Values.opensearch.fixmount.enabled }}
         - name: fixmount
@@ -92,6 +93,7 @@ spec:
           image: {{ template "busybox.image" . }}
           securityContext:
             runAsNonRoot: false
+            runAsUser: 0
         {{- if .Values.opensearch.fixmount.securityContext }}
 {{ .Values.opensearch.fixmount.securityContext | toYaml | indent 12 | trim}}
         {{- end }}

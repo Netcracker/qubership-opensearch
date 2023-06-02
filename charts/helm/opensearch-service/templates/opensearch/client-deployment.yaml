@@ -64,6 +64,7 @@ spec:
           securityContext:
             privileged: true
             runAsNonRoot: false
+            runAsUser: 0
 {{- end }}
 {{- if .Values.opensearch.extraInitContainers }}
 {{ toYaml .Values.opensearch.extraInitContainers| indent 8 }}
