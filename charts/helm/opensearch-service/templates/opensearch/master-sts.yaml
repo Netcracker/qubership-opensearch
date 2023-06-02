@@ -31,6 +31,7 @@ spec:
 {{ include "opensearch.labels.standard" . | indent 8 }}
         role: master
       annotations:
+        "opensearch/config-checksum": {{ include (print $.Template.BasePath "/opensearch/config-secret.yaml") . | sha256sum }}
 {{- if .Values.opensearch.master.podAnnotations }}
 {{ toYaml .Values.opensearch.master.podAnnotations | indent 8 }}
 {{- end }}
@@ -163,6 +164,8 @@ spec:
                 secretKeyRef:
                   key: password
                   name: {{ template "opensearch.fullname" . }}-secret
+            - name: DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI
+              value: "{{ not .Values.opensearch.performanceAnalyzerEnabled }}"
 {{- if .Values.opensearch.extraEnvs }}
 {{ toYaml .Values.opensearch.extraEnvs | indent 12 }}
 {{- end }}
@@ -214,6 +217,9 @@ spec:
             - mountPath: {{ .Values.opensearch.configDirectory }}/logging.yml
               name: config
               subPath: logging.yml
+            - mountPath: {{ .Values.opensearch.configDirectory }}/jvm.options
+              name: config
+              subPath: jvm.options
             - mountPath: {{ .Values.opensearch.configDirectory }}/transport-crt.pem
               name: transport-certs
               subPath: {{ template "opensearch.transport-cert-path" . }}

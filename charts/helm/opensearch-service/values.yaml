@@ -232,6 +232,8 @@ opensearch:
   ## Default {{ template opensearch.fullname }}-discovery.
   discoveryOverride: ""
   compatibilityModeEnabled: true
+  gcLoggingEnabled: false
+  performanceAnalyzerEnabled: false
   securityConfig:
     enabled: true
     path: "/usr/share/opensearch/plugins/opensearch-security/securityconfig"
