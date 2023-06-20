@@ -351,7 +351,7 @@ curl -XGET -H "Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-
 The example for secured `sitemanager` POST endpoint is following:
 
 ```
-curl -XPOST -H "Content-Type: application/json, Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager
+curl -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager
 ```
 
 Where `TOKEN` is Site Manager Kubernetes JWT Service Account Token. The verification service account name and namespace are specified in `global.disasterRecovery.httpAuth.smServiceAccountName` and `global.disasterRecovery.httpAuth.smNamespace` deploy parameters.
@@ -452,7 +452,7 @@ OpenSearch disaster recovery REST server provides three methods of interaction:
   The example for secured `sitemanager` POST endpoint is following:
 
   ```
-  curl -XPOST -H "Content-Type: application/json, Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager
+  curl -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager
   ```
 
   Where `TOKEN` is Site Manager Kubernetes JWT Service Account Token. The verification service account name and namespace are specified in `global.disasterRecovery.httpAuth.smServiceAccountName` and `global.disasterRecovery.httpAuth.smNamespace` deploy parameters.

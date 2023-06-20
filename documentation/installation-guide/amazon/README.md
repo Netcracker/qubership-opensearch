@@ -178,7 +178,7 @@ To collect snapshots manually (e.g. by `opensearch-curator` or `dbaas-adapter`) 
 
    To restore indices make sure there are no naming conflicts between indices on the cluster and indices in the snapshot. Delete indices on the existing OpenSearch Service domain, rename indices in snapshot or restore the snapshot to a different OpenSearch Service domain.
 
-   More details about restore is in [Restoring snapshots](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html#managedomains-snapshot-restore).
+   For more detailed information about restore, refer to [Restoring snapshots](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html#managedomains-snapshot-restore).
 
 # Example of Deploy Parameters
 

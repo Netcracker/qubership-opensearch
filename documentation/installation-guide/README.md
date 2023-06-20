@@ -8,8 +8,8 @@ The following topics are covered in this chapter:
 
 Before you start the installation and configuration of a OpenSearch cluster, ensure the following requirements are met:
 
-* Kubernetes 1.19+ or OpenShift 4.9+
-* `kubectl` 1.19+ or `oc` 4.9+ CLI
+* Kubernetes 1.21+ or OpenShift 4.10+
+* `kubectl` 1.21+ or `oc` 4.10+ CLI
 * Helm 3.0+
 * All required CRDs are installed
 
@@ -19,6 +19,7 @@ The following Custom Resource Definitions should be installed to the cloud befor
 
 * `OpenSearchService` - When you deploy with restricted rights or the CRDs' creation is disabled by the Deployer job. For more information, see [Automatic CRD Upgrade](#automatic-crd-upgrade).
 * `GrafanaDashboard`, `PrometheusRule`, and `ServiceMonitor` - They should be installed when you deploy OpenSearch monitoring with `monitoring.enabled=true` and `monitoring.monitoringType=prometheus`. You need to install the Monitoring Operator service before the OpenSearch installation.
+* `SiteManager` - It is installed when you deploy OpenSearch with Disaster Recovery support (`global.disasterRecovery.mode`). You have to install the SiteManager service before the OpenSearch installation.
 
 **Important**: To create CRDs, you must have cloud rights for `CustomResourceDefinitions`. If the deployment user does not have the necessary rights, you need to perform the steps described in the [Deployment Permissions](#deployment-permissions) section before the installation.
 
@@ -212,9 +213,9 @@ The following rules require `cluster-wide` permissions. If it is not possible to
   The CRD for this version is stored in [crd.yaml](/charts/helm/opensearch-service/crds/crd.yaml) file and can be
   applied with the following command:
 
-      ```
-      kubectl replace -f crd.yaml
-      ```
+    ```
+    kubectl replace -f crd.yaml
+    ```
     <!-- #GFCFilterMarkerEnd# -->
 
 * To run `privileged` containers or actions on Kubernetes before 1.25 version, you need to apply `PodSecurityPolicy` from [psp.yaml](/charts/helm/opensearch-service/templates/psp.yaml), create `ClusterRole` with its usage and bind it to `ServiceAccount` with `$OPENSEARCH_FULLNAME` name using `ClusterRoleBinding`.
@@ -236,6 +237,49 @@ The following rules require `cluster-wide` permissions. If it is not possible to
   ```
 
 * The parameter `global.psp.create` should be defined as `false`.
+
+### Multiple Availability Zone
+
+If Kubernetes cluster has several availability zones, it is more reliable to start OpenSearch pods in different availability zones. For more information, refer to [Multiple Availability Zone Deployment](#multiple-availability-zone-deployment).
+
+### Storage Types
+
+The following are a few approaches of storage management used in the OpenSearch service solution deployment:
+
+* Dynamic Persistent Volume Provisioning
+* Predefined Persistent Volumes
+
+#### Dynamic Persistent Volume Provisioning
+
+OpenSearch Helm installation supports specifying storage class for master, arbiter and data Persistent Volume Claims. If you are setting up the persistent volumes' resource in Kubernetes, you need to map the OpenSearch pods to the volume using the `opensearch.master.persistence.storageClass`, `opensearch.arbiter.persistence.storageClass` or `opensearch.data.persistence.storageClass` parameter.
+
+#### Predefined Persistent Volumes
+
+If you have prepared Persistent Volumes without storage class and dynamic provisioning, you can specify Persistent Volumes names using the `opensearch.master.persistence.persistentVolumes`, `opensearch.arbiter.persistence.persistentVolumes` or `opensearch.data.persistence.persistentVolumes` parameter.
+
+For example:
+
+```
+opensearch:
+  master:
+    persistence:
+      persistentVolumes:
+        - pv-opensearch-master-1
+        - pv-opensearch-master-2
+        - pv-opensearch-master-3
+```
+
+Persistent Volumes should be created on corresponding Kubernetes nodes and should be in the `Available` state.
+
+Set appropriate UID and GID on hostPath directories and rule for SELinux:
+
+```
+chown -R 1000:1000 /mnt/data/<pv-name>
+```
+
+You also need to specify node names via `opensearch.master.persistence.nodes`, `opensearch.arbiter.persistence.nodes` or `opensearch.data.persistence.nodes` parameter in the same order in which the Persistent Volumes are specified so that OpenSearch pods are assigned to these nodes.
+
+According to the specified parameters, the `Pod Scheduler` distributes pods to the necessary Kubernetes nodes. For more information, refer to [Pod Scheduler](#pod-scheduler) section.
 
 ### Installation modes
 
@@ -362,20 +406,20 @@ Recommended for development purposes, PoC, and demos.
 dashboards:
   resources:
     requests:
-      cpu: "100m"
-      memory: "512M"
+      cpu: 100m
+      memory: 512M
     limits:
-      cpu: "100m"
-      memory: "512M"
+      cpu: 100m
+      memory: 512M
 global:
   disasterRecovery:
     resources:
       requests:
-        cpu: "50m"
-        memory: "128Mi"
+        cpu: 50m
+        memory: 128Mi
       limits:
-        cpu: "100m"
-        memory: "128Mi"
+        cpu: 100m
+        memory: 128Mi
 operator:
   resources:
     requests:
@@ -445,11 +489,11 @@ curator:
 statusProvisioner:
   resources:
     requests:
-      cpu: "50m"
-      memory: "64Mi"
+      cpu: 50m
+      memory: 64Mi
     limits:
-      cpu: "100m"
-      memory: "128Mi"
+      cpu: 100m
+      memory: 128Mi
 ```
 
 </details>
@@ -480,20 +524,20 @@ Recommended for deployments with average load.
 dashboards:
   resources:
     requests:
-      cpu: "100m"
-      memory: "512M"
+      cpu: 100m
+      memory: 512M
     limits:
-      cpu: "100m"
-      memory: "512M"
+      cpu: 100m
+      memory: 512M
 global:
   disasterRecovery:
     resources:
       requests:
-        cpu: "50m"
-        memory: "128Mi"
+        cpu: 50m
+        memory: 128Mi
       limits:
-        cpu: "100m"
-        memory: "128Mi"
+        cpu: 100m
+        memory: 128Mi
 operator:
   resources:
     requests:
@@ -563,11 +607,11 @@ curator:
 statusProvisioner:
   resources:
     requests:
-      cpu: "50m"
-      memory: "64Mi"
+      cpu: 50m
+      memory: 64Mi
     limits:
-      cpu: "100m"
-      memory: "128Mi"
+      cpu: 100m
+      memory: 128Mi
 ```
 
 </details>
@@ -598,20 +642,20 @@ Recommended for deployments with high workload and large amount of data.
 dashboards:
   resources:
     requests:
-      cpu: "100m"
-      memory: "512M"
+      cpu: 100m
+      memory: 512M
     limits:
-      cpu: "100m"
-      memory: "512M"
+      cpu: 100m
+      memory: 512M
 global:
   disasterRecovery:
     resources:
       requests:
-        cpu: "50m"
-        memory: "128Mi"
+        cpu: 50m
+        memory: 128Mi
       limits:
-        cpu: "100m"
-        memory: "128Mi"
+        cpu: 100m
+        memory: 128Mi
 operator:
   resources:
     requests:
@@ -681,11 +725,11 @@ curator:
 statusProvisioner:
   resources:
     requests:
-      cpu: "50m"
-      memory: "64Mi"
+      cpu: 50m
+      memory: 64Mi
     limits:
-      cpu: "100m"
-      memory: "128Mi"
+      cpu: 100m
+      memory: 128Mi
 ```
 
 </details>
@@ -694,10 +738,10 @@ statusProvisioner:
 
 The section lists the configurable parameters of the OpenSearch chart and their default values.
 
-| Parameter          | Type   | Mandatory | Default value | Description                                                                                                           |
-|--------------------|--------|-----------|---------------|-----------------------------------------------------------------------------------------------------------------------|
-| `nameOverride`     | string | no        | opensearch    | The name for all OpenSearch resources (Services, StatefulSets, etc) if `fullnameOverride` parameter is not specified. |
-| `fullnameOverride` | string | no        | opensearch    | The base name for all OpenSearch resources (Services, StatefulSets, etc).                                             |
+| Parameter          | Type   | Mandatory | Default value | Description                                                                                                                                                                                                                                            |
+|--------------------|--------|-----------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `nameOverride`     | string | no        | opensearch    | The name for all OpenSearch resources (Services, StatefulSets, etc) if `fullnameOverride` parameter is not specified.                                                                                                                                  |
+| `fullnameOverride` | string | no        | opensearch    | The base name for all OpenSearch resources (Services, StatefulSets, etc). **Important**: If you modify this parameter you always need to add parameter `CUSTOM_RESOURCE_NAME` with the same value when deploy via `App Deployer` or `Groovy Deployer`. |
 
 ## Global
 
@@ -764,7 +808,7 @@ The section lists the configurable parameters of the OpenSearch chart and their 
 | `dashboards.resources.requests.memory`               | string  | no        | 512M                                                                         | The minimum amount of memory the Dashboards container should use.                                                                                                                                                                                                                                                 |
 | `dashboards.resources.limits.cpu`                    | string  | no        | 100m                                                                         | The maximum number of CPUs the Dashboards container should use.                                                                                                                                                                                                                                                   |
 | `dashboards.resources.limits.memory`                 | string  | no        | 512M                                                                         | The maximum amount of memory the Dashboards container should use.                                                                                                                                                                                                                                                 |
-| `dashboards.opensearchHosts`                         | string  | no        | <protocol>://<name>-internal:9200                                            | The OpenSearch hosts for Dashboards to connect.                                                                                                                                                                                                                                                                   |
+| `dashboards.opensearchHosts`                         | string  | no        | `<protocol>://<name>-internal:9200`                                          | The OpenSearch hosts for Dashboards to connect.                                                                                                                                                                                                                                                                   |
 | `dashboards.secretMounts`                            | list    | no        | []                                                                           | The list of secrets and their paths to mount inside the Dashboards pod.                                                                                                                                                                                                                                           |
 | `dashboards.extraEnvs`                               | list    | no        | []                                                                           | The list of extra environment variables to add inside the Dashboards pod.                                                                                                                                                                                                                                         |
 | `dashboards.envFrom`                                 | list    | no        | []                                                                           | The list of sources to populate environment variables in the Dashboards container.                                                                                                                                                                                                                                |
@@ -1149,39 +1193,39 @@ Where:
 
 ## OpenSearch DBaaS adapter
 
-| Parameter                                                       | Type    | Mandatory | Default value                                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-|-----------------------------------------------------------------|---------|-----------|------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `dbaasAdapter.enabled`                                          | boolean | no        | false                                                | Whether the installation of OpenSearch DBaaS adapter is to be enabled. It provides connection with credentials with necessary grants only for indices meant for a particular microservice. The migration procedure between Elasticsearch and OpenSearch DBaaS adapter is described in [DBaaS Adapter Migration](#dbaas-adapter-migration) section.                                                                                                                             |
-| `dbaasAdapter.dockerImage`                                      | string  | no        | Calculates automatically                             | The docker image of OpenSearch DBaaS adapter.                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `dbaasAdapter.imagePullPolicy`                                  | string  | no        | Always                                               | The image pull policy for OpenSearch DBaaS adapter container. The possible values are `Always`, `IfNotPresent` or `Never`.                                                                                                                                                                                                                                                                                                                                                     |
-| `dbaasAdapter.dbaasAdapterAddress`                              | string  | no        | <protocol>://dbaas-<name>-adapter.<namespace>:<port> | The address of OpenSearch DBaaS adapter, where aggregator should send requests.                                                                                                                                                                                                                                                                                                                                                                                                |
-| `dbaasAdapter.dbaasUsername`                                    | string  | no        | ""                                                   | The name of the OpenSearch DBaaS adapter user, either a new user or an existing one.                                                                                                                                                                                                                                                                                                                                                                                           |
-| `dbaasAdapter.dbaasPassword`                                    | string  | no        | ""                                                   | The password of the OpenSearch DBaaS adapter user, either a new user or an existing one.                                                                                                                                                                                                                                                                                                                                                                                       |
-| `dbaasAdapter.apiVersion`                                       | string  | no        | v2                                                   | The version of OpenSearch DBaaS Adapter API. Selected version changes strategy of DBaaS Aggregator registration, response format and work. The possible values are `v1`, `v2`. The `v1` version allows to create users only with `admin` permissions, but the `v2` version creates 3 users with different roles (`admin`, `dml`, `readonly`) on each corresponding request. If you are upgraded OpenSearch DBaaS adapter from `v1` to `v2` version, you must not downgrade it. |
-| `dbaasAdapter.dbaasAggregatorRegistrationAddress`               | string  | no        | <protocol>://dbaas-aggregator.dbaas:<port>           | The address of DBaaS aggregator, which should register physical database. You need to specify this only if there are more than one aggregators installed in cloud and you need to choose one, or if the adapter is not in the same cloud, where aggregator is, or if default aggregator is not installed in the default `dbaas` project.                                                                                                                                       |
-| `dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier`        | string  | no        | <namespace>                                          | The unique ID of physical database, which OpenSearch DBaaS adapter connects to.                                                                                                                                                                                                                                                                                                                                                                                                |
-| `dbaasAdapter.registrationAuthUsername`                         | string  | no        | ""                                                   | The name of user for DBaaS aggregator's registration API.                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `dbaasAdapter.registrationAuthPassword`                         | string  | no        | ""                                                   | The password of user for DBaaS aggregator's registration API.                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `dbaasAdapter.opensearchHost`                                   | string  | no        | <name>.<namespace>                                   | The host address of OpenSearch.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `dbaasAdapter.opensearchPort`                                   | string  | no        | 9200                                                 | The port of OpenSearch. If the OpenSearch URL does not contain port for example `https://opensearch`, the default protocol port should be specified: `80` for `http` and `443` for `https`.                                                                                                                                                                                                                                                                                    |
-| `dbaasAdapter.opensearchProtocol`                               | string  | no        | https                                                | The protocol of communication with the OpenSearch. The allowed values are `http`, `https`. To access to `https` OpenSearch you need to install trusted TLS certificates for DBaaS Adapter.                                                                                                                                                                                                                                                                                     |
-| `dbaasAdapter.opensearchRepo`                                   | string  | no        | snapshots                                            | The name of snapshot repository in OpenSearch. The default behavior is to create a new repository with file storage location for each backup.                                                                                                                                                                                                                                                                                                                                  |
-| `dbaasAdapter.opensearchRepoRoot`                               | string  | no        | /usr/share/opensearch                                | The absolute path in OpenSearch file system where snapshot repositories for backups are created.                                                                                                                                                                                                                                                                                                                                                                               |
-| `dbaasAdapter.opensearchClusterVersion`                         | string  | no        | ""                                                   | The one of labels to set on the project, would be needed for clients to choose appropriate cluster. If not specified, empty string would be included in labels, client could not know which version is OpenSearch before requesting DBaaS to create index in it.                                                                                                                                                                                                               |
-| `dbaasAdapter.netcrackerOpensearchClusterVersion`               | string  | no        | ""                                                   | The one of labels to set on the project, would be needed for clients to choose appropriate cluster. If not specified, empty string would be included in labels, client could not know which version is NetCracker wrapper around OpenSearch before requesting DBaaS to create index in it.                                                                                                                                                                                     |
-| `dbaasAdapter.tls.enabled`                                      | boolean | no        | true                                                 | Whether TLS is to be enabled for OpenSearch DBaaS adapter. This parameter is taken into account only if `global.tls.enabled` parameter is set to `true`.                                                                                                                                                                                                                                                                                                                       |
-| `dbaasAdapter.tls.secretName`                                   | string  | no        | ""                                                   | The name of the secret that contains TLS certificates. It is required if TLS for OpenSearch DBaaS adapter is enabled and certificates generation is disabled.                                                                                                                                                                                                                                                                                                                  |
-| `dbaasAdapter.tls.subjectAlternativeName.additionalDnsNames`    | list    | no        | []                                                   | The list of additional DNS names to be added to the `Subject Alternative Name` field of TLS certificate for OpenSearch DBaaS adapter.                                                                                                                                                                                                                                                                                                                                          |
-| `dbaasAdapter.tls.subjectAlternativeName.additionalIpAddresses` | list    | no        | []                                                   | The list of additional IP addresses to be added to the `Subject Alternative Name` field of TLS certificate for OpenSearch DBaaS adapter.                                                                                                                                                                                                                                                                                                                                       |
-| `dbaasAdapter.resources.requests.cpu`                           | string  | no        | 200m                                                 | The minimum number of CPUs the DBaaS adapter container should use.                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `dbaasAdapter.resources.requests.memory`                        | string  | no        | 32Mi                                                 | The minimum amount of memory the DBaaS adapter container should use.                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `dbaasAdapter.resources.limits.cpu`                             | string  | no        | 200m                                                 | The maximum number of CPUs the DBaaS adapter container should use.                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `dbaasAdapter.resources.limits.memory`                          | string  | no        | 32Mi                                                 | The maximum amount of memory the DBaaS adapter container can use.                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `dbaasAdapter.nodeSelector`                                     | object  | no        | {}                                                   | The selector that defines the nodes where the OpenSearch DBaaS adapter pods are scheduled on.                                                                                                                                                                                                                                                                                                                                                                                  |
-| `dbaasAdapter.tolerations`                                      | list    | no        | []                                                   | The list of toleration policies for OpenSearch DBaaS adapter pod in `JSON` format.                                                                                                                                                                                                                                                                                                                                                                                             |
-| `dbaasAdapter.affinity`                                         | object  | no        | {}                                                   | The affinity scheduling rules in `JSON` format.                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `dbaasAdapter.securityContext`                                  | object  | no        | {"runAsUser": 1000}                                  | The pod-level security attributes and common container settings for OpenSearch DBaaS adapter pod.                                                                                                                                                                                                                                                                                                                                                                              |
-| `dbaasAdapter.customLabels`                                     | object  | no        | {}                                                   | The custom labels for the OpenSearch DBaaS adapter pod.                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Parameter                                                       | Type    | Mandatory | Default value                                          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|-----------------------------------------------------------------|---------|-----------|--------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `dbaasAdapter.enabled`                                          | boolean | no        | false                                                  | Whether the installation of OpenSearch DBaaS adapter is to be enabled. It provides connection with credentials with necessary grants only for indices meant for a particular microservice. The migration procedure between Elasticsearch and OpenSearch DBaaS adapter is described in [DBaaS Adapter Migration](#dbaas-adapter-migration) section.                                                                                                                             |
+| `dbaasAdapter.dockerImage`                                      | string  | no        | Calculates automatically                               | The docker image of OpenSearch DBaaS adapter.                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `dbaasAdapter.imagePullPolicy`                                  | string  | no        | Always                                                 | The image pull policy for OpenSearch DBaaS adapter container. The possible values are `Always`, `IfNotPresent` or `Never`.                                                                                                                                                                                                                                                                                                                                                     |
+| `dbaasAdapter.dbaasAdapterAddress`                              | string  | no        | `<protocol>://dbaas-<name>-adapter.<namespace>:<port>` | The address of OpenSearch DBaaS adapter, where aggregator should send requests.                                                                                                                                                                                                                                                                                                                                                                                                |
+| `dbaasAdapter.dbaasUsername`                                    | string  | no        | ""                                                     | The name of the OpenSearch DBaaS adapter user, either a new user or an existing one.                                                                                                                                                                                                                                                                                                                                                                                           |
+| `dbaasAdapter.dbaasPassword`                                    | string  | no        | ""                                                     | The password of the OpenSearch DBaaS adapter user, either a new user or an existing one.                                                                                                                                                                                                                                                                                                                                                                                       |
+| `dbaasAdapter.apiVersion`                                       | string  | no        | v2                                                     | The version of OpenSearch DBaaS Adapter API. Selected version changes strategy of DBaaS Aggregator registration, response format and work. The possible values are `v1`, `v2`. The `v1` version allows to create users only with `admin` permissions, but the `v2` version creates 3 users with different roles (`admin`, `dml`, `readonly`) on each corresponding request. If you are upgraded OpenSearch DBaaS adapter from `v1` to `v2` version, you must not downgrade it. |
+| `dbaasAdapter.dbaasAggregatorRegistrationAddress`               | string  | no        | `<protocol>://dbaas-aggregator.dbaas:<port>`           | The address of DBaaS aggregator, which should register physical database. You need to specify this only if there are more than one aggregators installed in cloud and you need to choose one, or if the adapter is not in the same cloud, where aggregator is, or if default aggregator is not installed in the default `dbaas` project.                                                                                                                                       |
+| `dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier`        | string  | no        | <namespace>                                            | The unique ID of physical database, which OpenSearch DBaaS adapter connects to.                                                                                                                                                                                                                                                                                                                                                                                                |
+| `dbaasAdapter.registrationAuthUsername`                         | string  | no        | ""                                                     | The name of user for DBaaS aggregator's registration API.                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `dbaasAdapter.registrationAuthPassword`                         | string  | no        | ""                                                     | The password of user for DBaaS aggregator's registration API.                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `dbaasAdapter.opensearchHost`                                   | string  | no        | `<name>.<namespace>`                                   | The host address of OpenSearch.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `dbaasAdapter.opensearchPort`                                   | string  | no        | 9200                                                   | The port of OpenSearch. If the OpenSearch URL does not contain port for example `https://opensearch`, the default protocol port should be specified: `80` for `http` and `443` for `https`.                                                                                                                                                                                                                                                                                    |
+| `dbaasAdapter.opensearchProtocol`                               | string  | no        | https                                                  | The protocol of communication with the OpenSearch. The allowed values are `http`, `https`. To access to `https` OpenSearch you need to install trusted TLS certificates for DBaaS Adapter.                                                                                                                                                                                                                                                                                     |
+| `dbaasAdapter.opensearchRepo`                                   | string  | no        | snapshots                                              | The name of snapshot repository in OpenSearch. The default behavior is to create a new repository with file storage location for each backup.                                                                                                                                                                                                                                                                                                                                  |
+| `dbaasAdapter.opensearchRepoRoot`                               | string  | no        | /usr/share/opensearch                                  | The absolute path in OpenSearch file system where snapshot repositories for backups are created.                                                                                                                                                                                                                                                                                                                                                                               |
+| `dbaasAdapter.opensearchClusterVersion`                         | string  | no        | ""                                                     | The one of labels to set on the project, would be needed for clients to choose appropriate cluster. If not specified, empty string would be included in labels, client could not know which version is OpenSearch before requesting DBaaS to create index in it.                                                                                                                                                                                                               |
+| `dbaasAdapter.netcrackerOpensearchClusterVersion`               | string  | no        | ""                                                     | The one of labels to set on the project, would be needed for clients to choose appropriate cluster. If not specified, empty string would be included in labels, client could not know which version is NetCracker wrapper around OpenSearch before requesting DBaaS to create index in it.                                                                                                                                                                                     |
+| `dbaasAdapter.tls.enabled`                                      | boolean | no        | true                                                   | Whether TLS is to be enabled for OpenSearch DBaaS adapter. This parameter is taken into account only if `global.tls.enabled` parameter is set to `true`.                                                                                                                                                                                                                                                                                                                       |
+| `dbaasAdapter.tls.secretName`                                   | string  | no        | ""                                                     | The name of the secret that contains TLS certificates. It is required if TLS for OpenSearch DBaaS adapter is enabled and certificates generation is disabled.                                                                                                                                                                                                                                                                                                                  |
+| `dbaasAdapter.tls.subjectAlternativeName.additionalDnsNames`    | list    | no        | []                                                     | The list of additional DNS names to be added to the `Subject Alternative Name` field of TLS certificate for OpenSearch DBaaS adapter.                                                                                                                                                                                                                                                                                                                                          |
+| `dbaasAdapter.tls.subjectAlternativeName.additionalIpAddresses` | list    | no        | []                                                     | The list of additional IP addresses to be added to the `Subject Alternative Name` field of TLS certificate for OpenSearch DBaaS adapter.                                                                                                                                                                                                                                                                                                                                       |
+| `dbaasAdapter.resources.requests.cpu`                           | string  | no        | 200m                                                   | The minimum number of CPUs the DBaaS adapter container should use.                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `dbaasAdapter.resources.requests.memory`                        | string  | no        | 32Mi                                                   | The minimum amount of memory the DBaaS adapter container should use.                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `dbaasAdapter.resources.limits.cpu`                             | string  | no        | 200m                                                   | The maximum number of CPUs the DBaaS adapter container should use.                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `dbaasAdapter.resources.limits.memory`                          | string  | no        | 32Mi                                                   | The maximum amount of memory the DBaaS adapter container can use.                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `dbaasAdapter.nodeSelector`                                     | object  | no        | {}                                                     | The selector that defines the nodes where the OpenSearch DBaaS adapter pods are scheduled on.                                                                                                                                                                                                                                                                                                                                                                                  |
+| `dbaasAdapter.tolerations`                                      | list    | no        | []                                                     | The list of toleration policies for OpenSearch DBaaS adapter pod in `JSON` format.                                                                                                                                                                                                                                                                                                                                                                                             |
+| `dbaasAdapter.affinity`                                         | object  | no        | {}                                                     | The affinity scheduling rules in `JSON` format.                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `dbaasAdapter.securityContext`                                  | object  | no        | {"runAsUser": 1000}                                    | The pod-level security attributes and common container settings for OpenSearch DBaaS adapter pod.                                                                                                                                                                                                                                                                                                                                                                              |
+| `dbaasAdapter.customLabels`                                     | object  | no        | {}                                                     | The custom labels for the OpenSearch DBaaS adapter pod.                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
 Where:
 * `<protocol>` is the `http` or `https` protocol depending on `dbaasAdapter.tls.enabled` parameter.
@@ -1191,35 +1235,35 @@ Where:
 
 ## Elasticsearch DBaaS adapter
 
-| Parameter                                                             | Type    | Mandatory | Default value                                  | Description                                                                                                                                                                                                                                                                                                                                           |
-|-----------------------------------------------------------------------|---------|-----------|------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `elasticsearchDbaasAdapter.enabled`                                   | boolean | no        | false                                          | Whether the installation of Elasticsearch DBaaS adapter is to be enabled. It provides connection with credentials with necessary grants only for indices meant for a particular microservice. The migration procedure between Elasticsearch and OpenSearch DBaaS adapter is described in [DBaaS Adapter Migration](#dbaas-adapter-migration) section. |
-| `elasticsearchDbaasAdapter.name`                                      | string  | no        | dbaas-elasticsearch-adapter                    | The base name of all Elasticsearch DBaaS adapter resources: deployment, service, secret, configuration.                                                                                                                                                                                                                                               |
-| `elasticsearchDbaasAdapter.dockerImage`                               | string  | no        | Calculates automatically                       | The docker image of Elasticsearch DBaaS adapter.                                                                                                                                                                                                                                                                                                      |
-| `elasticsearchDbaasAdapter.imagePullPolicy`                           | string  | no        | Always                                         | The image pull policy for Elasticsearch DBaaS adapter container. The possible values are `Always`, `IfNotPresent` or `Never`.                                                                                                                                                                                                                         |
-| `elasticsearchDbaasAdapter.dbaasAdapterAddress`                       | string  | no        | <protocol>://<adapter_name>.<namespace>:<port> | The address of Elasticsearch DBaaS adapter, where aggregator should send requests.                                                                                                                                                                                                                                                                    |
-| `elasticsearchDbaasAdapter.dbaasUsername`                             | string  | no        | ""                                             | The name of the Elasticsearch DBaaS adapter user, either a new user or an existing one.                                                                                                                                                                                                                                                               |
-| `elasticsearchDbaasAdapter.dbaasPassword`                             | string  | no        | ""                                             | The password of the Elasticsearch DBaaS adapter user, either a new user or an existing one.                                                                                                                                                                                                                                                           |
-| `elasticsearchDbaasAdapter.dbaasAggregatorRegistrationAddress`        | string  | no        | <protocol>://dbaas-aggregator.dbaas:<port>     | The address of DBaaS aggregator, which should register physical database. You need to specify this only if there are more than one aggregators installed in cloud and you need to choose one, or if the adapter is not in the same cloud, where aggregator is, or if default aggregator is not installed in the default `dbaas` project.              |
-| `elasticsearchDbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier` | string  | no        | <namespace>                                    | The unique ID of physical database, which Elasticsearch DBaaS adapter connects to.                                                                                                                                                                                                                                                                    |
-| `elasticsearchDbaasAdapter.registrationAuthUsername`                  | string  | no        | ""                                             | The name of user for DBaaS aggregator's registration API.                                                                                                                                                                                                                                                                                             |
-| `elasticsearchDbaasAdapter.registrationAuthPassword`                  | string  | no        | ""                                             | The password of user for DBaaS aggregator's registration API.                                                                                                                                                                                                                                                                                         |
-| `elasticsearchDbaasAdapter.opensearchHost`                            | string  | no        | <name>.<namespace>                             | The host address of OpenSearch.                                                                                                                                                                                                                                                                                                                       |
-| `elasticsearchDbaasAdapter.opensearchPort`                            | string  | no        | 9200                                           | The port of OpenSearch. If the OpenSearch URL does not contain port for example `https://opensearch`, the default protocol port should be specified: `80` for `http` and `443` for `https`.                                                                                                                                                           |
-| `elasticsearchDbaasAdapter.opensearchProtocol`                        | string  | no        | https                                          | The protocol of communication with the OpenSearch. The allowed values are `http`, `https`. To access to `https` OpenSearch you need to install trusted TLS certificates for DBaaS Adapter.                                                                                                                                                            |
-| `elasticsearchDbaasAdapter.opensearchRepo`                            | string  | no        | snapshots                                      | The name of snapshot repository in OpenSearch. The default behavior is to create a new repository with file storage location for each backup.                                                                                                                                                                                                         |
-| `elasticsearchDbaasAdapter.opensearchRepoRoot`                        | string  | no        | /usr/share/opensearch                          | The absolute path in OpenSearch file system where snapshot repositories for backups are created.                                                                                                                                                                                                                                                      |
-| `elasticsearchDbaasAdapter.opensearchClusterVersion`                  | string  | no        | ""                                             | The one of labels to set on the project, would be needed for clients to choose appropriate cluster. If not specified, empty string would be included in labels, client could not know which version is OpenSearch before requesting DBaaS to create index in it.                                                                                      |
-| `elasticsearchDbaasAdapter.netcrackerOpensearchClusterVersion`        | string  | no        | ""                                             | The one of labels to set on the project, would be needed for clients to choose appropriate cluster. If not specified, empty string would be included in labels, client could not know which version is NetCracker wrapper around OpenSearch before requesting DBaaS to create index in it.                                                            |
-| `elasticsearchDbaasAdapter.resources.requests.cpu`                    | string  | no        | 200m                                           | The minimum number of CPUs the DBaaS adapter container should use.                                                                                                                                                                                                                                                                                    |
-| `elasticsearchDbaasAdapter.resources.requests.memory`                 | string  | no        | 32Mi                                           | The minimum amount of memory the DBaaS adapter container should use.                                                                                                                                                                                                                                                                                  |
-| `elasticsearchDbaasAdapter.resources.limits.cpu`                      | string  | no        | 200m                                           | The maximum number of CPUs the DBaaS adapter container should use.                                                                                                                                                                                                                                                                                    |
-| `elasticsearchDbaasAdapter.resources.limits.memory`                   | string  | no        | 32Mi                                           | The maximum amount of memory the DBaaS adapter container can use.                                                                                                                                                                                                                                                                                     |
-| `elasticsearchDbaasAdapter.nodeSelector`                              | object  | no        | {}                                             | The selector that defines the nodes where the Elasticsearch DBaaS adapter pods are scheduled on.                                                                                                                                                                                                                                                      |
-| `elasticsearchDbaasAdapter.tolerations`                               | list    | no        | []                                             | The list of toleration policies for Elasticsearch DBaaS adapter pod in `JSON` format.                                                                                                                                                                                                                                                                 |
-| `elasticsearchDbaasAdapter.affinity`                                  | object  | no        | {}                                             | The affinity scheduling rules in `JSON` format.                                                                                                                                                                                                                                                                                                       |
-| `elasticsearchDbaasAdapter.securityContext`                           | object  | no        | {}                                             | The pod-level security attributes and common container settings for Elasticsearch DBaaS adapter pod. For example, `{"runAsUser": 1000}`.                                                                                                                                                                                                              |
-| `elasticsearchDbaasAdapter.customLabels`                              | object  | no        | {}                                             | The custom labels for the Elasticsearch DBaaS adapter pod.                                                                                                                                                                                                                                                                                            |
+| Parameter                                                             | Type    | Mandatory | Default value                                    | Description                                                                                                                                                                                                                                                                                                                                           |
+|-----------------------------------------------------------------------|---------|-----------|--------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `elasticsearchDbaasAdapter.enabled`                                   | boolean | no        | false                                            | Whether the installation of Elasticsearch DBaaS adapter is to be enabled. It provides connection with credentials with necessary grants only for indices meant for a particular microservice. The migration procedure between Elasticsearch and OpenSearch DBaaS adapter is described in [DBaaS Adapter Migration](#dbaas-adapter-migration) section. |
+| `elasticsearchDbaasAdapter.name`                                      | string  | no        | dbaas-elasticsearch-adapter                      | The base name of all Elasticsearch DBaaS adapter resources: deployment, service, secret, configuration.                                                                                                                                                                                                                                               |
+| `elasticsearchDbaasAdapter.dockerImage`                               | string  | no        | Calculates automatically                         | The docker image of Elasticsearch DBaaS adapter.                                                                                                                                                                                                                                                                                                      |
+| `elasticsearchDbaasAdapter.imagePullPolicy`                           | string  | no        | Always                                           | The image pull policy for Elasticsearch DBaaS adapter container. The possible values are `Always`, `IfNotPresent` or `Never`.                                                                                                                                                                                                                         |
+| `elasticsearchDbaasAdapter.dbaasAdapterAddress`                       | string  | no        | `<protocol>://<adapter_name>.<namespace>:<port>` | The address of Elasticsearch DBaaS adapter, where aggregator should send requests.                                                                                                                                                                                                                                                                    |
+| `elasticsearchDbaasAdapter.dbaasUsername`                             | string  | no        | ""                                               | The name of the Elasticsearch DBaaS adapter user, either a new user or an existing one.                                                                                                                                                                                                                                                               |
+| `elasticsearchDbaasAdapter.dbaasPassword`                             | string  | no        | ""                                               | The password of the Elasticsearch DBaaS adapter user, either a new user or an existing one.                                                                                                                                                                                                                                                           |
+| `elasticsearchDbaasAdapter.dbaasAggregatorRegistrationAddress`        | string  | no        | `<protocol>://dbaas-aggregator.dbaas:<port>`     | The address of DBaaS aggregator, which should register physical database. You need to specify this only if there are more than one aggregators installed in cloud and you need to choose one, or if the adapter is not in the same cloud, where aggregator is, or if default aggregator is not installed in the default `dbaas` project.              |
+| `elasticsearchDbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier` | string  | no        | <namespace>                                      | The unique ID of physical database, which Elasticsearch DBaaS adapter connects to.                                                                                                                                                                                                                                                                    |
+| `elasticsearchDbaasAdapter.registrationAuthUsername`                  | string  | no        | ""                                               | The name of user for DBaaS aggregator's registration API.                                                                                                                                                                                                                                                                                             |
+| `elasticsearchDbaasAdapter.registrationAuthPassword`                  | string  | no        | ""                                               | The password of user for DBaaS aggregator's registration API.                                                                                                                                                                                                                                                                                         |
+| `elasticsearchDbaasAdapter.opensearchHost`                            | string  | no        | `<name>.<namespace>`                             | The host address of OpenSearch.                                                                                                                                                                                                                                                                                                                       |
+| `elasticsearchDbaasAdapter.opensearchPort`                            | string  | no        | 9200                                             | The port of OpenSearch. If the OpenSearch URL does not contain port for example `https://opensearch`, the default protocol port should be specified: `80` for `http` and `443` for `https`.                                                                                                                                                           |
+| `elasticsearchDbaasAdapter.opensearchProtocol`                        | string  | no        | https                                            | The protocol of communication with the OpenSearch. The allowed values are `http`, `https`. To access to `https` OpenSearch you need to install trusted TLS certificates for DBaaS Adapter.                                                                                                                                                            |
+| `elasticsearchDbaasAdapter.opensearchRepo`                            | string  | no        | snapshots                                        | The name of snapshot repository in OpenSearch. The default behavior is to create a new repository with file storage location for each backup.                                                                                                                                                                                                         |
+| `elasticsearchDbaasAdapter.opensearchRepoRoot`                        | string  | no        | /usr/share/opensearch                            | The absolute path in OpenSearch file system where snapshot repositories for backups are created.                                                                                                                                                                                                                                                      |
+| `elasticsearchDbaasAdapter.opensearchClusterVersion`                  | string  | no        | ""                                               | The one of labels to set on the project, would be needed for clients to choose appropriate cluster. If not specified, empty string would be included in labels, client could not know which version is OpenSearch before requesting DBaaS to create index in it.                                                                                      |
+| `elasticsearchDbaasAdapter.netcrackerOpensearchClusterVersion`        | string  | no        | ""                                               | The one of labels to set on the project, would be needed for clients to choose appropriate cluster. If not specified, empty string would be included in labels, client could not know which version is NetCracker wrapper around OpenSearch before requesting DBaaS to create index in it.                                                            |
+| `elasticsearchDbaasAdapter.resources.requests.cpu`                    | string  | no        | 200m                                             | The minimum number of CPUs the DBaaS adapter container should use.                                                                                                                                                                                                                                                                                    |
+| `elasticsearchDbaasAdapter.resources.requests.memory`                 | string  | no        | 32Mi                                             | The minimum amount of memory the DBaaS adapter container should use.                                                                                                                                                                                                                                                                                  |
+| `elasticsearchDbaasAdapter.resources.limits.cpu`                      | string  | no        | 200m                                             | The maximum number of CPUs the DBaaS adapter container should use.                                                                                                                                                                                                                                                                                    |
+| `elasticsearchDbaasAdapter.resources.limits.memory`                   | string  | no        | 32Mi                                             | The maximum amount of memory the DBaaS adapter container can use.                                                                                                                                                                                                                                                                                     |
+| `elasticsearchDbaasAdapter.nodeSelector`                              | object  | no        | {}                                               | The selector that defines the nodes where the Elasticsearch DBaaS adapter pods are scheduled on.                                                                                                                                                                                                                                                      |
+| `elasticsearchDbaasAdapter.tolerations`                               | list    | no        | []                                               | The list of toleration policies for Elasticsearch DBaaS adapter pod in `JSON` format.                                                                                                                                                                                                                                                                 |
+| `elasticsearchDbaasAdapter.affinity`                                  | object  | no        | {}                                               | The affinity scheduling rules in `JSON` format.                                                                                                                                                                                                                                                                                                       |
+| `elasticsearchDbaasAdapter.securityContext`                           | object  | no        | {}                                               | The pod-level security attributes and common container settings for Elasticsearch DBaaS adapter pod. For example, `{"runAsUser": 1000}`.                                                                                                                                                                                                              |
+| `elasticsearchDbaasAdapter.customLabels`                              | object  | no        | {}                                               | The custom labels for the Elasticsearch DBaaS adapter pod.                                                                                                                                                                                                                                                                                            |
 
 Where:
 * `<protocol>` is the `http` or `https` protocol depending on `dbaasAdapter.tls.enabled` parameter.
@@ -1236,7 +1280,7 @@ Where:
 | `curator.dockerImage`                                      | string  | no        | Calculates automatically | The docker image of OpenSearch curator.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `curator.dockerIndicesCleanerImage`                        | string  | no        | Calculates automatically | The docker image of OpenSearch indices cleaner.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `curator.imagePullPolicy`                                  | string  | no        | Always                   | The image pull policy for OpenSearch curator container. The possible values are `Always`, `IfNotPresent` or `Never`.                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `curator.opensearchHost`                                   | string  | no        | <name>-internal:9200     | The host address of OpenSearch, including the port.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `curator.opensearchHost`                                   | string  | no        | `<name>-internal:9200`   | The host address of OpenSearch, including the port.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `curator.snapshotRepositoryName`                           | string  | no        | snapshots                | The name of snapshot repository in the OpenSearch. This parameter determines **logical** name of folder where OpenSearch stores snapshots. This parameter is necessary for OpenSearch internal process to make snapshots. Do not use slash symbol `/` in this name. Please, pay attention that value of this parameter must be the same as the value of the similar parameter for OpenSearch.                                                                                                                                                                                   |
 | `curator.backupSchedule`                                   | string  | no        | ""                       | The schedule time in cron format (value must be within quotes). If this parameter is empty, the default schedule (`"0 0 * * *"`), defined in OpenSearch Curator configuration, is used. The value `0 0 * * *` means that snapshots are created everyday at 0:00.                                                                                                                                                                                                                                                                                                                |
 | `curator.evictionPolicy`                                   | string  | no        | ""                       | The eviction policy for snapshots. It is a comma-separated string of policies written as `$start_time/$interval`. This policy splits all backups older then `$start_time` to numerous time intervals `$interval` time long. Then it deletes all backups in every interval except the newest one. For example, `1d/7d` policy means "take all backups older then one day, split them in groups by 7-days interval, and leave only the newest". If this parameter is empty, the default eviction policy (`"0/1d,7d/delete"`) defined in OpenSearch Curator configuration is used. |
@@ -1367,6 +1411,7 @@ This section contains information about integration test tags that can be used i
 ## Before You Begin
 
 * Make sure the environment corresponds the requirements in the [Prerequisites](#prerequisites) section.
+* Make sure you review the [Upgrade](#upgrade) section.
 * Before doing major upgrade, it is recommended to make a backup.
 * Check if the application is already installed and find its previous deployments' parameters to make changes.
 
@@ -1456,6 +1501,8 @@ curator:
     runAsUser: 1000
 integrationTests:
   enabled: false
+DEPLOY_W_HELM: true
+ESCAPE_SEQUENCE: true
 ```
 
 ### DR Scheme
@@ -1534,6 +1581,8 @@ curator:
     runAsUser: 1000
 integrationTests:
   enabled: false
+DEPLOY_W_HELM: true
+ESCAPE_SEQUENCE: true
 ```
 
 </details>
@@ -1543,6 +1592,8 @@ integrationTests:
 See [Google Kubernetes Engine](/documentation/installation-guide/disaster-recovery/README.md#google-kubernetes-engine-features) guide.
 
 ## AWS Examples
+
+### HA Scheme
 
 See [Amazon OpenSearch](/documentation/installation-guide/amazon/README.md) guide.
 
@@ -1558,13 +1609,17 @@ The same as [On-Prem Examples HA Scheme](#on-prem-examples).
 
 ### DR Scheme
 
-The same as [On-Prem Examples HA Scheme](#on-prem-examples).
+The same as [On-Prem Examples DR Scheme](#on-prem-examples).
 
 # Upgrade
 
 ## Common
 
 In the common way, the upgrade procedure is the same as the initial deployment. You need to follow `Release Notes` and `Breaking Changes` in the version you install to find details. If you upgrade to a version which has several major diff changes from the installed version (e.g. `0.2.8` over `0.0.3`), you need to check `Release Notes` and `Breaking Changes` sections for `0.1.0` and `0.2.0` versions.
+
+## Scale-In Cluster
+
+OpenSearch does not support reducing the number of nodes without additional manipulations to move data replicas from nodes being removed, or understanding that there are enough data replicas on the remaining nodes, or data replicas can be moved to other nodes automatically without data loss.
 
 ## Rolling Upgrade
 
@@ -1594,9 +1649,9 @@ Automatic CRD upgrade requires the following cluster rights for the deployment u
     verbs: [ "get", "create", "patch" ]
 ```
 
-# Migration
+## Migration
 
-## Migration to OpenSearch 2.x
+### Migration to OpenSearch 2.x
 
 There are the following breaking changes:
 
@@ -1605,7 +1660,7 @@ There are the following breaking changes:
 
 **Important**: By default, TLS certificates for all layers (`transport`, `admin`, `rest`) are self-signed, so you will not be able to communicate with the OpenSearch without specifying corresponding certificate. For more details, see [Encrypted Access](/documentation/installation-guide/encrypted-access/README.md) section.
 
-## Migration from OpenDistro Elasticsearch
+### Migration from OpenDistro Elasticsearch
 
 OpenSearch Service allows migration from OpenDistro Elasticsearch deployments.
 
@@ -1628,7 +1683,7 @@ In this case no necessary to perform steps for the persistent volume migration b
 
 **NOTE:** Please read general [Prerequisites](#prerequisites) and perform necessary steps before deploy.
 
-### Automatic Migration with Deployer Job
+#### Automatic Migration with Deployer Job
 
 OpenSearch Deployer job can perform migration steps automatically if this feature is enabled in parameters. It is possible only for Helm-based installations (`DEPLOY_W_HELM` is `true` from previous and current deployments). To enable it you need to add the following properties to deployment params of your job (DP|App):
 
@@ -1684,7 +1739,7 @@ opensearch:
 
 **NOTE:** if something went wrong with automatic migration, the process will be interrupted, you need to perform migration procedure manually with the guide below.
 
-### Manual Migration Steps
+#### Manual Migration Steps
 
 The following steps should be performed from the host with installed `kubectl`, `helm` and cluster admin rights to the cluster.
 
@@ -1749,7 +1804,7 @@ The following steps should be performed from the host with installed `kubectl`, 
 
    Any deployment mode can be used.
 
-### Backup and Restore
+#### Backup and Restore
 
 With this approach snapshots collected on Elasticsearch side and restored on OpenSearch side. This migration also requires manual steps.
 
@@ -1797,11 +1852,11 @@ With this approach snapshots collected on Elasticsearch side and restored on Ope
    * Check that response is `"accepted":true`. Otherwise, some problem occurred and described in response, such as already existing open index in new cluster, but if OpenSearch cluster has clean installation, no conflicts expected. If such problem reproduced, close or delete indices that already exists or use renaming pattern.
      Additional information about manual snapshot recovery described in [Manual recovery guide](https://git.netcracker.com/PROD.Platform.ElasticStack/elasticsearch-service/-/blob/master/documentation/maintenance-guide/recovery/manual-recovery-procedure.md)
 
-### Migrate from Elasticsearch 6.8 Service
+#### Migrate from Elasticsearch 6.8 Service
 
 It is also possible to migrate from Elasticsearch 6.8 installations, but only with manual steps.
 
-#### Migrate Elasticsearch 6.8 Persistent Volumes
+##### Migrate Elasticsearch 6.8 Persistent Volumes
 
 1. Folder rights
    If previously Persistent Volumes `hostPath` folders were created with rights `100:101` it is necessary to change folders owner to `1000:1000`.
@@ -1855,7 +1910,7 @@ It is also possible to migrate from Elasticsearch 6.8 installations, but only wi
 
    Old persistent volume claims should be removed with removing deployments of previous installation.
 
-#### Manual Migration from Elasticsearch 6.8
+##### Manual Migration from Elasticsearch 6.8
 
 1. Perform steps from [Migrate Elasticsearch 6.8 Persistent Volumes](#migrate-elasticsearch-68-persistent-volumes).
 2. Delete previous deployments
@@ -1876,7 +1931,7 @@ It is also possible to migrate from Elasticsearch 6.8 installations, but only wi
 
 3. Install OpenSearch release.
 
-## DBaaS adapter migration
+### DBaaS adapter migration
 
 There is no migration between the Elasticsearch DBaaS adapter and the OpenSearch DBaaS adapter, because they use different approaches for managing resources and different microservice clients.
 
@@ -1924,7 +1979,7 @@ If you want to use the OpenSearch DBaaS adapter, you have to manually adapt serv
 
   **Pay attention**, the value of this parameter should differ from the default value (the name of namespace where OpenSearch service is located).
 
-# Rollback
+## Rollback
 
 OpenSearch does not support rollback with downgrade of a version. In this case, you need to do the following steps:
 
@@ -2077,11 +2132,11 @@ helm list --namespace=<namespace_name>
 helm delete opensearch-service-<namespace_name> --namespace=<namespace_name>
 ```
 
-Then update `release` annotations for config maps and persistent volume claims:
+Then update `release` annotations for config maps, secrets and persistent volume claims:
 
 ```bash
 kubectl get configmap -n <namespace_name> -o json | jq '.items[].metadata|select(.annotations."meta.helm.sh/release-name")|.name' | awk '{print "kubectl annotate --overwrite configmap", $1, "meta.helm.sh/release-name=opensearch-service -n <namespace_name>"}' | bash -x
-
+kubectl get secret -n <namespace_name> -o json | jq '.items[].metadata|select(.annotations."meta.helm.sh/release-name")|.name' | awk '{print "kubectl annotate --overwrite secret", $1, "meta.helm.sh/release-name=opensearch-service -n <namespace_name>"}' | bash -x
 kubectl get pvc -n <namespace_name> -o json | jq '.items[].metadata|select(.annotations."meta.helm.sh/release-name")|.name' | awk '{print "kubectl annotate --overwrite pvc", $1, "meta.helm.sh/release-name=opensearch-service -n <namespace_name>"}' | bash -x
 ```
 
@@ -2131,21 +2186,28 @@ Then install a new version with App Deployer and `DEPLOY_W_HELM: true`.
 
 ## Deploy job failed with status check but application works fine
 
-It can be an issue with timeouts or long start of OpenSearch pods. You need to get statuses from the `status-provisioner` job resource and analyze them. You can do it in two ways:
+It can be an issue with timeouts or long start of OpenSearch pods. You need to get statuses from the `opensearch-status-provisioner` job resource and analyze them. You can do it in two ways:
 
-* Look through `status-provisioner` pod logs:
+* Look through `opensearch-status-provisioner` pod logs:
 
-```
-
-```
-
-* Get content of the `status-provisioner` job resource:
-
-  ```bash
-  kubect get job status-provisioner -o yaml
+  ```
+  Status Provisioner have started calculating the state of the cluster
+  Processing [Deployment opensearch-service-operator] resource
+  Processing [Deployment opensearch-dashboards] resource
+  Processing [Deployment opensearch-curator] resource
+  Processing [Deployment dbaas-opensearch-adapter] resource
+  Processing [Deployment opensearch-monitoring] resource
+  Processing [StatefulSet opensearch] resource
+  Failed components statuses are []
   ```
 
-**Important**: By default, `status-provisioner` job resource remains alive `600` seconds after its completion. You can increase this timeout by specifying `statusProvisioner.lifetimeAfterCompletion` parameter value.
+* Get content of the `opensearch-status-provisioner` job resource:
+
+  ```bash
+  kubect get job opensearch-status-provisioner -o yaml
+  ```
+
+**Important**: By default, `opensearch-status-provisioner` job resource remains alive `600` seconds after its completion. You can increase this timeout by specifying `statusProvisioner.lifetimeAfterCompletion` parameter value.
 
 You can also increase the pod readiness timeout `statusProvisioner.podReadinessTimeout: 800` and try to run the Deployer job again.
 
