@@ -174,7 +174,7 @@ integration:
     docker-image-id: timestamp
     deploy-param: deploymentStatusProvisioner
   - type: image
-    docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.4.1
+    docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:1.3.10
     deploy-param: dockerDashboards
   - type: image
     docker-image: artifactorycn.netcracker.com:17064/library/busybox:1.35.0
