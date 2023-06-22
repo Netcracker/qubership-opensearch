@@ -16,7 +16,7 @@ OpenSearch Service allows you to deploy OpenSearch side services (DBaaS Adapter,
 
 # Prerequisites
 
-## Global 
+## Global
 
 * External OpenSearch URL is available from Kubernetes cluster where you are going to deploy side services.
 * OpenSearch user credentials are provided. User has admin rights.
@@ -34,147 +34,151 @@ To collect snapshots manually (e.g. by `opensearch-curator` or `dbaas-adapter`) 
 
 1. AWS S3 Bucket configuration
 
-* Navigate to `Services -> Storage -> S3` in AWS Console.
-* Create new bucket with unique name and required region to store data. Specified `s3-bucket-name` will be needed on next steps.
+   * Navigate to `Services -> Storage -> S3` in AWS Console.
+   * Create new bucket with unique name and required region to store data. Specified `s3-bucket-name` will be needed on next steps.
 
 2. AWS Snapshot Role configuration
 
-* Navigate to `Services -> Security, Identity, & Compliance -> IAM` in AWS Console. Choose `Roles` in the navigation pane.
-* Create new Role with `Another AWS account` type and your `Account ID` (You can find it in your user pane on top of console).
-* On `Permissions` step, press `Create policy`. You will be redirected on `Create policy` page.
-* Navigate to `JSON` pane and paste next configuration (Replace `s3-bucket-name` to bucket name you specified on previous step):
-```yaml
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "s3:ListBucket",
-      "Resource": "arn:aws:s3:::s3-bucket-name"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-          "s3:PutObject",
-          "s3:GetObject",
-          "s3:DeleteObject"
-      ],
-      "Resource": "arn:aws:s3:::s3-bucket-name/*"
-    }
-  ]
-}
-```
-* Proceed next to `Review` step, specify a `Name` for new policy and press `Create policy` button.
-* Return to `Attach permission policies` tab, update policies list and select created one.
-* Proceed next to `Review` step, specify a `Role name` for Snapshot Role and press `Create role` button.
-* Navigate to `Trust relationships` tab of created Snapshot Role. Press `Edit trust relationship` button and paste next configuration:
-```yaml
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "es.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-```
+   * Navigate to `Services -> Security, Identity, & Compliance -> IAM` in AWS Console. Choose `Roles` in the navigation pane.
+   * Create new Role with `Another AWS account` type and your `Account ID` (You can find it in your user pane on top of console).
+   * On `Permissions` step, press `Create policy`. You will be redirected on `Create policy` page.
+   * Navigate to `JSON` pane and paste next configuration (Replace `s3-bucket-name` to bucket name you specified on previous step):
 
-* Press `Update Trust Policy` button.
-* `Role ARN` of created Snapshot Role will be needed on next steps.
+     ```yaml
+     {
+       "Version": "2012-10-17",
+       "Statement": [
+         {
+           "Effect": "Allow",
+           "Action": "s3:ListBucket",
+           "Resource": "arn:aws:s3:::s3-bucket-name"
+         },
+         {
+           "Effect": "Allow",
+           "Action": [
+               "s3:PutObject",
+               "s3:GetObject",
+               "s3:DeleteObject"
+           ],
+           "Resource": "arn:aws:s3:::s3-bucket-name/*"
+         }
+       ]
+     }
+     ```
+
+   * Proceed next to `Review` step, specify a `Name` for new policy and press `Create policy` button.
+   * Return to `Attach permission policies` tab, update policies list and select created one.
+   * Proceed next to `Review` step, specify a `Role name` for Snapshot Role and press `Create role` button.
+   * Navigate to `Trust relationships` tab of created Snapshot Role. Press `Edit trust relationship` button and paste next configuration:
+
+     ```yaml
+     {
+       "Version": "2012-10-17",
+       "Statement": [
+         {
+           "Sid": "",
+           "Effect": "Allow",
+           "Principal": {
+             "Service": "es.amazonaws.com"
+           },
+           "Action": "sts:AssumeRole"
+         }
+       ]
+     }
+     ```
+
+   * Press `Update Trust Policy` button.
+   * `Role ARN` of created Snapshot Role will be needed on next steps.
 
 3. AWS User configuration
 
-* Navigate to `Services -> Security, Identity, & Compliance -> IAM` in AWS Console. Choose `Users` in the navigation pane.
-* Create new User with `Access key - Programmatic access` enabled.
-* On `Permissions` step select `Attach existing policies directly`, press `Create policy`.
-* Navigate to `JSON` tab, paste the next configuration (Replace `Role ARN`, `Domain ARN` and `s3-bucket-name` with Snapshot role ARN, OpenSearch Service domain ARN and created bucket name):
-```yaml
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": "iam:PassRole",
-            "Resource": "Role ARN"
-        },
-        {
-            "Effect": "Allow",
-            "Action": "es:ESHttpPut",
-            "Resource": "Domain ARN"
-        },
-        {
-            "Effect": "Allow",
-            "Action": "s3:ListBucket",
-            "Resource": "arn:aws:s3:::s3-bucket-name"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:PutObject",
-                "s3:GetObject",
-                "s3:DeleteObject"
-            ],
-            "Resource": "arn:aws:s3:::s3-bucket-name/*"
-        }
-    ]
-}
-```
+   * Navigate to `Services -> Security, Identity, & Compliance -> IAM` in AWS Console. Choose `Users` in the navigation pane.
+   * Create new User with `Access key - Programmatic access` enabled.
+   * On `Permissions` step select `Attach existing policies directly`, press `Create policy`.
+   * Navigate to `JSON` tab, paste the next configuration (Replace `Role ARN`, `Domain ARN` and `s3-bucket-name` with Snapshot role ARN, OpenSearch Service domain ARN and created bucket name):
 
-* Proceed next to `Review` step, specify `Name` for policy and press `Create policy` button.
-* Return to `Set permissions` tab, update policies list and select created one.
-* Proceed next to `Review` step and press `Create user` button.
-* On result page you get created User with generated credentials: `Access key ID` and `Secret access key`. Save these credentials for next steps (`Access Key` can be found in User security configuration, `Secret key` displayed only at creation) and press `Close` button.
-* `User ARN` of created User will be needed on next steps.
+     ```yaml
+     {
+         "Version": "2012-10-17",
+         "Statement": [
+             {
+                 "Effect": "Allow",
+                 "Action": "iam:PassRole",
+                 "Resource": "Role ARN"
+             },
+             {
+                 "Effect": "Allow",
+                 "Action": "es:ESHttpPut",
+                 "Resource": "Domain ARN"
+             },
+             {
+                 "Effect": "Allow",
+                 "Action": "s3:ListBucket",
+                 "Resource": "arn:aws:s3:::s3-bucket-name"
+             },
+             {
+                 "Effect": "Allow",
+                 "Action": [
+                     "s3:PutObject",
+                     "s3:GetObject",
+                     "s3:DeleteObject"
+                 ],
+                 "Resource": "arn:aws:s3:::s3-bucket-name/*"
+             }
+         ]
+     }
+     ```
+
+   * Proceed next to `Review` step, specify `Name` for policy and press `Create policy` button.
+   * Return to `Set permissions` tab, update policies list and select created one.
+   * Proceed next to `Review` step and press `Create user` button.
+   * On result page you get created User with generated credentials: `Access key ID` and `Secret access key`. Save these credentials for next steps (`Access Key` can be found in User security configuration, `Secret key` displayed only at creation) and press `Close` button.
+   * `User ARN` of created User will be needed on next steps.
 
 4. Snapshot Role mapping (if using fine-grained access control)
 
-* Navigate to `Services -> Analytics -> Amazon OpenSearch Service (successor to Amazon Elasticsearch Service)`. Select required OpenSearch domain.
-* Navigate to OpenSearch/Kibana Dashboard (Endpoint URL can be found in `General information` field of domain).
-* From the main menu choose Security, Role Mappings, and select the manage_snapshots role.
-* Add `User ARN` to `Users` field and `Role ARN` to `Backend roles` from previous steps.
-* Press `Submit` button.
+   * Navigate to `Services -> Analytics -> Amazon OpenSearch Service (successor to Amazon Elasticsearch Service)`. Select required OpenSearch domain.
+   * Navigate to OpenSearch/Kibana Dashboard (Endpoint URL can be found in `General information` field of domain).
+   * From the main menu choose Security, Role Mappings, and select the manage_snapshots role.
+   * Add `User ARN` to `Users` field and `Role ARN` to `Backend roles` from previous steps.
+   * Press `Submit` button.
 
 5. Manual Snapshot repository registration
 
-OpenSearch Service requires AWS Authorization, so you can't use `curl` to perform this operation. Instead, use `Postman Desktop Agent` or other method to send AWS signed request to register snapshot.
+    OpenSearch Service requires AWS Authorization, so you can't use `curl` to perform this operation. Instead, use `Postman Desktop Agent` or other method to send AWS signed request to register snapshot.
 
-* Select `PUT` request and set the next URL:
-  ```domain-endpoint/_snapshot/my-snapshot-repo-name```
+   * Select `PUT` request and set the ```domain-endpoint/_snapshot/my-snapshot-repo-name``` URL, where `domain-endpoint` can be found in OpenSearch domain `General information` field and `my-snapshot-repo-name` is a name for repository.
+   * In `Authorization` tab select `AWS Signature` type. Fill `AccessKey` and `SecretKey` with keys generated during User creation step. Fill the `Region` with the OpenSearch domain region and `Sevice` with `es`.
+   * In `Body` tab select `raw` type and paste the next configuration (Replace `s3-bucket-name`, `region`, `Role ARN` with bucket name, region and Snapshot Role ARN from previous steps):
 
-where `domain-endpoint` can be found in OpenSearch domain `General information` field and `my-snapshot-repo-name` is a name for repository.
-* In `Authorization` tab select `AWS Signature` type. Fill `AccessKey` and `SecretKey` with keys generated during User creation step. Fill the `Region` with the OpenSearch domain region and `Sevice` with `es`.
-* In `Body` tab select `raw` type and paste the next configuration (Replace `s3-bucket-name`, `region`, `Role ARN` with bucket name, region and Snapshot Role ARN from previous steps):
-```yaml
-{
-  "type": "s3",
-  "settings": {
-    "bucket": "s3-bucket-name",
-    "region": "region",
-    "role_arn": "Role ARN"
-  }
-}
-```
-* Press `Send` button. If all necessary grants provided, you get next response:
-```yaml
-{
-    "acknowledged": true
-}
-```
+     ```yaml
+     {
+       "type": "s3",
+       "settings": {
+         "bucket": "s3-bucket-name",
+         "region": "region",
+         "role_arn": "Role ARN"
+       }
+     }
+     ```
 
-If there are some errors in response, check all required prerequisites. More information about repository registration in [Creating index snapshots](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html).
+   * Press `Send` button. If all necessary grants provided, you get next response:
 
-After manual snapshot repository registered, you can perform snapshot and restore with `curl` as OpenSearch user (See, [Manual backup](../../../../../documentation/maintenance-guide/backup/manual-backup-procedure.md) and [Manual revovery](../../../../../documentation/maintenance-guide/recovery/manual-recovery-procedure.md) guides).
+     ```yaml
+     {
+         "acknowledged": true
+     }
+     ```
 
-**Note:** OpenSearch also provides service indices that not accessible for snapshot. To create snapshot either specify indices list ("indices": ["index1", "index2"]) or exclude service indices ("indices": "-.kibana*,-.opendistro*").
+    If there are some errors in response, check all required prerequisites. More information about repository registration in [Creating index snapshots](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html).
 
-To restore indices make sure there are no naming conflicts between indices on the cluster and indices in the snapshot. Delete indices on the existing OpenSearch Service domain, rename indices in snapshot or restore the snapshot to a different OpenSearch Service domain.
+    After manual snapshot repository registered, you can perform snapshot and restore with `curl` as OpenSearch user (See, [Manual backup](/documentation/maintenance-guide/backup/manual-backup-procedure.md) and [Manual recovery](/documentation/maintenance-guide/recovery/manual-recovery-procedure.md) guides).
 
-More details about restore in [Restoring snapshots](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html#managedomains-snapshot-restore).
+   **Note:** OpenSearch also provides service indices that are not accessible for snapshot. To create snapshot either specify indices list ("indices": ["index1", "index2"]) or exclude service indices ("indices": "-.kibana*,-.opendistro*").
+
+   To restore indices make sure there are no naming conflicts between indices on the cluster and indices in the snapshot. Delete indices on the existing OpenSearch Service domain, rename indices in snapshot or restore the snapshot to a different OpenSearch Service domain.
+
+   For more detailed information about restore, refer to [Restoring snapshots](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html#managedomains-snapshot-restore).
 
 # Example of Deploy Parameters
 
@@ -283,12 +287,12 @@ When you scale out your domain, you are adding nodes of the same configuration t
 
 To add nodes to your cluster you need:
 1. Sign in to your AWS Management Console.
-1. Open the OpenSearch Service console.
-1. Select the domain that you want to scale.
-1. Choose `Actions` -> `Edit Cluster Configuration`.
-1. Change `Number of nodes` to necessary value for `Data nodes` and `Dedicated master nodes` sections.
-1. Click `Save changes`.
-1. Run upgrade `opensearch-service` platform job and provide correct values for `global.externalOpenSearch.nodesCount` and `global.externalOpenSearch.dataNodesCount`.
+2. Open the OpenSearch Service console.
+3. Select the domain that you want to scale.
+4. Choose `Actions` -> `Edit Cluster Configuration`.
+5. Change `Number of nodes` to necessary value for `Data nodes` and `Dedicated master nodes` sections.
+6. Click `Save changes`.
+7. Run upgrade `opensearch-service` platform job and provide correct values for `global.externalOpenSearch.nodesCount` and `global.externalOpenSearch.dataNodesCount`.
 
 **NOTE:** Amazon OpenSearch supports scaling in (reduce nodes count), but the created indices should be able to the new data nodes count and have corresponding replicas count.
 
@@ -299,11 +303,11 @@ It is possible to change instance type of Amazon OpenSearch instances (data or m
 
 To change the instance type you need:
 1. Sign in to your AWS Management Console.
-1. Open the OpenSearch Service console.
-1. Select the domain that you want to scale.
-1. Choose `Actions` -> `Edit Cluster Configuration`.
-1. Select necessary `Instance Type` for `Data nodes` and `Dedicated master nodes` sections.
-1. Click `Save changes`.
+2. Open the OpenSearch Service console.
+3. Select the domain that you want to scale.
+4. Choose `Actions` -> `Edit Cluster Configuration`.
+5. Select necessary `Instance Type` for `Data nodes` and `Dedicated master nodes` sections.
+6. Click `Save changes`.
 
 **Note:** When you scale up your domain, EBS volume size doesn't automatically scale up. You must specify this setting if you want the EBS volume size to automatically scale up.
 
