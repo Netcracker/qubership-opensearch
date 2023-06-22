@@ -21,7 +21,7 @@ The deployment procedure and additional features include the following:
 * Backup and restore data. For more detailed information, refer to [OpenSearch Curator Guide](https://git.netcracker.com/PROD.Platform.ElasticStack/docker-elastic-curator/-/blob/master/README.md).
 * Monitoring integration with Grafana Dashboard and Prometheus Alerts. For more detailed information, refer to [Monitoring Guide](/documentation/maintenance-guide/monitoring/README.md).
 * User Interface (UI) provided by OpenSearch Dashboards.
-* DBaaS Adapter for OpenSearch integration. For more detailed information, refer to [OpenSearch Curator Guide](https://git.netcracker.com/PROD.Platform.ElasticStack/dbaas-opensearch-adapter/README.md).
+* DBaaS Adapter for OpenSearch integration. For more detailed information, refer to [DBaaS Adapter Guide](https://git.netcracker.com/PROD.Platform.ElasticStack/dbaas-opensearch-adapter/-/blob/master/README.md).
 * Disaster Recovery scheme with data replication. For more detailed information, refer to [Disaster Recovery Guide](/documentation/installation-guide/disaster-recovery/README.md).
 
 # OpenSearch Components
@@ -98,7 +98,7 @@ The set of pre-install hooks which allow to prepare environment for OpenSearch i
 
 Following the above pictures, let us describe the main parts of the OpenSearch K8s deployment:
 
-* The minimal number of replicas for HA schema of OpenSearch is 3.
+* The minimal number of replicas for HA scheme of OpenSearch is 3.
 * OpenSearch pods are distributed through Kubernetes nodes and availability zones based on affinity policy during deployment.
 * Each OpenSearch pod has its own Persistent Volume storage.
 * In addition to OpenSearch main storage, the OpenSearch Backup Daemon pod has its own Persistent Volume for backups.
@@ -120,9 +120,9 @@ In the separated mode it is possible to deploy OpenSearch pods with the differen
 * Data nodes store indices data.
 * Client nodes accept client request and forward then to corresponding master nodes.
 
-### DR Deployment Schema
+### DR Deployment Scheme
 
-Thr Disaster Recovery scheme of OpenSearch deployment assumes that two independent OpenSearch clusters are deployed for both sides on separate Kubernetes environments with indices replication between them.
+The Disaster Recovery scheme of OpenSearch deployment assumes that two independent OpenSearch clusters are deployed for both sides on separate Kubernetes environments with indices replication between them.
 
 ![DR scheme](images/opensearch_dr_deploy.drawio.png)
 
