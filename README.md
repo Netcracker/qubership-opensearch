@@ -2,6 +2,7 @@
 
 Umbrella service to deploy [OpenSearch](https://opensearch.org).
 
+* [Architecture Guide](/documentation/architecture-guide/README.md)
 * [Installation Guide](/documentation/installation-guide/README.md)
 * Maintenance Guide
   * [Troubleshooting Guide](/documentation/maintenance-guide/troubleshooting-guide/README.md)
