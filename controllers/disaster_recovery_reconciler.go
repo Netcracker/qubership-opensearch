@@ -274,7 +274,13 @@ func (r DisasterRecoveryReconciler) recoverUsers() error {
 		"type": "opensearch",
 		"settings": {}
 	}`, r.cr.Spec.DbaasAdapter.PhysicalDatabaseIdentifier)
+
 	state := r.cr.Status.DisasterRecoveryStatus.UsersRecoveryState
+	if state == "" {
+		err := r.updateUsersRecoveryStatus(usersRecoveryDoneState)
+		r.logger.Info("Users recovery is not run during installation")
+		return err
+	}
 	if state != usersRecoveryRunningState {
 		state = usersRecoveryIdleState
 	}
@@ -308,6 +314,7 @@ func (r DisasterRecoveryReconciler) recoverUsers() error {
 		state = string(response)
 	}
 	err := r.updateUsersRecoveryStatus(state)
+	r.logger.Info(fmt.Sprintf("Users recovery is finished with [%s] state", state))
 	if err == nil && state == usersRecoveryFailedState {
 		return fmt.Errorf("unable to restore OpenSearch users during switchover")
 	}
