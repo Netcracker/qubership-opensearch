@@ -122,6 +122,13 @@ opensearch:
 
 monitoring:
   enabled: false
+
+dbaasAdapter:
+  enabled: true
+  dbaasUsername: "dbaas-adapter"
+  dbaasPassword: "dbaas-adapter"
+  registrationAuthUsername: "cluster-dba"
+  registrationAuthPassword: "Bnmq5567_PO"
 ```
 
 Before `standby` cluster installation you should copy `opensearch-admin-certs` and `opensearch-transport-certs` Kubernetes secrets to the Kubernetes namespace for `standby` service.
@@ -168,6 +175,13 @@ opensearch:
 
 monitoring:
   enabled: false
+
+dbaasAdapter:
+  enabled: true
+  dbaasUsername: "dbaas-adapter"
+  dbaasPassword: "dbaas-adapter"
+  registrationAuthUsername: "cluster-dba"
+  registrationAuthPassword: "Bnmq5567_PO"
 ```
 
 **NOTE:** Clients cannot use OpenSearch on `standby` side, corresponding service is disabled.
@@ -228,13 +242,13 @@ opensearch:
       enabled: true
       hosts:
         - opensearch-opensearch-service.gke.example.us-central.com
-    resources:
-      limits:
-        cpu: 1
-        memory: 1024Mi
-      requests:
-        cpu: 200m
-        memory: 1024Mi
+
+dbaasAdapter:
+  enabled: true
+  dbaasUsername: "dbaas-adapter"
+  dbaasPassword: "dbaas-adapter"
+  registrationAuthUsername: "cluster-dba"
+  registrationAuthPassword: "Bnmq5567_PO"
 ```
 
 **NOTE:** You should install `active` service and perform one of the following actions:
@@ -290,13 +304,13 @@ opensearch:
       enabled: true
       hosts:
         - opensearch-opensearch-service.gke.example.northamerica.com
-    resources:
-      limits:
-        cpu: 1
-        memory: 1024Mi
-      requests:
-        cpu: 200m
-        memory: 1024Mi
+
+dbaasAdapter:
+  enabled: true
+  dbaasUsername: "dbaas-adapter"
+  dbaasPassword: "dbaas-adapter"
+  registrationAuthUsername: "cluster-dba"
+  registrationAuthPassword: "Bnmq5567_PO"
 ```
 
 **NOTE:** `MCS` feature can work unstable, sometimes it requires redeployment if connectivity between clusters is not established.
@@ -337,7 +351,7 @@ curl -XGET -H "Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-
 The example for secured `sitemanager` POST endpoint is following:
 
 ```
-curl -XPOST -H "Content-Type: application/json, Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager
+curl -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager
 ```
 
 Where `TOKEN` is Site Manager Kubernetes JWT Service Account Token. The verification service account name and namespace are specified in `global.disasterRecovery.httpAuth.smServiceAccountName` and `global.disasterRecovery.httpAuth.smNamespace` deploy parameters.
@@ -438,7 +452,7 @@ OpenSearch disaster recovery REST server provides three methods of interaction:
   The example for secured `sitemanager` POST endpoint is following:
 
   ```
-  curl -XPOST -H "Content-Type: application/json, Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager
+  curl -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" http://<OPENSEARCH_NAME>-disaster-recovery.<NAMESPACE>:8080/sitemanager
   ```
 
   Where `TOKEN` is Site Manager Kubernetes JWT Service Account Token. The verification service account name and namespace are specified in `global.disasterRecovery.httpAuth.smServiceAccountName` and `global.disasterRecovery.httpAuth.smNamespace` deploy parameters.
