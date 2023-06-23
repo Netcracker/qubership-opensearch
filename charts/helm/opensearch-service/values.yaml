@@ -43,7 +43,7 @@ dashboards:
 
   extraInitContainers: []
 
-  extraContainers: ""
+  extraContainers: []
 
   ingress:
     enabled: false
@@ -64,9 +64,9 @@ dashboards:
     port: 5601
     loadBalancerIP: ""
     nodePort: ""
-    labels: { }
-    annotations: { }
-    loadBalancerSourceRanges: [ ]
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
     # 0.0.0.0/0
     httpPortName: http
 
@@ -128,13 +128,6 @@ dashboards:
 #    readOnlyRootFilesystem: true
     runAsNonRoot: true
     runAsUser: 1000
-
-  autoscaling:
-    enabled: false
-    minReplicas: 1
-    maxReplicas: 100
-    targetCPUUtilizationPercentage: 80
-#    targetMemoryUtilizationPercentage: 80
 
 global:
   clusterName: opensearch
@@ -374,14 +367,14 @@ opensearch:
     podDisruptionBudget:
       enabled: false
       minAvailable: 1
-    readinessProbe: []
+    readinessProbe: {}
     livenessProbe:
       tcpSocket:
         port: transport
       initialDelaySeconds: 90
       periodSeconds: 20
       failureThreshold: 5
-    startupProbe: []
+    startupProbe: {}
     imagePullSecrets: []
     nodeSelector: {}
     tolerations: []
@@ -454,14 +447,14 @@ opensearch:
         cpu: 200m
         memory: 1536Mi
     javaOpts: "-Xms718m -Xmx718m"
-    readinessProbe: []
+    readinessProbe: {}
     livenessProbe:
       tcpSocket:
         port: transport
       initialDelaySeconds: 90
       periodSeconds: 20
       failureThreshold: 5
-    startupProbe: []
+    startupProbe: {}
     imagePullSecrets: []
     nodeSelector: {}
     tolerations: []
@@ -540,14 +533,14 @@ opensearch:
     podDisruptionBudget:
       enabled: false
       minAvailable: 1
-    readinessProbe: []
+    readinessProbe: {}
     livenessProbe:
       tcpSocket:
         port: transport
       initialDelaySeconds: 60
       periodSeconds: 20
       failureThreshold: 5
-    startupProbe: []
+    startupProbe: {}
     imagePullSecrets: []
     nodeSelector: {}
     tolerations: []
@@ -614,14 +607,14 @@ opensearch:
     podDisruptionBudget:
       enabled: false
       minAvailable: 1
-    readinessProbe: []
+    readinessProbe: {}
     livenessProbe:
       tcpSocket:
         port: transport
       initialDelaySeconds: 60
       periodSeconds: 20
       failureThreshold: 5
-    startupProbe: []
+    startupProbe: {}
     imagePullSecrets: []
     nodeSelector: {}
     tolerations: []
@@ -721,7 +714,7 @@ opensearch:
     plugins.security.ssl.http.pemkey_filepath: rest-key.pem
     plugins.security.ssl.http.pemtrustedcas_filepath: rest-root-ca.pem
 
-  log4jConfig: ""
+  log4jConfig: {}
 
   loggingConfig:
     ## Default config
@@ -774,8 +767,8 @@ opensearch:
         cpu: 100m
 
 podScheduler:
-  dockerImage: artifactorycn.netcracker.com:17014/product/prod.platform.streaming_docker-kubectl:0.0.2_20230324-083045
   enabled: true
+  dockerImage: artifactorycn.netcracker.com:17014/product/prod.platform.streaming_docker-kubectl:0.0.2_20230324-083045
   affinity: {}
   nodeSelector: {}
   resources:
@@ -881,8 +874,8 @@ dbaasAdapter:
     enabled: true
     secretName: ""
     subjectAlternativeName:
-      additionalDnsNames: [ ]
-      additionalIpAddresses: [ ]
+      additionalDnsNames: []
+      additionalIpAddresses: []
 
   resources:
     requests:
