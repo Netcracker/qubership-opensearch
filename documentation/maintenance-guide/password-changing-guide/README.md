@@ -19,6 +19,8 @@ Where:
 * `${NAMESPACE}` is the name of the OpenShift/Kubernetes namespace where OpenSearch is located. For example, `opensearch-service`.
 * `${CLUSTER_NAME}` is the name of the OpenSearch cluster. For example, `opensearch`.
 
+**Note**: OpenSearch dashboards don't support password that contains only digits. Consider this when changing the password property.
+
 # OpenSearch Curator
 This section provides information on the password changing procedures in the OpenSearch Curator.
 
