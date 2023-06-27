@@ -661,7 +661,7 @@ opensearch:
   config:
     ## Example Config
     plugins.security.allow_unsafe_democertificates: true
-    plugins.security.allow_default_init_securityindex: true
+    plugins.security.allow_default_init_securityindex: ${ALLOW_SECURITY_INITIALIZATION}
     plugins.security.audit.type: log4j
     plugins.security.audit.config.log4j.level: INFO
     plugins.security.unsupported.restapi.allow_securityconfig_modification: true
