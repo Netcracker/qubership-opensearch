@@ -112,6 +112,9 @@ func (r DisasterRecoveryReconciler) Configure() error {
 		}
 
 		if r.cr.Spec.DisasterRecovery.Mode == "active" || r.cr.Spec.DisasterRecovery.Mode == "disable" {
+			if err := r.replicationWatcher.checkReplication(r, log); err != nil {
+				return err
+			}
 			if checkNeeded {
 				var indexNames []string
 				indexNames, err = replicationManager.getReplicatedIndices()

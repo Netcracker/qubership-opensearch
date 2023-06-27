@@ -17,6 +17,7 @@ const (
 	runningState         = "running"
 	pausedState          = "paused"
 	defaultWatchInterval = 30
+	restartWaitPeriod    = 60
 )
 
 type ReplicationWatcher struct {
@@ -64,7 +65,10 @@ func (rw ReplicationWatcher) watch(drr DisasterRecoveryReconciler, logger logr.L
 			if instance.Spec.DisasterRecovery.Mode == "standby" &&
 				instance.Status.DisasterRecoveryStatus.Mode == "standby" &&
 				instance.Status.DisasterRecoveryStatus.Status == "done" {
-				rw.checkReplication(drr, logger)
+				if err = rw.checkReplication(drr, logger); err != nil {
+					logger.Info("Try to restart replication")
+					rw.restartReplication(drr, logger)
+				}
 				if *rw.state == pausedState {
 					logger.Info("Replication Watcher was stopped, exit from watch loop")
 					return
@@ -76,7 +80,7 @@ func (rw ReplicationWatcher) watch(drr DisasterRecoveryReconciler, logger logr.L
 	}
 }
 
-func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, logger logr.Logger) {
+func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, logger logr.Logger) error {
 	defer rw.Lock.Unlock()
 	rw.Lock.Lock()
 	logger.Info("Start checking for replication status")
@@ -91,7 +95,7 @@ func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, lo
 		})
 		if len(failedIndices) > 0 {
 			logger.Info(fmt.Sprintf("Replication does not work correctly, there are failed_indices: %s", failedIndices))
-			rw.restartReplication(drr, logger, replicationManager)
+			return fmt.Errorf("replication does not work correctly, there are failed_indices: %s", failedIndices)
 		} else {
 			indices, err := replicationManager.GetIndicesByPatternExcludeService(replicationManager.pattern)
 			if err != nil {
@@ -101,7 +105,7 @@ func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, lo
 				for _, index := range indices {
 					if *rw.state == pausedState {
 						logger.Info("Replication Watcher was stopped, exit from watch loop")
-						return
+						return nil
 					}
 					replicationStatus, err := replicationManager.getIndexReplicationStatus(index)
 					if err != nil {
@@ -118,7 +122,7 @@ func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, lo
 				}
 				if len(failedReplications) > 0 {
 					logger.Info(fmt.Sprintf("Replication does not work correctly, there are failed_indices: %s", failedReplications))
-					rw.restartReplication(drr, logger, replicationManager)
+					return fmt.Errorf("replication does not work correctly, there are failed_indices: %s", failedReplications)
 				} else {
 					logger.Info("Replication works correctly, there are no failed_indices")
 				}
@@ -126,9 +130,10 @@ func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, lo
 
 		}
 	} else {
-		logger.Info("There is no autofollow rule, try to start replication")
-		rw.restartReplication(drr, logger, replicationManager)
+		logger.Info("There is no autofollow rule")
+		return fmt.Errorf("there is no autofollow rule")
 	}
+	return nil
 }
 
 func (rw ReplicationWatcher) pause(logger logr.Logger) {
@@ -136,8 +141,9 @@ func (rw ReplicationWatcher) pause(logger logr.Logger) {
 	*rw.state = pausedState
 }
 
-func (rw ReplicationWatcher) restartReplication(drr DisasterRecoveryReconciler, logger logr.Logger, replicationManager ReplicationManager) {
+func (rw ReplicationWatcher) restartReplication(drr DisasterRecoveryReconciler, logger logr.Logger) {
 	logger.Info("Restart replication")
+	replicationManager := drr.getReplicationManager()
 	err := drr.removePreviousReplication(replicationManager)
 	if err != nil {
 		logger.Error(err, "Previous replication cannot be stopped")
@@ -149,4 +155,5 @@ func (rw ReplicationWatcher) restartReplication(drr DisasterRecoveryReconciler, 
 		return
 	}
 	logger.Info("Replication was restarted")
+	time.Sleep(time.Second * restartWaitPeriod)
 }
