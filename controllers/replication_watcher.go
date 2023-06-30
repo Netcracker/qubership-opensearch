@@ -66,7 +66,7 @@ func (rw ReplicationWatcher) watch(drr DisasterRecoveryReconciler, logger logr.L
 				instance.Status.DisasterRecoveryStatus.Mode == "standby" &&
 				instance.Status.DisasterRecoveryStatus.Status == "done" {
 				if err = rw.checkReplication(drr, logger); err != nil {
-					logger.Info("Try to restart replication")
+					logger.Info(fmt.Sprintf("Try to restart replication because of error: %v", err))
 					rw.restartReplication(drr, logger)
 				}
 				if *rw.state == pausedState {
@@ -94,7 +94,6 @@ func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, lo
 			return !strings.HasPrefix(s, ".")
 		})
 		if len(failedIndices) > 0 {
-			logger.Info(fmt.Sprintf("Replication does not work correctly, there are failed_indices: %s", failedIndices))
 			return fmt.Errorf("replication does not work correctly, there are failed_indices: %s", failedIndices)
 		} else {
 			indices, err := replicationManager.GetIndicesByPatternExcludeService(replicationManager.pattern)
@@ -121,7 +120,6 @@ func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, lo
 					}
 				}
 				if len(failedReplications) > 0 {
-					logger.Info(fmt.Sprintf("Replication does not work correctly, there are failed_indices: %s", failedReplications))
 					return fmt.Errorf("replication does not work correctly, there are failed_indices: %s", failedReplications)
 				} else {
 					logger.Info("Replication works correctly, there are no failed_indices")
@@ -130,7 +128,6 @@ func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, lo
 
 		}
 	} else {
-		logger.Info("There is no autofollow rule")
 		return fmt.Errorf("there is no autofollow rule")
 	}
 	return nil
