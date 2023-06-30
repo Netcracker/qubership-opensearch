@@ -4864,7 +4864,7 @@
             {
               "alias": "$tag_node_name: $col",
               "dsType": "influxdb",
-              "expr": "sum(opensearch_indices_get_current{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
+              "expr": "rate(opensearch_indices_get_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])",
               "groupBy": [
                 {
                   "params": [
@@ -4904,19 +4904,19 @@
               "tags": []
             },
             {
-              "expr": "sum(opensearch_indices_indexing_index_current{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
+              "expr": "rate(opensearch_indices_indexing_index_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])",
               "interval": "",
               "legendFormat": "{{node_name}}:index",
               "refId": "B"
             },
             {
-              "expr": "sum(opensearch_indices_search_fetch_current{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
+              "expr": "rate(opensearch_indices_search_fetch_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])",
               "interval": "",
               "legendFormat": "{{node_name}}:search fetch",
               "refId": "C"
             },
             {
-              "expr": "sum(opensearch_indices_search_query_current{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
+              "expr": "rate(opensearch_indices_search_query_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m])",
               "interval": "",
               "legendFormat": "{{node_name}}:search query",
               "refId": "D"
