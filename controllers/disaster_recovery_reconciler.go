@@ -112,15 +112,18 @@ func (r DisasterRecoveryReconciler) Configure() error {
 		}
 
 		if r.cr.Spec.DisasterRecovery.Mode == "active" || r.cr.Spec.DisasterRecovery.Mode == "disable" {
+			if err := r.replicationWatcher.checkReplication(r, r.logger); err != nil {
+				return err
+			}
 			if checkNeeded {
 				var indexNames []string
 				indexNames, err = replicationManager.getReplicatedIndices()
 				if err != nil {
-					log.Error(err, "Can not get replication indices. Replication check is failed.")
+					r.logger.Error(err, "Can not get replication indices. Replication check is failed.")
 				}
-				log.Info("Start replication check")
+				r.logger.Info("Start replication check")
 				if err = replicationManager.executeReplicationCheck(indexNames); err != nil {
-					log.Error(err, "Replication check is failed.")
+					r.logger.Error(err, "Replication check is failed.")
 				}
 			} else {
 				comment = "Switchover mode has been changed without replication check"
@@ -334,17 +337,17 @@ func (r DisasterRecoveryReconciler) buildAdapterRestClient() *util.RestClient {
 func (r DisasterRecoveryReconciler) checkExistingReplications(replicationManager ReplicationManager) error {
 	responseBody, err := replicationManager.restClient.SendRequestWithStatusCodeCheck(http.MethodGet, leaderStatsPath, nil)
 	if err != nil {
-		log.Error(err, "An error occurred during getting OpenSearch leader stats")
+		r.logger.Error(err, "An error occurred during getting OpenSearch leader stats")
 		return err
 	}
 	var leaderStats LeaderStats
 	err = json.Unmarshal(responseBody, &leaderStats)
 	if err != nil {
-		log.Error(err, "An error occurred during unmarshalling OpenSearch leader stats response")
+		r.logger.Error(err, "An error occurred during unmarshalling OpenSearch leader stats response")
 		return err
 	}
 	if len(leaderStats.IndexStats) > 0 {
-		log.Error(err, "There is active replication on the other side. To move current side into standby mode, need to move opposite side to active mode first.")
+		r.logger.Error(err, "There is active replication on the other side. To move current side into standby mode, need to move opposite side to active mode first.")
 		return fmt.Errorf("there is active replication on the other side")
 	}
 
