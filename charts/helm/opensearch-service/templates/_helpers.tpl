@@ -750,43 +750,44 @@ ca.crt: {{ $ca.Cert | b64enc }}
 Calculates resources that should be monitored during deployment by Deployment Status Provisioner.
 */}}
 {{- define "opensearch.monitoredResources" -}}
-    {{- printf "Deployment %s-service-operator, " (include "opensearch.fullname" .) -}}
+    {{- $resources := list (printf "Deployment %s-service-operator" (include "opensearch.fullname" .)) }}
     {{- if and (not .Values.global.externalOpensearch.enabled) .Values.dashboards.enabled }}
-    {{- printf "Deployment %s-dashboards, " (include "opensearch.fullname" .) -}}
+    {{- $resources = append $resources (printf "Deployment %s-dashboards" (include "opensearch.fullname" .)) -}}
     {{- end }}
     {{- if not (or (eq .Values.global.disasterRecovery.mode "standby") (eq .Values.global.disasterRecovery.mode "disabled")) -}}
     {{- if .Values.curator.enabled }}
-    {{- printf "Deployment %s-curator, " (include "opensearch.fullname" .) -}}
+    {{- $resources = append $resources (printf "Deployment %s-curator" (include "opensearch.fullname" .)) -}}
     {{- end }}
     {{- if .Values.dbaasAdapter.enabled }}
-    {{- printf "Deployment dbaas-%s-adapter, " (include "opensearch.fullname" .) -}}
+    {{- $resources = append $resources (printf "Deployment dbaas-%s-adapter" (include "opensearch.fullname" .)) -}}
     {{- end }}
     {{- if .Values.elasticsearchDbaasAdapter.enabled }}
-    {{- printf "Deployment %s, " .Values.elasticsearchDbaasAdapter.name -}}
+    {{- $resources = append $resources (printf "Deployment %s" .Values.elasticsearchDbaasAdapter.name) -}}
     {{- end }}
     {{- if .Values.integrationTests.enabled }}
-    {{- printf "Deployment %s-integration-tests, " (include "opensearch.fullname" .) -}}
+    {{- $resources = append $resources (printf "Deployment %s-integration-tests" (include "opensearch.fullname" .)) -}}
     {{- end }}
     {{- end }}
     {{- if .Values.monitoring.enabled }}
-    {{- printf "Deployment %s-monitoring, " (include "opensearch.fullname" .) -}}
+    {{- $resources = append $resources (printf "Deployment %s-monitoring" (include "opensearch.fullname" .)) -}}
     {{- end }}
     {{- if not .Values.global.externalOpensearch.enabled -}}
     {{- if eq (include "joint-mode" .) "true" }}
-    {{- printf "StatefulSet %s, " (include "opensearch.fullname" .) -}}
+    {{- $resources = append $resources (printf "StatefulSet %s" (include "opensearch.fullname" .)) -}}
     {{- else }}
-    {{- printf "StatefulSet %s-master, " (include "opensearch.fullname" .) -}}
-    {{- if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod }}
-    {{- printf "StatefulSet %s-data, " (include "opensearch.fullname" .) -}}
+    {{- $resources = append $resources (printf "StatefulSet %s-master" (include "opensearch.fullname" .)) -}}
+    {{- if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled }}
+    {{- $resources = append $resources (printf "StatefulSet %s-data" (include "opensearch.fullname" .)) -}}
+    {{- end }}
+    {{- if and .Values.opensearch.client.enabled .Values.opensearch.client.dedicatedPod.enabled }}
+    {{- $resources = append $resources (printf "Deployment %s-client" (include "opensearch.fullname" .)) -}}
+    {{- end }}
     {{- end }}
     {{- if .Values.opensearch.arbiter.enabled }}
-    {{- printf "StatefulSet %s-data, " (include "opensearch.fullname" .) -}}
-    {{- end }}
-    {{- if and .Values.opensearch.client.enabled .Values.opensearch.client.dedicatedPod }}
-    {{- printf "Deployment %s-client, " (include "opensearch.fullname" .) -}}
+    {{- $resources = append $resources (printf "StatefulSet %s-arbiter" (include "opensearch.fullname" .)) -}}
     {{- end }}
     {{- end }}
-    {{ end }}
+    {{- join ", " $resources }}
 {{- end -}}
 
 {{/*
