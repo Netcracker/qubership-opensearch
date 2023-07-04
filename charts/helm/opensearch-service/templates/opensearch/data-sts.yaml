@@ -126,6 +126,8 @@ spec:
               value: {{ .Values.opensearch.data.javaOpts }}
             - name: DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI
               value: "{{ not .Values.opensearch.performanceAnalyzerEnabled }}"
+            - name: ALLOW_SECURITY_INITIALIZATION
+              value: "false"
 {{- if .Values.opensearch.extraEnvs }}
 {{ toYaml .Values.opensearch.extraEnvs | indent 8 }}
 {{- end }}

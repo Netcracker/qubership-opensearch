@@ -40,7 +40,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: MONITORED_RESOURCES
-              value: "{{ include "opensearch.monitoredResources" . | trim | trimSuffix "," }}"
+              value: "{{ include "opensearch.monitoredResources" . }}"
             - name: RESOURCE_TO_SET_STATUS
               value: {{ printf "batch v1 jobs %s-status-provisioner" (include "opensearch.fullname" .) }}
             - name: CONDITION_REASON
