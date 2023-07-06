@@ -506,37 +506,16 @@ func (rm ReplicationManager) DeleteAdminReplicationTasks() error {
 	return nil
 }
 
-func (rm ReplicationManager) AutofollowTaskExists() bool {
-	_, body, err := rm.restClient.SendRequest(http.MethodGet, "_plugins/_replication/autofollow_stats", nil)
-	if err != nil {
-		rm.logger.Error(err, "can not read autofollow statistic")
-		return false
-	}
-	var stats AutofollowStats
-	err = json.Unmarshal(body, &stats)
-	if err != nil {
-		rm.logger.Error(err, "can not unmarshal autofollow statistic")
-		return false
-	}
-	for _, rule := range stats.AutofollowRuleStats {
-		if rule.Name == replicationName {
-			return true
-		}
-	}
-	rm.logger.Info("can not find existing DR replication rule")
-	return false
-}
-
 func (rm ReplicationManager) GetAutoFollowRuleStats() (*RuleStats, error) {
 	_, body, err := rm.restClient.SendRequest(http.MethodGet, "_plugins/_replication/autofollow_stats", nil)
 	if err != nil {
-		rm.logger.Error(err, "can not read autofollow statistic")
+		rm.logger.Error(err, "unable to read autofollow statistic")
 		return nil, err
 	}
 	var stats AutofollowStats
 	err = json.Unmarshal(body, &stats)
 	if err != nil {
-		rm.logger.Error(err, "can not unmarshal autofollow statistic")
+		rm.logger.Error(err, "unable to unmarshal autofollow statistic")
 		return nil, err
 	}
 	for _, rule := range stats.AutofollowRuleStats {
@@ -544,6 +523,6 @@ func (rm ReplicationManager) GetAutoFollowRuleStats() (*RuleStats, error) {
 			return &rule, nil
 		}
 	}
-	rm.logger.Info("can not find existing DR replication rule")
+	rm.logger.Info("Unable to find existing DR replication rule")
 	return nil, nil
 }
