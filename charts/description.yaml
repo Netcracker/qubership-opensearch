@@ -123,17 +123,17 @@ cloud:
 integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: feature/fix_vulnerabilities
     docker-image-id: timestamp
     deploy-param: opensearchOperator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/disaster-recovery-daemon
-    location: master
+    location: bugfix/vulnerability_fix
     docker-image-id: timestamp
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: feature/fix_vulnerabilities
     prefix: integration-tests
     docker-image-id: timestamp
     deploy-param: opensearchIntegrationTests
@@ -149,12 +149,12 @@ integration:
     deploy-param: opensearchMonitoring
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/dbaas-opensearch-adapter
-    location: master
+    location: feature/fix_vulnerabilities
     docker-image-id: timestamp
     deploy-param: opensearchDbaasAdapter
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/dbaas_elasticsearch
-    location: master
+    location: feature/fix_vulnerabilities
     docker-image-id: timestamp
     deploy-param: elasticsearchDbaasAdapterImage
   - type: find-latest-deployment-descriptor
