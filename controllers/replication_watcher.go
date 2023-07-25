@@ -40,11 +40,11 @@ func (rw ReplicationWatcher) start(drr DisasterRecoveryReconciler, logger logr.L
 		*rw.state = runningState
 	}
 	logger.Info("Start Replication Watcher")
-	interval := drr.cr.Spec.DisasterRecovery.ReplicationWatcherInterval
-	if interval <= 0 {
-		interval = defaultWatchInterval
+	watchInterval := drr.cr.Spec.DisasterRecovery.ReplicationWatcherInterval
+	if watchInterval <= 0 {
+		watchInterval = defaultWatchInterval
 	}
-	go rw.watch(drr, logger, interval)
+	go rw.watch(drr, logger, watchInterval)
 }
 
 func (rw ReplicationWatcher) watch(drr DisasterRecoveryReconciler, logger logr.Logger, interval int) {
@@ -65,25 +65,32 @@ func (rw ReplicationWatcher) watch(drr DisasterRecoveryReconciler, logger logr.L
 			if instance.Spec.DisasterRecovery.Mode == "standby" &&
 				instance.Status.DisasterRecoveryStatus.Mode == "standby" &&
 				instance.Status.DisasterRecoveryStatus.Status == "done" {
-				if err = rw.checkReplication(drr, logger); err != nil {
-					logger.Info(fmt.Sprintf("Try to restart replication because of error: %v", err))
-					rw.restartReplication(drr, logger)
-				}
+				rw.restartReplicationOnFailure(drr, logger)
 				if *rw.state == pausedState {
 					logger.Info("Replication Watcher was stopped, exit from watch loop")
 					return
 				}
 			}
 		}
-
 		time.Sleep(time.Duration(interval) * time.Second)
 	}
 }
 
-func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, logger logr.Logger) error {
+func (rw ReplicationWatcher) restartReplicationOnFailure(drr DisasterRecoveryReconciler, logger logr.Logger) {
 	defer rw.Lock.Unlock()
 	rw.Lock.Lock()
-	logger.Info("Start checking for replication status")
+	if err := rw.checkReplication(drr, false, logger); err != nil {
+		if *rw.state == pausedState {
+			logger.Info("Replication Watcher was stopped, exit from watch loop")
+			return
+		}
+		logger.Info(fmt.Sprintf("Try to restart replication because of error: %v", err))
+		rw.restartReplication(drr, logger)
+	}
+}
+
+func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, allowNoAutofollowRule bool, logger logr.Logger) error {
+	logger.Info("Start checking replication status")
 	replicationManager := drr.getReplicationManager()
 	autoFollowRuleStats, err := replicationManager.GetAutoFollowRuleStats()
 	if err != nil {
@@ -94,7 +101,7 @@ func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, lo
 			return !strings.HasPrefix(s, ".")
 		})
 		if len(failedIndices) > 0 {
-			return fmt.Errorf("replication does not work correctly, there are failed_indices: %s", failedIndices)
+			return fmt.Errorf("replication does not work correctly, there are failed indices: %s", failedIndices)
 		} else {
 			indices, err := replicationManager.GetIndicesByPatternExcludeService(replicationManager.pattern)
 			if err != nil {
@@ -102,10 +109,6 @@ func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, lo
 			} else {
 				var failedReplications []string
 				for _, index := range indices {
-					if *rw.state == pausedState {
-						logger.Info("Replication Watcher was stopped, exit from watch loop")
-						return nil
-					}
 					replicationStatus, err := replicationManager.getIndexReplicationStatus(index)
 					if err != nil {
 						log.Error(err, fmt.Sprintf("Cannot get replication status of [%s] index", index))
@@ -120,14 +123,14 @@ func (rw ReplicationWatcher) checkReplication(drr DisasterRecoveryReconciler, lo
 					}
 				}
 				if len(failedReplications) > 0 {
-					return fmt.Errorf("replication does not work correctly, there are failed_indices: %s", failedReplications)
+					return fmt.Errorf("replication does not work correctly, there are failed indices: %s", failedReplications)
 				} else {
-					logger.Info("Replication works correctly, there are no failed_indices")
+					logger.Info("Replication works correctly, there are no failed indices")
 				}
 			}
 
 		}
-	} else {
+	} else if !allowNoAutofollowRule {
 		return fmt.Errorf("there is no autofollow rule")
 	}
 	return nil

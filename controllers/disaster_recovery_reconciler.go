@@ -66,7 +66,7 @@ func (r DisasterRecoveryReconciler) Status() error {
 func (r DisasterRecoveryReconciler) Configure() error {
 	crCondition := r.cr.Spec.DisasterRecovery.Mode != r.cr.Status.DisasterRecoveryStatus.Mode ||
 		r.cr.Status.DisasterRecoveryStatus.Status == "running" ||
-		(r.cr.Status.DisasterRecoveryStatus.Status == "failed")
+		r.cr.Status.DisasterRecoveryStatus.Status == "failed"
 
 	drConfigHash, err :=
 		r.reconciler.calculateConfigDataHash(r.cr.Spec.DisasterRecovery.ConfigMapName, drConfigHashName, r.cr, r.logger)
@@ -79,13 +79,13 @@ func (r DisasterRecoveryReconciler) Configure() error {
 		r.replicationWatcher.pause(r.logger)
 		r.replicationWatcher.Lock.Lock()
 		checkNeeded := isReplicationCheckNeeded(r.cr)
-		if err := r.updateDisasterRecoveryStatus("running",
+		if err = r.updateDisasterRecoveryStatus("running",
 			"The switchover process for OpenSearch has been started"); err != nil {
 			return err
 		}
 
 		r.logger.Info("Disable client service")
-		if err := r.reconciler.disableClientService(r.cr.Name, r.cr.Namespace, r.logger); err != nil {
+		if err = r.reconciler.disableClientService(r.cr.Name, r.cr.Namespace, r.logger); err != nil {
 			return err
 		}
 		time.Sleep(time.Second * 2)
@@ -112,10 +112,8 @@ func (r DisasterRecoveryReconciler) Configure() error {
 		}
 
 		if r.cr.Spec.DisasterRecovery.Mode == "active" || r.cr.Spec.DisasterRecovery.Mode == "disable" {
-			if err := r.replicationWatcher.checkReplication(r, r.logger); err != nil {
-				return err
-			}
-			if checkNeeded {
+			err = r.replicationWatcher.checkReplication(r, true, r.logger)
+			if err == nil && checkNeeded {
 				var indexNames []string
 				indexNames, err = replicationManager.getReplicatedIndices()
 				if err != nil {
@@ -131,9 +129,9 @@ func (r DisasterRecoveryReconciler) Configure() error {
 			if err == nil {
 				err = r.stopReplication(replicationManager)
 			}
-			r.logger.Info("Enable client service")
-			if err := r.reconciler.enableClientService(r.cr.Name, r.cr.Namespace, r.logger); err != nil {
-				return err
+			if err == nil {
+				r.logger.Info("Enable client service")
+				err = r.reconciler.enableClientService(r.cr.Name, r.cr.Namespace, r.logger)
 			}
 			if err == nil && crCondition && r.cr.Spec.DbaasAdapter != nil {
 				err = r.reconciler.scaleDeploymentForNoWait(r.cr.Spec.DbaasAdapter.Name, r.cr.Namespace, 1, false, r.logger)
