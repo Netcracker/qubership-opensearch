@@ -183,8 +183,6 @@ grouped by both the node name and the node host.
 * `Indices time operations` - The average time to complete an operation in indices grouped by 
   operation type and OpenSearch node.
 * `Indices time operations rate` - The average time to complete an operation in indices per second grouped by operation type and OpenSearch node.
-* `Indices current operations` - The number of operations performed by indices at the moment grouped 
-  by operation type and OpenSearch node.
 * `Indices data size` - The size of data stored in indices grouped by OpenSearch nodes.
 * `Indices documents count` - The number of documents stored in indices grouped by OpenSearch nodes.
 * `Indices documents rate` - The number of documents added to indices per second grouped by OpenSearch nodes.
