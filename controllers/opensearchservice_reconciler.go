@@ -282,8 +282,7 @@ func (r *OpenSearchServiceReconciler) scaleDeployment(name string, namespace str
 	deployment, err := r.findDeployment(name, namespace, logger)
 	if err == nil {
 		deployment.Spec.Replicas = pointer.Int32Ptr(replicas)
-		err := r.Client.Update(context.TODO(), deployment)
-		return err
+		return r.Client.Update(context.TODO(), deployment)
 	}
 	return err
 }
@@ -295,7 +294,7 @@ func (r *OpenSearchServiceReconciler) scaleDeploymentWithCheck(name string, name
 		return err
 	}
 	logger.Info(fmt.Sprintf("deployment %s scaled", name))
-	err = wait.PollImmediate(interval, timeout, func() (done bool, err error) {
+	err = wait.Poll(interval, timeout, func() (done bool, err error) {
 		return r.isDeploymentReady(name, namespace, logger), nil
 	})
 	if err != nil {
