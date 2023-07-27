@@ -5,6 +5,8 @@
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= 0.0.1
 
+CRD_VERSION=1.2.0
+
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
@@ -78,7 +80,9 @@ help: ## Display this help.
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd:maxDescLen=0 webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	sed -i "/annotations:/a\    crd.netcracker.com\/version: $(CRD_VERSION)" config/crd/bases/netcracker.com_opensearchservices.yaml
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd:crdVersions=v1beta1,trivialVersions=false,maxDescLen=0 webhook paths="./..." output:crd:artifacts:config=config/crd/old
+	sed -i "/annotations:/a\    crd.netcracker.com\/version: $(CRD_VERSION)" config/crd/old/netcracker.com_opensearchservices.yaml
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.

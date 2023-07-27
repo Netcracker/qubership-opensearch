@@ -797,8 +797,15 @@ monitoring:
   smDbPassword: ""
 
   includeIndices: false
+  slowQueries:
+    enabled: false
+    topNumber: 10
+    processingIntervalMinutes: 5
+    minSeconds: 5
+    indicesPattern: "*"
   thresholds:
     lagAlert:
+    slowQuerySecondsAlert: 10
 
   opensearchHost:
   opensearchPort: 9200

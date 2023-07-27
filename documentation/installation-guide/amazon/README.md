@@ -14,6 +14,8 @@ This section describes the prerequisites and installation parameters for integra
 
 OpenSearch Service allows you to deploy OpenSearch side services (DBaaS Adapter, Monitoring and Curator) without deploying OpenSearch, using Amazon OpenSearch URL.
 
+*Important*: Slow queries functionality isn't available on AWS cloud.
+
 # Prerequisites
 
 ## Global
