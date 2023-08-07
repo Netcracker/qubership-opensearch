@@ -75,14 +75,36 @@ func (r DisasterRecoveryReconciler) Configure() error {
 	}
 	drConfigHashChanged := r.reconciler.ResourceHashes[drConfigHashName] != "" && r.reconciler.ResourceHashes[drConfigHashName] != drConfigHash
 
+	comment := ""
+	usersRecoveryState := usersRecoveryDoneState
+
+	defer func() {
+		status := "done"
+		if err != nil {
+			status = "failed"
+			comment = fmt.Sprintf("Error occurred during OpenSearch switching: %v", err)
+		}
+		_ = r.updateDisasterRecoveryStatus(status, comment, usersRecoveryState)
+		if r.cr.Spec.DisasterRecovery.Mode == "active" {
+			_ = r.reconciler.enableClientService(r.cr.Name, r.cr.Namespace, r.logger)
+		}
+		r.logger.Info("Disaster recovery status was updated.")
+	}()
+
 	if crCondition || drConfigHashChanged {
 		r.replicationWatcher.pause(r.logger)
 		r.replicationWatcher.Lock.Lock()
+		defer r.replicationWatcher.Lock.Unlock()
 		checkNeeded := isReplicationCheckNeeded(r.cr)
+		usersRecoveryState = r.cr.Status.DisasterRecoveryStatus.UsersRecoveryState
+		if usersRecoveryState != usersRecoveryRunningState {
+			usersRecoveryState = usersRecoveryIdleState
+		}
 		if err = r.updateDisasterRecoveryStatus("running",
-			"The switchover process for OpenSearch has been started"); err != nil {
+			"The switchover process for OpenSearch has been started", usersRecoveryState); err != nil {
 			return err
 		}
+		usersRecoveryState = usersRecoveryDoneState
 
 		r.logger.Info("Disable client service")
 		if err = r.reconciler.disableClientService(r.cr.Name, r.cr.Namespace, r.logger); err != nil {
@@ -90,11 +112,9 @@ func (r DisasterRecoveryReconciler) Configure() error {
 		}
 		time.Sleep(time.Second * 2)
 
-		status := "done"
-		comment := "replication has finished successfully"
-
 		replicationManager := r.getReplicationManager()
 		if r.cr.Spec.DisasterRecovery.Mode == "standby" {
+			comment = "The replication has started successfully"
 			if r.cr.Status.DisasterRecoveryStatus.Mode != "active" {
 				r.logger.Info("Removing previous replication rule")
 				err = r.removePreviousReplication(replicationManager)
@@ -112,6 +132,7 @@ func (r DisasterRecoveryReconciler) Configure() error {
 		}
 
 		if r.cr.Spec.DisasterRecovery.Mode == "active" || r.cr.Spec.DisasterRecovery.Mode == "disable" {
+			comment = "The replication has stopped successfully"
 			err = r.replicationWatcher.checkReplication(r, true, r.logger)
 			if err == nil && checkNeeded {
 				var indexNames []string
@@ -129,35 +150,20 @@ func (r DisasterRecoveryReconciler) Configure() error {
 			if err == nil {
 				err = r.stopReplication(replicationManager)
 			}
-			if err == nil {
-				r.logger.Info("Enable client service")
-				err = r.reconciler.enableClientService(r.cr.Name, r.cr.Namespace, r.logger)
-			}
-			if err == nil && crCondition && r.cr.Spec.DbaasAdapter != nil {
-				err = r.reconciler.scaleDeploymentForNoWait(r.cr.Spec.DbaasAdapter.Name, r.cr.Namespace, 1, false, r.logger)
+			if r.cr.Spec.DisasterRecovery.Mode == "active" {
 				if err == nil {
-					r.logger.Info("Start users recovery")
-					err = r.recoverUsers()
+					r.logger.Info("Enable client service")
+					err = r.reconciler.enableClientService(r.cr.Name, r.cr.Namespace, r.logger)
+				}
+				if err == nil && crCondition && r.cr.Spec.DbaasAdapter != nil {
+					err = r.reconciler.scaleDeploymentForNoWait(r.cr.Spec.DbaasAdapter.Name, r.cr.Namespace, 1, false, r.logger)
+					if err == nil {
+						r.logger.Info("Start users recovery")
+						usersRecoveryState, err = r.recoverUsers()
+					}
 				}
 			}
 		}
-
-		defer func() {
-			r.replicationWatcher.Lock.Unlock()
-			if status == "failed" {
-				_ = r.updateDisasterRecoveryStatus(status, comment)
-			} else {
-				if err != nil {
-					status = "failed"
-					comment = fmt.Sprintf("Error occurred during OpenSearch switching: %v", err)
-				}
-				_ = r.updateDisasterRecoveryStatus(status, comment)
-			}
-			if r.cr.Spec.DisasterRecovery.Mode == "active" {
-				_ = r.reconciler.enableClientService(r.cr.Name, r.cr.Namespace, r.logger)
-			}
-			r.logger.Info("Disaster recovery status was updated.")
-		}()
 	}
 
 	r.reconciler.ResourceHashes[drConfigHashName] = drConfigHash
@@ -171,12 +177,17 @@ func (r DisasterRecoveryReconciler) Configure() error {
 }
 
 // updateDisasterRecoveryStatus updates state of Disaster Recovery switchover
-func (r DisasterRecoveryReconciler) updateDisasterRecoveryStatus(status string, comment string) error {
+func (r DisasterRecoveryReconciler) updateDisasterRecoveryStatus(status string, comment string, usersRecoveryState string) error {
 	statusUpdater := util.NewStatusUpdater(r.reconciler.Client, r.cr)
 	return statusUpdater.UpdateStatusWithRetry(func(instance *opensearchservice.OpenSearchService) {
 		instance.Status.DisasterRecoveryStatus.Mode = r.cr.Spec.DisasterRecovery.Mode
 		instance.Status.DisasterRecoveryStatus.Status = status
-		instance.Status.DisasterRecoveryStatus.Comment = comment
+		if comment != "" {
+			instance.Status.DisasterRecoveryStatus.Comment = comment
+		}
+		if r.cr.Spec.DbaasAdapter != nil {
+			instance.Status.DisasterRecoveryStatus.UsersRecoveryState = usersRecoveryState
+		}
 	})
 }
 
@@ -264,7 +275,7 @@ func (r DisasterRecoveryReconciler) stopReplication(replicationManager Replicati
 	return nil
 }
 
-func (r DisasterRecoveryReconciler) recoverUsers() error {
+func (r DisasterRecoveryReconciler) recoverUsers() (string, error) {
 	aggregatorRestClient := r.buildAggregatorRestClient()
 	adapterRestClient := r.buildAdapterRestClient()
 	data := fmt.Sprintf(`{
@@ -275,9 +286,8 @@ func (r DisasterRecoveryReconciler) recoverUsers() error {
 
 	state := r.cr.Status.DisasterRecoveryStatus.UsersRecoveryState
 	if state == "" {
-		err := r.updateUsersRecoveryStatus(usersRecoveryDoneState)
 		r.logger.Info("Users recovery is not run during installation")
-		return err
+		return usersRecoveryDoneState, nil
 	}
 	if state != usersRecoveryRunningState {
 		state = usersRecoveryIdleState
@@ -299,7 +309,7 @@ func (r DisasterRecoveryReconciler) recoverUsers() error {
 				continue
 			}
 			if err = r.updateUsersRecoveryStatus(usersRecoveryRunningState); err != nil {
-				return err
+				return usersRecoveryRunningState, err
 			}
 		}
 		time.Sleep(time.Second * 5)
@@ -311,12 +321,11 @@ func (r DisasterRecoveryReconciler) recoverUsers() error {
 		}
 		state = string(response)
 	}
-	err := r.updateUsersRecoveryStatus(state)
 	r.logger.Info(fmt.Sprintf("Users recovery is finished with [%s] state", state))
-	if err == nil && state == usersRecoveryFailedState {
-		return fmt.Errorf("unable to restore OpenSearch users during switchover")
+	if state == usersRecoveryFailedState {
+		return usersRecoveryFailedState, fmt.Errorf("unable to restore OpenSearch users during switchover")
 	}
-	return err
+	return state, nil
 }
 
 func (r DisasterRecoveryReconciler) buildAggregatorRestClient() *util.RestClient {
