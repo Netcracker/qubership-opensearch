@@ -493,7 +493,7 @@ func (rm ReplicationManager) DeleteAdminReplicationTasks() error {
 		}
 	}
 
-	rm.logger.Info(fmt.Sprintf("admin replication tasks are found - [%v]", tasksToDelete))
+	rm.logger.Info(fmt.Sprintf("admin replication tasks are found - %v", tasksToDelete))
 	for _, task := range tasksToDelete {
 		path := fmt.Sprintf("_tasks/%s/_cancel", task)
 		_, _, err := rm.restClient.SendRequest(http.MethodPost, path, nil)
