@@ -122,38 +122,38 @@ cloud:
 integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: 0.2.9
+    location: 0.2.10
     docker-image-id: timestamp
     deploy-param: opensearchOperator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/disaster-recovery-daemon
-    location: 0.2.2
+    location: 0.3.4
     docker-image-id: timestamp
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: 0.2.9
+    location: 0.2.10
     prefix: integration-tests
     docker-image-id: timestamp
     deploy-param: opensearchIntegrationTests
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-opensearch
-    location: 0.0.11_1.3.10
+    location: 0.0.12_1.3.10
     docker-image-id: timestamp
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/elasticsearch-telegraf
-    location: 0.1.20
+    location: 0.1.21
     docker-image-id: timestamp
     deploy-param: opensearchMonitoring
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/dbaas-opensearch-adapter
-    location: 0.1.3
+    location: 0.1.5
     docker-image-id: timestamp
     deploy-param: opensearchDbaasAdapter
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/dbaas_elasticsearch
-    location: 1.0.28
+    location: 1.0.29
     docker-image-id: timestamp
     deploy-param: elasticsearchDbaasAdapterImage
   - type: find-latest-deployment-descriptor
@@ -169,7 +169,7 @@ integration:
     deploy-param: opensearchIndicesCleaner
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/deployment-status-provisioner
-    location: 0.0.13
+    location: 0.0.15
     docker-image-id: timestamp
     deploy-param: deploymentStatusProvisioner
   - type: image
