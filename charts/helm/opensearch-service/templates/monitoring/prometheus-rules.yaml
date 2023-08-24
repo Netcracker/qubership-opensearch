@@ -19,6 +19,7 @@ spec:
           for: 3m
           labels:
             severity: high
+            namespace: {{ .Release.Namespace }}
         - alert: OpenSearchDiskUsageAlert
           annotations:
             description: 'OpenSearch disk usage is above 90%'
@@ -27,6 +28,7 @@ spec:
           for: 3m
           labels:
             severity: high
+            namespace: {{ .Release.Namespace }}
         - alert: OpenSearchDiskTooMuchUsageAlert
           annotations:
             description: 'OpenSearch disk usage is above 98%'
@@ -35,6 +37,7 @@ spec:
           for: 3m
           labels:
             severity: critical
+            namespace: {{ .Release.Namespace }}
         - alert: OpenSearchMemoryUsageAlert
           annotations:
             description: 'OpenSearch memory usage is above 95%.'
@@ -43,6 +46,7 @@ spec:
           for: 3m
           labels:
             severity: high
+            namespace: {{ .Release.Namespace }}
         - alert: OpenSearchHeapMemoryUsageAlert
           annotations:
             description: 'OpenSearch heap memory usage is above 95%.'
@@ -51,6 +55,7 @@ spec:
           for: 3m
           labels:
             severity: high
+            namespace: {{ .Release.Namespace }}
         - alert: OpenSearchIsDegradedAlert
           annotations:
             description: 'OpenSearch is Degraded.'
@@ -59,6 +64,7 @@ spec:
           for: 3m
           labels:
             severity: high
+            namespace: {{ .Release.Namespace }}
         - alert: OpenSearchIsDownAlert
           annotations:
             description: 'OpenSearch is Down.'
@@ -67,6 +73,7 @@ spec:
           for: 3m
           labels:
             severity: high
+            namespace: {{ .Release.Namespace }}
         {{- if (or .Values.dbaasAdapter.enabled .Values.elasticsearchDbaasAdapter.enabled) }}
         - alert: OpenSearchDBaaSIsDownAlert
           annotations:
@@ -76,6 +83,7 @@ spec:
           for: 3m
           labels:
             severity: high
+            namespace: {{ .Release.Namespace }}
         {{- end }}
         {{- if .Values.curator.enabled }}
         - alert: OpenSearchLastBackupHasFailedAlert
@@ -86,6 +94,7 @@ spec:
           for: 3m
           labels:
             severity: high
+            namespace: {{ .Release.Namespace }}
         {{- end }}
         {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}
         - alert: OpenSearchReplicationFailedAlert
@@ -96,6 +105,7 @@ spec:
           for: 3m
           labels:
             severity: high
+            namespace: {{ .Release.Namespace }}
         - alert: OpenSearchReplicationDegradedAlert
           annotations:
             description: 'OpenSearch Replication has Degraded.'
@@ -104,6 +114,7 @@ spec:
           for: 3m
           labels:
             severity: warning
+            namespace: {{ .Release.Namespace }}
         - alert: OpenSearchReplicationLeaderConnectionLostAlert
           annotations:
             description: 'OpenSearch Replication Leader connection lost.'
@@ -112,6 +123,7 @@ spec:
           for: 3m
           labels:
             severity: high
+            namespace: {{ .Release.Namespace }}
         {{- if .Values.monitoring.thresholds.lagAlert }}
         - alert: OpenSearchReplicationTooHighLagAlert
           annotations:
@@ -121,6 +133,7 @@ spec:
           for: 3m
           labels:
             severity: high
+            namespace: {{ .Release.Namespace }}
         {{- end }}
         {{- end }}
 {{- end }}
