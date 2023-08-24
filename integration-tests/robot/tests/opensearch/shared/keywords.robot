@@ -130,6 +130,14 @@ Check OpenSearch Is Green
     ${status}=  Get OpenSearch Status
     Should Be Equal As Strings  ${status}  green
 
+Get OpenSearch Health
+    ${response}=  Get Request  opensearch  _cluster/health
+    [Return]  ${response}
+
+Get OpenSearch Main
+    ${response}=  Get Request  opensearch
+    [Return]  ${response}
+
 Get Index Uuid
     [Arguments]  ${index_name}
     ${response}=  Get Request  opensearch  _cat/indices/${index_name}?h=uuid
