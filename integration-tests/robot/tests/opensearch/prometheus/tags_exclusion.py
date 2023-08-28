@@ -10,3 +10,6 @@ def get_excluded_tags(environ) -> list:
                                                'PROMETHEUS_URL') \
             or environ.get("EXTERNAL_OPENSEARCH", False):
         return ['prometheus']
+    if not check_that_parameters_are_presented(environ,
+                                               'SLOW_QUERIES_INTERVAL_MINUTES'):
+        return ['slow_query']

@@ -1,0 +1,21 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ template "opensearch.fullname" . }}-monitoring
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods/exec
+      - services
+    verbs:
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - list
+{{- end }}

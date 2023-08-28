@@ -90,7 +90,7 @@ The `integrationTests.tags` parameter specifies the tags combined with `AND`, `O
   * `oauth` tag runs all tests connected to OAUTH scenarios.
 * `regression` tag runs all tests connected to regression scenarios.
 * `opensearch` tag runs all tests connected to OpenSearch scenarios:
-  * `backup` tag runs all tests connected to backup scenarios except `Full Backup And Restore` test:
+  * `backup` tag runs all tests connected to the backup scenarios except `Full Backup And Restore` test:
     * `Full Backup And Restore` test is performed when `full_backup` tag is specified explicitly.
     * `granular_backup` tag runs `Granular Backup And Restore` test.
     * `backup_deletion` tag runs `Delete Backup By ID` test.
@@ -99,6 +99,7 @@ The `integrationTests.tags` parameter specifies the tags combined with `AND`, `O
     * `opensearch_prometheus_alert` tag runs all tests connected to Prometheus alerts scenarios:
       * `opensearch_is_degraded_alert` tag runs `OpenSearch Is Degraded Alert` test.
       * `opensearch_is_down_alert` tag runs `OpenSearch Is Down Alert` test.
+    * `slow_query` tag runs `Produce Slow Query Metric` test.
 * `dbaas` tag runs all tests connected to DBaaS adapter scenarios:
   * `dbaas_backup` tag runs all tests connected to DBaaS adapter backup scenarios:
     * `dbaas_create_backup` tag runs `Create Backup By Dbaas Adapter` test.
@@ -140,6 +141,8 @@ The `integrationTests.opensearchPort` parameter specifies the OpenSearch port. T
 
 The `integrationTests.opensearchMasterNodesName` parameter specifies the name of OpenSearch master nodes.
 The default value is `opensearch`.
+
+The `integrationTests.slowQueriesIntervalMinutes` parameter specifies the time in minutes of metrics collection frequency for slow queries in OpenSearch. This parameter must be specified if the `slowQueries` functionality is enabled, and you want to run integration tests with `slow_query` tag.
 
 The `integrationTests.identityProviderUrl` parameter specifies the URL of Identity Provider.
 This parameter must be specified if you want to run integration tests with `authentication` tag.
