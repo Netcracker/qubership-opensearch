@@ -137,6 +137,8 @@ spec:
                   name: {{ .Values.service.name }}-secret
             - name: PROMETHEUS_URL
               value: {{ .Values.integrationTests.prometheusUrl }}
+            - name: SLOW_QUERIES_INTERVAL_MINUTES
+              value: "{{ .Values.integrationTests.slowQueriesIntervalMinutes }}"
           resources:
             requests:
               memory: {{ default "256Mi" .Values.integrationTests.resources.requests.memory }}

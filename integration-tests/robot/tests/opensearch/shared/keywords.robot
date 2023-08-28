@@ -13,6 +13,7 @@ Library  ./lib/FileSystemLibrary.py
 Library  ./lib/OpenSearchUtils.py
 Library  PlatformLibrary  managed_by_operator=true
 Library  RequestsLibrary
+Library  String
 Library  json
 
 *** Keywords ***
@@ -29,6 +30,11 @@ Login To OpenSearch
     Create Session  opensearch  ${OPENSEARCH_PROTOCOL}://${OPENSEARCH_HOST}:${OPENSEARCH_PORT}  auth=${auth}  verify=${verify}  disable_warnings=1
     &{headers}=  Create Dictionary  Content-Type=application/json  Accept=application/json
     Set Global Variable  ${headers}
+
+Generate Index Name
+    [Arguments]  ${index_name}
+    ${suffix}=  Generate Random String  5  [LOWER]
+    [Return]  ${index_name}-${suffix}
 
 Create OpenSearch Index
     [Arguments]  ${name}  ${data}=${None}
@@ -204,6 +210,12 @@ Make Index Read Only
 Make Index Read Write
     [Arguments]  ${index_name}
     ${body}=  Set Variable  {"settings":{"index.blocks.write":false}}
+    ${response}=  Put Request  opensearch  /${index_name}/_settings  data=${body}  headers=${headers}
+    [Return]  ${response}
+
+Enable Slow Log
+    [Arguments]  ${index_name}
+    ${body}=  Set Variable  {"search":{"slowlog":{"threshold":{"query":{"info":"0s"}}}}}
     ${response}=  Put Request  opensearch  /${index_name}/_settings  data=${body}  headers=${headers}
     [Return]  ${response}
 

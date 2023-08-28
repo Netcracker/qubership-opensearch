@@ -212,7 +212,7 @@ spec:
               name: config
               subPath: opensearch.yml
         {{- end }}
-        {{- if .Values.opensearch.log4jConfig }}
+        {{- if (include "opensearch.log4jConfig" .) }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/log4j2.properties
               name: config
               subPath: log4j2.properties

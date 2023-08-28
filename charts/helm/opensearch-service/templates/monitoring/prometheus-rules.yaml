@@ -87,6 +87,18 @@ spec:
           labels:
             severity: high
         {{- end }}
+        {{- if and (not .Values.global.externalOpensearch.enabled) .Values.monitoring.slowQueries.enabled }}
+        - alert: OpenSearchQueryIsTooSlowAlert
+          annotations:
+            description: 'OpenSearch Query Is Too Slow.'
+            summary: OpenSearch Query Is Too Slow
+          expr: opensearch_slow_query_took_millis{namespace="{{ .Release.Namespace }}"} > {{ .Values.monitoring.thresholds.slowQuerySecondsAlert }} * 1000
+          for: 1m
+          labels:
+            severity: high
+            namespace: {{ .Release.Namespace }}
+            service: {{ .Release.Name }}
+        {{- end }}
         {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}
         - alert: OpenSearchReplicationFailedAlert
           annotations:

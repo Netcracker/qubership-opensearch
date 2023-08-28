@@ -46,9 +46,10 @@ const (
 // OpenSearchServiceReconciler reconciles a OpenSearchService object
 type OpenSearchServiceReconciler struct {
 	client.Client
-	Scheme             *runtime.Scheme
-	ResourceHashes     map[string]string
-	ReplicationWatcher ReplicationWatcher
+	Scheme                *runtime.Scheme
+	ResourceHashes        map[string]string
+	ReplicationWatcher    ReplicationWatcher
+	SlowLogIndicesWatcher SlowLogIndicesWatcher
 }
 
 // findSecret returns the secret found by name and namespace and error if it occurred

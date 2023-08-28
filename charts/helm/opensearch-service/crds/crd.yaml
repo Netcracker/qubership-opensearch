@@ -4,6 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
+    crd.netcracker.com/version: 0.3.0
     controller-gen.kubebuilder.io/version: v0.6.2
   name: opensearchservices.netcracker.com
 spec:
@@ -15,172 +16,182 @@ spec:
     singular: opensearchservice
   scope: Namespaced
   versions:
-    - name: v1
-      schema:
-        openAPIV3Schema:
-          properties:
-            apiVersion:
-              type: string
-            kind:
-              type: string
-            metadata:
-              type: object
-            spec:
-              properties:
-                curator:
-                  properties:
-                    name:
-                      type: string
-                    secretName:
-                      type: string
-                  required:
-                    - name
-                    - secretName
-                  type: object
-                dashboards:
-                  properties:
-                    name:
-                      type: string
-                    secretName:
-                      type: string
-                  required:
-                    - name
-                  type: object
-                dbaasAdapter:
-                  properties:
-                    adapterAddress:
-                      type: string
-                    aggregatorAddress:
-                      type: string
-                    name:
-                      type: string
-                    physicalDatabaseIdentifier:
-                      type: string
-                    secretName:
-                      type: string
-                  required:
-                    - name
-                    - secretName
-                  type: object
-                disasterRecovery:
-                  properties:
-                    configMapName:
-                      type: string
-                    mode:
-                      type: string
-                    noWait:
-                      type: boolean
-                    replicationWatcherEnabled:
-                      type: boolean
-                    replicationWatcherInterval:
-                      type: integer
-                  required:
-                    - configMapName
-                    - mode
-                  type: object
-                elasticsearchDbaasAdapter:
-                  properties:
-                    name:
-                      type: string
-                    secretName:
-                      type: string
-                  required:
-                    - name
-                  type: object
-                monitoring:
-                  properties:
-                    name:
-                      type: string
-                    secretName:
-                      type: string
-                  required:
-                    - name
-                  type: object
-                opensearch:
-                  properties:
-                    compatibilityModeEnabled:
-                      type: boolean
-                    dedicatedClientPod:
-                      type: boolean
-                    dedicatedDataPod:
-                      type: boolean
-                    securityConfigurationName:
-                      type: string
-                    snapshots:
-                      properties:
-                        repositoryName:
-                          type: string
-                        s3:
-                          properties:
-                            basePath:
-                              type: string
-                            bucket:
-                              type: string
-                            enabled:
-                              type: boolean
-                            gcsEnabled:
-                              type: boolean
-                            pathStyleAccess:
-                              type: boolean
-                            region:
-                              type: string
-                            secretName:
-                              type: string
-                            url:
-                              type: string
-                          type: object
-                      required:
-                        - repositoryName
-                      type: object
-                  required:
-                    - dedicatedClientPod
-                    - dedicatedDataPod
-                    - securityConfigurationName
-                  type: object
-              type: object
-            status:
-              properties:
-                conditions:
-                  items:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              curator:
+                properties:
+                  name:
+                    type: string
+                  secretName:
+                    type: string
+                required:
+                - name
+                - secretName
+                type: object
+              dashboards:
+                properties:
+                  name:
+                    type: string
+                  secretName:
+                    type: string
+                required:
+                - name
+                type: object
+              dbaasAdapter:
+                properties:
+                  adapterAddress:
+                    type: string
+                  aggregatorAddress:
+                    type: string
+                  name:
+                    type: string
+                  physicalDatabaseIdentifier:
+                    type: string
+                  secretName:
+                    type: string
+                required:
+                - name
+                - secretName
+                type: object
+              disasterRecovery:
+                properties:
+                  configMapName:
+                    type: string
+                  mode:
+                    type: string
+                  noWait:
+                    type: boolean
+                  replicationWatcherEnabled:
+                    type: boolean
+                  replicationWatcherInterval:
+                    type: integer
+                required:
+                - configMapName
+                - mode
+                type: object
+              elasticsearchDbaasAdapter:
+                properties:
+                  name:
+                    type: string
+                  secretName:
+                    type: string
+                required:
+                - name
+                type: object
+              monitoring:
+                properties:
+                  name:
+                    type: string
+                  secretName:
+                    type: string
+                  slowQueries:
                     properties:
-                      lastTransitionTime:
+                      indicesPattern:
                         type: string
-                      message:
-                        type: string
-                      reason:
-                        type: string
-                      status:
-                        type: string
-                      type:
-                        type: string
+                      minSeconds:
+                        type: integer
                     required:
-                      - lastTransitionTime
-                      - message
-                      - reason
-                      - status
-                      - type
+                    - indicesPattern
+                    - minSeconds
                     type: object
-                  type: array
-                disasterRecoveryStatus:
+                required:
+                - name
+                type: object
+              opensearch:
+                properties:
+                  compatibilityModeEnabled:
+                    type: boolean
+                  dedicatedClientPod:
+                    type: boolean
+                  dedicatedDataPod:
+                    type: boolean
+                  securityConfigurationName:
+                    type: string
+                  snapshots:
+                    properties:
+                      repositoryName:
+                        type: string
+                      s3:
+                        properties:
+                          basePath:
+                            type: string
+                          bucket:
+                            type: string
+                          enabled:
+                            type: boolean
+                          gcsEnabled:
+                            type: boolean
+                          pathStyleAccess:
+                            type: boolean
+                          region:
+                            type: string
+                          secretName:
+                            type: string
+                          url:
+                            type: string
+                        type: object
+                    required:
+                    - repositoryName
+                    type: object
+                required:
+                - dedicatedClientPod
+                - dedicatedDataPod
+                - securityConfigurationName
+                type: object
+            type: object
+          status:
+            properties:
+              conditions:
+                items:
                   properties:
-                    comment:
+                    lastTransitionTime:
                       type: string
-                    mode:
+                    message:
+                      type: string
+                    reason:
                       type: string
                     status:
                       type: string
-                    usersRecoveryState:
+                    type:
                       type: string
                   required:
-                    - mode
-                    - status
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
                   type: object
-              type: object
-          type: object
-      served: true
-      storage: true
-      subresources:
-        status: {}
+                type: array
+              disasterRecoveryStatus:
+                properties:
+                  comment:
+                    type: string
+                  mode:
+                    type: string
+                  status:
+                    type: string
+                  usersRecoveryState:
+                    type: string
+                required:
+                - mode
+                - status
+                type: object
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

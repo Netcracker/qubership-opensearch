@@ -2,11 +2,13 @@ package controllers
 
 import (
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
+	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
 )
 
 const (
 	monitoringSecretHashName = "secret.monitoring"
+	monitoringSpecHashName   = "spec.monitoring"
 )
 
 type MonitoringReconciler struct {
@@ -47,7 +49,25 @@ func (r MonitoringReconciler) Reconcile() error {
 		}
 	}
 
+	monitoringSpecHash, err := util.Hash(r.cr.Spec.Monitoring)
+	if err != nil {
+		return err
+	}
+	if r.reconciler.ResourceHashes[opensearchSecretHashName] != "" && r.reconciler.ResourceHashes[opensearchSecretHashName] != opensearchSecretHash ||
+		r.reconciler.ResourceHashes[monitoringSpecHashName] != monitoringSpecHash {
+		if r.cr.Spec.Monitoring.SlowQueries != nil || *r.reconciler.SlowLogIndicesWatcher.State != stoppedWatcherState {
+			helper := r.prepareSlowLogIndicesHelper()
+			if r.cr.Spec.Monitoring.SlowQueries != nil {
+				r.reconciler.SlowLogIndicesWatcher.start(helper, r.cr.Spec.Monitoring.SlowQueries.IndicesPattern,
+					r.cr.Spec.Monitoring.SlowQueries.MinSeconds)
+			} else {
+				r.reconciler.SlowLogIndicesWatcher.stop(helper)
+			}
+		}
+	}
+
 	r.reconciler.ResourceHashes[monitoringSecretHashName] = monitoringSecretHash
+	r.reconciler.ResourceHashes[monitoringSpecHashName] = monitoringSpecHash
 	return nil
 }
 
@@ -57,4 +77,14 @@ func (r MonitoringReconciler) Status() error {
 
 func (r MonitoringReconciler) Configure() error {
 	return nil
+}
+
+func (r MonitoringReconciler) prepareSlowLogIndicesHelper() SlowLogIndicesHelper {
+	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
+	client, _ := r.reconciler.configureClient()
+	credentials := r.reconciler.parseOpenSearchCredentials(r.cr, r.logger)
+	return SlowLogIndicesHelper{
+		logger:     r.logger,
+		restClient: util.NewRestClient(url, client, credentials),
+	}
 }

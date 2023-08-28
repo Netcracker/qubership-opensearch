@@ -39,6 +39,7 @@ DESCRIPTION_YAML: |
         opensearchHost: "opensearch"
         opensearchPort: 9200
         opensearchMasterNodesName: "opensearch"
+        slowQueriesIntervalMinutes: 5
         identityProviderUrl: "http://idp.framework-ci-services:8080"
         opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"
         opensearchDbaasAdapterPort: 8080

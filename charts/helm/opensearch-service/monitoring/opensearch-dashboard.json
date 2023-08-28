@@ -60,6 +60,19 @@
       "title": "OpenSearch Replication",
       "tooltip": "Open OpenSearch Replication dashboard",
       "type": "dashboards"
+    },
+    {
+      "icon": "external link",
+      "tags": [
+        "prometheus",
+        "opensearch",
+        "opensearch_name_and_namespace",
+        "slow-queries"
+      ],
+      "targetBlank": true,
+      "title": "OpenSearch Slow Queries",
+      "tooltip": "Open OpenSearch Slow Queries dashboard",
+      "type": "dashboards"
     }
   ],
   "liveNow": false,

@@ -3,6 +3,7 @@ Topics covered in this section:
 - [Overview](#overview)
 - [OpenSearch Monitoring](#opensearch-monitoring)
 - [OpenSearch Indices](#opensearch-indices)
+- [OpenSearch Slow Queries](#opensearch-slow-queries)
 - [Table of Metrics](#table-of-metrics)
 - [Monitoring Alarms Description](#monitoring-alarms-description)
 
@@ -309,6 +310,25 @@ Where `${INDEX_NAME}` is the name of index which metrics are presented in the wi
 
 Where `${INDEX_NAME}` is the name of index which metrics are presented in the widget.
 
+# OpenSearch Slow Queries
+
+This section describes the `OpenSearch Slow Queries` dashboard and its metrics.
+
+## Dashboard
+
+An overview of `OpenSearch Slow Queries` dashboard is shown below.
+
+![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-slow-queries_dashboard.png)
+
+## Metrics
+
+**Overview**
+
+![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-slow-queries_overview.png)
+
+* `Slow Queries Information` - The slowest queries in processing interval with index name, shard, query, start time, number of found documents and spent time in descending order of spent time.
+* `Slowest Query` - The time of the slowest query in processing interval.
+
 # Table of Metrics
 
 This table provides full list of Prometheus metrics being collected by OpenSearch Monitoring.
@@ -413,9 +433,11 @@ This table provides full list of Prometheus metrics being collected by OpenSearc
 | opensearch_thread_pool_search_rejected                       | The number of `search` thread pool rejections that arise once the thread pool’s maximum queue size is reached                                                                                                                                                                                    | Supported     | Supported                     |
 | opensearch_thread_pool_write_queue                           | The size of `write` thread pool’s queue that represents how many requests are waiting to be served while the node is currently at capacity                                                                                                                                                       | Supported     | Supported                     |
 | opensearch_thread_pool_write_rejected                        | The number of `write` thread pool rejections that arise once the thread pool’s maximum queue size is reached                                                                                                                                                                                     | Supported     | Supported                     |
-| opensearch_transport_rx_size_in_bytes                        | The size of received packages (in bytes) by OpenSearch nodes                                                                                                                                                                                                                                     | Not supported     | Supported                     |
-| opensearch_transport_server_open                             | The number of open transport connections on OpenSearch nodes                                                                                                                                                                                                                                     | Not supported     | Supported                     |
-| opensearch_transport_tx_size_in_bytes                        | The size of transmitted packages (in bytes) by OpenSearch nodes                                                                                                                                                                                                                                  | Not supported     | Supported                     |
+| opensearch_transport_rx_size_in_bytes                        | The size of received packages (in bytes) by OpenSearch nodes                                                                                                                                                                                                                                     | Not supported | Supported                     |
+| opensearch_transport_server_open                             | The number of open transport connections on OpenSearch nodes                                                                                                                                                                                                                                     | Not supported | Supported                     |
+| opensearch_transport_tx_size_in_bytes                        | The size of transmitted packages (in bytes) by OpenSearch nodes                                                                                                                                                                                                                                  | Not supported | Supported                     |
+| opensearch_transport_tx_size_in_bytes                        | The size of transmitted packages (in bytes) by OpenSearch nodes                                                                                                                                                                                                                                  | Not supported | Supported                     |
+| opensearch_slow_query_took_millis                            | The time in milliseconds spent on a particular slow query                                                                                                                                                                                                                                        | Not supported | Supported                     |
 
 # Monitoring Alarms Description
 
@@ -425,14 +447,15 @@ second one Alert Manager is used. The Alert Manager is based on Prometheus rules
 called "alert". Anyway in both approaches OpenSearch Service has the same alarms/alerts and single troubleshooting 
 guide to resolve issues.  
 
-| Zabbix Alarm                                  | Alert Manager alert                | Possible Reasons                                                                        | Troubleshooting Guide link                                                              |
-|-----------------------------------------------|------------------------------------|-----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
-| OpenSearch's CPU usage is above 95%           | OpenSearchCPULoadAlert             | CPU usage by one of the pods in the OpenSearch cluster comes close to the limit         | [OpenSearch’s CPU usage](../troubleshooting-guide/README.md#opensearch-cpu-usage)       |
-| OpenSearch's disk usage is above 90%          | OpenSearchDiskUsageAlert           | Disk usage by one of the pods in the OpenSearch cluster comes close to the limit        | [OpenSearch Disk Usage](../troubleshooting-guide/README.md#opensearch-disk-usage)       |
-| OpenSearch's disk usage is above 98%          | OpenSearchDiskTooMuchUsageAlert    | Disk usage by one of the pods in the OpenSearch cluster comes close to the limit        | [OpenSearch Disk Usage](../troubleshooting-guide/README.md#opensearch-disk-usage)       |
-| OpenSearch's memory usage is above 95%        | OpenSearchMemoryUsageAlert         | Memory usage by one of the pods in the OpenSearch cluster comes close to the limit      | [OpenSearch Memory Usage](../troubleshooting-guide/README.md#opensearch-memory-usage)   |
-| OpenSearch's heap memory usage is above 95%   | OpenSearchHeapMemoryUsageAlert     | Heap memory usage by one of the pods in the OpenSearch cluster comes close to the limit | [OpenSearch Memory Usage](../troubleshooting-guide/README.md#opensearch-memory-usage)   |
-| OpenSearch is Degraded on {HOST.NAME}         | OpenSearchIsDegradedAlert          | One or more replica shards is missing                                                   | [OpenSearch is Degraded](../troubleshooting-guide/README.md#opensearch-is-degraded)     |
-| OpenSearch is Down on {HOST.NAME}             | OpenSearchIsDownAlert              | One or more primary shards does not allocate in the cluster                             | [OpenSearch is Down](../troubleshooting-guide/README.md#opensearch-is-down)             |
-| OpenSearch DBaaS agent is Down on {HOST.NAME} | OpenSearchDBaaSIsDownAlert         | The OpenSearch DBaaS Adapter is not responding, or responding with the `Failed` state   | [OpenSearch DBaaS is Down](../troubleshooting-guide/README.md#opensearch-dbaas-is-down) |
-| OpenSearch Last Backup Has Failed             | OpenSearchLastBackupHasFailedAlert | The last OpenSearch backup has finished with `Failed` status                            | [OpenSearch Backup Failed](../troubleshooting-guide/README.md#opensearch-backup-failed) |
+| Zabbix Alarm                                  | Alert Manager alert                | Possible Reasons                                                                                                                                                                                                                                                             | Troubleshooting Guide link                                                              |
+|-----------------------------------------------|------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| OpenSearch's CPU usage is above 95%           | OpenSearchCPULoadAlert             | CPU usage by one of the pods in the OpenSearch cluster comes close to the limit                                                                                                                                                                                              | [OpenSearch’s CPU usage](../troubleshooting-guide/README.md#opensearch-cpu-usage)       |
+| OpenSearch's disk usage is above 90%          | OpenSearchDiskUsageAlert           | Disk usage by one of the pods in the OpenSearch cluster comes close to the limit                                                                                                                                                                                             | [OpenSearch Disk Usage](../troubleshooting-guide/README.md#opensearch-disk-usage)       |
+| OpenSearch's disk usage is above 98%          | OpenSearchDiskTooMuchUsageAlert    | Disk usage by one of the pods in the OpenSearch cluster comes close to the limit                                                                                                                                                                                             | [OpenSearch Disk Usage](../troubleshooting-guide/README.md#opensearch-disk-usage)       |
+| OpenSearch's memory usage is above 95%        | OpenSearchMemoryUsageAlert         | Memory usage by one of the pods in the OpenSearch cluster comes close to the limit                                                                                                                                                                                           | [OpenSearch Memory Usage](../troubleshooting-guide/README.md#opensearch-memory-usage)   |
+| OpenSearch's heap memory usage is above 95%   | OpenSearchHeapMemoryUsageAlert     | Heap memory usage by one of the pods in the OpenSearch cluster comes close to the limit                                                                                                                                                                                      | [OpenSearch Memory Usage](../troubleshooting-guide/README.md#opensearch-memory-usage)   |
+| OpenSearch is Degraded on {HOST.NAME}         | OpenSearchIsDegradedAlert          | One or more replica shards is missing                                                                                                                                                                                                                                        | [OpenSearch is Degraded](../troubleshooting-guide/README.md#opensearch-is-degraded)     |
+| OpenSearch is Down on {HOST.NAME}             | OpenSearchIsDownAlert              | One or more primary shards does not allocate in the cluster                                                                                                                                                                                                                  | [OpenSearch is Down](../troubleshooting-guide/README.md#opensearch-is-down)             |
+| OpenSearch DBaaS agent is Down on {HOST.NAME} | OpenSearchDBaaSIsDownAlert         | The OpenSearch DBaaS Adapter is not responding, or responding with the `Failed` state                                                                                                                                                                                        | [OpenSearch DBaaS is Down](../troubleshooting-guide/README.md#opensearch-dbaas-is-down) |
+| OpenSearch Last Backup Has Failed             | OpenSearchLastBackupHasFailedAlert | The last OpenSearch backup has finished with `Failed` status                                                                                                                                                                                                                 | [OpenSearch Backup Failed](../troubleshooting-guide/README.md#opensearch-backup-failed) |
+|                                               | OpenSearchQueryIsTooSlowAlert      | Index query in the OpenSearch cluster exceeds the specified threshold. This threshold can be overridden with parameter `monitoring.thresholds.slowQuerySecondsAlert` described in [OpenSearch monitoring](/documentation/installation-guide/README.md#parameters) parameters |                                                                                         |

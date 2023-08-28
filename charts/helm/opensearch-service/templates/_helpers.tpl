@@ -95,6 +95,40 @@ Define OpenSearch total nodes count.
 {{- end -}}
 
 {{/*
+Define log4j configuration for OpenSearch.
+*/}}
+{{- define "opensearch.log4jConfig" -}}
+  {{- if .Values.opensearch.log4jConfig -}}
+    {{- .Values.opensearch.log4jConfig }}
+  {{- end }}
+  {{- if and (not .Values.global.externalOpensearch.enabled) .Values.monitoring.slowQueries.enabled }}
+status = error
+appender.console.type = Console
+appender.console.name = STDOUT
+appender.console.layout.type = PatternLayout
+appender.console.layout.pattern = [%d{ISO8601}][%-5p][%-25c{1.}] [%node_name]%marker %m%n
+appender.rolling.type = RollingFile
+appender.rolling.name = RollingFile
+appender.rolling.fileName = /usr/share/opensearch/logs/slow_logs.log
+appender.rolling.filePattern = /usr/share/opensearch/logs/slowlog_query.log.%d{yyyy-MM-dd}.gz
+appender.rolling.layout.type = PatternLayout
+appender.rolling.layout.pattern = [%level], %d{yyyy-MM-dd'T'HH:mm:ss}, [%node_name], %msg%n
+appender.rolling.policies.type = Policies
+appender.rolling.policies.time.type = TimeBasedTriggeringPolicy
+appender.rolling.policies.time.interval = 1
+appender.rolling.policies.time.modulate = true
+appender.rolling.policies.size.type = SizeBasedTriggeringPolicy
+appender.rolling.policies.size.size=10MB
+appender.rolling.strategy.type = DefaultRolloverStrategy
+appender.rolling.strategy.max = 1
+logger.rolling.name = index.search.slowlog.query
+logger.rolling.appenderRef.rolling.ref = RollingFile
+rootLogger.level = info
+rootLogger.appenderRef.stdout.ref = STDOUT
+  {{- end }}
+{{- end -}}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "dashboards.serviceAccountName" -}}
