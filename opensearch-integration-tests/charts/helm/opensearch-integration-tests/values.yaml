@@ -32,6 +32,7 @@ integrationTests:
   opensearchHost: "opensearch"
   opensearchPort: 9200
   opensearchMasterNodesName: "opensearch"
+  slowQueriesIntervalMinutes: ""
   identityProviderUrl: ""
   dbaasAdapterType: "opensearch"
   opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"

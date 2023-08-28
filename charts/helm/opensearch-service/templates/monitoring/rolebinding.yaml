@@ -1,0 +1,14 @@
+{{- if .Values.monitoring.enabled }}
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ template "opensearch.fullname" . }}-monitoring
+subjects:
+  - kind: ServiceAccount
+    name: {{ template "opensearch.fullname" . }}-monitoring
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ template "opensearch.fullname" . }}-monitoring
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

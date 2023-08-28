@@ -30,6 +30,7 @@ spec:
         {{/* This forces a restart if the secret or config has changed */}}
         checksum/config: {{ include (print .Template.BasePath "/monitoring/configuration.yaml") . | sha256sum | trunc 63 }}
     spec:
+      serviceAccountName: {{ template "opensearch.fullname" . }}-monitoring
       containers:
         - env:
             - name: OS_PROJECT
@@ -82,6 +83,12 @@ spec:
                 secretKeyRef:
                   key: password
                   name: {{ template "opensearch.fullname" . }}-secret
+            {{- if and (not .Values.global.externalOpensearch.enabled) .Values.monitoring.slowQueries.enabled }}
+            - name: SLOW_QUERIES_TOP_NUMBER
+              value: {{ default 10 .Values.monitoring.slowQueries.topNumber | quote }}
+            - name: PROCESSING_INTERVAL_MINUTES
+              value: {{ default 5 .Values.monitoring.slowQueries.processingIntervalMinutes | quote }}
+            {{- end }}
           image: {{ template "monitoring.image" . }}
           imagePullPolicy: {{ .Values.monitoring.imagePullPolicy | default "Always" | quote }}
           resources:

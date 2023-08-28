@@ -72,6 +72,8 @@ deployment:
     monitoring:
       enabled: true
       includeIndices: true
+      slowQueries:
+        enabled: true
       resources:
         requests:
           memory: 256Mi
