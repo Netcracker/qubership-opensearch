@@ -39,8 +39,14 @@ type Dashboards struct {
 
 // Monitoring structure defines parameters necessary for interaction with OpenSearch monitoring
 type Monitoring struct {
-	Name       string `json:"name"`
-	SecretName string `json:"secretName,omitempty"`
+	Name        string       `json:"name"`
+	SecretName  string       `json:"secretName,omitempty"`
+	SlowQueries *SlowQueries `json:"slowQueries,omitempty"`
+}
+
+type SlowQueries struct {
+	IndicesPattern string `json:"indicesPattern"`
+	MinSeconds     int    `json:"minSeconds"`
 }
 
 // DbaasAdapter structure defines parameters necessary for interaction with DBaaS OpenSearch adapter

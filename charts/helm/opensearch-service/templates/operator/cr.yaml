@@ -54,6 +54,11 @@ spec:
     {{- if eq .Values.monitoring.monitoringType "influxdb" }}
     secretName: {{ template "opensearch.fullname" . }}-monitoring-secret
     {{- end }}
+    {{- if and (not .Values.global.externalOpensearch.enabled) .Values.monitoring.slowQueries.enabled }}
+    slowQueries:
+      indicesPattern: "{{ .Values.monitoring.slowQueries.indicesPattern | default "*" }}"
+      minSeconds: {{ .Values.monitoring.slowQueries.minSeconds }}
+    {{- end }}
   {{- end }}
   {{- if .Values.dbaasAdapter.enabled }}
   dbaasAdapter:
