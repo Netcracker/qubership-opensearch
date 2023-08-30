@@ -21,7 +21,7 @@ OpenSearch Service allows you to deploy OpenSearch side services (DBaaS Adapter,
 ## Global
 
 * External OpenSearch URL is available from Kubernetes cluster where you are going to deploy side services.
-* OpenSearch user credentials are provided. User has admin rights.
+* OpenSearch user credentials are provided. The provided user must be master with `all_access` and `security_manager` roles. For more detailed information about master user, refer to [Additional master users](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html#fgac-more-masters).
 * There is DP Helm Deploy, App Deployer or local Helm configured to deploy to necessary Kubernetes cluster.
 
 ## Preparations for Backup
