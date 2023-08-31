@@ -1748,7 +1748,7 @@ opensearch:
 
 #### Manual Migration Steps
 
-The following steps should be performed from the host with installed `kubectl`, `helm` and cluster admin rights to the cluster.
+The following steps should be performed from the host with installed `kubectl`, `helm` and `cluster-wide` rights to the cluster.
 
 1. Uninstall existing OpenDistro Elasticsearch Helm release:
 
