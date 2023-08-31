@@ -19,28 +19,27 @@ spec:
           for: 3m
           labels:
             severity: high
-        - alert: OpenSearchDiskUsage75Alert
-            namespace: {{ .Release.Namespace }}
-            service: {{ .Release.Name }}
-        - alert: OpenSearchDiskUsageAlert
+        - alert: OpenSearchDiskUsageAbove75Alert
           annotations:
             description: 'OpenSearch disk usage is above 75%'
             summary: OpenSearch's disk usage is above 75%
-          expr: 1 - sum(opensearch_fs_total_free_in_bytes{namespace="{{ .Release.Namespace }}"}) / sum(opensearch_fs_total_total_in_bytes{namespace="{{ .Release.Namespace }}"}) > 0.75
+          expr: 1 - sum(opensearch_fs_total_free_in_bytes{namespace="{{ .Release.Namespace }}"}) / sum(opensearch_fs_total_total_in_bytes{namespace="{{ .Release.Namespace }}"}) > 0.75 and 1 - sum(opensearch_fs_total_free_in_bytes{namespace="{{ .Release.Namespace }}"}) / sum(opensearch_fs_total_total_in_bytes{namespace="{{ .Release.Namespace }}"}) <= 0.85
           for: 3m
           labels:
             severity: warning
-        - alert: OpenSearchDiskUsage85Alert
+            namespace: {{ .Release.Namespace }}
+            service: {{ .Release.Name }}
+        - alert: OpenSearchDiskUsageAbove85Alert
           annotations:
             description: 'OpenSearch disk usage is above 85%'
             summary: OpenSearch's disk usage is above 85%
-          expr: 1 - sum(opensearch_fs_total_free_in_bytes{namespace="{{ .Release.Namespace }}"}) / sum(opensearch_fs_total_total_in_bytes{namespace="{{ .Release.Namespace }}"}) > 0.85
+          expr: 1 - sum(opensearch_fs_total_free_in_bytes{namespace="{{ .Release.Namespace }}"}) / sum(opensearch_fs_total_total_in_bytes{namespace="{{ .Release.Namespace }}"}) > 0.85 and 1 - sum(opensearch_fs_total_free_in_bytes{namespace="{{ .Release.Namespace }}"}) / sum(opensearch_fs_total_total_in_bytes{namespace="{{ .Release.Namespace }}"}) <= 0.95
           for: 3m
           labels:
             severity: high
             namespace: {{ .Release.Namespace }}
             service: {{ .Release.Name }}
-        - alert: OpenSearchDiskUsage95Alert
+        - alert: OpenSearchDiskUsageAbove95Alert
           annotations:
             description: 'OpenSearch disk usage is above 95%'
             summary: OpenSearch's disk usage is above 95%
