@@ -2184,7 +2184,7 @@ kubectl delete secret -l "owner=helm"
 
 Then install a new version with App Deployer and `DEPLOY_W_HELM: true`.
 
-## Deploy job failed with status check but application works fine
+## Deployer job failed with status check but application works fine
 
 It can be an issue with timeouts or long start of OpenSearch pods. You need to get statuses from the `opensearch-status-provisioner` job resource and analyze them. You can do it in two ways:
 
@@ -2211,10 +2211,47 @@ It can be an issue with timeouts or long start of OpenSearch pods. You need to g
 
 You can also increase the pod readiness timeout `statusProvisioner.podReadinessTimeout: 800` and try to run the Deployer job again.
 
-## Deploy job failed with unknown fields in opensearchservices.netcracker.com
+## Deployer job failed with unknown fields in opensearchservices.netcracker.com
 
 It can be an issue with CRD changes. Refer to [CRD Upgrade](#crd-upgrade) for details.
 
-## Deploy job failed with some error in templates
+## Deployer job failed with some error in templates
 
 Make sure you performed the necessary [Prerequisites](#prerequisites). Fill the [Parameters](#parameters) correctly and compare with [Examples](#on-prem-examples).
+
+## Deployer job fails with "Forbidden: updates to statefulset spec for fields..." error
+
+The following error in Deployer job means that you have changed parameters that can't be updated in `StatefulSet`.
+
+```
+Error: UPGRADE FAILED: cannot patch "opensearch" with kind StatefulSet: StatefulSet.apps "opensearch" is invalid: spec: Forbidden: updates to statefulset spec for fields other than 'replicas', 'template', 'updateStrategy', 'persistentVolumeClaimRetentionPolicy' and 'minReadySeconds' are forbidden
+```
+
+Most often it is associated with persistent volumes configuration. To determine the problem area, in OpenShift/Kubernetes find `StatefulSet` configuration using the following command:
+
+```
+kubectl describe statefulset <fullnameOverride> -n <namespace_name>
+```
+
+Pay attention to the `Volume Claims` section and compare its values to the persistence parameters (`opensearch.master.persistence.size`, `opensearch.master.persistence.storageClass`) specified in Deployer job.
+
+```
+Volume Claims:
+  Name:          pvc
+  StorageClass:  local-path
+  Labels:        <none>
+  Annotations:   <none>
+  Capacity:      5Gi
+  Access Modes:  [ReadWriteOnce]
+```
+
+There are two ways to solve the problem:
+
+1. In Deployer job, use the same values specified in the `StatefulSet` configuration.
+2. Remove the `StatefulSet` resource without deleting the pods:
+
+   ```
+   kubectl delete sts <fullnameOverride> -n <namespace_name> --cascade=orphan
+   ```
+
+   And run Deployer job with required parameters and `upgrade` mode.
