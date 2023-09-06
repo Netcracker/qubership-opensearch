@@ -202,7 +202,7 @@ spec:
       volumes:
         {{- if or (not .Values.opensearch.snapshots.enabled) .Values.opensearch.snapshots.s3.enabled }}
         - name: backup-storage
-          emptyDir: { }
+          emptyDir: {}
         {{- else }}
         - name: backup-storage
           persistentVolumeClaim:
