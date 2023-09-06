@@ -172,7 +172,7 @@ integration:
     deploy-param: opensearchIndicesCleaner
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/deployment-status-provisioner
-    location: bugfix/add-unavailable-pods-number-check
+    location: master
     docker-image-id: timestamp
     deploy-param: deploymentStatusProvisioner
   - type: image
