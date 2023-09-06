@@ -89,6 +89,28 @@ spec:
                   key: password
           image: {{ template "curator.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ template "curator.port" . }}
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ template "curator.port" . }}
+              {{- if and .Values.global.tls.enabled .Values.curator.tls.enabled }}
+              scheme: HTTPS
+              {{ else }}
+              scheme: HTTP
+              {{- end }}
+            failureThreshold: 5
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
           resources:
             requests:
               memory: {{ default "256Mi" .Values.curator.resources.requests.memory }}
@@ -148,27 +170,16 @@ spec:
           image: {{ template "indices-cleaner.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
           livenessProbe:
-            tcpSocket:
-              port: {{ template "curator.port" . }}
-            failureThreshold: 3
+            exec:
+              command:
+                - /bin/sh
+                - '-c'
+                - ps aux | grep "python3 indices_cleaner.py"
             initialDelaySeconds: 30
-            periodSeconds: 5
-            successThreshold: 1
             timeoutSeconds: 5
-          readinessProbe:
-              httpGet:
-                path: /health
-                port: {{ template "curator.port" . }}
-                        {{- if and .Values.global.tls.enabled .Values.curator.tls.enabled }}
-                scheme: HTTPS
-                        {{ else }}
-                scheme: HTTP
-                        {{- end }}
-              failureThreshold: 5
-              initialDelaySeconds: 10
-              periodSeconds: 5
-              successThreshold: 1
-              timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 5
           name: {{ template "opensearch.fullname" . }}-indices-cleaner
           resources:
             requests:
@@ -191,7 +202,7 @@ spec:
       volumes:
         {{- if or (not .Values.opensearch.snapshots.enabled) .Values.opensearch.snapshots.s3.enabled }}
         - name: backup-storage
-          emptyDir: {}
+          emptyDir: { }
         {{- else }}
         - name: backup-storage
           persistentVolumeClaim:
