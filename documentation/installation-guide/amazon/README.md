@@ -1,4 +1,3 @@
-
 This section describes the prerequisites and installation parameters for integration of Platform OpenSearch with Amazon OpenSearch.
 
 - [Introduction](#introduction)
@@ -12,15 +11,15 @@ This section describes the prerequisites and installation parameters for integra
 
 # Introduction
 
-OpenSearch Service allows you to deploy OpenSearch side services (DBaaS Adapter, Monitoring and Curator) without deploying OpenSearch, using Amazon OpenSearch URL.
+OpenSearch service allows you to deploy OpenSearch side services (DBaaS Adapter, Monitoring, and Curator) without deploying OpenSearch, using Amazon OpenSearch URL.
 
-*Important*: Slow queries functionality isn't available on AWS cloud.
+**Important**: Slow queries' functionality is not available on AWS cloud.
 
 # Prerequisites
 
 ## Global
 
-* External OpenSearch URL is available from Kubernetes cluster where you are going to deploy side services.
+* External OpenSearch URL is available from the Kubernetes cluster where you are going to deploy the side services.
 * OpenSearch user credentials are provided. The provided user must be master with `all_access` and `security_manager` roles. For more detailed information about master user, refer to [Additional master users](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html#fgac-more-masters).
 * There is DP Helm Deploy, App Deployer or local Helm configured to deploy to necessary Kubernetes cluster.
 
