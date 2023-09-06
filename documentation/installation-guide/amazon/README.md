@@ -20,30 +20,30 @@ OpenSearch service allows you to deploy OpenSearch side services (DBaaS Adapter,
 ## Global
 
 * External OpenSearch URL is available from the Kubernetes cluster where you are going to deploy the side services.
-* OpenSearch user credentials are provided. The provided user must be master with `all_access` and `security_manager` roles. For more detailed information about master user, refer to [Additional master users](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html#fgac-more-masters).
-* There is DP Helm Deploy, App Deployer or local Helm configured to deploy to necessary Kubernetes cluster.
+* OpenSearch user credentials are provided. The provided user must be master with `all_access` and `security_manager` roles. For more information about master user, refer to Additional master users at [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html#fgac-more-masters](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html#fgac-more-masters).
+* There is DP Helm Deploy, App Deployer, or local Helm configured to deploy to the necessary Kubernetes cluster.
 
 ## Preparations for Backup
 
-To collect snapshots manually (e.g. by `opensearch-curator` or `dbaas-adapter`) there are next prerequisites:
+Following are the prerequisites to collect snapshots manually (for example, by `opensearch-curator` or `dbaas-adapter`):
 
-* AWS S3 Bucket to store snapshots;
-* AWS Snapshot Role with S3 access policy;
-* AWS User with AWS Authorization and ESHttpPut and Snapshot Role allowed;
-* Mapped Snapshot role in OpenSearch Dashboard (Optional - if using fine-grained access control);
+* AWS S3 Bucket to store snapshots.
+* AWS Snapshot Role with S3 access policy.
+* AWS User with AWS Authorization and ESHttpPut and Snapshot Role allowed.
+* Mapped Snapshot role in OpenSearch Dashboard (Optional - if using fine-grained access control).
 * Manual Snapshot repository.
 
 1. AWS S3 Bucket configuration
 
-   * Navigate to `Services -> Storage -> S3` in AWS Console.
-   * Create new bucket with unique name and required region to store data. Specified `s3-bucket-name` will be needed on next steps.
+   * Navigate to **Services -> Storage -> S3** in AWS Console.
+   * Create a new bucket with a unique name and required region to store data. The specified `s3-bucket-name` is needed for the following steps.
 
 2. AWS Snapshot Role configuration
 
-   * Navigate to `Services -> Security, Identity, & Compliance -> IAM` in AWS Console. Choose `Roles` in the navigation pane.
-   * Create new Role with `Another AWS account` type and your `Account ID` (You can find it in your user pane on top of console).
-   * On `Permissions` step, press `Create policy`. You will be redirected on `Create policy` page.
-   * Navigate to `JSON` pane and paste next configuration (Replace `s3-bucket-name` to bucket name you specified on previous step):
+   * Navigate to **Services -> Security, Identity, & Compliance -> IAM** in AWS Console. Choose "Roles" in the navigation pane.
+   * Create a new role with "Another AWS account" type and your "Account ID" (You can find it in your user pane on top of the console).
+   * On the **Permissions** step, click **Create policy**. You will be redirected to the Create policy page.
+   * Navigate to the JSON pane and paste the following configuration (Replace `s3-bucket-name` to the bucket name you specified in the previous step):
 
      ```yaml
      {
@@ -67,10 +67,10 @@ To collect snapshots manually (e.g. by `opensearch-curator` or `dbaas-adapter`) 
      }
      ```
 
-   * Proceed next to `Review` step, specify a `Name` for new policy and press `Create policy` button.
-   * Return to `Attach permission policies` tab, update policies list and select created one.
-   * Proceed next to `Review` step, specify a `Role name` for Snapshot Role and press `Create role` button.
-   * Navigate to `Trust relationships` tab of created Snapshot Role. Press `Edit trust relationship` button and paste next configuration:
+   * Proceed next to the **Review** step. Specify a name for the new policy and click **Create policy**.
+   * Return to the **Attach permission policies** tab, update policies list, and select the created one.
+   * Proceed next to the **Review** step. Specify a role name for Snapshot Role and click **Create role**.
+   * Navigate to the **Trust relationships** tab of the created snapshot role. Click **Edit trust relationship** and paste the following configuration:
 
      ```yaml
      {
@@ -88,15 +88,15 @@ To collect snapshots manually (e.g. by `opensearch-curator` or `dbaas-adapter`) 
      }
      ```
 
-   * Press `Update Trust Policy` button.
-   * `Role ARN` of created Snapshot Role will be needed on next steps.
+   * Click **Update Trust Policy**.
+   * `Role ARN` of the created snapshot role is will be needed in the following steps.
 
 3. AWS User configuration
 
-   * Navigate to `Services -> Security, Identity, & Compliance -> IAM` in AWS Console. Choose `Users` in the navigation pane.
-   * Create new User with `Access key - Programmatic access` enabled.
-   * On `Permissions` step select `Attach existing policies directly`, press `Create policy`.
-   * Navigate to `JSON` tab, paste the next configuration (Replace `Role ARN`, `Domain ARN` and `s3-bucket-name` with Snapshot role ARN, OpenSearch Service domain ARN and created bucket name):
+   * Navigate to **Services -> Security, Identity, & Compliance -> IAM** in AWS Console. Choose "Users" in the navigation pane.
+   * Create a new user with `Access key - Programmatic access` enabled.
+   * On the **Permissions** step, select "Attach existing policies directly", and click **Create policy**.
+   * Navigate to the **JSON** tab, paste the following configuration (Replace `Role ARN`, `Domain ARN`, and `s3-bucket-name` with the snapshot role ARN, OpenSearch Service domain ARN, and the created bucket name):
 
      ```yaml
      {
@@ -130,11 +130,11 @@ To collect snapshots manually (e.g. by `opensearch-curator` or `dbaas-adapter`) 
      }
      ```
 
-   * Proceed next to `Review` step, specify `Name` for policy and press `Create policy` button.
-   * Return to `Set permissions` tab, update policies list and select created one.
-   * Proceed next to `Review` step and press `Create user` button.
-   * On result page you get created User with generated credentials: `Access key ID` and `Secret access key`. Save these credentials for next steps (`Access Key` can be found in User security configuration, `Secret key` displayed only at creation) and press `Close` button.
-   * `User ARN` of created User will be needed on next steps.
+   * Proceed next to the **Review** step, specify the name for the policy and click **Create policy**.
+   * Return to the **Set permissions** tab, update the policies' list, and select the created one.
+   * Proceed next to the **Review** step and click **Create user**.
+   * On the result page, the created user with the generated credentials is displayed with `Access key ID` and `Secret access key`. Save these credentials for the following steps (`Access Key` can be found in the User security configuration, and `Secret key` is displayed only at the creation), and click **Close**.
+   * `User ARN` of the created user is needed in the following steps.
 
 4. Snapshot Role mapping (if using fine-grained access control)
 
@@ -142,7 +142,7 @@ To collect snapshots manually (e.g. by `opensearch-curator` or `dbaas-adapter`) 
    * Navigate to OpenSearch/Kibana Dashboard (Endpoint URL can be found in `General information` field of domain).
    * From the main menu choose Security, Role Mappings, and select the manage_snapshots role.
    * Add `User ARN` to `Users` field and `Role ARN` to `Backend roles` from previous steps.
-   * Press `Submit` button.
+   * Click `Submit` button.
 
 5. Manual Snapshot repository registration
 
@@ -163,7 +163,7 @@ To collect snapshots manually (e.g. by `opensearch-curator` or `dbaas-adapter`) 
      }
      ```
 
-   * Press `Send` button. If all necessary grants provided, you get next response:
+   * Click `Send` button. If all necessary grants provided, you get next response:
 
      ```yaml
      {
