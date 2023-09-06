@@ -148,16 +148,27 @@ spec:
           image: {{ template "indices-cleaner.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
           livenessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - '-c'
-                - ps aux | grep "python3 indices_cleaner.py"
+            tcpSocket:
+              port: {{ template "curator.port" . }}
+            failureThreshold: 3
             initialDelaySeconds: 30
-            timeoutSeconds: 5
-            periodSeconds: 10
+            periodSeconds: 5
             successThreshold: 1
-            failureThreshold: 5
+            timeoutSeconds: 5
+          readinessProbe:
+              httpGet:
+                path: /health
+                port: {{ template "curator.port" . }}
+                        {{- if and .Values.global.tls.enabled .Values.curator.tls.enabled }}
+                scheme: HTTPS
+                        {{ else }}
+                scheme: HTTP
+                        {{- end }}
+              failureThreshold: 5
+              initialDelaySeconds: 10
+              periodSeconds: 5
+              successThreshold: 1
+              timeoutSeconds: 5
           name: {{ template "opensearch.fullname" . }}-indices-cleaner
           resources:
             requests:
