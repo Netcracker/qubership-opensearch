@@ -138,19 +138,19 @@ Following are the prerequisites to collect snapshots manually (for example, by `
 
 4. Snapshot Role mapping (if using fine-grained access control)
 
-   * Navigate to `Services -> Analytics -> Amazon OpenSearch Service (successor to Amazon Elasticsearch Service)`. Select required OpenSearch domain.
-   * Navigate to OpenSearch/Kibana Dashboard (Endpoint URL can be found in `General information` field of domain).
-   * From the main menu choose Security, Role Mappings, and select the manage_snapshots role.
-   * Add `User ARN` to `Users` field and `Role ARN` to `Backend roles` from previous steps.
-   * Click `Submit` button.
+   * Navigate to **Services -> Analytics -> Amazon OpenSearch Service** (successor to Amazon Elasticsearch Service). Select the required OpenSearch domain.
+   * Navigate to the OpenSearch/Kibana Dashboard (Endpoint URL can be found in the **General information** field of the domain).
+   * From the main menu, choose Security, Role Mappings, and select the "manage_snapshots" role.
+   * Add "User ARN" to the **Users* field and "Role ARN" to **Backend roles** from the previous steps.
+   * Click **Submit**.
 
 5. Manual Snapshot repository registration
 
-    OpenSearch Service requires AWS Authorization, so you can't use `curl` to perform this operation. Instead, use `Postman Desktop Agent` or other method to send AWS signed request to register snapshot.
+    The OpenSearch service requires AWS Authorization, so you cannot use `curl` to perform this operation. Instead, use Postman Desktop Agent or other method to send AWS signed request to register a snapshot.
 
-   * Select `PUT` request and set the ```domain-endpoint/_snapshot/my-snapshot-repo-name``` URL, where `domain-endpoint` can be found in OpenSearch domain `General information` field and `my-snapshot-repo-name` is a name for repository.
-   * In `Authorization` tab select `AWS Signature` type. Fill `AccessKey` and `SecretKey` with keys generated during User creation step. Fill the `Region` with the OpenSearch domain region and `Sevice` with `es`.
-   * In `Body` tab select `raw` type and paste the next configuration (Replace `s3-bucket-name`, `region`, `Role ARN` with bucket name, region and Snapshot Role ARN from previous steps):
+   * Select `PUT` request and set the `domain-endpoint/_snapshot/my-snapshot-repo-name` URL, where `domain-endpoint` can be found in the OpenSearch domain **General information** field and `my-snapshot-repo-name` is the name of the repository.
+   * In the **Authorization** tab, select "AWS Signature" type. Enter **AccessKey** and **SecretKey** with keys generated during the user creation step. Enter the **Region** with the OpenSearch domain region and **Service** with "es".
+   * In the **Body** tab, select "raw" type and paste the following configuration (Replace `s3-bucket-name`, `region`, `Role ARN` with bucket name, region, and Snapshot Role ARN from the previous steps).
 
      ```yaml
      {
@@ -163,7 +163,7 @@ Following are the prerequisites to collect snapshots manually (for example, by `
      }
      ```
 
-   * Click `Send` button. If all necessary grants provided, you get next response:
+   * Click **Send**. If all necessary grants are provided, you get the following response:
 
      ```yaml
      {
@@ -171,15 +171,15 @@ Following are the prerequisites to collect snapshots manually (for example, by `
      }
      ```
 
-    If there are some errors in response, check all required prerequisites. More information about repository registration in [Creating index snapshots](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html).
+    If there are some errors in the response, check all the required prerequisites. For more information about repository registration, refer to [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html).
 
-    After manual snapshot repository registered, you can perform snapshot and restore with `curl` as OpenSearch user (See, [Manual backup](/documentation/maintenance-guide/backup/manual-backup-procedure.md) and [Manual recovery](/documentation/maintenance-guide/recovery/manual-recovery-procedure.md) guides).
+    After the manual snapshot repository is registered, you can perform snapshot and restore with `curl` as an OpenSearch user. (See, [Manual backup](/documentation/maintenance-guide/backup/manual-backup-procedure.md) and [Manual recovery](/documentation/maintenance-guide/recovery/manual-recovery-procedure.md) guides).
 
-   **Note:** OpenSearch also provides service indices that are not accessible for snapshot. To create snapshot either specify indices list ("indices": ["index1", "index2"]) or exclude service indices ("indices": "-.kibana*,-.opendistro*").
+   **Note**: OpenSearch also provides service indices that are not accessible for snapshot. To create a snapshot, either specify the indices list ("indices": ["index1", "index2"]) or exclude service indices ("indices": "-.kibana*,-.opendistro*").
 
-   To restore indices make sure there are no naming conflicts between indices on the cluster and indices in the snapshot. Delete indices on the existing OpenSearch Service domain, rename indices in snapshot or restore the snapshot to a different OpenSearch Service domain.
+   To restore indices, make sure there are no naming conflicts between indices on the cluster and indices in the snapshot. Delete indices on the existing OpenSearch Service domain, rename indices in the snapshot, or restore the snapshot to a different OpenSearch Service domain.
 
-   For more detailed information about restore, refer to [Restoring snapshots](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html#managedomains-snapshot-restore).
+   For more information about restore, refer to Restoring snapshots at [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html#managedomains-snapshot-restore](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html#managedomains-snapshot-restore).
 
 # Example of Deploy Parameters
 
