@@ -183,7 +183,7 @@ Following are the prerequisites to collect snapshots manually (for example, by `
 
 # Example of Deploy Parameters
 
-Example of deployment parameters for external Amazon OpenSearch is presented below:
+An example of deployment parameters for external Amazon OpenSearch is as follows:
 
 ```yaml
 dashboards:
@@ -251,66 +251,68 @@ integrationTests:
   enabled: true
 ```
 
-**NOTE:** This is an example, do not copy it as-is for your deployment, be sure about each parameter in your installation.
+**Note**: This is an example, do not copy it as-is for your deployment, be sure about each parameter in your installation.
 
 # Amazon OpenSearch Features
 
 ## Snapshots
 
-Amazon OpenSearch does not support `fs` snapshot repositories, so you cannot create it by operator during installation. Only `s3` type is supported.
-Amazon OpenSearch has the configured `s3` snapshot repository (e.g. `cs-automated-enc`) with automatically making snapshot by schedule, but this repository cannot be used for making manual snapshots (including by DBaaS adapter or curator).
-If you want to manually manage repository you need to create it with the following guide [Creating index snapshots in Amazon OpenSearch Service](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-snapshots.html#es-managedomains-snapshot-registerdirectory).
-Then specify this repository name in corresponding DBaaS Adapter and Curator parameters during deploy.
+Amazon OpenSearch does not support `fs` snapshot repositories, so you cannot create it by the operator during the installation. Only `s3` type is supported.
+Amazon OpenSearch has the configured `s3` snapshot repository (example, `cs-automated-enc`) with automatically making snapshot by schedule, but this repository cannot be used for making manual snapshots (including by DBaaS adapter or curator).
+If you want to manually manage the repository, refer to Creating index snapshots in Amazon OpenSearch Service in [https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-snapshots.html#es-managedomains-snapshot-registerdirectory](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-snapshots.html#es-managedomains-snapshot-registerdirectory).
+Then specify this repository name in the corresponding DBaaS Adapter and Curator parameters during the deployment.
 
-**NOTE:** Only `s3` parameters are required in this Curator installation, not `backupStorage`.
+**Note**: Only `s3` parameters are required in this Curator installation, not `backupStorage`.
 
-If you do not need to manually take snapshots just disable this feature with corresponding parameters (`dbaasAdapter.opensearchRepo` is empty and `curator.enabled: false`).
+If you do not need to manually take snapshots, just disable this feature with the corresponding parameters (`dbaasAdapter.opensearchRepo` is empty and `curator.enabled: false`).
 
-To configure snapshots manually, please follow the guide [Preparations for Backup](#preparations-for-backup).
+To configure snapshots manually, refer to the [Preparations for Backup](#preparations-for-backup) section.
 
 # Scaling Capabilities
 
-This section describes how to do the scaling procedures for Amazon OpenSearch.
+This section describes how to do scaling procedures for Amazon OpenSearch.
 
-Based on your workload, you can scale up (scale vertically) or scale out (scale horizontally) your cluster. 
-To scale out your OpenSearch Service domain, add additional nodes (such as data nodes, master nodes, or UltraWarm nodes) to your cluster. 
-To resize or scale up your domain, increase your Amazon Elastic Block Store (Amazon EBS) volume size or add more memory and vCPUs with bigger node types.
+Based on the workload, you can scale up (scale vertically) or scale out (scale horizontally) a cluster. 
+To scale out an OpenSearch Service domain, add additional nodes (such as data nodes, master nodes, or UltraWarm nodes) to the cluster. 
+To resize or scale up the domain, increase the Amazon Elastic Block Store (Amazon EBS) volume size or add more memory and vCPUs with bigger node types.
 
 ## Limitations
 
 * Scaling Up|Down (Vertical Scaling) and Scaling Out|In (Horizontally Scaling) are manual procedures.
 * Scaling Up requires downtime.
-* It is necessary to upgrade platform OpenSearch state when scaling out Amazon OpenSearch.
+* It is necessary to upgrade the platform OpenSearch state when scaling out Amazon OpenSearch.
 
 ## Scaling In|Out
 
-When you scale out your domain, you are adding nodes of the same configuration type as your current cluster nodes.
+When you scale out a domain, you are adding nodes of the same configuration type as the current cluster nodes.
 
-To add nodes to your cluster you need:
-1. Sign in to your AWS Management Console.
+To add nodes to a cluster:
+
+1. Sign in to the AWS Management console.
 2. Open the OpenSearch Service console.
 3. Select the domain that you want to scale.
-4. Choose `Actions` -> `Edit Cluster Configuration`.
-5. Change `Number of nodes` to necessary value for `Data nodes` and `Dedicated master nodes` sections.
-6. Click `Save changes`.
-7. Run upgrade `opensearch-service` platform job and provide correct values for `global.externalOpenSearch.nodesCount` and `global.externalOpenSearch.dataNodesCount`.
+4. Choose **Actions -> Edit Cluster Configuration**.
+5. Change **Number of nodes** to the necessary value for **Data nodes** and **Dedicated master nodes** sections.
+6. Click **Save changes**.
+7. Run the upgrade `opensearch-service` platform job and provide the correct values for `global.externalOpenSearch.nodesCount` and `global.externalOpenSearch.dataNodesCount`.
 
-**NOTE:** Amazon OpenSearch supports scaling in (reduce nodes count), but the created indices should be able to the new data nodes count and have corresponding replicas count.
+**Note**: Amazon OpenSearch supports scaling in (reduce nodes count), but the created indices should be equal to the new data nodes count and have the corresponding replicas count.
 
 ## Scaling Up|Down
 
-If you want to vertically scale or scale up your domain, switch to a larger instance type to add more memory or CPU resources.
-It is possible to change instance type of Amazon OpenSearch instances (data or master) for existing cluster, but such changes **requires downtime**.
+If you want to vertically scale or scale up a domain, switch to a larger instance type to add more memory or CPU resources.
+It is possible to change the instance type of Amazon OpenSearch instances (data or master) for an existing cluster, but such changes require downtime.
 
-To change the instance type you need:
-1. Sign in to your AWS Management Console.
+To change the instance type:
+
+1. Sign in to the AWS Management console.
 2. Open the OpenSearch Service console.
 3. Select the domain that you want to scale.
-4. Choose `Actions` -> `Edit Cluster Configuration`.
-5. Select necessary `Instance Type` for `Data nodes` and `Dedicated master nodes` sections.
-6. Click `Save changes`.
+4. Choose **Actions -> Edit Cluster Configuration**.
+5. Select the necessary **Instance Type** for **Data nodes** and **Dedicated master nodes** sections.
+6. Click **Save changes**.
 
-**Note:** When you scale up your domain, EBS volume size doesn't automatically scale up. You must specify this setting if you want the EBS volume size to automatically scale up.
+**Note**: When you scale up a domain, the EBS volume size does not automatically scale up. You must specify this setting if you want the EBS volume size to automatically scale up.
 
 ## Useful References
 
