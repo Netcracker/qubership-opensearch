@@ -1,4 +1,4 @@
-The section provides information about Disaster Recovery in OpenSearch service.
+This section provides information about Disaster Recovery in OpenSearch service.
 
 The topics covered in this section are:
 
@@ -10,24 +10,23 @@ The topics covered in this section are:
 - [OpenSearch Cross Cluster Replication](#opensearch-cross-cluster-replication)
 - [Switchover](#switchover)
 - [REST API](#rest-api)
-- [Troubleshooting Guide](../../maintenance-guide/troubleshooting-guide/README.md)
 
 # Common Information
 
-The Disaster Recovery scheme implies two separate OpenSearch clusters, one of which is in the `active` mode, and the other is in the `standby` mode.
+The Disaster Recovery scheme implies two separate OpenSearch clusters, one of which is in the *active* mode, and the other is in the *standby* mode.
 
-![DR scheme](images/opensearch_dr_with_dbaas.png)
+![DR scheme](/documentation/installation-guide/disaster-recovery/images/opensearch_dr_with_dbaas.png)
 
-The Disaster Recovery process for OpenSearch service includes the following parts:
+The Disaster Recovery process for OpenSearch service includes the following:
 
-* Turning on/off replication of OpenSearch indices with data: when switching to `standby` mode we enable replication, when switching to `active` mode we disable it.
-* Users recovery when switching to the `active` side if DBaaS adapter is enabled.
+* Turning on/off replication of OpenSearch indices with data: when switching to the standby mode, the replication is enabled, and when switching to the active mode, the replication is disabled.
+* Users recovery when switching to the active side if the DBaaS adapter is enabled.
 
 # Configuration
 
-The Disaster Recovery (DR) configuration requires two separate OpenSearch clusters installed on two Kubernetes/OpenShift clusters. First, you need to configure the parameters for OpenSearch and all the components that you need to deploy to cloud. Then, pay attention to the following steps that are significant for Disaster Recovery configuration:
+The Disaster Recovery (DR) configuration requires two separate OpenSearch clusters installed on two Kubernetes/OpenShift clusters. First, you need to configure the parameters for OpenSearch and all the components that you need to deploy to cloud. Then, pay attention to the following steps that are significant for the Disaster Recovery configuration:
 
-1. The parameter that enables the DR scheme has to be set. You need to decide in advance about the mode, `active`, `standby` or `disabled` that is used during current OpenSearch cluster installation and set the value in the following parameter:
+1. The parameter that enables the DR scheme has to be set. You need to decide in advance about the mode - active, standby or disabled - that is used during the current OpenSearch cluster installation and set the value in the following parameter.
 
     ```
     global:
@@ -36,7 +35,7 @@ The Disaster Recovery (DR) configuration requires two separate OpenSearch cluste
         mode: "active"
     ```
 
-2. Don't forget to specify OpenSearch DNS name in `opensearch.tls.subjectAlternativeName.additionalDnsNames` parameter. For example, for `northamerica` region the following parameter should be specified:
+2. Do not forget to specify the OpenSearch DNS name in the `opensearch.tls.subjectAlternativeName.additionalDnsNames` parameter. For example, for `northamerica` region, the following parameter should be specified.
 
    ```
    opensearch:
@@ -46,7 +45,7 @@ The Disaster Recovery (DR) configuration requires two separate OpenSearch cluste
            - opensearch-northamerica.opensearch-service.svc.clusterset.local
    ```
 
-3. The parameter that describes services after which OpenSearch service switchover has to be run.
+3. The parameter that describes services after which the OpenSearch service switchover has to be run is as follows.
 
     ```
     global:
@@ -55,11 +54,11 @@ The Disaster Recovery (DR) configuration requires two separate OpenSearch cluste
         afterServices: ["app", "postgres-service-site-manager"]
     ```
 
-   In common case OpenSearch service is a base service and does not have any `after` services, but if you have DBaaS adapter enabled, you need to specify in this parameter `Postgres`, where the DBaaS aggregator stores its data.
+   In common case, the OpenSearch service is a base service and does not have any `after` services. But if you have the DBaaS adapter enabled, then specify where the DBaaS aggregator stores its data in `Postgres` parameter.
 
-4. In DR scheme, OpenSearch must be deployed with indicating OpenSearch service from opposite side. For example, if you deploy `standby` OpenSearch cluster you should specify path to the OpenSearch from `active` side to start replication from `active` OpenSearch to `standby`.
-   Even if you deploy `active` side you need to specify path to `standby` OpenSearch cluster to support switch over process. You can also specify some regular expression as `indicesPattern` which is used for look up `active` indices to replicate them.
-   You need to specify the following parameters in the OpenSearch configuration:
+4. In the DR scheme, OpenSearch must be deployed with indicating OpenSearch service from the opposite side. For example, if you deploy a standby OpenSearch cluster, you should specify the path to OpenSearch from the active side to start the replication from the active OpenSearch to standby.
+   Even if the active side is deployed, specify the path to the standby OpenSearch cluster to support the switch over process. You can also specify some regular expression as `indicesPattern`, which is used to look up active indices to replicate them.
+   Specify the following parameters in the OpenSearch configuration:
 
    ```
      global:
@@ -69,20 +68,21 @@ The Disaster Recovery (DR) configuration requires two separate OpenSearch cluste
         remoteCluster: "opensearch:9300"
    ```
 
-5. DBaaS adapter should be installed only if DBaaS aggregator is on the cloud.
+5. The DBaaS adapter should be installed only if the DBaaS aggregator is on the cloud.
 
 ## Manual Steps Before Installation
 
-The OpenSearch cross cluster replication is allowed only for OpenSearch services from union cluster. It means that both OpenSearch nodes must have the same `admin`, `transport` and `rest` certificates.
-You should install `active` service and perform one of the following actions:
-* If `global.tls.generateCerts.certProvider` is set to `cert-manager`, copy `opensearch-rest-issuer-certs`, `opensearch-admin-issuer-certs` and `opensearch-transport-issuer-certs` Kubernetes secrets to the Kubernetes namespace for `standby` service *before* its installation.
-* If `global.tls.generateCerts.certProvider` is set to `dev`, copy `opensearch-rest-certs`, `opensearch-admin-certs` and `opensearch-transport-certs` Kubernetes secrets to the Kubernetes namespace for `standby` service *before* its installation.
+The OpenSearch cross cluster replication is allowed only for OpenSearch services from a union cluster. This means that both OpenSearch nodes must have the same admin, transport, and rest certificates.
+Install the active service and perform one of the following actions:
+
+* If `global.tls.generateCerts.certProvider` is set to "cert-manager", copy `opensearch-rest-issuer-certs`, `opensearch-admin-issuer-certs`, and `opensearch-transport-issuer-certs` Kubernetes secrets to the Kubernetes namespace for the standby service *before* its installation.
+* If `global.tls.generateCerts.certProvider` is set to "dev", copy `opensearch-rest-certs`, `opensearch-admin-certs`, and `opensearch-transport-certs` Kubernetes secrets to the Kubernetes namespace for the standby service *before* its installation.
 
 ## Example
 
-You want to install OpenSearch service in Disaster Recovery scheme. Each OpenSearch cluster is located in `opensearch-service` namespace, has secured OpenSearch with 3 nodes.
+You want to install the OpenSearch service in the DR scheme. Each OpenSearch cluster located in the `opensearch-service` namespace has secured OpenSearch with 3 nodes.
 
-The configuration for `active` OpenSearch cluster is as follows:
+The configuration for the active OpenSearch cluster is as follows:
 
 ```yaml
 global:
@@ -133,8 +133,8 @@ dbaasAdapter:
   registrationAuthPassword: "Bnmq5567_PO"
 ```
 
-Before `standby` cluster installation you should copy `opensearch-admin-certs` and `opensearch-transport-certs` Kubernetes secrets to the Kubernetes namespace for `standby` service.
-The configuration for `standby` OpenSearch cluster is as follows:
+Before the standby cluster installation, copy `opensearch-admin-certs` and `opensearch-transport-certs` Kubernetes secrets to the Kubernetes namespace for the standby service.
+The configuration for the standby OpenSearch cluster is as follows:
 
 ```yaml
 global:
@@ -186,7 +186,7 @@ dbaasAdapter:
   registrationAuthPassword: "Bnmq5567_PO"
 ```
 
-**NOTE:** Clients cannot use OpenSearch on `standby` side, corresponding service is disabled.
+**Note**: Clients cannot use OpenSearch on the standby side as the corresponding service is disabled.
 
 ## Google Kubernetes Engine Features
 
