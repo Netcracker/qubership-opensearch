@@ -190,19 +190,23 @@ dbaasAdapter:
 
 ## Google Kubernetes Engine Features
 
-GKE provides its own mechanism of communications between clusters - `multi-cluster services` (`MCS`), more detailed in [GKE-DR](https://git.netcracker.com/PROD.Platform.HA/kubetools/-/blob/master/documentation/public/GKE-DR.md).
+GKE provides its own multi-cluster services (MCS) mechanism of communications between clusters. 
 
-To deploy OpenSearch with enabled MCS support you need to follow the points:
+<!-- #GFCFilterMarkerStart# -->
+For more details, refer to the [GKE-DR](https://git.netcracker.com/PROD.Platform.HA/kubetools/-/blob/master/documentation/public/GKE-DR.md) document.
+<!-- #GFCFilterMarkerEnd# -->
 
-* OpenSearch service should be deployed to namespaces with the same names for both clusters. `MCS` works only if namespace is presented for both Kubernetes clusters.
-* Fill parameters `global.disasterRecovery.mode` to necessary mode and `global.disasterRecovery.serviceExport.enabled` to `true`.
-* Fill parameter `global.disasterRecovery.serviceExport.region` to GKE (e.g. `us-central`). It means you will have different additional replication service names to access OpenSearch for both clusters. The name of replication service is build as `{OPENSEARCH_NAME}-{REGION_NAME}`, e.g. `opensearch-us-central`.
-* Fill parameter `global.disasterRecovery.remoteCluster` with remote OpenSearch replication service address in `MCS` domain `clusterset`, e.g. `opensearch-us-central.opensearch-service.svc.clusterset.local`.
+To deploy OpenSearch with enabled MCS support:
 
-**NOTE:** OpenSearch requires an extended virtual memory for containers on host machine. It **may** be necessary that the command `sysctl -w vm.max_map_count=262144` should be performed on Kubernetes nodes before deploy OpenSearch.
-Deployment procedure can perform this command automatically if the privileged containers are available in your cluster, to enable it you need to use parameter `opensearch.sysctl.enabled: true`.
+* OpenSearch should be deployed to namespaces with the same names for both clusters. MCS works only if the namespace is presented for both Kubernetes clusters.
+* Enter the `global.disasterRecovery.mode` parameter to the necessary mode and set `global.disasterRecovery.serviceExport.enabled` to "true".
+* Enter the `global.disasterRecovery.serviceExport.region` parameter to GKE (example, `us-central`). This means that there are different additional replication service names to access OpenSearch for both clusters. The name of the replication service is build as `{OPENSEARCH_NAME}-{REGION_NAME}`. For example, `opensearch-us-central`.
+* Enter the `global.disasterRecovery.remoteCluster` parameter with the remote OpenSearch replication service address in the MCS `clusterset` domain. For example, `opensearch-us-central.opensearch-service.svc.clusterset.local`.
 
-The example of configuration for `active` OpenSearch cluster in `us-central` region is as follows:
+**Note**: OpenSearch requires an extended virtual memory for containers on the host machine. It may be necessary that the command `sysctl -w vm.max_map_count=262144` should be performed on Kubernetes nodes before deploying OpenSearch.
+The deployment procedure can perform this command automatically if the privileged containers are available in your cluster. To enable it, use the `opensearch.sysctl.enabled: true` parameter.
+
+An example of the configuration for an active OpenSearch cluster in the `us-central` region is as follows:
 
 ```yaml
 global:
@@ -253,9 +257,9 @@ dbaasAdapter:
   registrationAuthPassword: "Bnmq5567_PO"
 ```
 
-**NOTE:** You should install `active` service and perform one of the following actions:
-* If `global.tls.generateCerts.certProvider` is set to `cert-manager`, copy `opensearch-rest-issuer-certs`, `opensearch-admin-issuer-certs` and `opensearch-transport-issuer-certs` Kubernetes secrets to the Kubernetes namespace for `standby` service *before* its installation.
-* If `global.tls.generateCerts.certProvider` is set to `dev`, copy `opensearch-rest-certs`, `opensearch-admin-certs` and `opensearch-transport-certs` Kubernetes secrets to the Kubernetes namespace for `standby` service *before* its installation. Moreover, you should add the following parameters to `standby` side configuration:
+**Note**: You should install an active service and perform one of the following actions:
+* If `global.tls.generateCerts.certProvider` is set to "cert-manager", copy `opensearch-rest-issuer-certs`, `opensearch-admin-issuer-certs`, and `opensearch-transport-issuer-certs` Kubernetes secrets to the Kubernetes namespace for the standby service before its installation.
+* If `global.tls.generateCerts.certProvider` is set to "dev", copy `opensearch-rest-certs`, `opensearch-admin-certs`, and `opensearch-transport-certs` Kubernetes secrets to the Kubernetes namespace for the standby service before its installation. Moreover, you should add the following parameters to the standby side configuration:
 
   ```yaml
   opensearch:
@@ -264,7 +268,7 @@ dbaasAdapter:
         enabled: false
   ```
 
-The example of configuration for `standby` OpenSearch cluster in `northamerica` region is as follows:
+An example of the configuration for a standby OpenSearch cluster in the `northamerica` region is as follows:
 
 ```yaml
 global:
@@ -315,7 +319,7 @@ dbaasAdapter:
   registrationAuthPassword: "Bnmq5567_PO"
 ```
 
-**NOTE:** `MCS` feature can work unstable, sometimes it requires redeployment if connectivity between clusters is not established.
+**Note**: The MCS feature can work unstably. Sometimes it requires redeployment if the connectivity between clusters is not established.
 
 # OpenSearch Cross Cluster Replication
 
