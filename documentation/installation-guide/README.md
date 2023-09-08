@@ -1,12 +1,16 @@
+This chapter describes the installation and configuration procedures of OpenSearch.
+
+<!-- #GFCFilterMarkerStart# -->
 The following topics are covered in this chapter:
 
 [[_TOC_]]
+<!-- #GFCFilterMarkerEnd# -->
 
 # Prerequisites
 
 ## Common
 
-Before you start the installation and configuration of a OpenSearch cluster, ensure the following requirements are met:
+Before you start the installation and configuration of an OpenSearch cluster, ensure the following requirements are met:
 
 * Kubernetes 1.21+ or OpenShift 4.10+
 * `kubectl` 1.21+ or `oc` 4.10+ CLI
