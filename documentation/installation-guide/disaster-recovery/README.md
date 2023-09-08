@@ -17,10 +17,10 @@ The Disaster Recovery scheme implies two separate OpenSearch clusters, one of wh
 
 ![DR scheme](/documentation/installation-guide/disaster-recovery/images/opensearch_dr_with_dbaas.png)
 
-The Disaster Recovery process for OpenSearch service includes the following:
+The Disaster Recovery process for the OpenSearch service includes the following:
 
 * Turning on/off replication of OpenSearch indices with data: when switching to the standby mode, the replication is enabled, and when switching to the active mode, the replication is disabled.
-* Users recovery when switching to the active side if the DBaaS adapter is enabled.
+* Users' recovery when switching to the active side if the DBaaS adapter is enabled.
 
 # Configuration
 
@@ -200,7 +200,7 @@ To deploy OpenSearch with enabled MCS support:
 
 * OpenSearch should be deployed to namespaces with the same names for both clusters. MCS works only if the namespace is presented for both Kubernetes clusters.
 * Enter the `global.disasterRecovery.mode` parameter to the necessary mode and set `global.disasterRecovery.serviceExport.enabled` to "true".
-* Enter the `global.disasterRecovery.serviceExport.region` parameter to GKE (example, `us-central`). This means that there are different additional replication service names to access OpenSearch for both clusters. The name of the replication service is build as `{OPENSEARCH_NAME}-{REGION_NAME}`. For example, `opensearch-us-central`.
+* Enter the `global.disasterRecovery.serviceExport.region` parameter to GKE (example, `us-central`). This means that there are different additional replication service names to access OpenSearch for both clusters. The name of the replication service is built as `{OPENSEARCH_NAME}-{REGION_NAME}`. For example, `opensearch-us-central`.
 * Enter the `global.disasterRecovery.remoteCluster` parameter with the remote OpenSearch replication service address in the MCS `clusterset` domain. For example, `opensearch-us-central.opensearch-service.svc.clusterset.local`.
 
 **Note**: OpenSearch requires an extended virtual memory for containers on the host machine. It may be necessary that the command `sysctl -w vm.max_map_count=262144` should be performed on Kubernetes nodes before deploying OpenSearch.
