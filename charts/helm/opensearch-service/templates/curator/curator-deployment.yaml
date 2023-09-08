@@ -92,7 +92,7 @@ spec:
           livenessProbe:
             tcpSocket:
               port: {{ template "curator.port" . }}
-            failureThreshold: 3
+            failureThreshold: 5
             initialDelaySeconds: 30
             periodSeconds: 5
             successThreshold: 1
