@@ -101,11 +101,7 @@ spec:
             httpGet:
               path: /health
               port: {{ template "curator.port" . }}
-              {{- if and .Values.global.tls.enabled .Values.curator.tls.enabled }}
-              scheme: HTTPS
-              {{ else }}
-              scheme: HTTP
-              {{- end }}
+              scheme: {{ eq (include "curator.tlsEnabled" .) "true" | ternary "HTTPS" "HTTP" }}
             failureThreshold: 5
             initialDelaySeconds: 10
             periodSeconds: 5
