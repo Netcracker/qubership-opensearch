@@ -29,15 +29,15 @@ The following Custom Resource Definitions should be installed to the cloud befor
 
 **Note**: If you deploy OpenSearch service to Kubernetes version less than 1.16, you have to manually install CRD from `config/crd/old/netcracker.com_opensearchservices.yaml` and disable automatic CRD creation by Helm in the following way:
 
-* Specify `--skip-crds` in `ADDITIONAL_OPTIONS` parameter of DP Deployer Job.
-* Specify `DISABLE_CRD=true;` in `CUSTOM_PARAMS` parameter of Groovy Deployer Job.
+* Specify the `--skip-crds` in `ADDITIONAL_OPTIONS` parameter of DP Deployer Job.
+* Specify `DISABLE_CRD=true;` in the `CUSTOM_PARAMS` parameter of Groovy Deployer Job.
 
 ### Deployment Permissions
 
 To avoid using `cluster-wide` rights during the deployment, the following conditions are required:
 
 * The cloud administrator creates the namespace/project in advance.
-* The following grants should be provided for the `Role` of deployment user:
+* The following grants should be provided for the `Role` of the deployment user:
 
     <details>
     <summary>Click to expand YAML</summary>
@@ -185,7 +185,7 @@ To avoid using `cluster-wide` rights during the deployment, the following condit
 
 The following rules require `cluster-wide` permissions. If it is not possible to provide them to the deployment user, you have to apply the resources manually.
 
-* If OpenSearch is installed in the disaster recovery mode and authentication on disaster recovery server is enabled, cluster role binding for `system:auth-delegator` role must be created.
+* If OpenSearch is installed in the disaster recovery mode and authentication on the disaster recovery server is enabled, cluster role binding for the `system:auth-delegator` role must be created.
 
   ```yaml
   kind: ClusterRoleBinding
@@ -202,7 +202,7 @@ The following rules require `cluster-wide` permissions. If it is not possible to
     name: system:auth-delegator
   ```
 
-* To avoid applying the CRD manually, the following grants should be provided for the `ClusterRole` of deployment user:
+* To avoid applying the CRD manually, the following grants should be provided for `ClusterRole` of the deployment user:
 
   ```yaml
       rules:
@@ -222,15 +222,15 @@ The following rules require `cluster-wide` permissions. If it is not possible to
     ```
     <!-- #GFCFilterMarkerEnd# -->
 
-* To run `privileged` containers or actions on Kubernetes before 1.25 version, you need to apply `PodSecurityPolicy` from [psp.yaml](/charts/helm/opensearch-service/templates/psp.yaml), create `ClusterRole` with its usage and bind it to `ServiceAccount` with `$OPENSEARCH_FULLNAME` name using `ClusterRoleBinding`.
+* To run `privileged` containers or actions on Kubernetes before 1.25 version, apply `PodSecurityPolicy` from [psp.yaml](/charts/helm/opensearch-service/templates/psp.yaml), create `ClusterRole` with its usage, and bind it to `ServiceAccount` with `$OPENSEARCH_FULLNAME` name using `ClusterRoleBinding`.
 
-* To run `privileged` containers or actions on Kubernetes 1.25+ version, you need to provide `privileged` policy to OpenSearch namespace. It can be performed with the following command:
+* To run `privileged` containers or actions on Kubernetes 1.25+ version, provide the `privileged` policy to the OpenSearch namespace. It can be performed with the following command:
 
   ```bash
   kubectl label --overwrite ns "$OPENSEARCH_NAMESPACE" pod-security.kubernetes.io/enforce=privileged
   ```
 
-  This command can be executed automatically with property `ENABLE_PRIVILEGED_PSS: true` in deployment parameters. It requires the following cluster rights for deployment user:
+  This command can be executed automatically with the `ENABLE_PRIVILEGED_PSS: true` property in the deployment parameters. It requires the following cluster rights for the deployment user:
 
   ```yaml
     - apiGroups: [""]
@@ -240,7 +240,7 @@ The following rules require `cluster-wide` permissions. If it is not possible to
       - $OPENSEARCH_NAMESPACE
   ```
 
-* The parameter `global.psp.create` should be defined as `false`.
+* The `global.psp.create` parameter should be defined as "false".
 
 ### Multiple Availability Zone
 
