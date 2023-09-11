@@ -255,11 +255,11 @@ The following are a few approaches of storage management used in the OpenSearch 
 
 #### Dynamic Persistent Volume Provisioning
 
-OpenSearch Helm installation supports specifying storage class for master, arbiter and data Persistent Volume Claims. If you are setting up the persistent volumes' resource in Kubernetes, you need to map the OpenSearch pods to the volume using the `opensearch.master.persistence.storageClass`, `opensearch.arbiter.persistence.storageClass` or `opensearch.data.persistence.storageClass` parameter.
+OpenSearch Helm installation supports specifying storage class for master, arbiter, and data Persistent Volume Claims. If you are setting up the persistent volumes' resource in Kubernetes, map the OpenSearch pods to the volume using the `opensearch.master.persistence.storageClass`, `opensearch.arbiter.persistence.storageClass`, or `opensearch.data.persistence.storageClass` parameter.
 
 #### Predefined Persistent Volumes
 
-If you have prepared Persistent Volumes without storage class and dynamic provisioning, you can specify Persistent Volumes names using the `opensearch.master.persistence.persistentVolumes`, `opensearch.arbiter.persistence.persistentVolumes` or `opensearch.data.persistence.persistentVolumes` parameter.
+If you have prepared Persistent Volumes without storage class and dynamic provisioning, you can specify Persistent Volumes names using the `opensearch.master.persistence.persistentVolumes`, `opensearch.arbiter.persistence.persistentVolumes`, or `opensearch.data.persistence.persistentVolumes` parameter.
 
 For example:
 
@@ -273,15 +273,15 @@ opensearch:
         - pv-opensearch-master-3
 ```
 
-Persistent Volumes should be created on corresponding Kubernetes nodes and should be in the `Available` state.
+Persistent Volumes should be created on the corresponding Kubernetes nodes and should be in the `Available` state.
 
-Set appropriate UID and GID on hostPath directories and rule for SELinux:
+Set the appropriate UID and GID on hostPath directories and rule for SELinux:
 
 ```
 chown -R 1000:1000 /mnt/data/<pv-name>
 ```
 
-You also need to specify node names via `opensearch.master.persistence.nodes`, `opensearch.arbiter.persistence.nodes` or `opensearch.data.persistence.nodes` parameter in the same order in which the Persistent Volumes are specified so that OpenSearch pods are assigned to these nodes.
+You also need to specify node names through `opensearch.master.persistence.nodes`, `opensearch.arbiter.persistence.nodes`, or `opensearch.data.persistence.nodes` parameter in the same order in which the Persistent Volumes are specified so that OpenSearch pods are assigned to these nodes.
 
 According to the specified parameters, the `Pod Scheduler` distributes pods to the necessary Kubernetes nodes. For more information, refer to [Pod Scheduler](#pod-scheduler) section.
 
