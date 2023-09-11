@@ -313,15 +313,16 @@ OpenSearch `arbiter` nodes installed to Kubernetes nodes different from `master`
    sysctl -w vm.max_map_count=262144
    ```
 
-  If you deploy OpenSearch to managed Kubernetes cloud, you can add this command as custom command of Kubernetes node initialization. For instance, custom user scripts for Amazon EKS are [EKS Launch Templates](https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html).
+  If you deploy OpenSearch to manage Kubernetes cloud, add this command as a custom command of Kubernetes node initialization. For instance, custom user scripts for Amazon EKS are [EKS Launch Templates](https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html).
 
-  This operation can be performed automatically during installation if `opensearch.sysctl.enabled` is set to `true`, but it requires the permission to run `privileged` containers for the cluster.
+  This operation can be performed automatically during the installation if `opensearch.sysctl.enabled` is set to "true", but it requires the permission to run `privileged` containers for the cluster.
 
-  **Pay attention**: running `privileged` containers is usually denied for public clouds.
+  **Attention**: Running `privileged` containers is usually denied for public clouds.
 
-  To run `privileged` containers you need to look through [Deployment Permissions](#deployment-permissions) section.
-* If you install OpenSearch service on OpenDistro Elasticsearch service you need to execute steps from [Migration from OpenDistro Elasticsearch](#migration-from-opendistro-elasticsearch).
-* Persistent volumes should be created for `master` nodes in `joint` mode and for `master` and `data` nodes in `separate` mode.
+  To run `privileged` containers, refer to the [Deployment Permissions](#deployment-permissions) section.
+
+* If you install OpenSearch service on OpenDistro Elasticsearch service, execute the steps from [Migration from OpenDistro Elasticsearch](#migration-from-opendistro-elasticsearch).
+* Persistent volumes should be created for `master` nodes in the `joint` mode and for `master` and `data` nodes in the `separate` mode.
 
 ## OpenShift
 
@@ -332,22 +333,23 @@ OpenSearch `arbiter` nodes installed to Kubernetes nodes different from `master`
    sysctl -w vm.max_map_count=262144
    ```
 
-  This operation can be performed automatically during installation if `opensearch.sysctl.enabled` is set to `true`, but it requires the permission to run `privileged` containers for the cluster.
+  This operation can be performed automatically during the installation if `opensearch.sysctl.enabled` is set to "true", but it requires the permission to run `privileged` containers for the cluster.
 
-  To run `privileged` containers you need to look through [Deployment Permissions](#deployment-permissions) section.
+  To run `privileged` containers, refer to the [Deployment Permissions](#deployment-permissions) section.
 * The following annotations should be specified for the project:
 
   ```
   oc annotate --overwrite ns ${OS_PROJECT} openshift.io/sa.scc.supplemental-groups="1000/1000"
   oc annotate --overwrite ns ${OS_PROJECT} openshift.io/sa.scc.uid-range="1000/1000"
   ```
-* If you install OpenSearch service on OpenDistro Elasticsearch service you need to execute steps from [Migration from OpenDistro Elasticsearch](#migration-from-opendistro-elasticsearch).
-* Persistent volumes should be created for `master` nodes in `joint` mode and for `master` and `data` nodes in `separate` mode.
+
+* If you install OpenSearch on OpenDistro Elasticsearch service, execute the steps from [Migration from OpenDistro Elasticsearch](#migration-from-opendistro-elasticsearch).
+* Persistent volumes should be created for `master` nodes in the `joint` mode and for `master` and `data` nodes in the `separate` mode.
 
 ## Google Cloud
 
-1. Follow the [guide](https://www.elastic.co/guide/en/elasticsearch/reference/8.4/repository-gcs.html#repository-gcs-using-service-account) to create JSON service account file.
-2. Create secret with JSON in `opensearch` namespace. For example:
+1. Follow the guide at [https://www.elastic.co/guide/en/elasticsearch/reference/8.4/repository-gcs.html#repository-gcs-using-service-account](https://www.elastic.co/guide/en/elasticsearch/reference/8.4/repository-gcs.html#repository-gcs-using-service-account) to create a JSON service account file.
+2. Create the secret with JSON in the `opensearch` namespace. For example:
 
     ```yaml
     kind: Secret
