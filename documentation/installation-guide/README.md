@@ -285,21 +285,21 @@ You also need to specify node names through `opensearch.master.persistence.nodes
 
 According to the specified parameters, the `Pod Scheduler` distributes pods to the necessary Kubernetes nodes. For more information, refer to [Pod Scheduler](#pod-scheduler) section.
 
-### Installation modes
+### Installation Modes
 
 #### Joint
 
-The OpenSearch `joint` installation mode implies that each node has `master`, `data` and `client` roles.
+The OpenSearch `joint` installation mode implies that each node has `master`, `data`, and `client` roles.
 
 #### Separate
 
-The OpenSearch `separate` installation mode implies that each node either has one of the `master`, `data` and `client` roles or a combination of the two. For example, OpenSearch installation has 3 `master` nodes, 2 `data` nodes and 2 `client` nodes, or 3 nodes with `data` and `master` roles and 2 `client` nodes.
+The OpenSearch `separate` installation mode implies that each node either has one of the `master`, `data`, and `client` roles or a combination of the two. For example, OpenSearch installation has 3 `master` nodes, 2 `data` nodes and 2 `client` nodes, or 3 nodes with `data` and `master` roles and 2 `client` nodes.
 
-If `data` and `master` nodes are separated, it is important to specify persistent storages not only for `data` nodes but also for `master` nodes. The size of persistent storage for `master` node should be small. For example, `1Gi`.
+If `data` and `master` nodes are separated, it is important to specify persistent storages not only for `data` nodes but also for `master` nodes. The size of persistent storage for a `master` node should be small. For example, `1Gi`.
 
-#### Deployment with Arbiter Node
+#### Deployment With Arbiter Node
 
-OpenSearch `arbiter` nodes installed to Kubernetes nodes different from `master` provide stability of OpenSearch cluster if `master` nodes went down.
+OpenSearch `arbiter` nodes installed to Kubernetes nodes different from `master` provide stability of the OpenSearch cluster if `master` nodes go down.
 
 **Important**: `arbiter` nodes do not store any indices data, but still need PV to work, the size of persistent storage for `arbiter` node should be small.
 
