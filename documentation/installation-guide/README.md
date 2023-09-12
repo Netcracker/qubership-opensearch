@@ -376,15 +376,15 @@ OpenSearch `arbiter` nodes installed to Kubernetes nodes different from `master`
 
 ## AWS
 
-See [Amazon OpenSearch Prerequisites](/documentation/installation-guide/amazon/README.md#prerequisites) guide.
+For more information, refer to [Amazon OpenSearch Prerequisites](/documentation/installation-guide/amazon/README.md#prerequisites) guide.
 
 # Best Practices and Recommendations
 
 ## HWE
 
-The provided values do not guarantee that these values are correct for all cases. It is a general recommendation. Resources should be calculated and estimated for each project case with test load on the SVT stand, especially the HDD size.
+The provided values do not guarantee that these values are correct for all cases. It is a general recommendation. The resources should be calculated and estimated for each project case with a test load on the SVT stand, especially the HDD size.
 
-The [Amazon guide](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/sizing-domains.html) suggests starting a configuration with `2 vCPU` cores and `8 GiB` of memory for every 100 GiB of storage requirement.
+The Amazon guide suggests starting a configuration with `2 vCPU` cores and `8 GiB` of memory for every 100 GiB of storage requirement. For more information, refer to [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/sizing-domains.html](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/sizing-domains.html).
 
 ### Small
 
@@ -624,7 +624,7 @@ statusProvisioner:
 
 ### Large
 
-Recommended for deployments with high workload and large amount of data.
+Recommended for deployments with high workload and a large amount of data.
 
 | Module                      | CPU    | RAM, Gi | Storage, Gb |
 |-----------------------------|--------|---------|-------------|
@@ -742,7 +742,7 @@ statusProvisioner:
 
 # Parameters
 
-The section lists the configurable parameters of the OpenSearch chart and their default values.
+This section lists the configurable parameters of the OpenSearch chart and their default values.
 
 | Parameter          | Type   | Mandatory | Default value | Description                                                                                                                                                                                                                                            |
 |--------------------|--------|-----------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
