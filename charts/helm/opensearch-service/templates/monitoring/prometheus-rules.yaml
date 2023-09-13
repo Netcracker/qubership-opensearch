@@ -21,21 +21,31 @@ spec:
             severity: high
             namespace: {{ .Release.Namespace }}
             service: {{ .Release.Name }}
-        - alert: OpenSearchDiskUsageAlert
+        - alert: OpenSearchDiskUsageAbove75%Alert
           annotations:
-            description: 'OpenSearch disk usage is above 90%'
-            summary: OpenSearch's disk usage is above 90%
-          expr: 1 - sum(opensearch_fs_total_free_in_bytes{namespace="{{ .Release.Namespace }}"}) / sum(opensearch_fs_total_total_in_bytes{namespace="{{ .Release.Namespace }}"}) > 0.90
+            description: 'OpenSearch disk usage is above 75%'
+            summary: OpenSearch's disk usage is above 75%
+          expr: 1 - sum(opensearch_fs_total_free_in_bytes{namespace="{{ .Release.Namespace }}"}) / sum(opensearch_fs_total_total_in_bytes{namespace="{{ .Release.Namespace }}"}) > 0.75 <= 0.85
+          for: 3m
+          labels:
+            severity: warning
+            namespace: {{ .Release.Namespace }}
+            service: {{ .Release.Name }}
+        - alert: OpenSearchDiskUsageAbove85%Alert
+          annotations:
+            description: 'OpenSearch disk usage is above 85%'
+            summary: OpenSearch's disk usage is above 85%
+          expr: 1 - sum(opensearch_fs_total_free_in_bytes{namespace="{{ .Release.Namespace }}"}) / sum(opensearch_fs_total_total_in_bytes{namespace="{{ .Release.Namespace }}"}) > 0.85 <= 0.95
           for: 3m
           labels:
             severity: high
             namespace: {{ .Release.Namespace }}
             service: {{ .Release.Name }}
-        - alert: OpenSearchDiskTooMuchUsageAlert
+        - alert: OpenSearchDiskUsageAbove95%Alert
           annotations:
-            description: 'OpenSearch disk usage is above 98%'
-            summary: OpenSearch's disk usage is above 98%
-          expr: 1 - sum(opensearch_fs_total_free_in_bytes{namespace="{{ .Release.Namespace }}"}) / sum(opensearch_fs_total_total_in_bytes{namespace="{{ .Release.Namespace }}"}) > 0.98
+            description: 'OpenSearch disk usage is above 95%'
+            summary: OpenSearch's disk usage is above 95%
+          expr: 1 - sum(opensearch_fs_total_free_in_bytes{namespace="{{ .Release.Namespace }}"}) / sum(opensearch_fs_total_total_in_bytes{namespace="{{ .Release.Namespace }}"}) > 0.95
           for: 3m
           labels:
             severity: critical
