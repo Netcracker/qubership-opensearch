@@ -89,6 +89,24 @@ spec:
                   key: password
           image: {{ template "curator.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ template "curator.port" . }}
+            failureThreshold: 5
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ template "curator.port" . }}
+              scheme: {{ eq (include "curator.tlsEnabled" .) "true" | ternary "HTTPS" "HTTP" }}
+            failureThreshold: 5
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
           resources:
             requests:
               memory: {{ default "256Mi" .Values.curator.resources.requests.memory }}
