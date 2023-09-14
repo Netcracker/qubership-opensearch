@@ -91,9 +91,15 @@ integrationTests:
   enabled: true
   tags: smoke
 monitoring:
-  enabled: true
   includeIndices: true
-  monitoringType: prometheus
+  slowQueries:
+    enabled: true
+    topNumber: 10
+    processingIntervalMinutes: 5
+    minSeconds: 5
+    indicesPattern: "*"
+  thresholds:
+    slowQuerySecondsAlert: 10
   nodeSelector:
     role: compute
 dashboards:
