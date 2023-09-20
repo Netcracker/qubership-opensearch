@@ -133,7 +133,10 @@ func (r DisasterRecoveryReconciler) Configure() error {
 
 		if r.cr.Spec.DisasterRecovery.Mode == "active" || r.cr.Spec.DisasterRecovery.Mode == "disable" {
 			comment = "The replication has stopped successfully"
-			err = r.replicationWatcher.checkReplication(r, true, r.logger)
+			err = nil
+			if checkNeeded {
+				err = r.replicationWatcher.checkReplication(r, true, r.logger)
+			}
 			if err == nil && checkNeeded {
 				var indexNames []string
 				indexNames, err = replicationManager.getReplicatedIndices()

@@ -125,7 +125,7 @@ cloud:
 integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: bugfix/stop-procedure-failed-while-failover-with-turned-off-nodes
     docker-image-id: timestamp
     deploy-param: opensearchOperator
   - type: find-latest-deployment-descriptor
@@ -135,7 +135,7 @@ integration:
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: bugfix/stop-procedure-failed-while-failover-with-turned-off-nodes
     prefix: integration-tests
     docker-image-id: timestamp
     deploy-param: opensearchIntegrationTests
@@ -186,7 +186,7 @@ integration:
     deploy-param: kubectl
   - type: scripts
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: bugfix/stop-procedure-failed-while-failover-with-turned-off-nodes
     alias: timestamp
     zip-name: migration-artifacts.zip
     name: migration-artifacts
