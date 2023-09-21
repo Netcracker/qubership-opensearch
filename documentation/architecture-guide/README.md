@@ -1,5 +1,7 @@
+This chapter describes the architectural features of OpenSearch.
+<!-- #GFCFilterMarkerStart# -->
 [[_TOC_]]
-
+<!-- #GFCFilterMarkerEnd# -->
 # Overview
 
 OpenSearch is a powerful open-source and fully free search and analytics engine that serves as a viable alternative to proprietary solutions like Elasticsearch. 
