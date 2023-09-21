@@ -8,23 +8,23 @@ OpenSearch is a powerful open-source and fully free search and analytics engine 
 It is necessary because it enables businesses to implement efficient search functionality within their applications, websites, or data analysis platforms. 
 OpenSearch offers advanced search capabilities, including full-text search, faceted search, and real-time indexing, empowering businesses to deliver fast and accurate search results to their users.
 
-The business value of OpenSearch lies in its ability to enhance user experience, increase customer engagement, and drive better decision-making. 
-By integrating OpenSearch, products can improve search relevance, enabling users to find the desired information quickly and easily. 
+The business value of OpenSearch lies in its ability to enhance the user experience, increase customer engagement, and drive better decision-making. 
+By integrating OpenSearch, products can improve the search relevance, enabling users to find the desired information quickly and easily. 
 This, in turn, leads to improved customer satisfaction, increased conversions, and enhanced retention rates.
 
-In summary, OpenSearch is necessary for businesses as it empowers them to deliver efficient search functionality, improve user experience, make informed decisions through analytics, and realize cost advantages compared to proprietary alternatives.
+In summary, OpenSearch is necessary for businesses as it empowers them to deliver an efficient search functionality, improve the user experience, make informed decisions through analytics, and realize cost advantages compared to proprietary alternatives.
 
 ## Netcracker OpenSearch Delivery and Features
 
 The Netcracker platform provides OpenSearch deployment to Kubernetes/OpenShift using helm chart based on community OpenSearch Helm chart with own operator and additional features.
 The deployment procedure and additional features include the following:
 
-* Support of Netcracker deployment jobs for HA scheme and different configurations. For more detailed information, refer to [Installation Guide](/documentation/installation-guide/README.md).
-* Backup and restore data. For more detailed information, refer to [OpenSearch Curator Guide](https://git.netcracker.com/PROD.Platform.ElasticStack/docker-elastic-curator/-/blob/master/README.md).
-* Monitoring integration with Grafana Dashboard and Prometheus Alerts. For more detailed information, refer to [Monitoring Guide](/documentation/maintenance-guide/monitoring/README.md).
-* User Interface (UI) provided by OpenSearch Dashboards.
-* DBaaS Adapter for OpenSearch integration. For more detailed information, refer to [DBaaS Adapter Guide](https://git.netcracker.com/PROD.Platform.ElasticStack/dbaas-opensearch-adapter/-/blob/master/README.md).
-* Disaster Recovery scheme with data replication. For more detailed information, refer to [Disaster Recovery Guide](/documentation/installation-guide/disaster-recovery/README.md).
+* Support of Netcracker deployment jobs for HA scheme and different configurations. For more information, refer to the [Installation of OpenSearch](/documentation/installation-guide/README.md) section.
+* Backup and restore data. <!-- #GFCFilterMarkerStart# -->For more information, refer to [OpenSearch Curator Guide](https://git.netcracker.com/PROD.Platform.ElasticStack/docker-elastic-curator/-/blob/master/README.md).<!-- #GFCFilterMarkerEnd# -->
+* Monitoring integration with Grafana Dashboard and Prometheus Alerts. For more information, refer to the [OpenSearch Service Monitoring](/documentation/maintenance-guide/monitoring/README.md) section in the _Cloud Platform Monitoring Guide_.
+* User Interface (UI) provided by OpenSearch dashboards.
+* DBaaS Adapter for OpenSearch integration. <!-- #GFCFilterMarkerStart# -->For more information, refer to [DBaaS Adapter Guide](https://git.netcracker.com/PROD.Platform.ElasticStack/dbaas-opensearch-adapter/-/blob/master/README.md).<!-- #GFCFilterMarkerEnd# -->
+* Disaster Recovery scheme with data replication. For more information, refer to the [OpenSearch Disaster Recovery](/documentation/installation-guide/disaster-recovery/README.md) section in the _Cloud Platform Disaster Recovery Guide_.
 
 # OpenSearch Components
 
