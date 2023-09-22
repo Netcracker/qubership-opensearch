@@ -1101,3 +1101,7 @@ allowPrivilegeEscalation: false
 capabilities:
   drop: ["ALL"]
 {{- end -}}
+
+{{- define "opensearch-gke-service-name" -}}
+{{- printf "%s-%s" (include "opensearch.fullname" .) (index .Values.global.disasterRecovery.serviceExport.region) -}}
+{{- end -}}
