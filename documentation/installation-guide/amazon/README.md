@@ -173,7 +173,7 @@ Following are the prerequisites to collect snapshots manually (for example, by `
 
     If there are some errors in the response, check all the required prerequisites. For more information about repository registration, refer to [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html).
 
-    After the manual snapshot repository is registered, you can perform snapshot and restore with `curl` as an OpenSearch user. (See, [Manual backup](/documentation/maintenance-guide/backup/manual-backup-procedure.md) and [Manual recovery](/documentation/maintenance-guide/recovery/manual-recovery-procedure.md) guides).
+    After the manual snapshot repository is registered, you can perform snapshot and restore with `curl` as an OpenSearch user.
 
    **Note**: OpenSearch also provides service indices that are not accessible for snapshot. To create a snapshot, either specify the indices list ("indices": ["index1", "index2"]) or exclude service indices ("indices": "-.kibana*,-.opendistro*").
 
