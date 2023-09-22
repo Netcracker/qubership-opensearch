@@ -28,7 +28,7 @@ The deployment procedure and additional features include the following:
 
 # OpenSearch Components
 
-![Application overview](images/opensearch_components_overview.drawio.png)
+![Application Overview](/documentation/architecture-guide/images/opensearch_components_overview.drawio.png)
 
 ## OpenSearch Operator
 
@@ -90,13 +90,16 @@ After providing status the Status Provisioner pod is auto-removed.
 ## Pre-Install Jobs
 
 The set of pre-install hooks which allow to prepare environment for OpenSearch installation. It includes:
+
 * TLS Init Job - generate self-signed certificates for OpenSearch modules.
 
-# Supported deployment schemes
+# Supported Deployment Schemes
+
 ## On-Prem
+
 ### HA Joint Deployment Scheme
 
-![HA scheme](images/opensearch_on_prem_deploy.drawio.png)
+![HA Scheme](/documentation/architecture-guide/images/opensearch_on_prem_deploy.drawio.png)
 
 Following the above pictures, let us describe the main parts of the OpenSearch K8s deployment:
 
@@ -115,9 +118,10 @@ For a non-HA deployment scheme, it is possible to use one pod of OpenSearch clus
 
 ### HA Separated Deployment Scheme
 
-![HA separated scheme](images/opensearch_on_prem_deploy_separated.drawio.png)
+![HA Separated Scheme](/documentation/architecture-guide/images/opensearch_on_prem_deploy_separated.drawio.png)
 
-In the separated mode it is possible to deploy OpenSearch pods with the different roles and provide more load distribution:
+In the separated mode, it is possible to deploy OpenSearch pods with different roles and provide more load distribution:
+
 * Master nodes perform coordination and partition assignment. They also require small storage to store meta information.
 * Data nodes store indices data.
 * Client nodes accept client request and forward then to corresponding master nodes.
@@ -126,25 +130,27 @@ In the separated mode it is possible to deploy OpenSearch pods with the differen
 
 The Disaster Recovery scheme of OpenSearch deployment assumes that two independent OpenSearch clusters are deployed for both sides on separate Kubernetes environments with indices replication between them.
 
-![DR scheme](images/opensearch_dr_deploy.drawio.png)
+![DR Scheme](/documentation/architecture-guide/images/opensearch_dr_deploy.drawio.png)
 
-The OpenSearch provides replication of indices data between OpenSearch clusters via Cross CLuster Replication plugin (red arrows).
+The OpenSearch provides replication of indices data between OpenSearch clusters via Cross Cluster Replication plugin (red arrows).
 
-More detailed these schemes are described in [Disaster Recovery Guide](/documentation/installation-guide/disaster-recovery/README.md).
+For more information about these schemes, refer to the [OpenSearch Disaster Recovery](/documentation/installation-guide/disaster-recovery/README.md) section in the _Cloud Platform Disaster Recovery Guide_.
 
 ## Integration With Managed Services
 
 ### Google Cloud
-Not Applicable: default HA scheme is used for deployment to Google Cloud.
+
+Not Applicable; the default HA scheme is used for the deployment to Google Cloud.
 
 ### AWS OpenSearch
 
 The OpenSearch Service allows you to deploy OpenSearch supplementary services (Monitoring, DBaaS Adapter, Curator) without deploying OpenSearch, using Amazon OpenSearch connection and credentials. 
 Thus, the features and functions of these services are adopted to Amazon OpenSearch and available as for Netcracker OpenSearch delivery. 
 
-![AWS scheme](images/opensearch_aws_deploy.drawio.png)
+![AWS Scheme](/documentation/architecture-guide/images/opensearch_aws_deploy.drawio.png)
 
-For more information, refer to [Amazon OpenSearch](/documentation/installation-guide/amazon/README.md).
+For more information, refer to the [Integration With Amazon OpenSearch](/documentation/installation-guide/amazon/README.md) section.
 
 ### Azure
-Not Applicable: default HA scheme is used for deployment to Azure.
+
+Not Applicable; the default HA scheme is used for the deployment to Azure.
