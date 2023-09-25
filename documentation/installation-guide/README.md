@@ -378,18 +378,24 @@ See [Amazon OpenSearch Prerequisites](/documentation/installation-guide/amazon/R
 
 ### Automatic Index Creation
 
-It is recommended to disable automatic index creation after OpenSearch installation and create indices with correponding request on applications side. The automatic index creation may lead to unexpected index with default settings and shards which could lead to incorrect behaviour. 
+It is recommended to disable automatic index creation for OpenSearch create indices with correponding request on applications side. 
+The automatic index creation may lead to unexpected index with default settings and shards which could lead to incorrect behaviour. 
 
-To check is automatic index creation enabled or not you need to execute the followinq request:
+to disable automatic index creation you need to specify the following deployment parameter for OpenSearch and perform upgrade operation:
+```yaml
+opensearch:
+  config:
+    persistent.action.auto_create_index: false
+```
+
+To check is automatic index creation enabled or not in runtime you need to execute the followinq request:
 
 ```bash
 GET /_cluster/settings?include_defaults=true
 ```
-
 And check the property: `auto_create_index`.
 
-To disable automatic index creation you need to execute the followinq request:
-
+To disable automatic index creation in runtime you need to execute the followinq request:
 ```bash
 PUT /_cluster/settings
 {
@@ -398,17 +404,6 @@ PUT /_cluster/settings
    }
 }
 ```
-
-If necessary you can specify the pattern of indices for which automatic index creation is enabled:
-```bash
-PUT /_cluster/settings
-{
-   "persistent":{
-      "action.auto_create_index": "test-auto-create-index-*"
-   }
-}
-```
-**NOTE:** Do this only when you are sure that specified indexes are created by some template and cannot lead to issues with automatic index creation.
 
 ## HWE
 
