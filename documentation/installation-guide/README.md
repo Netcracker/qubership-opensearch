@@ -391,7 +391,7 @@ To disable automatic index creation you need to specify the following deployment
 ```yaml
 opensearch:
   config:
-    persistent.action.auto_create_index: false
+    action.auto_create_index: false
 ```
 
 To check is automatic index creation enabled or not in runtime you can execute the following request:
