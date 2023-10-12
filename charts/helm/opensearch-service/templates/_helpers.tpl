@@ -176,7 +176,7 @@ Provider used to generate TLS certificates
 Whether TLS for OpenSearch is enabled
 */}}
 {{- define "opensearch.tlsEnabled" -}}
-  {{- and (not .Values.global.externalOpensearch.enabled) .Values.opensearch.tls.enabled -}}
+  {{- or (and (not .Values.global.externalOpensearch.enabled) .Values.opensearch.tls.enabled) (eq (include "external.useTlsSecret" .) "true") -}}
 {{- end -}}
 
 {{/*
@@ -312,14 +312,18 @@ Define the path to the admin root CA in secret.
 Define the name of the REST certificates secret.
 */}}
 {{- define "opensearch.rest-cert-secret-name" -}}
-{{- if and (not .Values.global.tls.generateCerts.enabled) .Values.opensearch.tls.rest.existingCertSecret }}
-  {{- .Values.opensearch.tls.rest.existingCertSecret -}}
+{{ if eq (include "external.useTlsSecret" .) "true" }}
+  {{- .Values.global.externalOpensearch.tlsSecretName -}}
 {{- else }}
-  {{- if and .Values.global.tls.generateCerts.enabled (eq (include "certProvider" .) "cert-manager") }}
-    {{- template "opensearch.fullname" . -}}-rest-issuer-certs
-  {{- else -}}
-    {{- template "opensearch.fullname" . -}}-rest-certs
-  {{- end }}
+  {{- if and (not .Values.global.tls.generateCerts.enabled) .Values.opensearch.tls.rest.existingCertSecret }}
+    {{- .Values.opensearch.tls.rest.existingCertSecret -}}
+  {{- else }}
+    {{- if and .Values.global.tls.generateCerts.enabled (eq (include "certProvider" .) "cert-manager") }}
+      {{- template "opensearch.fullname" . -}}-rest-issuer-certs
+    {{- else -}}
+      {{- template "opensearch.fullname" . -}}-rest-certs
+    {{- end }}
+  {{- end -}}
 {{- end -}}
 {{- end -}}
 
@@ -1104,4 +1108,8 @@ capabilities:
 
 {{- define "opensearch-gke-service-name" -}}
 {{- printf "%s-%s" (include "opensearch.fullname" .) (index .Values.global.disasterRecovery.serviceExport.region) -}}
+{{- end -}}
+
+{{- define "external.useTlsSecret" -}}
+{{ and (eq (include "external.tlsEnabled" .) "true") (ne .Values.global.externalOpensearch.tlsSecretName "") }}
 {{- end -}}
