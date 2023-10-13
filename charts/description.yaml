@@ -141,7 +141,7 @@ integration:
     deploy-param: opensearchIntegrationTests
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-opensearch
-    location: master
+    location: feature/upgrade_2.10.0
     docker-image-id: timestamp
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
@@ -176,7 +176,7 @@ integration:
     docker-image-id: timestamp
     deploy-param: deploymentStatusProvisioner
   - type: image
-    docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.4.1
+    docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.9.0
     deploy-param: dockerDashboards
   - type: image
     docker-image: artifactorycn.netcracker.com:17064/library/busybox:1.35.0
@@ -186,7 +186,7 @@ integration:
     deploy-param: kubectl
   - type: scripts
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: feature/opensearch_upgrade
     alias: timestamp
     zip-name: migration-artifacts.zip
     name: migration-artifacts
