@@ -411,6 +411,15 @@ PUT /_cluster/settings
 }
 ```
 
+## Number of Shards
+
+The overall goal of choosing a number of shards is to distribute an index evenly across all data nodes in the cluster. However, these shards should not be too large or too numerous. A general guideline is to try to keep shard size between:
+
+* 10–30 GiB for workloads that prioritize low search latency
+* 30–50 GiB for write-heavy workloads such as log analytics
+
+Only performance testing different numbers of shards and different shard sizes can determine the optimal number of shards for your index.
+
 ## HWE
 
 The provided values do not guarantee that these values are correct for all cases. It is a general recommendation. The resources should be calculated and estimated for each project case with a test load on the SVT stand, especially the HDD size.
