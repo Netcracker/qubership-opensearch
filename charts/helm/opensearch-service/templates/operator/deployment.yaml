@@ -69,6 +69,10 @@ spec:
                 secretKeyRef:
                   key: password
                   name: {{ template "opensearch.fullname" . }}-secret
+            {{- if and (eq (include "opensearch.enableDisasterRecovery" .) "true") .Values.global.disasterRecovery.serviceExport.enabled }}
+            - name: OPENSEARCH_GKE_SERVICE
+              value: {{ template "opensearch-gke-service-name" . }}
+            {{ end }}
           resources:
             limits:
               cpu: {{ default "100m" .Values.operator.resources.limits.cpu  }}
