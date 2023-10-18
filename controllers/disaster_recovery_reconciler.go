@@ -1,16 +1,17 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/disasterrecovery"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"net/http"
-	"strings"
-	"time"
 )
 
 const (
@@ -24,13 +25,15 @@ const (
 	usersRecoveryFailedState    = "failed"
 	usersRecoveryIdleState      = "idle"
 	usersRecoveryRunningState   = "running"
+	opensearchGKEServiceEnvVar  = "OPENSEARCH_GKE_SERVICE"
 )
 
 type DisasterRecoveryReconciler struct {
-	cr                 *opensearchservice.OpenSearchService
-	logger             logr.Logger
-	reconciler         *OpenSearchServiceReconciler
-	replicationWatcher ReplicationWatcher
+	cr                       *opensearchservice.OpenSearchService
+	logger                   logr.Logger
+	reconciler               *OpenSearchServiceReconciler
+	replicationWatcher       ReplicationWatcher
+	opensearchGKEServiceName string
 }
 
 type LeaderStats struct {
@@ -48,10 +51,11 @@ type LeaderStats struct {
 func NewDisasterRecoveryReconciler(r *OpenSearchServiceReconciler, cr *opensearchservice.OpenSearchService,
 	logger logr.Logger) DisasterRecoveryReconciler {
 	return DisasterRecoveryReconciler{
-		cr:                 cr,
-		logger:             logger,
-		reconciler:         r,
-		replicationWatcher: r.ReplicationWatcher,
+		cr:                       cr,
+		logger:                   logger,
+		reconciler:               r,
+		replicationWatcher:       r.ReplicationWatcher,
+		opensearchGKEServiceName: os.Getenv(opensearchGKEServiceEnvVar),
 	}
 }
 
@@ -86,11 +90,12 @@ func (r DisasterRecoveryReconciler) Configure() error {
 		}
 		_ = r.updateDisasterRecoveryStatus(status, comment, usersRecoveryState)
 		if r.cr.Spec.DisasterRecovery.Mode == "active" {
-			_ = r.reconciler.enableClientService(r.cr.Name, r.cr.Namespace, r.logger)
+			_ = r.enableClientServices()
 		}
 		r.logger.Info("Disaster recovery status was updated.")
 	}()
 
+	needReturnError := true
 	if crCondition || drConfigHashChanged {
 		r.replicationWatcher.pause(r.logger)
 		r.replicationWatcher.Lock.Lock()
@@ -106,8 +111,7 @@ func (r DisasterRecoveryReconciler) Configure() error {
 		}
 		usersRecoveryState = usersRecoveryDoneState
 
-		r.logger.Info("Disable client service")
-		if err = r.reconciler.disableClientService(r.cr.Name, r.cr.Namespace, r.logger); err != nil {
+		if err = r.disableClientServices(); err != nil {
 			return err
 		}
 		time.Sleep(time.Second * 2)
@@ -120,8 +124,10 @@ func (r DisasterRecoveryReconciler) Configure() error {
 				err = r.removePreviousReplication(replicationManager)
 			}
 			if err == nil {
-				r.logger.Info("Checking existence of active replications")
-				err = r.checkExistingReplications(replicationManager)
+				// If there is no connection with other side, then don't return err to avoid reconcile re-calling
+				if err = r.checkConnectionWithOtherSide(); err != nil {
+					needReturnError = false
+				}
 			}
 			if err == nil {
 				err = r.runReplicationProcess(replicationManager)
@@ -152,8 +158,7 @@ func (r DisasterRecoveryReconciler) Configure() error {
 			}
 			if r.cr.Spec.DisasterRecovery.Mode == "active" {
 				if err == nil {
-					r.logger.Info("Enable client service")
-					err = r.reconciler.enableClientService(r.cr.Name, r.cr.Namespace, r.logger)
+					err = r.enableClientServices()
 				}
 				if err == nil && crCondition && r.cr.Spec.DbaasAdapter != nil {
 					err = r.reconciler.scaleDeploymentForNoWait(r.cr.Spec.DbaasAdapter.Name, r.cr.Namespace, 1, false, r.logger)
@@ -173,7 +178,39 @@ func (r DisasterRecoveryReconciler) Configure() error {
 	} else {
 		r.replicationWatcher.pause(r.logger)
 	}
-	return err
+
+	if needReturnError {
+		return err
+	}
+	return nil
+}
+
+func (r DisasterRecoveryReconciler) enableClientServices() error {
+	r.logger.Info("Enable client service")
+	if err := r.reconciler.enableClientService(r.cr.Name, r.cr.Namespace, r.logger); err != nil {
+		return err
+	}
+	if len(r.opensearchGKEServiceName) != 0 {
+		r.logger.Info("Enable GKE client service")
+		if err := r.reconciler.enableClientService(r.opensearchGKEServiceName, r.cr.Namespace, r.logger); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r DisasterRecoveryReconciler) disableClientServices() error {
+	r.logger.Info("Disable client service")
+	if err := r.reconciler.disableClientService(r.cr.Name, r.cr.Namespace, r.logger); err != nil {
+		return err
+	}
+	if len(r.opensearchGKEServiceName) != 0 {
+		r.logger.Info("Disable GKE client service")
+		if err := r.reconciler.disableClientService(r.opensearchGKEServiceName, r.cr.Namespace, r.logger); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // updateDisasterRecoveryStatus updates state of Disaster Recovery switchover
@@ -341,25 +378,32 @@ func (r DisasterRecoveryReconciler) buildAdapterRestClient() *util.RestClient {
 	return util.NewRestClient(r.cr.Spec.DbaasAdapter.AdapterAddress, client, credentials)
 }
 
-func (r DisasterRecoveryReconciler) checkExistingReplications(replicationManager ReplicationManager) error {
-	responseBody, err := replicationManager.restClient.SendRequestWithStatusCodeCheck(http.MethodGet, leaderStatsPath, nil)
+// Check connection with other side to prevent a situation with stand-by mode on both sides.
+// If operator received empty response (EOF error), it means service's endpoints on the other side are up, so the other side is active.
+func (r DisasterRecoveryReconciler) checkConnectionWithOtherSide() error {
+	r.logger.Info("Checking connection with other side")
+
+	cmName := r.cr.Spec.DisasterRecovery.ConfigMapName
+	configMap, err := r.reconciler.findConfigMap(cmName, r.cr.Namespace, r.logger)
 	if err != nil {
-		r.logger.Error(err, "An error occurred during getting OpenSearch leader stats")
 		return err
 	}
-	var leaderStats LeaderStats
-	err = json.Unmarshal(responseBody, &leaderStats)
-	if err != nil {
-		r.logger.Error(err, "An error occurred during unmarshalling OpenSearch leader stats response")
-		return err
-	}
-	if len(leaderStats.IndexStats) > 0 {
-		r.logger.Error(err, "There is active replication on the other side. To move current side into standby mode, need to move opposite side to active mode first.")
-		return fmt.Errorf("there is active replication on the other side")
+	otherSideURL := configMap.Data[replicationRemoteServiceKey]
+
+	client := http.Client{
+		Timeout: 5 * time.Second,
 	}
 
-	r.logger.Info("There are no replications from the other side")
-	return nil
+	_, err = client.Get(fmt.Sprintf("http://%s", otherSideURL))
+
+	if err != nil && strings.Contains(err.Error(), "EOF") {
+		r.logger.Info("Other side is active")
+		return nil
+	}
+
+	r.logger.Error(err, "Operator can't connect to the other side, so there is active replication on the other side. "+
+		"To move current side into standby mode, need to move opposite side to active mode first.")
+	return fmt.Errorf("there is active replication on the other side")
 }
 
 func (r DisasterRecoveryReconciler) getReplicationManager() ReplicationManager {
