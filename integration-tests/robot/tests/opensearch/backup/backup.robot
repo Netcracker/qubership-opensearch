@@ -9,10 +9,6 @@ ${RETRY_INTERVAL}                10s
 ${OPENSEARCH_BACKUP_INDEX}       opensearch_backup_index
 
 *** Settings ***
-Library  String
-Library  Collections
-Library  RequestsLibrary
-Library  ../shared/lib/FileSystemLibrary.py
 Resource  ../shared/keywords.robot
 Suite Setup  Prepare
 Test Teardown  Delete Data
@@ -68,6 +64,29 @@ Full Restore
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Restore Status  ${response.content}
 
+Full Restore By Timestamp
+    [Arguments]  ${backup_ts}
+    ${restore_data}=  Set Variable  {"ts":"${backup_ts}"}
+    ${response}=  Post Request  curatorsession  /restore  data=${restore_data}  headers=${headers}
+    Should Be Equal As Strings  ${response.status_code}  200
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Check Restore Status  ${response.content}
+
+Get Backup Timestamp
+    [Arguments]  ${backup_id}
+    ${response}=  Get Request  curatorsession  /listbackups/${backup_id}
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${content}=  Convert Json ${response.content} To Type
+    [Return]  ${content['ts']}
+
+Find Backup ID By Timestamp
+    [Arguments]  ${backup_ts}
+    ${find_data}=  Create Dictionary  ts=${backup_ts}
+    ${response}=  Get Request  curatorsession  /find  json=${find_data}
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${content}=  Convert Json ${response.content} To Type
+    [Return]  ${content['id']}
+
 Check Backup Status
     [Arguments]  ${backup_id}
     ${response}=  Get Request  curatorsession  /listbackups/${backup_id}
@@ -105,6 +124,16 @@ Generate And Add Unique Data To Index
     Create Document ${document} For Index ${index_name}
 
 *** Test Cases ***
+Find Backup By Timestamp
+    [Tags]  opensearch  backup  find_backup
+    Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-1
+    Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-2
+    ${backup_id}=  Granular Backup
+    ${backup_ts}=  Get Backup Timestamp  ${backup_id}
+    ${found_backup_id}=  Find Backup ID By Timestamp  ${backup_ts}
+    Should Be Equal As Strings  ${backup_id}  ${found_backup_id}
+    [Teardown]  Run Keywords  Delete Data  AND  Delete Backup  ${backup_id}
+
 Full Backup And Restore
     [Tags]  opensearch  backup  full_backup
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}
@@ -115,6 +144,7 @@ Full Backup And Restore
     Full Restore  ${backup_id}  ["${OPENSEARCH_BACKUP_INDEX}"]
     Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_INDEX}
     Check That Document Exists By Field  ${OPENSEARCH_BACKUP_INDEX}  name  ${document_name}
+    [Teardown]  Run Keywords  Delete Data  AND  Delete Backup  ${backup_id}
 
 Granular Backup And Restore
     [Tags]  opensearch  backup  granular_backup
@@ -131,6 +161,22 @@ Granular Backup And Restore
     Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_INDEX}-1
     Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_INDEX}-2
     Check That Document Exists By Field  ${OPENSEARCH_BACKUP_INDEX}-2  age  10
+    [Teardown]  Run Keywords  Delete Data  AND  Delete Backup  ${backup_id}
+
+Granular Backup And Restore By Timestamp
+    [Tags]  opensearch  backup  granular_backup
+    Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-1
+    Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-2
+    ${backup_id}=  Granular Backup
+    ${backup_ts}=  Get Backup Timestamp  ${backup_id}
+
+    Delete Data
+
+    Full Restore By Timestamp  ${backup_ts}
+    Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_INDEX}-1
+    Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_INDEX}-2
+    Check That Document Exists By Field  ${OPENSEARCH_BACKUP_INDEX}-2  age  10
+    [Teardown]  Run Keywords  Delete Data  AND  Delete Backup  ${backup_id}
 
 Delete Backup By ID
     [Tags]  opensearch  backup  backup_deletion
