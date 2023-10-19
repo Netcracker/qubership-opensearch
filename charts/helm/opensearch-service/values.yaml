@@ -1,6 +1,6 @@
 dashboards:
   enabled: false
-  dockerImage: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.4.1
+  dockerImage: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.9.0
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
