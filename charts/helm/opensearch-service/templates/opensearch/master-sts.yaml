@@ -1,6 +1,10 @@
 {{- if not .Values.global.externalOpensearch.enabled }}
+{{- $oldSecretName := printf "%s-secret-old" (include "opensearch.fullname" .) }}
+{{- $secretName := printf "%s-secret" (include "opensearch.fullname" .) }}
+{{- if and (lookup "v1" "Secret" .Release.Namespace $secretName) (not (lookup "v1" "Secret" .Release.Namespace $oldSecretName)) }}
 {{- if not .Values.opensearch.tls.enabled }}
-{{ fail "OpenSearch must be installed with TLS for REST layer ('.Values.opensearch.tls.enabled' must be set to 'true')" }}
+{{ fail "\nError: You cannot upgrade opensearch-service 1.0.0+ (with OpenSearch 2.x inside) over installed opensearch-service lower than 0.2.4 with disabled TLS for REST layer. \nThe following options are possible: \n1. Enable TLS with the property 'opensearch.tls.enabled': 'true'. \n2. Migrate to new version 1.0.0+ via version 0.2.4+ (install it firstly, and then install required one). \nFind more information in corresponding release documentaiton." }}
+{{- end }}
 {{- end }}
 {{- if .Values.opensearch.master.enabled }}
 apiVersion: apps/v1
