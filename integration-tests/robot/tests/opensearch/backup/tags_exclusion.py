@@ -17,4 +17,6 @@ def get_excluded_tags(environ) -> list:
         excluded_tags.append('unauthorized_access')
     if "full_backup" not in environ.get('TAGS'):
         excluded_tags.append('full_backup')
+    if not environ.get('S3_ENABLED') == 'true':
+        excluded_tags.append('s3_storage')
     return excluded_tags

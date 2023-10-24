@@ -155,6 +155,30 @@ spec:
                   key: password
                   name: {{ template "opensearch.fullname" . }}-curator-secret
             {{- end }}
+            {{- if .Values.curator.enabled }}
+            - name: RABBITMQ_BACKUP_DAEMON
+              value: "rabbitmq-backup-daemon"
+            - name: S3_ENABLED
+              value: {{ .Values.client.snapshots.s3.enabled }}
+            - name: S3_URL
+              value: {{ .Values.client.snapshots.s3.url | quote }}
+            - name: S3_BUCKET
+              value: {{ .Values.client.snapshots.s3.bucket | quote }}
+            - name: S3_KEY_ID
+              {{- if .Values.client.snapshots.s3.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: opensearch-s3-secret
+                  key: s3-key-id
+              {{- end }}
+            - name: S3_KEY_SECRET
+              {{- if .Values.client.s3.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: opensearch-s3-secret
+                  key: s3-key-secret
+              {{- end }}
+            {{- end }}
             {{- if .Values.integrationTests.statusWritingEnabled }}
             - name: STATUS_CUSTOM_RESOURCE_GROUP
               value: apps
