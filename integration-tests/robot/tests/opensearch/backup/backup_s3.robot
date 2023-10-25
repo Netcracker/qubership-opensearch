@@ -13,7 +13,7 @@ Library           S3BackupLibrary  url=%{S3_URL}
 *** Variables ***
 ${OPENSEARCH_BACKUP_INDEX}   opensearch_backup_index
 ${S3_BUCKET}                 %{S3_BUCKET}
-${BACKUP_STORAGE_PATH}       backup-storage
+${BACKUP_STORAGE_PATH}       /backup-storage
 ${TIMEOUT}                   100
 
 *** Test Cases ***
