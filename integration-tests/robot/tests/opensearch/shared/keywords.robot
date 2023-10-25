@@ -6,13 +6,6 @@ ${OPENSEARCH_USERNAME}           %{OPENSEARCH_USERNAME}
 ${OPENSEARCH_PASSWORD}           %{OPENSEARCH_PASSWORD}
 ${OPENSEARCH_MASTER_NODES_NAME}  %{OPENSEARCH_MASTER_NODES_NAME}
 ${OPENSEARCH_NAMESPACE}          %{OPENSEARCH_NAMESPACE}
-${OPENSEARCH_CURATOR_USERNAME}   %{OPENSEARCH_CURATOR_USERNAME=}
-${OPENSEARCH_CURATOR_PASSWORD}   %{OPENSEARCH_CURATOR_PASSWORD=}
-${OPENSEARCH_CURATOR_PROTOCOL}   %{OPENSEARCH_CURATOR_PROTOCOL}
-${OPENSEARCH_CURATOR_HOST}       %{OPENSEARCH_CURATOR_HOST}
-${OPENSEARCH_CURATOR_PORT}       %{OPENSEARCH_CURATOR_PORT}
-${RETRY_TIME}                    300s
-${RETRY_INTERVAL}                10s
 
 *** Settings ***
 Library  Collections
@@ -24,21 +17,9 @@ Library  String
 Library  json
 
 *** Keywords ***
-Prepare
-    Prepare OpenSearch
-    Prepare Curator
-    Delete Data
-
 Prepare OpenSearch
     [Arguments]  ${need_auth}=True
     Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}  ${need_auth}
-
-Prepare Curator
-    ${auth}=  Create List  ${OPENSEARCH_CURATOR_USERNAME}  ${OPENSEARCH_CURATOR_PASSWORD}
-    ${root_ca_path}=  Set Variable  /certs/curator/root-ca.pem
-    ${root_ca_exists}=  File Exists  ${root_ca_path}
-    ${verify}=  Set Variable If  ${root_ca_exists}  ${root_ca_path}  ${True}
-    Create Session  curatorsession  ${OPENSEARCH_CURATOR_PROTOCOL}://${OPENSEARCH_CURATOR_HOST}:${OPENSEARCH_CURATOR_PORT}  auth=${auth}  verify=${verify}
 
 Login To OpenSearch
     [Arguments]  ${username}  ${password}  ${need_auth}=True
