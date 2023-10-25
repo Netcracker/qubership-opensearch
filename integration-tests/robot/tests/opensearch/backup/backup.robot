@@ -6,14 +6,9 @@ ${OPENSEARCH_BACKUP_INDEX}       opensearch_backup_index
 
 *** Settings ***
 Resource  ../shared/keywords.robot
+Resource  keywords.robot
 Suite Setup  Prepare
 Test Teardown  Delete Data
-
-*** Keywords ***
-Prepare
-    Prepare OpenSearch
-    Prepare Curator
-    Delete Data
 
 *** Test Cases ***
 Find Backup By Timestamp

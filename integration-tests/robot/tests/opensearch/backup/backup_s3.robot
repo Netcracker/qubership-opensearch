@@ -1,5 +1,6 @@
 *** Settings ***
 Resource          ../shared/keywords.robot
+Resource          keywords.robot
 Suite Setup       Prepare
 Test Teardown     Delete Data
 
