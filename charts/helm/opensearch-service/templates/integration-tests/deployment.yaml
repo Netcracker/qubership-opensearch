@@ -156,8 +156,6 @@ spec:
                   name: {{ template "opensearch.fullname" . }}-curator-secret
             {{- end }}
             {{- if .Values.curator.enabled }}
-            - name: RABBITMQ_BACKUP_DAEMON
-              value: "rabbitmq-backup-daemon"
             - name: S3_ENABLED
               value: {{ .Values.client.snapshots.s3.enabled }}
             - name: S3_URL
