@@ -13,7 +13,7 @@ Library           S3BackupLibrary  url=%{S3_URL}
 *** Variables ***
 ${OPENSEARCH_BACKUP_INDEX}   opensearch_backup_index
 ${S3_BUCKET}                 %{S3_BUCKET}
-${BACKUP_STORAGE_PATH}       /backup-storage
+${BACKUP_STORAGE_PATH}       backup-storage
 ${TIMEOUT}                   10
 
 *** Test Cases ***
@@ -21,6 +21,8 @@ Full Backup And Restore On S3 Storage
     [Tags]  opensearch  backup  full_backup  s3_storage  full_backup_s3
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}
     ${backup_id}=  Full Backup
+
+    sleep  ${TIMEOUT}
 
     Delete Data
 
@@ -45,6 +47,8 @@ Granular Backup And Restore On S3 Storage
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-1
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-2
     ${backup_id}=  Granular Backup
+
+    sleep  ${TIMEOUT}
 
     ${response}=  Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
     Should Be Equal As Strings  ${response.status_code}  200
