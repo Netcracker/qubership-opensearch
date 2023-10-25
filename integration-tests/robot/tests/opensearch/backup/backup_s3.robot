@@ -52,7 +52,7 @@ Granular Backup And Restore On S3 Storage
     Update Document ${document} For Index ${OPENSEARCH_BACKUP_INDEX}-2
 
     #Check backup created in S3
-    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}/granular    backup_id=$${backup_id}
+    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}/granular    backup_id=${backup_id}
     Should Be True  ${backup_file_exist}
 
     Full Restore  ${backup_id}  ["${OPENSEARCH_BACKUP_INDEX}-1", "${OPENSEARCH_BACKUP_INDEX}-2"]
