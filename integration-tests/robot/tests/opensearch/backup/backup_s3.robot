@@ -26,7 +26,7 @@ Full Backup And Restore On S3 Storage
     Delete Data
 
     #Check backup created in S3
-    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}    backup_id="${backup_id}"
+    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}    backup_id=${backup_id}/
     Should Be True  ${backup_file_exist}
 
     Full Restore  ${backup_id}  ["${OPENSEARCH_BACKUP_INDEX}"]
@@ -37,7 +37,7 @@ Full Backup And Restore On S3 Storage
     Delete Backup  ${backup_id}
     # evicting backup files takes some time
     sleep  ${TIMEOUT}
-    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}    backup_id="${backup_id}"
+    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}    backup_id=${backup_id}/
     Should Not Be True  ${backup_file_exist}
     [Teardown]  Run Keywords  Delete Data
 
@@ -55,7 +55,7 @@ Granular Backup And Restore On S3 Storage
     Update Document ${document} For Index ${OPENSEARCH_BACKUP_INDEX}-2
 
     #Check backup created in S3
-    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}/granular    backup_id="${backup_id}"
+    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}/granular    backup_id=${backup_id}/
     Should Be True  ${backup_file_exist}
 
     Full Restore  ${backup_id}  ["${OPENSEARCH_BACKUP_INDEX}-1", "${OPENSEARCH_BACKUP_INDEX}-2"]
@@ -67,6 +67,6 @@ Granular Backup And Restore On S3 Storage
     Delete Backup  ${backup_id}
     # evicting backup files takes some time
     sleep  ${TIMEOUT}
-    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}/granular    backup_id="${backup_id}"
+    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}/granular    backup_id=${backup_id}/
     Should Not Be True  ${backup_file_exist}
     [Teardown]  Run Keywords  Delete Data
