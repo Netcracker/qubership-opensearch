@@ -659,7 +659,7 @@ opensearch:
     plugins.security.audit.config.log4j.level: INFO
     plugins.security.unsupported.restapi.allow_securityconfig_modification: true
     plugins.security.restapi.roles_enabled: ["all_access", "security_rest_api_access"]
-    plugins.security.restapi.password_score_based_validation_strength: fair
+    plugins.security.restapi.password_score_based_validation_strength: weak
     plugins.security.nodes_dn:
       - CN=opensearch-node,OU=Opensearch,O=Opensearch,L=Opensearch,C=CA
     #Change it to generated certificate parameters
