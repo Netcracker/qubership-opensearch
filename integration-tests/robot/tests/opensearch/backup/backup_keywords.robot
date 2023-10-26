@@ -35,6 +35,16 @@ Granular Backup
     ...  Check Backup Status  ${response.content}
     [Return]  ${response.content}
 
+Delete Data
+    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}
+    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
+    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-2
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Run Keywords
+    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}  AND
+    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}-1  AND
+    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}-2
+
 Delete Backup
     [Arguments]  ${backup_id}
     ${response}=  Post Request  curatorsession  /evict/${backup_id}

@@ -53,16 +53,6 @@ Delete OpenSearch Index
     ${response}=  Delete Request  opensearch  /${name}
     [Return]  ${response}
 
-Delete Data
-    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}
-    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
-    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-2
-    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Run Keywords
-    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}  AND
-    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}-1  AND
-    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}-2
-
 Check OpenSearch Index Exists
     [Arguments]  ${name}
     ${response}=  Get OpenSearch Index  ${name}
