@@ -1,13 +1,486 @@
+The following topics are covered in this chapter:
+
+[[_TOC_]]
+
 This section provides detailed troubleshooting procedures for the OpenSearch cluster.
 
-# Cluster State
+# Prometheus Alerts
+
+## OpenSearchCPULoadAlert
+
+### Description
+
+One of OpenSearch pods uses 95% of the CPU limit.
+
+For more information, refer to [CPU Overload](scenarios/cpu_overload.md).
+
+### Possible Causes
+
+- Insufficient CPU resources allocated to OpenSearch pods.
+- Heavy search request.
+- Indexing workload.
+
+### Impact
+
+- Increased response time and potential slowdown of OpenSearch requests.
+- Degraded performance of services used the OpenSearch.
+
+### Actions for Investigation
+
+1. Get the statistics of cluster nodes using the following command:
+
+   ```
+   curl -X GET 'http://localhost:9200/_nodes/stats/'
+   ```
+
+2. Monitor the CPU usage trends in OpenSearch monitoring dashboard.
+3. Review OpenSearch logs for any performance related issues.
+
+### Recommended Actions to Resolve Issue
+
+1. Check the required resources and increase the CPU limit if it is still within recommended limits.
+2. Add additional data nodes to redistribute the load.
+
+## OpenSearchDiskUsageAbove75%Alert
+
+### Description
+
+One of OpenSearch pods uses 75% of the disk.
+
+For more information, refer to [Data Nodes are Out of Space](#data-nodes-are-out-of-space).
+
+### Possible Causes
+
+- Low space on the disk.
+- Failed disks.
+- Insufficient disk resources allocated to OpenSearch pods.
+
+### Impact
+
+- Prospective problems with shards allocation and the impossibility to write to the OpenSearch.
+
+### Actions for Investigation
+
+1. Retrieve the statistics of all the nodes in the cluster, using the following command:
+
+   ```
+   curl -X GET 'http://localhost:9200/_nodes/stats/'
+   ```
+
+2. Monitor the disk usage trends in OpenSearch monitoring dashboard.
+
+### Recommended Actions to Resolve Issue
+
+1. Increase disk space for OpenSearch if it's possible.
+2. If all the data nodes are running low on disk space or some disks are failed, you need to add more data nodes to the cluster.
+
+## OpenSearchDiskUsageAbove85%Alert
+
+### Description
+
+One of OpenSearch pods uses 85% of the disk.
+
+For more information, refer to [Data Nodes are Out of Space](#data-nodes-are-out-of-space).
+
+### Possible Causes
+
+- Low space on the disk.
+- Failed disks.
+- Insufficient disk resources allocated to OpenSearch pods.
+
+### Impact
+
+- Increased response time and potential slowdown of OpenSearch requests.
+- Inability to allocate shards to nodes with exceeded 85% disk limit.
+
+### Actions for Investigation
+
+1. Retrieve the statistics of all the nodes in the cluster, using the following command:
+
+   ```
+   curl -X GET 'http://localhost:9200/_nodes/stats/'
+   ```
+
+2. Monitor the disk usage trends in OpenSearch monitoring dashboard.
+
+### Recommended Actions to Resolve Issue
+
+1. Increase disk space for OpenSearch if it's possible.
+2. If all the data nodes are running low on disk space or some disks are failed, you need to add more data nodes to the cluster.
+
+## OpenSearchDiskUsageAbove95%Alert
+
+### Description
+
+One of OpenSearch pods uses 95% of the disk.
+
+For more information, refer to [Data Nodes are Out of Space](#data-nodes-are-out-of-space).
+
+### Possible Causes
+
+- Low space on the disk.
+- Failed disks.
+- Insufficient disk resources allocated to OpenSearch pods.
+
+### Impact
+
+- Inability to write to OpenSearch indices that has one or more shards allocated on the problem node, and that has at least one disk exceeding the flood stage.
+
+### Actions for Investigation
+
+1. Retrieve the statistics of all the nodes in the cluster, using the following command:
+
+   ```
+   curl -X GET 'http://localhost:9200/_nodes/stats/'
+   ```
+
+2. Monitor the disk usage trends in OpenSearch monitoring dashboard.
+
+### Recommended Actions to Resolve Issue
+
+1. Increase disk space for OpenSearch if it's possible.
+2. If all the data nodes are running low on disk space or some disks are failed, add more data nodes to the cluster.
+
+## OpenSearchMemoryUsageAlert
+
+### Description
+
+One of OpenSearch pods uses 95% of the memory limit.
+
+For more information, refer to [Memory Limit](scenarios/memory_limit.md).
+
+### Possible Causes
+
+- Insufficient memory resources allocated to OpenSearch pods.
+- Heavy workload during execution.
+
+### Impact
+
+- Potential out-of-memory errors and OpenSearch cluster instability.
+- Degraded performance of services used the OpenSearch.
+
+### Actions for Investigation
+
+1. Get the statistics of the cluster nodes using the following command:
+
+   ```
+   curl -X GET 'http://localhost:9200/_nodes/stats/'
+   ```
+
+2. Monitor the memory usage trends in OpenSearch monitoring dashboard.
+3. Review OpenSearch logs for memory related errors.
+
+### Recommended Actions to Resolve Issue
+
+1. Try to increase memory request, memory limit and heap size for OpenSearch.
+2. Add data nodes to redistribute the load.
+
+## OpenSearchHeapMemoryUsageAlert
+
+### Description
+
+Heap memory usage by one of the pods in the OpenSearch cluster came close to the specified limit.
+
+For more information, refer to [Memory Limit](scenarios/memory_limit.md).
+
+### Possible Causes
+
+- Insufficient memory resources allocated to OpenSearch pods.
+- Heavy workload during execution.
+
+### Impact
+
+- Potentially lead to the increase of response times or crashes.
+- Degraded performance of services used the OpenSearch.
+
+### Actions for Investigation
+
+1. Get the statistics of the cluster nodes using the following command:
+
+   ```
+   curl -X GET 'http://localhost:9200/_nodes/stats/'
+   ```
+
+2. Monitor the heap memory usage trends in OpenSearch monitoring dashboard.
+3. Review OpenSearch logs for memory related errors.
+
+### Recommended Actions to Resolve Issue
+
+1. Try to increase heap size for OpenSearch.
+2. Add data nodes to redistribute the load.
+
+## OpenSearchIsDegradedAlert
+
+### Description
+
+OpenSearch cluster is degraded, that is, at least one of the nodes have failed, but cluster is able to work.
+
+For more information, refer to [Cluster Status is Failed or Degraded](#cluster-status-is-failed-or-degraded).
+
+### Possible Causes
+
+- One or more replica shards unassigned.
+- OpenSearch pod failures or unavailability.
+- Resource constraints impacting OpenSearch pod performance.
+
+### Impact
+
+- Reduced or disrupted functionality of the OpenSearch cluster.
+- Potential impact on services and processes relying on the OpenSearch.
+
+### Actions for Investigation
+
+1. Check the status of OpenSearch pods.
+2. Check the health of the cluster, using the following API:
+
+   ```
+   curl -X GET 'http://localhost:9200/_cluster/health?pretty'
+   ```
+
+3. Review logs of OpenSearch pods for any errors or issues.
+4. Verify resource utilization of OpenSearch pods (CPU, memory).
+
+### Recommended Actions to Resolve Issue
+
+1. Investigate issues with unassigned shards.
+2. Restart or redeploy OpenSearch pods if they are in a failed state.
+3. Investigate and address any resource constraints affecting the OpenSearch pod performance.
+
+## OpenSearchIsDownAlert
+
+### Description
+
+OpenSearch cluster is down, and there are no available pods.
+
+For more information, refer to [Cluster Status is N/A](#cluster-status-is-na) and [Cluster Status is Failed or Degraded](#cluster-status-is-failed-or-degraded).
+
+### Possible Causes
+
+- Network issues affecting the OpenSearch pod communication.
+- OpenSearch's storage is corrupted.
+- Lack of memory or CPU.
+- Long garbage collection time.
+- One or more primary shards are not allocated in the cluster.
+
+### Impact
+
+- Complete unavailability of the OpenSearch cluster.
+- Services and processes relying on the OpenSearch will fail.
+
+### Actions for Investigation
+
+1. Check the status of OpenSearch pods.
+2. Check the health of the cluster, using the following API:
+
+   ```
+   curl -X GET 'http://localhost:9200/_cluster/health?pretty'
+   ```
+
+3. Review logs of OpenSearch pods for any errors or issues.
+4. Verify resource utilization of OpenSearch pods (CPU, memory).
+
+### Recommended Actions to Resolve Issue
+
+1. Check the network connectivity to the OpenSearch pods.
+2. Check the OpenSearch storage for free space or data corruption.
+3. Restart or redeploy all OpenSearch pods at once.
+
+## OpenSearchDBaaSIsDownAlert
+
+### Description
+
+OpenSearch DBaaS adapter is not working.
+
+### Possible Causes
+
+- Incorrect configuration parameters, i.e. credentials.
+- OpenSearch is down.
+
+### Impact
+
+- Complete unavailability of the OpenSearch DBaaS adapter.
+- Services and processes relying on the OpenSearch DBaaS adapter will fail.
+
+### Actions for Investigation
+
+1. Monitor the DBaaS adapter status in OpenSearch monitoring dashboard.
+2. Review logs of DBaaS adapter pod for any errors or issues.
+
+### Recommended Actions to Resolve Issue
+
+1. Correct the OpenSearch DBaaS adapter configuration parameters.
+2. Investigate problems with the OpenSearch.
+
+## OpenSearchLastBackupHasFailedAlert
+
+### Description
+
+The last OpenSearch backup has finished with `Failed` status.
+
+For more information, refer to [Last Backup Has Failed](#last-backup-has-failed).
+
+### Possible Causes
+
+- Unavailable or broken backup storage (`Persistent Volume` or `S3`).
+- Network issues affecting the OpenSearch and curator pod communication.
+
+### Impact
+
+- Unavailable backup for OpenSearch and inability to restore it in case of disaster.
+
+### Actions for Investigation
+
+1. Monitor the curator state on Backup Daemon Monitoring dashboard.
+2. Review OpenSearch curator logs for investigation of cases the issue.
+3. Check backup storage.
+
+### Recommended Actions to Resolve Issue
+
+1. Fix issues with backup storage if necessary.
+2. Follow [Last Backup Has Failed](#last-backup-has-failed) for additional steps.
+
+## OpenSearchQueryIsTooSlowAlert
+
+### Description
+
+Execution time of one of index queries in the OpenSearch exceeds the specified threshold.
+
+This threshold can be overridden with parameter `monitoring.thresholds.slowQuerySecondsAlert` described in [OpenSearch monitoring](/documentation/installation-guide/README.md#monitoring) parameters.
+
+### Possible Causes
+
+- Insufficient resources allocated to OpenSearch pods.
+
+### Impact
+
+- The query takes too long.
+
+### Actions for Investigation
+
+1. Monitor queries in `OpenSearch Slow Queries` monitoring dashboard.
+2. Review OpenSearch logs for investigation of cases the issue.
+
+### Recommended Actions to Resolve Issue
+
+1. Try to increase resources requests and limits and heap size for OpenSearch.
+
+## OpenSearchReplicationDegradedAlert
+
+### Description
+
+Replication between two OpenSearch clusters in Disaster Recovery mode has `degraded` status.
+
+For more information, refer to [OpenSearch Disaster Recovery Health](#opensearch-disaster-recovery-health).
+
+### Possible Causes
+
+- Replication for some indices does not work correctly.
+- Replication status for some indices is `failed`.
+- Some indices in OpenSearch have `red` status.
+
+### Impact
+
+- Some required indices are not replicated from `active` to `standby` side.
+
+### Actions for Investigation
+
+1. Monitor replication in `OpenSearch Replication` monitoring dashboard.
+2. Review operator and OpenSearch logs for investigation of cases the issue.
+
+### Recommended Actions to Resolve Issue
+
+1. Check solutions described in [OpenSearch Disaster Recovery Health](#opensearch-disaster-recovery-health) section.
+
+## OpenSearchReplicationFailedAlert
+
+### Description
+
+Replication between two OpenSearch clusters in Disaster Recovery mode has `failed` status.
+
+For more information, refer to [OpenSearch Disaster Recovery Health](#opensearch-disaster-recovery-health).
+
+### Possible Causes
+
+- Replication for all indices does not work correctly.
+- Replication rule does not exist.
+- Some error during replication check occurs.
+
+### Impact
+
+- All required indices are not replicated from `active` to `standby` side.
+
+### Actions for Investigation
+
+1. Monitor replication in `OpenSearch Replication` monitoring dashboard.
+2. Review operator and OpenSearch logs for investigation of cases the issue.
+
+### Recommended Actions to Resolve Issue
+
+1. Check solutions described in [OpenSearch Disaster Recovery Health](#opensearch-disaster-recovery-health) section.
+
+## OpenSearchReplicationLeaderConnectionLostAlert
+
+### Description
+
+`follower` OpenSearch cluster has lost connection with `leader` OpenSearch cluster in Disaster Recovery mode.
+
+### Possible Causes
+
+- Network issues affecting the OpenSearch clusters communication.
+- Dead `leader` OpenSearch cluster.
+
+### Impact
+
+- Replication from `active` to `standby` side doesn't work.
+
+### Actions for Investigation
+
+1. Monitor replication in `OpenSearch Replication` monitoring dashboard.
+2. Check connectivity between Kubernetes clusters.
+3. Review operator and OpenSearch logs in both OpenSearch clusters.
+
+### Recommended Actions to Resolve Issue
+
+1. Fix network issues between Kubernetes.
+2. Restart or redeploy `leader` OpenSearch cluster.
+
+## OpenSearchReplicationTooHighLagAlert
+
+### Description
+
+The documents lag of replication between two OpenSearch clusters comes close to the specified limit.
+
+This limit can be overridden with parameter `monitoring.thresholds.lagAlert` described in [OpenSearch monitoring](/documentation/installation-guide/README.md#monitoring) parameters.
+
+### Possible Causes
+
+- Insufficient resources allocated to OpenSearch pods.
+- Network issues affecting the OpenSearch clusters communication.
+
+### Impact
+
+- Some data may be lost if the `active` Kubernetes cluster fails.
+
+### Actions for Investigation
+
+1. Monitor resources usage trends in OpenSearch monitoring dashboard.
+2. Monitor replication in `OpenSearch Replication` monitoring dashboard.
+3. Review operator and OpenSearch logs in both OpenSearch clusters.
+
+### Recommended Actions to Resolve Issue
+
+1. Try to increase resources requests and limits and heap size for OpenSearch.
+
+# Troubleshooting Scenarios
+
+## Cluster State
 
 OpenSearch monitoring has the following two types of cluster states:
 
 * Cluster Health
 * Cluster Status
 
-## Cluster Health
+### Cluster Health
 
 OpenSearch provides a default metric that indicates cluster state. It is called *cluster health*. To check the health of the cluster, the cluster health API can be used.
 
@@ -19,7 +492,7 @@ To check the health of the cluster, the following API can be used:
 curl -XGET http://localhost:9200/_cluster/health
 ```
 
-## Cluster Status
+### Cluster Status
 
 Cluster status is a custom metric that can be found on the *Cluster status* panel in Grafana. Possible values for cluster status are:
 
@@ -27,11 +500,11 @@ Cluster status is a custom metric that can be found on the *Cluster status* pane
 * `DEGRADED` - Cluster has YELLOW health status or one node is failed.
 * `FAILED` - Cluster has RED health status.
 
-# Common Problems
+## Common Problems
 
 The following information describes the common problems you may encounter.
 
-## Cluster Status is N/A
+### Cluster Status is N/A
 
 *N/A* status while monitoring indicates that the OpenSearch cluster is unreachable.
 
@@ -43,7 +516,7 @@ The main cause is any of the following:
 
 To resolve the issue, navigate to the OpenShift console and check the service state. In the simplest scenario, starting the service solves the issue. In the event of a permanent failure, try to redeploy the cluster or recover it from the backup.
 
-## Cluster Status is Failed or Degraded
+### Cluster Status is Failed or Degraded
 
 `Failed` status indicates that one or more primary shards is not allocated in the cluster. `Degraded` status means that one or more replica shards is missing.
 
@@ -70,17 +543,29 @@ The following scenarios are examples of permanent failures:
 
 If both the primary and replica copy of a shard are lost, data can be recovered from backup.
 
-## Data Nodes are Out of Space
+### Last Backup Has Failed
+
+The last OpenSearch backup has finished with `Failed` status.
+
+*Solution*
+
+Check that OpenSearch curator pod exists and is up. If OpenSearch curator is down, restart appropriate deployment. If curator pod is up, check its state by the following command from pod's terminal:
+
+```bash
+curl -XGET http://localhost:8080/health
+```
+
+### Data Nodes are Out of Space
 
 If all data nodes are running low on disk space, more data nodes should be added to the cluster. Be sure that all indices have enough primary shards to be able to balance their data across all those nodes. However, if only some nodes are running out of disk space, this is usually a sign that an index was initialized with too few shards. If an index is composed of a few very large shards, it is hard for OpenSearch to distribute these shards across nodes in a balanced manner.
 
 For more information, refer to [Disk Filled on All Nodes](scenarios/disk_filled_on_all_nodes.md).
 
-## Lack of Resources
+### Lack of Resources
 
 Some problems with the OpenSearch cluster can occur due to a lack of CPU, memory, and disk resources. For more information, refer to [Memory Limit](/documentation/maintenance-guide/troubleshooting-guide/scenarios/memory_limit.md), [CPU Overload](/documentation/maintenance-guide/troubleshooting-guide/scenarios/cpu_overload.md) and [I/O Limit](/documentation/maintenance-guide/troubleshooting-guide/scenarios/io_limit.md).
 
-## OpenSearch Fails Down with CircuitBreakingException
+### OpenSearch Fails Down with CircuitBreakingException
 
 OpenSearch produces the following exception:
 
@@ -100,23 +585,23 @@ The main reasons for this failure are as follows:
 
 For more information, refer to [Memory Limit](scenarios/memory_limit.md) and [Disk Filled on All Nodes](scenarios/disk_filled_on_all_nodes.md).
 
-## Data Files are Corrupted
+### Data Files are Corrupted
 
 This section describes the troubleshooting to be done if the data files are corrupted.
 
-### Data Files are Corrupted On Primary Shard
+#### Data Files are Corrupted On Primary Shard
 
 Index has no replica shards, get queries return incomplete data, update queries fail, and some primary shards are in unassigned status with `CorruptIndexException`. For more details and troubleshooting procedures, refer to [Data Files Corrupted on Primary Shard](scenarios/data_files_corrupted_on_primary_shard.md).
 
-### Data Files are Corrupted On Replica Shard
+#### Data Files are Corrupted On Replica Shard
 
 OpenSearch withstands all cases with corrupted replica shards and repairs itself without any data loss. For more information, refer to [Data Files Corrupted on Replica Shard](scenarios/data_files_corrupted_on_replica_shard.md).
 
-### Data Files are Corrupted On Entire Index
+#### Data Files are Corrupted On Entire Index
 
 If all data files of the index were corrupted, there is no way to get data from this index. The only solution is to restore this index from a backup, provided one exists. For more details and troubleshooting procedures, refer to [Entire Index Corrupted](scenarios/entire_index_corrupted.md).
 
-## Translog Corrupted
+### Translog Corrupted
 
 To prevent data loss, each shard has a transaction log, or translog, associated with it. If a shard is failed, the most recent transactions can be replayed from the transaction log when the shard recovers.
 
@@ -126,7 +611,7 @@ If a translog was corrupted, the shards with a corrupted translog will have `Tra
 
 For more details and troubleshooting procedures, refer to [Translog Is Corrupted](scenarios/translog_is_corrupted.md).
 
-## Other Problems
+### Other Problems
 
 Other problem descriptions and troubleshooting procedures can be found in the following chapters:
 
@@ -138,13 +623,13 @@ Other problem descriptions and troubleshooting procedures can be found in the fo
 * [Availability Zone Outage](scenarios/availability_zone_outage.md)
 * [Availability Zone Shutdown and Startup](scenarios/availability_zone_shutdown.md)
 
-#  OpenSearch node does not start
+##  OpenSearch node does not start
 
 There are situations when the starting of the OpenSearch service fails with error after few unsuccessful attempts.
 
 These errors can be found in `Pod` - `Events` tab of the OpenSearch deployment.
 
-## Readiness Probe Failed
+### Readiness Probe Failed
 
 This error means the OpenSearch service did not have time to start for a given timeout. This may indicate a lack of resources
 or problem with environment where OpenSearch has been deployed.
@@ -159,7 +644,7 @@ Try to increase this value twice.
 
 Retry this action for all OpenSearch resources which pods have this error.
 
-## Liveness Probe Failed
+### Liveness Probe Failed
 
 This error means the OpenSearch service did not have time to ready for work for a given timeout. This may indicate a lack of resources
 or problem with environment where OpenSearch has been deployed.
@@ -174,7 +659,7 @@ Try to increase this value twice.
 
 Retry this action for all OpenSearch resources which pods have this error.
 
-## Max Virtual Memory Is Too Low
+### Max Virtual Memory Is Too Low
 
 ```
 ERROR: [1] bootstrap checks failed
@@ -189,7 +674,7 @@ To resolve it you need execute the following command on all Kubernetes/OpenShift
 sysctl -w vm.max_map_count=262144
 ```
 
-## Container Failed with Error: container has runAsNonRoot and image will run as root
+### Container Failed with Error: container has runAsNonRoot and image will run as root
 
 The Operator is deployed successfully and operator logs do not contain errors, but OpenSearch Monitoring, OpenSearch Curator and/or DBaaS OpenSearch adapter pods fail with the following error:
 
@@ -216,7 +701,7 @@ securityContext:
     runAsUser: 1000
 ```
 
-## CRD Creation Failed on OpenShift 3.11
+### CRD Creation Failed on OpenShift 3.11
 
 If Helm deployment or manual application of CRD failed with the following error, it depicts that the Kubernetes version is 1.11 (or less) and it is not compatible with the new format of CRD:
 
@@ -240,7 +725,7 @@ Comment or delete row `type: object`, and then apply the CRD manually.
 
 **Note**: You need to disable CRD creation during installation in case of such errors.
 
-## Operator Fails with Unauthorized Code on OpenSearch Readiness Check
+### Operator Fails with Unauthorized Code on OpenSearch Readiness Check
 
 After change of OpenSearch credentials in operator logs you see the following error:
 
@@ -258,26 +743,26 @@ During OpenSearch credentials change there was a problem to update the `opensear
 
 Actualize the `opensearch-secret-old` secret manually by specifying the credentials from the `opensearch-secret` secret.
 
-# DBaaS Adapter Health
+## DBaaS Adapter Health
 
 OpenSearch monitoring has `DBaaS Adapter Status` indicator of DBaaS Adapter health.
 
-## Common Problems
+### Common Problems
 
 The following information describes the common problems you may encounter.
 
-### DBaaS Adapter Status Is Down
+#### DBaaS Adapter Status Is Down
 
 The `Down` state means one of the following problems:
-* DBaaS Adapter is not alive. See [DBaaS Is Down alarm description](#opensearch-dbaas-is-down).
-* OpenSearch has `red` state. See [OpenSearch is Down alarm description](#opensearch-is-down).
+* DBaaS Adapter is not alive. See [DBaaS Is Down Alert](#opensearchdbaasisdownalert).
+* OpenSearch has `red` state. See [OpenSearch is Down Alert](#opensearchisdownalert).
 
-### DBaaS Adapter Status Is Warning
+#### DBaaS Adapter Status Is Warning
 
 The `Warning` state means the following problem:
-* OpenSearch has `yellow` state. See [OpenSearch is Degraded alarm description](#opensearch-is-degraded).
+* OpenSearch has `yellow` state. See [OpenSearch is Degraded Alert](#opensearchisdegradedalert).
 
-### DBaaS Adapter Status Is Problem
+#### DBaaS Adapter Status Is Problem
 
 The `Problem` state means one of the following problems:
 
@@ -301,232 +786,9 @@ The following output indicates that there is a problem with access to OpenSearch
 You need to check that OpenSearch is alive and correct address and credentials are specified in DBaaS Adapter configuration to connect to OpenSearch.
 Check DBaaS Adapter logs for more information about the problem with OpenSearch.
 
-# Alarms and Events
+## OpenSearch Disaster Recovery Health
 
-Alarm notifications from Zabbix are used to notify operators about problems with OpenSearch.
-
-For example, a message from Zabbix triggered for excessive CPU usage is as follows:
-
-`
-Trigger: OpenSearch's CPU usage is above 95%
-Trigger status: PROBLEM
-Trigger severity: Warning
-`
-
-This message may be followed by additional information about the trigger event.
-
-## Common Principles
-
-The following is the list of alarm severity levels and their description:
-
-* The `High` alarm depicts service outage or malfunction. It requires rapid action to restore the system operability.
-* The `Average` alarm depicts potential service instability or partially broken functionality. It requires attention and repair action.
-* The `Warning` alarm depicts that the probability of a connected problem has increased. It requires attention and action to prevent the problem.
-
-The description of the alarms monitored and raised by Zabbix are as follows:
-
-### OpenSearch is Down
-
-| Problem            | Severity | Possible Reasons                                                                                                                                                                                             |
-|--------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| OpenSearch is Down | High     | <ul><li>OpenSearch is unresponsive.</li><li>Disk failure</li><li>Lack of memory or CPU.</li><li>Long garbage collection time.</li><li>One or more primary shards are not allocated in the cluster.</li></ul> |
-
-**Solution:**
-
-1. Check the health of the cluster, using the following API:
-
-   ```
-   curl -X GET 'http://localhost:9200/_cluster/health'
-   ```
-
-   The **red** status specifies that some primary shards are not allocated.
-   Make sure that the **number_of_nodes** value is enough for specified replication factor. If there are some shards in the `relocating` or `initializing` status, wait until the process ends.
-
-2. If the shards are unassigned permanently, check the service state in OpenShift:
-
-   Navigate to **OpenShift > 'opensearch-service' project**.
-
-3. If the OpenSearch cluster or monitoring agent failed, restart the service:
-
-   Navigate to the OpenShift console and run the following command:
-
-   ```
-   oc delete pod <node name>
-   ```
-
-   During recovery, the cluster may be in `DEGRADED` or `FAILED` state. Wait until the shards regain the `ACTIVE` status. If there are enough OpenSearch nodes according to replication factor, shards must be allocated.
-
-4. In case of permanent failure, redeploy the service or recover it from backup:
-
-   Navigate to **Applications > Deployments > opensearch-n or opensearch-monitoring > Deploy**.
-
-5. If the cluster is `running`, check the resource consumption on the monitoring dashboard:
-
-    * Navigate to Grafana, select **OpenSearch cluster** dashboard and specify required **Cloud** parameter.
-    * Check if there are enough resources to work properly using the following tabs: **Disk metrics, Memory metrics, CPU metrics, JVM heap and GC metrics**. Verify if there are any peeks of load by the metrics in the specified period.
-
-6. In case of increased resource consumption, refer to any one of the following for resolution:
-
-    * [OpenSearch CPU usage](#opensearch-cpu-usage)
-    * [OpenSearch Memory Usage](#opensearch-memory-usage)
-    * [OpenSearch Disk Usage](#opensearch-disk-usage)
-
-   For more information, refer to [Cluster Status is N/A](#cluster-status-is-na) and [Cluster Status is Failed or Degraded](#cluster-status-is-failed-or-degraded).
-
-   If the above steps do not help, the problem is probably not generic, and requires detailed investigation. Contact support.
-
-### OpenSearch is Degraded
-
-| Problem                | Severity | Possible Reasons                                                                                                                                             |
-|------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| OpenSearch is Degraded | High     | <ul><li>One or more replica shards unassigned.</li><li>Lack of resources. For more information, refer to [OpenSearch is Down](#opensearch-is-down)</li></ul> |
-
-**Solution**:
-
-Execute steps from the [OpenSearch is Down](#opensearch-is-down) section.
-
-Ensure that the `health` command returns **yellow** status. This status specifies that some replica shards are not allocated. All primary shards must be active.
-
-For more information, refer to [Cluster Status is Failed or Degraded](#cluster-status-is-failed-or-degraded).
-
-### OpenSearch CPU usage
-
-| Problem                | Severity | Possible Reasons                                                   |
-|------------------------|----------|--------------------------------------------------------------------|
-| OpenSearch’s CPU usage | Warning  | <ul><li>Heavy search request.</li><li>Indexing workload.</li></ul> |
-
-**Solution**:
-
-1. Get the statistics of cluster nodes using the following command:
-
-   ```
-   curl -X GET 'http://localhost:9200/_nodes/stats/'
-   ```
-
-2. Check CPU usage on the monitoring dashboard:
-
-    * Navigate to Grafana, select the **OpenSearch cluster** dashboard and specify the required **Cloud** parameter.
-    * Expand the **CPU metrics** tab and check CPU load in the specified period.
-
-3. Check the required resources and increase the CPU limit if it is still within recommended limits:
-
-    * Navigate to **OpenShift > opensearch-service project > Applications > Deployments > opensearch-n > Actions > Edit Resource Limits**.
-    * Specify the CPU Limit and then click **Save**.
-
-4. If the workload is still high, add additional data nodes to redistribute the load.
-
-   Cluster update can be performed as an installation with increased `NODES_COUNT` parameter. For more information, refer to _OpenSearch Installation Procedure_.
-
-   **Warning**: Scaling up a cluster may cause performance issues and may require additional analysis.
-
-   For more information, refer to [CPU Overload](scenarios/cpu_overload.md).
-
-### OpenSearch Memory Usage
-
-| Problem                 | Severity | Possible Reason                  |
-|-------------------------|----------|----------------------------------|
-| OpenSearch Memory Usage | Warning  | Heavy workload during execution. |
-
-**Solution**:
-
-1. Get the statistics of the cluster nodes using the following command:
-
-   ```
-   curl -X GET 'http://localhost:9200/_nodes/stats'
-   ```
-
-2. Check memory usage on the monitoring dashboard:
-
-    * Navigate to Grafana, select the **OpenSearch cluster** dashboard and specify the required **Cloud** parameter.
-    * Expand the **Memory metrics** tab and check the CPU load in the specified period.
-
-3. Increase the memory limit if it is still within recommended limits:
-
-    * Navigate to **OpenShift > opensearch-service project > Applications > Deployments > opensearch-n > Actions > Edit Resource Limits**.
-    * Specify the memory limit and then click **Save**.
-
-4. If the workload is still high, you can add data nodes to redistribute the load.
-
-   Cluster update can be performed as an installation with increased `NODES_COUNT` parameter. For more information, refer to _OpenSearch Installation Procedure_.
-
-   **Warning**: Scaling up a cluster may cause performance issues and may require additional analysis.
-
-   For more information, refer to [Memory Limit](scenarios/memory_limit.md).
-
-### OpenSearch Disk Usage
-
-| Problem               | Severity | Possible Reason        |
-|-----------------------|----------|------------------------|
-| OpenSearch Disk Usage | High     | Low space on the disk. |
-
-**Solution**:
-
-1. Retrieve the statistics of all the nodes in the cluster, using the following command:
-
-   ```
-   curl -X GET 'http://localhost:9200/_nodes/stats
-   ```
-
-2. Check disk usage on the monitoring dashboard:
-
-    * Navigate to Grafana, select the **OpenSearch cluster** dashboard and specify the required **Cloud** parameter.
-    * Expand the **Disk metrics** tab and check the CPU load in the specified period.
-
-3. If all the data nodes are running low on disk space or some disks are failed, you need to add more data nodes to the cluster.
-
-4. When the disks are repaired or added, restart the data node using the following command:
-
-   ```
-   oc delete pod <node name>
-   ```
-
-   For more information, refer to [Data Nodes are Out of Space](#data-nodes-are-out-of-space).
-
-### OpenSearch DBaaS is Down
-
-| Problem                  | Severity | Possible Reason                 |
-|--------------------------|----------|---------------------------------|
-| OpenSearch DBaaS is down | Average  | Incorrect credentials provided. |
-
-**Solution**:
-
-1. Check the DBaaS status on the monitoring dashboard:
-
-    * Navigate to Grafana, select the **OpenSearch cluster** dashboard and specify the required **Cloud** parameter.
-    * View the DBaaS Adapter status in the **DBaaS Health** tab.
-
-2. Ensure the provided DBaaS credentials are correct:
-
-    * Navigate to **Resources > Secrets**.
-    * Open DBaaS credentials in the **Source Secrets** tab.
-    * Update the credentials and restart the affected pod using the following command:
-
-      ```
-      oc delete pod <node name>
-      ```
-
-### OpenSearch Backup Failed
-
-| Problem                  | Severity | Possible Reason                   |
-|--------------------------|----------|-----------------------------------|
-| OpenSearch backup failed | Average  | The last backup execution failed. |
-
-**Solution**:
-
-1. Navigate to the OpenShift console and check the service state:
-
-   Navigate to **OpenShift > opensearch-service' project**.
-
-2. Check the free space amount on the monitoring dashboard:
-
-    * Navigate to Grafana, select the **OpenSearch cluster** dashboard and specify the required **Cloud** parameter.
-    * Expand the **Backup** tab and check the space amount in the **Storage Size/Free Space** view.
-
-3. Manual backup can be initiated after problem resolution. For more information, refer to [Manual Backup](../backup/manual-backup-procedure.md).
-
-# OpenSearch Disaster Recovery Health
-
-## OpenSearch Disaster Recovery Health Has Status "DEGRADED"
+### OpenSearch Disaster Recovery Health Has Status "DEGRADED"
 
 | Problem                                    | Severity | Possible Reason                                                                                                                                              |
 |--------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -641,7 +903,7 @@ For more information, refer to [Cluster Status is Failed or Degraded](#cluster-s
 
 4. For `standby` side switch OpenSearch cluster to the `active` side and return to the `standby` one. This action should restart replication properly. 
 
-### ResourceAlreadyExistsException: task with id {replication:index:test_index} already exist
+#### ResourceAlreadyExistsException: task with id {replication:index:test_index} already exist
 
 | Problem                                           | Severity | Possible Reason                                                                                     |
 |---------------------------------------------------|----------|-----------------------------------------------------------------------------------------------------|
@@ -683,7 +945,7 @@ org.opensearch.ResourceAlreadyExistsException: task with id {replication:index:t
 
 For more information about this issue, refer to [https://github.com/opensearch-project/cross-cluster-replication/issues/840](https://github.com/opensearch-project/cross-cluster-replication/issues/840).
 
-## Index Is Not Replicated To Standby Side Without Any Errors
+### Index Is Not Replicated To Standby Side Without Any Errors
 
 | Problem                                           | Severity | Possible Reason                                                                                                                      |
 |---------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------|
