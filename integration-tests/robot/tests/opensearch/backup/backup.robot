@@ -65,8 +65,8 @@ Full Restore
     ...  Check Restore Status  ${response.content}
 
 Full Restore By Timestamp
-    [Arguments]  ${backup_ts}
-    ${restore_data}=  Set Variable  {"ts":"${backup_ts}"}
+    [Arguments]  ${backup_ts}  ${indices_list}
+    ${restore_data}=  Set Variable  {"ts":"${backup_ts}","dbs":${indices_list}}
     ${response}=  Post Request  curatorsession  /restore  data=${restore_data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
@@ -172,7 +172,7 @@ Granular Backup And Restore By Timestamp
 
     Delete Data
 
-    Full Restore By Timestamp  ${backup_ts}
+    Full Restore By Timestamp  ${backup_ts}  ["${OPENSEARCH_BACKUP_INDEX}-1", "${OPENSEARCH_BACKUP_INDEX}-2"]
     Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_INDEX}-1
     Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_INDEX}-2
     Check That Document Exists By Field  ${OPENSEARCH_BACKUP_INDEX}-2  age  10

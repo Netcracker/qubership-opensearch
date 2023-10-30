@@ -31,7 +31,7 @@ spec:
         url: {{ default "" .Values.opensearch.snapshots.s3.url | quote  }}
         bucket: {{ default "" .Values.opensearch.snapshots.s3.bucket | quote }}
         basePath: {{ default "" .Values.opensearch.snapshots.s3.basePath | quote }}
-        region: {{ default "" .Values.opensearch.snapshots.s3.region | quote }}
+        region: {{ default "default" .Values.opensearch.snapshots.s3.region | quote }}
         secretName: {{ template "opensearch.fullname" . }}-s3-secret
       {{- end }}
     {{- end }}
