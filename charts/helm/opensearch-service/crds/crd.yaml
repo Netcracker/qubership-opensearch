@@ -1,10 +1,8 @@
-
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    crd.netcracker.com/version: 1.2.0
+    crd.netcracker.com/version: 1.5.0
     controller-gen.kubebuilder.io/version: v0.6.2
   name: opensearchservices.netcracker.com
 spec:
@@ -111,6 +109,8 @@ spec:
                 properties:
                   compatibilityModeEnabled:
                     type: boolean
+                  rollingUpdate:
+                    type: boolean
                   dedicatedClientPod:
                     type: boolean
                   dedicatedDataPod:
@@ -185,6 +185,17 @@ spec:
                 required:
                 - mode
                 - status
+                type: object
+              rollingUpdateStatus:
+                properties:
+                  status:
+                    type: string
+                  lastStatefulSetGeneration:
+                    type: integer
+                  updatedReplicas:
+                    items:
+                      type: integer
+                    type: array
                 type: object
             type: object
         type: object

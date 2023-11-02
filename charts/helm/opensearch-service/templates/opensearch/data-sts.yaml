@@ -1,5 +1,4 @@
-{{- if not .Values.global.externalOpensearch.enabled }}
-{{ if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled }}
+{{- if eq (include "opensearch.useDataNodes" .) "true" }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -17,7 +16,7 @@ spec:
       role: data
   podManagementPolicy: Parallel
   updateStrategy:
-    type: {{ .Values.opensearch.data.updateStrategy }}
+    type: {{ include "data.updateStrategy" . | quote }}
   template:
     metadata:
       labels:
@@ -273,5 +272,4 @@ spec:
     {{- end }}
     {{- end }}
   {{- end }}
-{{- end }}
 {{- end }}

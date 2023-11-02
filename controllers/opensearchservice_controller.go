@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
 	"github.com/go-logr/logr"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"net/http"
@@ -172,6 +173,7 @@ func (r *OpenSearchServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&opensearchservice.OpenSearchService{}).
 		Owns(&corev1.Secret{}).
 		Owns(&corev1.ConfigMap{}).
+		Owns(&appsv1.StatefulSet{}).
 		WithEventFilter(statusPredicate).
 		Complete(r)
 }
