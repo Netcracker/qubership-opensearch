@@ -380,7 +380,7 @@ For more information, refer to the [Integration With Amazon OpenSearch](/documen
 
 # Best Practices and Recommendations
 
-## Configurations
+## OpenSearch Configurations
 
 ### Automatic Index Creation
 
@@ -410,8 +410,9 @@ PUT /_cluster/settings
    }
 }
 ```
+## Index Configurations
 
-## Number of Shards
+### Number of Shards
 
 The overall goal of choosing a number of shards is to distribute an index evenly across all data nodes in the cluster. However, these shards should not be too large or too numerous. A general guideline is to try to keep shard size between:
 
@@ -419,6 +420,16 @@ The overall goal of choosing a number of shards is to distribute an index evenly
 * 30–50 GiB for write-heavy workloads such as log analytics
 
 Only performance testing different numbers of shards and different shard sizes can determine the optimal number of shards for your index.
+
+### Index Templates
+
+OpenSearch provides API for manage [Index Templates](https://opensearch.org/docs/latest/im-plugin/index-templates/), and it still provides API for [legacy elasticsearch templates](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates-v1.html).
+
+Both API, new composable index templates (`/_index_template`) and legacy templates (`/_template`) are avaialble now and can be used by applications, but composable index templates have more features and more priority than legacy.
+
+New OpenSearch index templates offer enhanced modularity, improved prioritization for layered configurations, and a more user-friendly API, ensuring better management and future-proofing for index configurations. The new index templates are in line with OpenSearch's evolving features and capabilities. Using them ensures compatibility with current and future versions of OpenSearch, along with support for the latest functionalities.
+
+We strongly recommend to use only actual composable index templates (`/_index_template`) API and migrate current legacy templates. 
 
 ## HWE
 
