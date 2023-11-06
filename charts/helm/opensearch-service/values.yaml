@@ -139,6 +139,7 @@ global:
     password: ""
     nodesCount: 3
     dataNodesCount: 3
+    tlsSecretName: ""
 
   tls:
     enabled: false
