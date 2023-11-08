@@ -157,7 +157,7 @@ spec:
             {{- end }}
             {{- if .Values.curator.enabled }}
             - name: S3_ENABLED
-              value: {{ .Values.client.snapshots.s3.enabled }}
+              value: {{ .Values.client.snapshots.s3.enabled | quote }}
             - name: S3_URL
               value: {{ .Values.client.snapshots.s3.url | quote }}
             - name: S3_BUCKET
