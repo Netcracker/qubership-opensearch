@@ -1434,8 +1434,9 @@ This section contains information about integration test tags that can be used i
 * `opensearch` tag runs all tests connected to OpenSearch scenarios:
   * `backup` tag runs all tests connected to the backup scenarios except `Full Backup And Restore` test:
     * `Full Backup And Restore` test is performed when `full_backup` tag is specified explicitly.
+    * `Full Backup And Restore On S3 Storage` test is performed when `full_backup_s3` tag is specified explicitly.
     * `find_backup` tag runs `Find Backup By Timestamp` test.
-    * `granular_backup` tag runs `Granular Backup And Restore` and `Granular Backup And Restore By Timestamp` tests.
+    * `granular_backup` tag runs `Granular Backup And Restore`, `Granular Backup And Restore On S3 Storage` and `Granular Backup And Restore By Timestamp` tests.
     * `backup_deletion` tag runs `Delete Backup By ID` test.
     * `unauthorized_access` tag runs `Unauthorized Access` test.
   * `prometheus` tag runs all tests connected to Prometheus scenarios:
