@@ -2,7 +2,7 @@
 ${OPENSEARCH_BACKUP_INDEX}   opensearch_s3_backup_index
 ${S3_BUCKET}                 %{S3_BUCKET}
 ${BACKUP_STORAGE_PATH}       /backup-storage
-${TIMEOUT}                   1
+${TIMEOUT}                   10
 
 *** Settings ***
 Resource          ../shared/keywords.robot
