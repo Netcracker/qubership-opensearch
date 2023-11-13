@@ -54,9 +54,7 @@ Delete Backup
 Clean Up Backup After Test
     [Arguments]  ${backup_id}
     ${response}=  Get Request  curatorsession  /listbackups/${backup_id}
-    IF  ${response} == 200
-        Delete Backup  ${backup_id}
-    END
+    Run Keyword If    ${response}==200    Delete Backup  ${backup_id}
 
 Full Restore
     [Arguments]  ${backup_id}  ${indices_list}
