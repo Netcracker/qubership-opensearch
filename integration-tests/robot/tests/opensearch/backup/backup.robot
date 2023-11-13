@@ -56,7 +56,7 @@ Granular Backup And Restore By Timestamp
 
     Delete Data
 
-    Full Restore By Timestamp  ${backup_ts}
+    Full Restore By Timestamp  ${backup_ts}  ["${OPENSEARCH_BACKUP_INDEX}-1", "${OPENSEARCH_BACKUP_INDEX}-2"]
     Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_INDEX}-1
     Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_INDEX}-2
     Check That Document Exists By Field  ${OPENSEARCH_BACKUP_INDEX}-2  age  10

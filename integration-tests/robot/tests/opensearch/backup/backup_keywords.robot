@@ -20,6 +20,16 @@ Prepare Curator
     ${verify}=  Set Variable If  ${root_ca_exists}  ${root_ca_path}  ${True}
     Create Session  curatorsession  ${OPENSEARCH_CURATOR_PROTOCOL}://${OPENSEARCH_CURATOR_HOST}:${OPENSEARCH_CURATOR_PORT}  auth=${auth}  verify=${verify}
 
+Delete Data
+    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}
+    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
+    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-2
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Run Keywords
+    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}  AND
+    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}-1  AND
+    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}-2
+
 Full Backup
     ${response}=  Post Request  curatorsession  /backup
     Should Be Equal As Strings  ${response.status_code}  200
@@ -35,16 +45,6 @@ Granular Backup
     ...  Check Backup Status  ${response.content}
     [Return]  ${response.content}
 
-Delete Data
-    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}
-    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
-    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-2
-    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Run Keywords
-    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}  AND
-    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}-1  AND
-    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}-2
-
 Delete Backup
     [Arguments]  ${backup_id}
     ${response}=  Post Request  curatorsession  /evict/${backup_id}
@@ -59,8 +59,8 @@ Full Restore
     ...  Check Restore Status  ${response.content}
 
 Full Restore By Timestamp
-    [Arguments]  ${backup_ts}
-    ${restore_data}=  Set Variable  {"ts":"${backup_ts}"}
+    [Arguments]  ${backup_ts}  ${indices_list}
+    ${restore_data}=  Set Variable  {"ts":"${backup_ts}","dbs":${indices_list}}
     ${response}=  Post Request  curatorsession  /restore  data=${restore_data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}

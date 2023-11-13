@@ -15,6 +15,12 @@ secret:
   curator:
     username: ""
     password: ""
+    s3:
+      enabled: false
+      url: ""
+      bucket: ""
+      keyId: ""
+      keySecret: ""
 
 tls:
   opensearch:
