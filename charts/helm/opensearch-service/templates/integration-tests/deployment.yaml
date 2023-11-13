@@ -168,7 +168,7 @@ spec:
                   key: s3-key-id
               {{- end }}
             - name: S3_KEY_SECRET
-              {{- if .Values.opensearch.s3.enabled }}
+              {{- if .Values.opensearch.snapshots.s3.enabled }}
               valueFrom:
                 secretKeyRef:
                   name: {{ template "opensearch.fullname" . }}-s3-secret
