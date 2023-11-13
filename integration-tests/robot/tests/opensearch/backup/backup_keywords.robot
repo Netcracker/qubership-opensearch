@@ -6,6 +6,7 @@ ${OPENSEARCH_CURATOR_HOST}       %{OPENSEARCH_CURATOR_HOST}
 ${OPENSEARCH_CURATOR_PORT}       %{OPENSEARCH_CURATOR_PORT}
 ${RETRY_TIME}                    300s
 ${RETRY_INTERVAL}                10s
+${OPENSEARCH_BACKUP_INDEX}       opensearch_backup_index
 
 *** Keywords ***
 Prepare

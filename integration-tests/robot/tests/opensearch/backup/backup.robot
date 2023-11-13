@@ -1,6 +1,3 @@
-*** Variables ***
-${OPENSEARCH_BACKUP_INDEX}       opensearch_backup_index
-
 *** Settings ***
 Resource  ../shared/keywords.robot
 Resource  backup_keywords.robot
