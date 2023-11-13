@@ -6,7 +6,6 @@ ${BACKUP_STORAGE_PATH}       /backup-storage
 Resource          ../shared/keywords.robot
 Resource          backup_keywords.robot
 Suite Setup       Prepare
-Test Teardown     Delete Data
 
 Library           S3BackupLibrary  url=%{S3_URL}
 ...               bucket=%{S3_BUCKET}
