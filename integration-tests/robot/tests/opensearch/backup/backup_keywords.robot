@@ -51,6 +51,10 @@ Delete Backup
     ${response}=  Post Request  curatorsession  /evict/${backup_id}
     Should Be Equal As Strings  ${response.status_code}  200
 
+Clean Up Backup After Test
+    [Arguments]  ${backup_id}
+    Post Request  curatorsession  /evict/${backup_id}
+
 Full Restore
     [Arguments]  ${backup_id}  ${indices_list}
     ${restore_data}=  Set Variable  {"vault":"${backup_id}","dbs":${indices_list}}
