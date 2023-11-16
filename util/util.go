@@ -9,3 +9,12 @@ func FilterSlice(slice []string, f func(string) bool) []string {
 	}
 	return filtered
 }
+
+func ArrayContains(slice []int32, searchElement int32) bool {
+	for _, element := range slice {
+		if element == searchElement {
+			return true
+		}
+	}
+	return false
+}
