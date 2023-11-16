@@ -24,7 +24,7 @@ spec:
       role: master
   podManagementPolicy: Parallel
   updateStrategy:
-    type: {{ .Values.opensearch.master.updateStrategy }}
+    type: {{ include "master.updateStrategy" . | quote }}
   serviceName: {{ template "opensearch.fullname" . }}-discovery
   template:
     metadata:

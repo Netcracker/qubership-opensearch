@@ -228,6 +228,7 @@ opensearch:
   compatibilityModeEnabled: true
   gcLoggingEnabled: false
   performanceAnalyzerEnabled: true
+  rollingUpdate: false
   securityConfig:
     enabled: true
     path: "/usr/share/opensearch/config/opensearch-security"

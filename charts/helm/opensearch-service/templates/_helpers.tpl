@@ -1113,3 +1113,32 @@ capabilities:
 {{- define "external.useTlsSecret" -}}
 {{ and (eq (include "external.tlsEnabled" .) "true") (ne .Values.global.externalOpensearch.tlsSecretName "") }}
 {{- end -}}
+
+{{/*
+Determines whether OpenSearch data StatefulSet be used or not
+*/}}
+{{- define "opensearch.useDataNodes" -}}
+{{ and (not .Values.global.externalOpensearch.enabled) .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled }}
+{{- end -}}
+
+{{/*
+Determines update strategy for OpenSearch master nodes
+*/}}
+{{- define "master.updateStrategy" -}}
+{{- if and .Values.opensearch.rollingUpdate (eq (include "opensearch.useDataNodes" . ) "false") -}}
+  {{- "OnDelete" -}}
+{{- else -}}
+  {{- .Values.opensearch.master.updateStrategy | default "RollingUpdate" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Determines update strategy for OpenSearch data nodes
+*/}}
+{{- define "data.updateStrategy" -}}
+{{- if and .Values.opensearch.rollingUpdate (eq (include "opensearch.useDataNodes" .) "true") -}}
+    {{- "OnDelete" -}}
+{{- else -}}
+  {{- .Values.opensearch.data.updateStrategy | default "RollingUpdate" -}}
+{{- end -}}
+{{- end -}}
