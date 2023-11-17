@@ -19,6 +19,9 @@ spec:
     dedicatedDataPod: {{ and .Values.opensearch.data.dedicatedPod.enabled .Values.opensearch.data.enabled }}
     compatibilityModeEnabled: {{ .Values.opensearch.compatibilityModeEnabled }}
     rollingUpdate: {{ .Values.opensearch.rollingUpdate }}
+    {{- if .Values.opensearch.rollingUpdate }}
+    statefulSetNames:"{{ trim (include "opensearch.statefulsetNames" .) }}"
+    {{ end }}
     {{- if .Values.opensearch.snapshots.enabled }}
     snapshots:
       repositoryName: {{ coalesce .Values.opensearch.snapshots.repositoryName .Values.curator.snapshotRepositoryName | default "snapshots" }}
