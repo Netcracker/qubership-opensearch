@@ -117,7 +117,7 @@ deployment:
 cloud:
   type: helm
   url: https://ci-master.openshift.sdntest.netcracker.com:6443
-  project: opensearch-service
+  project: opensearch-service-v2
 
 integration:
   - type: find-latest-deployment-descriptor
@@ -173,7 +173,7 @@ integration:
     docker-image-id: timestamp
     deploy-param: deploymentStatusProvisioner
   - type: image
-    docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:1.3.6
+    docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.4.1
     deploy-param: dockerDashboards
   - type: image
     docker-image: artifactorycn.netcracker.com:17064/library/busybox:1.35.0
