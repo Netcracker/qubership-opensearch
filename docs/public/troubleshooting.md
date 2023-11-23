@@ -12,7 +12,7 @@ This section provides detailed troubleshooting procedures for the OpenSearch clu
 
 One of OpenSearch pods uses 95% of the CPU limit.
 
-For more information, refer to [CPU Overload](scenarios/cpu_overload.md).
+For more information, refer to [CPU Overload](troubleshooting-scenarios/cpu_overload.md).
 
 ### Possible Causes
 
@@ -147,7 +147,7 @@ For more information, refer to [Data Nodes are Out of Space](#data-nodes-are-out
 
 One of OpenSearch pods uses 95% of the memory limit.
 
-For more information, refer to [Memory Limit](scenarios/memory_limit.md).
+For more information, refer to [Memory Limit](troubleshooting-scenarios/memory_limit.md).
 
 ### Possible Causes
 
@@ -181,7 +181,7 @@ For more information, refer to [Memory Limit](scenarios/memory_limit.md).
 
 Heap memory usage by one of the pods in the OpenSearch cluster came close to the specified limit.
 
-For more information, refer to [Memory Limit](scenarios/memory_limit.md).
+For more information, refer to [Memory Limit](troubleshooting-scenarios/memory_limit.md).
 
 ### Possible Causes
 
@@ -345,7 +345,7 @@ For more information, refer to [Last Backup Has Failed](#last-backup-has-failed)
 
 Execution time of one of index queries in the OpenSearch exceeds the specified threshold.
 
-This threshold can be overridden with parameter `monitoring.thresholds.slowQuerySecondsAlert` described in [OpenSearch monitoring](/documentation/installation-guide/README.md#monitoring) parameters.
+This threshold can be overridden with parameter `monitoring.thresholds.slowQuerySecondsAlert` described in [OpenSearch monitoring](/docs/public/installation.md#monitoring) parameters.
 
 ### Possible Causes
 
@@ -450,7 +450,7 @@ For more information, refer to [OpenSearch Disaster Recovery Health](#opensearch
 
 The documents lag of replication between two OpenSearch clusters comes close to the specified limit.
 
-This limit can be overridden with parameter `monitoring.thresholds.lagAlert` described in [OpenSearch monitoring](/documentation/installation-guide/README.md#monitoring) parameters.
+This limit can be overridden with parameter `monitoring.thresholds.lagAlert` described in [OpenSearch monitoring](/docs/public/installation.md#monitoring) parameters.
 
 ### Possible Causes
 
@@ -538,8 +538,8 @@ If it is a permanent failure, and the node cannot be recovered, new nodes can be
 
 The following scenarios are examples of permanent failures:
 
-* [Disk failure on one node](scenarios/disk_failure_on_one_node.md)
-* [Disk failure on all nodes](scenarios/disk_failure_on_all_nodes.md)
+* [Disk failure on one node](troubleshooting-scenarios/disk_failure_on_one_node.md)
+* [Disk failure on all nodes](troubleshooting-scenarios/disk_failure_on_all_nodes.md)
 
 If both the primary and replica copy of a shard are lost, data can be recovered from backup.
 
@@ -559,11 +559,11 @@ curl -XGET http://localhost:8080/health
 
 If all data nodes are running low on disk space, more data nodes should be added to the cluster. Be sure that all indices have enough primary shards to be able to balance their data across all those nodes. However, if only some nodes are running out of disk space, this is usually a sign that an index was initialized with too few shards. If an index is composed of a few very large shards, it is hard for OpenSearch to distribute these shards across nodes in a balanced manner.
 
-For more information, refer to [Disk Filled on All Nodes](scenarios/disk_filled_on_all_nodes.md).
+For more information, refer to [Disk Filled on All Nodes](troubleshooting-scenarios/disk_filled_on_all_nodes.md).
 
 ### Lack of Resources
 
-Some problems with the OpenSearch cluster can occur due to a lack of CPU, memory, and disk resources. For more information, refer to [Memory Limit](/documentation/maintenance-guide/troubleshooting-guide/scenarios/memory_limit.md), [CPU Overload](/documentation/maintenance-guide/troubleshooting-guide/scenarios/cpu_overload.md) and [I/O Limit](/documentation/maintenance-guide/troubleshooting-guide/scenarios/io_limit.md).
+Some problems with the OpenSearch cluster can occur due to a lack of CPU, memory, and disk resources. For more information, refer to [Memory Limit](/docs/public/troubleshooting-scenarios/memory_limit.md), [CPU Overload](/docs/public/troubleshooting-scenarios/cpu_overload.md) and [I/O Limit](/docs/public/troubleshooting-scenarios/io_limit.md).
 
 ### OpenSearch Fails Down with CircuitBreakingException
 
@@ -583,7 +583,7 @@ The main reasons for this failure are as follows:
 * Index is bigger than available heap.
 * Continuous shard relocation due to the data nodes being out of space.
 
-For more information, refer to [Memory Limit](scenarios/memory_limit.md) and [Disk Filled on All Nodes](scenarios/disk_filled_on_all_nodes.md).
+For more information, refer to [Memory Limit](troubleshooting-scenarios/memory_limit.md) and [Disk Filled on All Nodes](troubleshooting-scenarios/disk_filled_on_all_nodes.md).
 
 ### Data Files are Corrupted
 
@@ -591,15 +591,15 @@ This section describes the troubleshooting to be done if the data files are corr
 
 #### Data Files are Corrupted On Primary Shard
 
-Index has no replica shards, get queries return incomplete data, update queries fail, and some primary shards are in unassigned status with `CorruptIndexException`. For more details and troubleshooting procedures, refer to [Data Files Corrupted on Primary Shard](scenarios/data_files_corrupted_on_primary_shard.md).
+Index has no replica shards, get queries return incomplete data, update queries fail, and some primary shards are in unassigned status with `CorruptIndexException`. For more details and troubleshooting procedures, refer to [Data Files Corrupted on Primary Shard](troubleshooting-scenarios/data_files_corrupted_on_primary_shard.md).
 
 #### Data Files are Corrupted On Replica Shard
 
-OpenSearch withstands all cases with corrupted replica shards and repairs itself without any data loss. For more information, refer to [Data Files Corrupted on Replica Shard](scenarios/data_files_corrupted_on_replica_shard.md).
+OpenSearch withstands all cases with corrupted replica shards and repairs itself without any data loss. For more information, refer to [Data Files Corrupted on Replica Shard](troubleshooting-scenarios/data_files_corrupted_on_replica_shard.md).
 
 #### Data Files are Corrupted On Entire Index
 
-If all data files of the index were corrupted, there is no way to get data from this index. The only solution is to restore this index from a backup, provided one exists. For more details and troubleshooting procedures, refer to [Entire Index Corrupted](scenarios/entire_index_corrupted.md).
+If all data files of the index were corrupted, there is no way to get data from this index. The only solution is to restore this index from a backup, provided one exists. For more details and troubleshooting procedures, refer to [Entire Index Corrupted](troubleshooting-scenarios/entire_index_corrupted.md).
 
 ### Translog Corrupted
 
@@ -609,19 +609,19 @@ In some cases (such as a bad drive or user error), the translog can become corru
 
 If a translog was corrupted, the shards with a corrupted translog will have `TranslogCorruptedException` in `unassigned.details`.
 
-For more details and troubleshooting procedures, refer to [Translog Is Corrupted](scenarios/translog_is_corrupted.md).
+For more details and troubleshooting procedures, refer to [Translog Is Corrupted](troubleshooting-scenarios/translog_is_corrupted.md).
 
 ### Other Problems
 
 Other problem descriptions and troubleshooting procedures can be found in the following chapters:
 
-* [New Master Cannot Be Elected](scenarios/new_master_can_not_be_elected.md)
-* [Elected Master Is Crashed](scenarios/elected_master_is_crashed.md)
-* [Problem During Replication](scenarios/problem_during_replication.md)
-* [Primary Shard Is Down During User Request](scenarios/primary_shard_is_down_during_user_request.md)
-* [Network Connection Is Lost and Restored](scenarios/network_connection_failure.md)
-* [Availability Zone Outage](scenarios/availability_zone_outage.md)
-* [Availability Zone Shutdown and Startup](scenarios/availability_zone_shutdown.md)
+* [New Master Cannot Be Elected](troubleshooting-scenarios/new_master_can_not_be_elected.md)
+* [Elected Master Is Crashed](troubleshooting-scenarios/elected_master_is_crashed.md)
+* [Problem During Replication](troubleshooting-scenarios/problem_during_replication.md)
+* [Primary Shard Is Down During User Request](troubleshooting-scenarios/primary_shard_is_down_during_user_request.md)
+* [Network Connection Is Lost and Restored](troubleshooting-scenarios/network_connection_failure.md)
+* [Availability Zone Outage](troubleshooting-scenarios/availability_zone_outage.md)
+* [Availability Zone Shutdown and Startup](troubleshooting-scenarios/availability_zone_shutdown.md)
 
 ##  OpenSearch node does not start
 

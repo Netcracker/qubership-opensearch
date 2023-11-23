@@ -2,10 +2,10 @@
 
 Umbrella service to deploy [OpenSearch](https://opensearch.org).
 
-* [Architecture Guide](/documentation/architecture-guide/README.md)
-* [Installation Guide](/documentation/installation-guide/README.md)
+* [Architecture Guide](/docs/public/architecture.md)
+* [Installation Guide](/docs/public/installation.md)
 * Maintenance Guide
-  * [Troubleshooting Guide](/documentation/maintenance-guide/troubleshooting-guide/README.md)
-  * [Password Changing Guide](/documentation/maintenance-guide/password-changing-guide/README.md)
-  * [Monitoring](/documentation/maintenance-guide/monitoring/README.md)
-* [Security Guide](/documentation/security-guide/README.md)
+  * [Troubleshooting Guide](/docs/public/troubleshooting.md)
+  * [Password Changing Guide](/docs/public/password-changing.md)
+  * [Monitoring](/docs/public/monitoring.md)
+* [Security Guide](/docs/public/security.md)
