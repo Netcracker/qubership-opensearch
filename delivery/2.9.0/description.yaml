@@ -117,7 +117,7 @@ deployment:
 cloud:
   type: helm
   url: https://ci-master.openshift.sdntest.netcracker.com:6443
-  project: opensearch-service
+  project: opensearch-service-v2
 
 integration:
   - type: find-latest-deployment-descriptor

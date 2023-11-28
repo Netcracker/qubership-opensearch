@@ -539,12 +539,7 @@ func (r OpenSearchReconciler) Configure() error {
 		}
 	}
 
-	if r.cr.Spec.OpenSearch.CompatibilityModeEnabled {
-		if err = r.enableCompatibilityMode(restClient); err != nil {
-			return err
-		}
-	}
-	return nil
+	return r.updateCompatibilityMode(restClient)
 }
 
 func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
@@ -751,15 +746,14 @@ func (r OpenSearchReconciler) createSnapshotsRepository(restClient *util.RestCli
 	return fmt.Errorf("snapshots repository is not created; response status code is %d", statusCode)
 }
 
-func (r OpenSearchReconciler) enableCompatibilityMode(restClient *util.RestClient) error {
-	r.logger.Info("Enable compatibility mode")
-	requestBody := `{"persistent": {"compatibility.override_main_response_version": true}}`
-	statusCode, _, err := restClient.SendRequest(http.MethodPut, clusterSettingsPath, strings.NewReader(requestBody))
-	if err == nil && statusCode == http.StatusOK {
-		r.logger.Info("Compatibility mode is enabled")
-		return nil
+func (r OpenSearchReconciler) updateCompatibilityMode(restClient *util.RestClient) error {
+	value := "null"
+	if r.cr.Spec.OpenSearch.CompatibilityModeEnabled {
+		value = "true"
 	}
-	return err
+	r.logger.Info(fmt.Sprintf("Update compatibility mode with '%s' value", value))
+	requestBody := fmt.Sprintf(`{"persistent": {"compatibility.override_main_response_version": %s}}`, value)
+	return r.updateSettings(restClient, strings.NewReader(requestBody))
 }
 
 func (r OpenSearchReconciler) getS3Credentials() (string, string) {
