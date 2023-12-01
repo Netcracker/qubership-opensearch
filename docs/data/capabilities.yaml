@@ -1,0 +1,102 @@
+Service: OpenSearch
+DeploymentSchemas:
+  Non-HA:
+    Supported: yes
+    Environment:
+      - Kubernetes
+      - Openshift
+  HA:
+    Supported: yes
+    Environment:
+      - Kubernetes
+      - Openshift
+  DR:
+    Supported: yes
+    Environment:
+      - Kubernetes
+      - Openshift
+Installation:
+  Helm:
+    Supported: yes
+    Environment:
+      - Kubernetes
+      - Openshift
+    FullyAutomated: yes
+  AppDeployer:
+    Supported: yes
+    Environment:
+      - Kubernetes
+      - Openshift
+    FullyAutomated: yes
+  Ansible:
+    Supported: no
+Upgrade:
+  Helm:
+    Supported: yes
+    Environment:
+      - Kubernetes
+      - Openshift
+    FullyAutomated: yes
+    Downtime: no
+  AppDeployer:
+    Supported: yes
+    Environment:
+      - Kubernetes
+      - Openshift
+    FullyAutomated: yes
+    Downtime: no
+  Ansible:
+    Supported: no
+BackupRestore:
+  FullBackup:
+    Supported: yes
+    Snapshots: yes
+    Downtime: no
+  BackupPerSchema:
+    Supported: yes
+    Snapshots: yes
+    Downtime: no
+    Note: "OpenSearch indices are considered as a schema"
+  IncrementalBackup:
+    Supported: no
+    Snapshots: no
+  IncrementalBackupPerSchema:
+    Supported: no
+    Snapshots: no
+  FullRestore:
+    Supported: yes
+    Snapshots: yes
+    Downtime: no
+  RestorePerSchema:
+    Supported: yes
+    Snapshots: yes
+    Downtime: no
+  PointInTimeRecovery:
+    Supported: no
+    Snapshots: no
+  PointInTimeRecoveryPerSchema:
+    Supported: no
+    Snapshots: no
+Storage:
+  Supported: yes
+  Backups:
+    - S3
+    - NFS
+    - EBS
+    - EFS
+    - Azure Files
+  Data:
+    - hostPath
+    - storageClass
+    - local
+    - EBS
+    - EFS
+    - Azure Files
+Security:
+  IdP:
+    Supported: yes
+  Transport:
+    - TLS
+ManagedServices:
+  AWS:
+    - Amazon OpenSearch Service

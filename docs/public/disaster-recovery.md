@@ -15,7 +15,7 @@ The topics covered in this section are:
 
 The Disaster Recovery scheme implies two separate OpenSearch clusters, one of which is in the *active* mode, and the other is in the *standby* mode.
 
-![DR scheme](/documentation/installation-guide/disaster-recovery/images/opensearch_dr_with_dbaas.png)
+![DR scheme](/docs/public/images/opensearch_dr_with_dbaas.png)
 
 The Disaster Recovery process for the OpenSearch service includes the following:
 

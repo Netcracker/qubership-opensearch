@@ -3,7 +3,7 @@ This section provides information on the password changing procedures in OpenSea
 ## OpenSearch Secret
 
 The secret contains admin credentials for clients of OpenSearch, for example, OpenSearch monitoring and OpenSearch curator.
-For more information, refer to the [Installation Guide](../../installation-guide/README.md#parameters).
+For more information, refer to the [Installation Guide](installation.md#parameters).
 
 To update internal OpenSearch credentials:
 
