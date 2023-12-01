@@ -11,7 +11,7 @@ You can configure `Transport Layer Security` (TLS) encryption for communication 
 
 OpenSearch uses TLS encryption across the cluster to verify authenticity of the servers and clients that connect. The `transport` and `admin` layers of OpenSearch are always encrypted, you can only configure the way of certificates generation. 
 
-By default, the `rest` layer is also TLS encrypted as recommended option from OpenSearch Team, because OpenSearch does not support some types of security configurations on REST layer without encryption. To disable it you can put the property `opensearch.tls.enabled` to `false`, but pay attention on [Migration Guide](/documentation/installation-guide/README.md#migration-to-opensearch-2x-opensearch-service-1xx).
+By default, the `rest` layer is also TLS encrypted as recommended option from OpenSearch Team, because OpenSearch does not support some types of security configurations on REST layer without encryption. To disable it you can put the property `opensearch.tls.enabled` to `false`, but pay attention on [Migration Guide](/docs/public/installation.md#migration-to-opensearch-2x-opensearch-service-1xx).
 
 You can enable TLS encryption for OpenSearch DBaaS Adapter when `global.tls.enabled` and `dbaasAdapter.tls.enabled` parameters are set to `true` and `dbaasAdapter.dbaasAggregatorRegistrationAddress` contains `https` address.
 

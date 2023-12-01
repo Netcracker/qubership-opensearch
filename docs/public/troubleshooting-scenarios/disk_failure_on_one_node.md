@@ -58,7 +58,7 @@ After the disk failure, this chart will not contain data from all nodes. The cha
 
 The following image shows a possible panel view:
 
-![Disk failure on one node disk usage panel](/documentation/maintenance-guide/troubleshooting-guide/scenarios/pictures/disk_filure_on_one_node_disk_usage_panel.png)
+![Disk failure on one node disk usage panel](/docs/public/images/disk_filure_on_one_node_disk_usage_panel.png)
 
 On this panel, a disk has failed on `opensearch-1` node.
 
