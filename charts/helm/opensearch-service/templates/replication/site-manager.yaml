@@ -1,5 +1,5 @@
 {{- if and (eq (include "opensearch.enableDisasterRecovery" .) "true") .Values.global.disasterRecovery.siteManagerEnabled }}
-apiVersion: netcracker.com/v2
+apiVersion: netcracker.com/v3
 kind: SiteManager
 metadata:
   name: opensearch-{{ .Release.Namespace }}
@@ -24,5 +24,4 @@ spec:
     parameters:
       serviceEndpoint: "{{ template "disasterRecovery.protocol" . }}://{{ template "opensearch.fullname" . }}-disaster-recovery.{{ .Release.Namespace }}.svc.cluster.local:{{ template "disasterRecovery.port" . }}/sitemanager"
       healthzEndpoint: "{{ template "disasterRecovery.protocol" . }}://{{ template "opensearch.fullname" . }}-disaster-recovery.{{ .Release.Namespace }}.svc.cluster.local:{{ template "disasterRecovery.port" . }}/healthz"
-      ingressEndpoint: ""
 {{- end }}
