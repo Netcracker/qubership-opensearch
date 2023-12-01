@@ -51,9 +51,11 @@ BackupRestore:
   FullBackup:
     Supported: yes
     Snapshots: yes
+    Downtime: no
   BackupPerSchema:
     Supported: yes
     Snapshots: yes
+    Downtime: no
     Note: "OpenSearch indices are considered as a schema"
   IncrementalBackup:
     Supported: no
@@ -68,6 +70,7 @@ BackupRestore:
   RestorePerSchema:
     Supported: yes
     Snapshots: yes
+    Downtime: no
   PointInTimeRecovery:
     Supported: no
     Snapshots: no
