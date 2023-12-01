@@ -85,13 +85,18 @@ func (r OpenSearchReconciler) Reconcile() error {
 		return err
 	}
 
-	statefulSet, err := r.reconciler.watchStatefulSet(r.getStatefulSetName(), r.cr, r.logger)
+	statefulSets, err := r.getStatefulSets()
 	if err != nil {
-		r.logger.Info("Error while searching OpenSearch StatefulSet")
+		r.logger.Info("Error while searching OpenSearch StatefulSets")
 		return err
 	}
+	if len(statefulSets) == 0 {
+		r.logger.Info("Can't process rolling update because there is no stateful set to check," +
+			" so finish OpenSearch Reconcile procedure")
+		return nil
+	}
 
-	perform, err := r.needToPerformRollingUpdate(client, statefulSet)
+	perform, err := r.needToPerformRollingUpdate(client, statefulSets)
 	if err != nil {
 		return err
 	}
@@ -106,7 +111,7 @@ func (r OpenSearchReconciler) Reconcile() error {
 		return nil
 	}
 
-	if err = r.runRollingUpdate(client, statefulSet); err != nil {
+	if err = r.runRollingUpdate(client, statefulSets); err != nil {
 		return err
 	}
 
@@ -114,11 +119,19 @@ func (r OpenSearchReconciler) Reconcile() error {
 	return nil
 }
 
-func (r OpenSearchReconciler) getStatefulSetName() string {
-	if r.cr.Spec.OpenSearch.DedicatedDataPod {
-		return fmt.Sprintf("%s-data", r.cr.Name)
+func (r OpenSearchReconciler) getStatefulSets() ([]*v1.StatefulSet, error) {
+	var statefulSets []*v1.StatefulSet
+	if r.cr.Spec.OpenSearch.StatefulSetNames == "" {
+		return statefulSets, nil
 	}
-	return r.cr.Name
+	for _, statefulSetName := range strings.Split(r.cr.Spec.OpenSearch.StatefulSetNames, ",") {
+		statefulSet, err := r.reconciler.watchStatefulSet(statefulSetName, r.cr, r.logger)
+		if err != nil {
+			return nil, err
+		}
+		statefulSets = append(statefulSets, statefulSet)
+	}
+	return statefulSets, nil
 }
 
 func (r OpenSearchReconciler) isOpenSearchHealthy(restClient *util.RestClient) (bool, error) {
@@ -163,19 +176,29 @@ func (r OpenSearchReconciler) checkOpenSearchHealth(restClient *util.RestClient)
 	return nil
 }
 
-func (r OpenSearchReconciler) needToPerformRollingUpdate(client *util.RestClient, statefulSet *v1.StatefulSet) (bool, error) {
-	if statefulSet.Spec.UpdateStrategy.Type != v1.OnDeleteStatefulSetStrategyType {
-		r.logger.Info("Need to skip Rolling Update, because update strategy is not OnDelete")
-		return false, nil
+func (r OpenSearchReconciler) needToPerformRollingUpdate(client *util.RestClient, statefulSets []*v1.StatefulSet) (bool, error) {
+	for _, statefulSet := range statefulSets {
+		if statefulSet.Spec.UpdateStrategy.Type != v1.OnDeleteStatefulSetStrategyType {
+			r.logger.Info(fmt.Sprintf("Need to skip Rolling Update, because %s stateful set "+
+				"update strategy is not OnDelete", statefulSet.Name))
+			return false, nil
+		}
 	}
 
-	r.logger.Info(fmt.Sprintf("Operator Rolling Update state in CR: %s", r.cr.Status.RollingUpdateStatus.Status))
+	r.logger.Info(fmt.Sprintf("OpenSearch rolling update state in CR: %s", r.cr.Status.RollingUpdateStatus.Status))
 	if r.cr.Status.RollingUpdateStatus.Status == rollingUpdateRunningStatus {
 		r.logger.Info("Operator Rolling Update state is running, need to continue upgrade")
 		return true, nil
 	}
 
-	if *statefulSet.Spec.Replicas == statefulSet.Status.UpdatedReplicas {
+	allNodesAlreadyUpdated := true
+	for _, statefulSet := range statefulSets {
+		if *statefulSet.Spec.Replicas != statefulSet.Status.UpdatedReplicas {
+			allNodesAlreadyUpdated = false
+			break
+		}
+	}
+	if allNodesAlreadyUpdated {
 		r.logger.Info("All OpenSearch nodes are already updated")
 		return false, nil
 	}
@@ -199,26 +222,21 @@ func (r OpenSearchReconciler) updateRollingUpdateStatus(status string) error {
 	return err
 }
 
-func (r OpenSearchReconciler) uploadUpdatedReplicasSlice(updatedReplicas []int32) error {
-	statusUpdater := util.NewStatusUpdater(r.reconciler.Client, r.cr)
-	err := statusUpdater.UpdateStatusWithRetry(func(cr *opensearchservice.OpenSearchService) {
-		cr.Status.RollingUpdateStatus.UpdatedReplicas = updatedReplicas
-	})
-	if err != nil {
-		r.logger.Error(err, "Error while uploading updated replicas slice to CR")
-	}
-	return err
+func (r OpenSearchReconciler) uploadUpdatedReplicasSlice(updatedReplicas []int32, status *opensearchservice.StatefulSetStatus) error {
+	r.logger.Info(fmt.Sprintf("Updating replicas with new slise: %o", updatedReplicas))
+	status.UpdatedReplicas = updatedReplicas
+	return r.updateStatefulSetStatuses()
 }
 
-func (r OpenSearchReconciler) updateLastStatefulSetGeneration(generation int64) error {
+func (r OpenSearchReconciler) updateStatefulSetStatuses() error {
+	r.logger.Info("Updating rolling update statuses")
 	statusUpdater := util.NewStatusUpdater(r.reconciler.Client, r.cr)
 	err := statusUpdater.UpdateStatusWithRetry(func(cr *opensearchservice.OpenSearchService) {
-		cr.Status.RollingUpdateStatus.LastStatefulSetGeneration = generation
+		cr.Status.RollingUpdateStatus.StatefulSetStatuses = r.cr.Status.RollingUpdateStatus.StatefulSetStatuses
 	})
 	if err != nil {
-		r.logger.Error(err, "Error while set the last StatefulSet generation in CR")
+		r.logger.Error(err, "Error while update stateful set statuses to CR")
 	}
-	r.cr.Status.RollingUpdateStatus.LastStatefulSetGeneration = generation
 	return err
 }
 
@@ -350,7 +368,7 @@ func (r OpenSearchReconciler) execFlushProcedure(client *util.RestClient) error 
 	return nil
 }
 
-func (r OpenSearchReconciler) runRollingUpdate(client *util.RestClient, statefulSet *v1.StatefulSet) error {
+func (r OpenSearchReconciler) runRollingUpdate(client *util.RestClient, statefulSets []*v1.StatefulSet) error {
 	r.logger.Info("Running Rolling Update procedure...")
 	enabledAllocationAfterPodRestart := false
 	defer func() {
@@ -366,17 +384,15 @@ func (r OpenSearchReconciler) runRollingUpdate(client *util.RestClient, stateful
 		if err := r.changeAllocationSetting(false, client); err != nil {
 			return err
 		}
-
 		if err := r.execFlushProcedure(client); err != nil {
 			return err
 		}
-
 		if err := r.updateRollingUpdateStatus(rollingUpdateRunningStatus); err != nil {
 			return err
 		}
 	}
 
-	if err := r.restartOpenSearchPods(statefulSet); err != nil {
+	if err := r.restartOpenSearchPods(statefulSets); err != nil {
 		r.logger.Error(err, "Error while OpenSearch pods restarting")
 		return err
 	}
@@ -398,18 +414,68 @@ func (r OpenSearchReconciler) runRollingUpdate(client *util.RestClient, stateful
 	return nil
 }
 
-func (r OpenSearchReconciler) restartOpenSearchPods(statefulSet *v1.StatefulSet) error {
-	updatedReplicas, err := r.getUpdatedReplicasSlice(statefulSet)
+func (r OpenSearchReconciler) restartOpenSearchPods(statefulSets []*v1.StatefulSet) error {
+	for _, statefulSet := range statefulSets {
+		status, err := r.findStatefulSetStatus(statefulSet)
+		if err != nil {
+			return err
+		}
+
+		if *statefulSet.Spec.Replicas != statefulSet.Status.UpdatedReplicas {
+			if err := r.restartOpenSearchPod(statefulSet, status); err != nil {
+				return err
+			}
+		} else {
+			r.logger.Info("All replicas are already updated")
+		}
+
+		if len(status.UpdatedReplicas) != 0 {
+			r.logger.Info(fmt.Sprintf("Clear %s updated replicas slice in CR", statefulSet.Name))
+			status.UpdatedReplicas = []int32{}
+			if err := r.updateStatefulSetStatuses(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (r OpenSearchReconciler) findStatefulSetStatus(statefulSet *v1.StatefulSet) (*opensearchservice.StatefulSetStatus, error) {
+	r.logger.Info(fmt.Sprintf("Searching rolling update status for %s stateful set", statefulSet.Name))
+	statuses := r.cr.Status.RollingUpdateStatus.StatefulSetStatuses
+	for index := range statuses {
+		status := &(r.cr.Status.RollingUpdateStatus.StatefulSetStatuses[index])
+		if status.Name == statefulSet.Name {
+			r.logger.Info(fmt.Sprintf("Stateful set status found in CR: status-name: %s, last generation: %d, updated relicas: %o", status.Name, status.LastStatefulSetGeneration, status.UpdatedReplicas))
+			return status, nil
+		}
+	}
+
+	r.logger.Info("Stateful set status was not found. Create new one")
+	status := opensearchservice.StatefulSetStatus{Name: statefulSet.Name, LastStatefulSetGeneration: statefulSet.Generation, UpdatedReplicas: []int32{}}
+	r.cr.Status.RollingUpdateStatus.StatefulSetStatuses = append(statuses, status)
+	if err := r.updateStatefulSetStatuses(); err != nil {
+		return nil, err
+	}
+
+	lastElementId := len(r.cr.Status.RollingUpdateStatus.StatefulSetStatuses) - 1
+	newStatus := &(r.cr.Status.RollingUpdateStatus.StatefulSetStatuses[lastElementId])
+	r.logger.Info(fmt.Sprintf("Return new status %s", newStatus.Name))
+	return newStatus, nil
+}
+
+func (r OpenSearchReconciler) restartOpenSearchPod(statefulSet *v1.StatefulSet, status *opensearchservice.StatefulSetStatus) error {
+	updatedReplicas, err := r.getUpdatedReplicasSlice(statefulSet, status)
 	if err != nil {
 		return err
 	}
 
-	for index := *statefulSet.Spec.Replicas - 1; index >= 0; index-- {
-		if util.ArrayContains(updatedReplicas, index) {
+	for replica := *statefulSet.Spec.Replicas - 1; replica >= 0; replica-- {
+		if util.ArrayContains(updatedReplicas, replica) {
 			continue
 		}
 
-		podName := fmt.Sprintf("%s-%d", r.getStatefulSetName(), index)
+		podName := fmt.Sprintf("%s-%d", statefulSet.Name, replica)
 		r.logger.Info(fmt.Sprintf("Try to restart OpenSearch pod %s", podName))
 		if err := r.reconciler.deletePodByName(podName, r.cr.Namespace, r.logger); err != nil {
 			return err
@@ -419,34 +485,23 @@ func (r OpenSearchReconciler) restartOpenSearchPods(statefulSet *v1.StatefulSet)
 			return err
 		}
 
-		updatedReplicas = append(updatedReplicas, index)
-		r.cr.Status.RollingUpdateStatus.UpdatedReplicas = updatedReplicas
-		if err := r.uploadUpdatedReplicasSlice(updatedReplicas); err != nil {
+		updatedReplicas = append(updatedReplicas, replica)
+		if err := r.uploadUpdatedReplicasSlice(updatedReplicas, status); err != nil {
 			return err
 		}
 	}
 
-	return r.clearUpdatedReplicasSlice()
+	return nil
 }
 
-func (r OpenSearchReconciler) getUpdatedReplicasSlice(statefulSet *v1.StatefulSet) ([]int32, error) {
-	if statefulSet.Generation != r.cr.Status.RollingUpdateStatus.LastStatefulSetGeneration {
-		r.logger.Info("Current stateful set generation and generation in CR are different")
-		if err := r.clearUpdatedReplicasSlice(); err != nil {
-			return nil, err
-		}
-		if err := r.updateLastStatefulSetGeneration(statefulSet.Generation); err != nil {
-			return nil, err
-		}
-
+func (r OpenSearchReconciler) getUpdatedReplicasSlice(statefulSet *v1.StatefulSet, status *opensearchservice.StatefulSetStatus) ([]int32, error) {
+	if statefulSet.Generation != status.LastStatefulSetGeneration {
+		r.logger.Info("Current stateful set generation and generation in CR are different, so clear updated replicas slice and update the last generation.")
+		status.UpdatedReplicas = []int32{}
+		status.LastStatefulSetGeneration = statefulSet.Generation
+		return status.UpdatedReplicas, r.updateStatefulSetStatuses()
 	}
-	return r.cr.Status.RollingUpdateStatus.UpdatedReplicas, nil
-}
-
-func (r OpenSearchReconciler) clearUpdatedReplicasSlice() error {
-	r.logger.Info("Clear updated replicas slice in CR")
-	r.cr.Status.RollingUpdateStatus.UpdatedReplicas = []int32{}
-	return r.uploadUpdatedReplicasSlice([]int32{})
+	return status.UpdatedReplicas, nil
 }
 
 func (r OpenSearchReconciler) waitUntilOpenSearchPodIsReady(podName string) error {

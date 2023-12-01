@@ -813,10 +813,10 @@ Calculates resources that should be monitored during deployment by Deployment St
     {{- if eq (include "joint-mode" .) "true" }}
     {{- $resources = append $resources (printf "StatefulSet %s" (include "opensearch.fullname" .)) -}}
     {{- else }}
-    {{- $resources = append $resources (printf "StatefulSet %s-master" (include "opensearch.fullname" .)) -}}
     {{- if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled }}
     {{- $resources = append $resources (printf "StatefulSet %s-data" (include "opensearch.fullname" .)) -}}
     {{- end }}
+    {{- $resources = append $resources (printf "StatefulSet %s-master" (include "opensearch.fullname" .)) -}}
     {{- if and .Values.opensearch.client.enabled .Values.opensearch.client.dedicatedPod.enabled }}
     {{- $resources = append $resources (printf "Deployment %s-client" (include "opensearch.fullname" .)) -}}
     {{- end }}
@@ -1017,9 +1017,9 @@ Image can be found from:
 {{- end -}}
 
 {{/*
-Configure Open Distro Elasticsearch statefulset and deployment names in disaster recovery health check format.
+Configure OpenSearch statefulset and deployment names in disaster recovery health check format.
 */}}
-{{- define "opensearch.statefulsetNames" -}}
+{{- define "opensearch.nodeNames" -}}
     {{- $lst := list }}
     {{- if .Values.opensearch.arbiter.enabled }}
         {{- $lst = append $lst (printf "%s %s-%s" "statefulset" (include "opensearch.fullname" . ) "arbiter") }}
@@ -1125,7 +1125,7 @@ Determines whether OpenSearch data StatefulSet be used or not
 Determines update strategy for OpenSearch master nodes
 */}}
 {{- define "master.updateStrategy" -}}
-{{- if and .Values.opensearch.rollingUpdate (eq (include "opensearch.useDataNodes" . ) "false") -}}
+{{- if .Values.opensearch.rollingUpdate -}}
   {{- "OnDelete" -}}
 {{- else -}}
   {{- .Values.opensearch.master.updateStrategy | default "RollingUpdate" -}}
@@ -1136,9 +1136,37 @@ Determines update strategy for OpenSearch master nodes
 Determines update strategy for OpenSearch data nodes
 */}}
 {{- define "data.updateStrategy" -}}
-{{- if and .Values.opensearch.rollingUpdate (eq (include "opensearch.useDataNodes" .) "true") -}}
+{{- if .Values.opensearch.rollingUpdate -}}
     {{- "OnDelete" -}}
 {{- else -}}
   {{- .Values.opensearch.data.updateStrategy | default "RollingUpdate" -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Determines update strategy for OpenSearch arbiter nodes
+*/}}
+{{- define "arbiter.updateStrategy" -}}
+{{- if .Values.opensearch.rollingUpdate -}}
+    {{- "OnDelete" -}}
+{{- else -}}
+  {{- .Values.opensearch.arbiter.updateStrategy | default "RollingUpdate" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Configure OpenSearch statefulset names for rolling update mechanism in operator.
+*/}}
+{{- define "opensearch.statefulsetNames" -}}
+    {{- $lst := list }}
+    {{ if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled }}
+        {{- $lst = append $lst (printf "%s-data" (include "opensearch.fullname" . )) }}
+    {{- end }}
+    {{- if .Values.opensearch.master.enabled }}
+        {{- $lst = append $lst (include "master-nodes" .) }}
+    {{- end }}
+    {{- if .Values.opensearch.arbiter.enabled }}
+        {{- $lst = append $lst (printf "%s-arbiter" (include "opensearch.fullname" . )) }}
+    {{- end }}
+    {{- join "," $lst }}
 {{- end -}}

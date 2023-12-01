@@ -113,11 +113,11 @@ spec:
             - name: USE_DEFAULT_PATHS
               value: "true"
             - name: HEALTH_MAIN_SERVICES_ACTIVE
-              value: "{{ trim (include "opensearch.statefulsetNames" .) }}"
+              value: "{{ trim (include "opensearch.nodeNames" .) }}"
             - name: HEALTH_MAIN_SERVICES_STANDBY
-              value: "{{ trim (include "opensearch.statefulsetNames" .) }}"
+              value: "{{ trim (include "opensearch.nodeNames" .) }}"
             - name: HEALTH_MAIN_SERVICES_DISABLED
-              value: "{{ trim (include "opensearch.statefulsetNames" .) }}"
+              value: "{{ trim (include "opensearch.nodeNames" .) }}"
             - name: POD_IP
               valueFrom:
                 fieldRef:
