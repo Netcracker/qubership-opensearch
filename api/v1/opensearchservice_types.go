@@ -14,6 +14,7 @@ type OpenSearch struct {
 	SecurityConfigurationName string     `json:"securityConfigurationName"`
 	CompatibilityModeEnabled  bool       `json:"compatibilityModeEnabled,omitempty"`
 	RollingUpdate             bool       `json:"rollingUpdate,omitempty"`
+	StatefulSetNames          string     `json:"statefulSetNames,omitempty"`
 }
 
 type Snapshots struct {
@@ -108,7 +109,12 @@ type OpenSearchServiceStatus struct {
 }
 
 type RollingUpdateStatus struct {
-	Status                    string  `json:"status,omitempty"`
+	Status              string              `json:"status,omitempty"`
+	StatefulSetStatuses []StatefulSetStatus `json:"statefulSetStatuses,omitempty"`
+}
+
+type StatefulSetStatus struct {
+	Name                      string  `json:"name,omitempty"`
 	LastStatefulSetGeneration int64   `json:"lastStatefulSetGeneration,omitempty"`
 	UpdatedReplicas           []int32 `json:"updatedReplicas,omitempty"`
 }
