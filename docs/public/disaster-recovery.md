@@ -45,6 +45,18 @@ The Disaster Recovery (DR) configuration requires two separate OpenSearch cluste
            - opensearch-northamerica.opensearch-service.svc.clusterset.local
    ```
 
+    **Important**: In case you use certificates which weren't created by cert-manager, you have to specify both *active* and *standby* the OpenSearch DNS name in the `opensearch.tls.subjectAlternativeName.additionalDnsNames` parameter.
+    For example, for OpenSearch `cluster-1` and `cluster-2`, the following parameter should be specified.
+
+   ```
+   opensearch:
+     tls:
+       subjectAlternativeName:
+         additionalDnsNames:
+           - opensearch.opensearch-service.svc.cluster-1.local
+           - opensearch.opensearch-service.svc.cluster-2.local
+   ```
+   
 3. The parameter that describes services after which the OpenSearch service switchover has to be run is as follows.
 
     ```
