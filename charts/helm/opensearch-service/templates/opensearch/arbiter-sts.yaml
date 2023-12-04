@@ -23,7 +23,7 @@ spec:
 {{- end }}
   podManagementPolicy: Parallel
   updateStrategy:
-    type: {{ .Values.opensearch.arbiter.updateStrategy }}
+    type: {{ include "arbiter.updateStrategy" . | quote }}
   serviceName: {{ template "opensearch.fullname" . }}-discovery
   template:
     metadata:
