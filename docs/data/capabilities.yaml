@@ -59,10 +59,8 @@ BackupRestore:
     Note: "OpenSearch indices are considered as a schema"
   IncrementalBackup:
     Supported: no
-    Snapshots: no
   IncrementalBackupPerSchema:
     Supported: no
-    Snapshots: no
   FullRestore:
     Supported: yes
     Snapshots: yes
@@ -73,10 +71,8 @@ BackupRestore:
     Downtime: no
   PointInTimeRecovery:
     Supported: no
-    Snapshots: no
   PointInTimeRecoveryPerSchema:
     Supported: no
-    Snapshots: no
 Storage:
   Supported: yes
   Backups:
@@ -95,6 +91,10 @@ Storage:
 Security:
   IdP:
     Supported: yes
+    Integration:
+      - OpenIdConnect
+  DataEncryption:
+    Supported: no
   Transport:
     - TLS
 ManagedServices:
