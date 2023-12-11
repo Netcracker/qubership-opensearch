@@ -1,0 +1,14 @@
+build:
+  env:
+    type: application-integration
+    version: openshift-dd-2
+  networkRules: integration
+
+  integration:
+    multi_image_descriptor: true
+    dmp_descriptor: true
+
+publication:
+  application-manifest:
+    am-mf: application.mf
+    am-zip: application.zip
