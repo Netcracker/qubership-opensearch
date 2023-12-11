@@ -146,7 +146,7 @@ build opensearch manifest 2.9.0:
   extends: .manifest
   allow_failure: false
   variables:
-    PREFIX: "delivery/opensearch/2.9.0"
+    PREFIX: "delivery/2.9.0"
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
     PARAMETERS: "{integration: [{type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, docker-image-id: timestamp, deploy-param: opensearchOperator}, {type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, prefix: integration-tests, docker-image-id: timestamp, deploy-param: opensearchIntegrationTests}, {type: scripts, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, alias: timestamp, zip-name: migration-artifacts.zip, name: migration-artifacts, pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh}]}"
   rules:
