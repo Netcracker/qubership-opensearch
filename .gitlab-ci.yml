@@ -371,7 +371,7 @@ opensearch 2.9.0 promoteManifest:
   extends: .promoteManifest
   variables:
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
-    SNIPPET_ID: 3089
+    SNIPPET_ID: 3126
 
 # ReleaseNotes:
 #   stage: releaseNotes
