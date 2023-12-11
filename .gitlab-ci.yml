@@ -10,7 +10,6 @@ variables:
   DATABASE_CI_TOOLS_IMAGE: "artifactorycn.netcracker.com:17008/product/prod.platform.databases_ci-tools:release_notes_latest"
   OPENSEARCH_PROPERTIES_FILE: "opensearch.properties"
   OPENSEARCH_TESTS_PROPERTIES_FILE: "opensearchtests.properties"
-  OPENSEARCH_PROPERTIES_FILE_290: "opensearch290.properties"
   JENKINS_URL: "https://cisrvrecn.netcracker.com"
 
 stages:
@@ -186,9 +185,9 @@ ci-master DP opensearch deploy:
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
     VALUES: ci-master.yaml
     CLOUD_URL: "https://ci-master.openshift.sdntest.netcracker.com:6443"
-    CLOUD_NAMESPACE: "opensearch-service"
+    CLOUD_NAMESPACE: "opensearch-service-v2"
     CLOUD_TOKEN: "${ci_master_openshift_sdntest_opensearch_service_v2_token}"
-    DEPLOYMENT_MODE: "clean"
+    DEPLOYMENT_MODE: "reinstall"
 
 ci-master tests DP deploy:
   stage: deploytests
@@ -211,7 +210,7 @@ ci-master tests DP deploy:
     PROPERTIES_FILENAME: "${OPENSEARCH_TESTS_PROPERTIES_FILE}"
     VALUES: tests-ci-master.yaml
     CLOUD_URL: "https://ci-master.openshift.sdntest.netcracker.com:6443"
-    CLOUD_NAMESPACE: "opensearch-service"
+    CLOUD_NAMESPACE: "opensearch-service-v2"
     CLOUD_TOKEN: "${ci_master_openshift_sdntest_opensearch_service_v2_token}"
     DEPLOYMENT_MODE: "reinstall"
 
