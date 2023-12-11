@@ -121,21 +121,10 @@ cloud:
 
 integration:
   - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
-    docker-image-id: timestamp
-    deploy-param: opensearchOperator
-  - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/disaster-recovery-daemon
     location: master
     docker-image-id: timestamp
     deploy-param: disasterRecoveryImage
-  - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
-    prefix: integration-tests
-    docker-image-id: timestamp
-    deploy-param: opensearchIntegrationTests
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-opensearch
     location: master
@@ -181,13 +170,6 @@ integration:
   - type: image
     docker-image: artifactorycn.netcracker.com:17014/product/prod.platform.streaming_docker-kubectl:0.0.2_20230324-083045
     deploy-param: kubectl
-  - type: scripts
-    repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
-    alias: timestamp
-    zip-name: migration-artifacts.zip
-    name: migration-artifacts
-    pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh
   - type: scripts
     repo: PROD.Platform.ElasticStack/deployment-utils
     location: 0.1.1
