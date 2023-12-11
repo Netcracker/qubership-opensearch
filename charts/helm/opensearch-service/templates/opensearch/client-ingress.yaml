@@ -16,7 +16,7 @@ metadata:
 {{ include "opensearch.labels.standard" . | indent 4 }}
   annotations:
     {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
-    {{- if $.Capabilities.APIVersions.Has "route.openshift.io/v1/Route" }}
+    {{- if .Capabilities.APIVersions.Has "route.openshift.io/v1/Route" }}
     route.openshift.io/termination: passthrough
     {{- else }}
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS
@@ -31,7 +31,7 @@ metadata:
     {{- end }}
 spec:
 {{- if or .Values.opensearch.client.ingress.tls (eq (include "opensearch.tlsEnabled" .) "true") }}
-  {{- if (not ($.Capabilities.APIVersions.Has "route.openshift.io/v1/Route")) }}
+  {{- if (not (.Capabilities.APIVersions.Has "route.openshift.io/v1/Route")) }}
   tls:
     {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
     - hosts:
