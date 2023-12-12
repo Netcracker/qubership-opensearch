@@ -161,12 +161,12 @@ integration:
     deploy-param: elasticsearchDbaasAdapterImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: master
+    location: bugfix/update-py-dependencies
     docker-image-id: timestamp
     deploy-param: opensearchCurator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: master
+    location: bugfix/update-py-dependencies
     prefix: elasticsearch_indices_cleaner
     docker-image-id: timestamp
     deploy-param: opensearchIndicesCleaner
