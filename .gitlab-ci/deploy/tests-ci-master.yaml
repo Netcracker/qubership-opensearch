@@ -22,7 +22,7 @@ tls:
     secretCaKey: "rest-root-ca.pem"
 
 integrationTests:
-  tags: ${TAGS}
+  tags: "NOTha"
   opensearchHost: "opensearch"
   opensearchPort: 9200
   opensearchProtocol: "https"
