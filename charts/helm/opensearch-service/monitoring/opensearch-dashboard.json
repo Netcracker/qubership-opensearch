@@ -28,15 +28,19 @@
   "links": [
     {
       "icon": "external link",
+      "includeVars": true,
       "tags": [
-        "k8s-pod-by-node"
+        "k8s",
+        "pods"
       ],
       "targetBlank": true,
       "title": "Kubernetes / Pod Resources",
+      "tooltip": "Open Pod Resources dashboard",
       "type": "dashboards"
     },
     {
       "icon": "external link",
+      "includeVars": true,
       "tags": [
         "prometheus",
         "opensearch",
@@ -50,6 +54,7 @@
     },
     {
       "icon": "external link",
+      "includeVars": true,
       "tags": [
         "prometheus",
         "opensearch",
@@ -63,6 +68,7 @@
     },
     {
       "icon": "external link",
+      "includeVars": true,
       "tags": [
         "prometheus",
         "opensearch",
