@@ -35,7 +35,7 @@ integrationTests:
   opensearchDbaasAdapterApiVersion: v2
   opensearchCuratorHost: "opensearch-curator"
   opensearchCuratorPort: 8080
-  prometheusUrl: "http://prometheus.ci-master.openshift.sdntest.netcracker.com:80"
+  prometheusUrl: "http://vmsingle-k8s.monitoring:8429"
 
   resources:
     requests:
