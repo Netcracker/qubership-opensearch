@@ -1,0 +1,46 @@
+service:
+  name: opensearch-integration-tests
+
+secret:
+  opensearch:
+    username: "netcrk"
+    password: "crknet"
+  idp:
+    username: "sysadm"
+    password: "netcracker"
+    registrationToken: "default_client_registration_secret"
+  dbaasAdapter:
+    username: "dbaas-aggregator"
+    password: "dbaas-aggregator"
+  curator:
+    username: "admin"
+    password: "admin"
+
+tls:
+  opensearch:
+    secretName: "opensearch-rest-certs"
+    secretCaKey: "rest-root-ca.pem"
+
+integrationTests:
+  tags: "NOTha"
+  opensearchHost: "opensearch"
+  opensearchPort: 9200
+  opensearchProtocol: "https"
+  opensearchMasterNodesName: "opensearch"
+  slowQueriesIntervalMinutes: 5
+  identityProviderUrl: "http://idp.framework-ci-services:8080"
+  opensearchDbaasAdapterHost: "dbaas-opensearch-adapter"
+  opensearchDbaasAdapterPort: 8080
+  opensearchDbaasAdapterRepository: "snapshots"
+  opensearchDbaasAdapterApiVersion: v2
+  opensearchCuratorHost: "opensearch-curator"
+  opensearchCuratorPort: 8080
+  prometheusUrl: "http://vmsingle-k8s.monitoring:8429"
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 50m
+    limits:
+      memory: 256Mi
+      cpu: 400m
