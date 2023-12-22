@@ -134,14 +134,26 @@ Find Backup By Timestamp
     Should Be Equal As Strings  ${backup_id}  ${found_backup_id}
     [Teardown]  Run Keywords  Delete Data  AND  Delete Backup  ${backup_id}
 
-Full Backup And Restore
-    [Tags]  opensearch  backup  full_backup
+Backup And Restore
+    [Tags]  opensearch  backup
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}
     ${backup_id}=  Full Backup
 
     Delete Data
 
     Full Restore  ${backup_id}  ["${OPENSEARCH_BACKUP_INDEX}"]
+    Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_INDEX}
+    Check That Document Exists By Field  ${OPENSEARCH_BACKUP_INDEX}  name  ${document_name}
+    [Teardown]  Run Keywords  Delete Data  AND  Delete Backup  ${backup_id}
+
+Full Backup And Restore
+    [Tags]  opensearch  full_backup
+    Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}
+    ${backup_id}=  Full Backup
+
+    Delete Data
+
+    Full Restore  ${backup_id}
     Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_INDEX}
     Check That Document Exists By Field  ${OPENSEARCH_BACKUP_INDEX}  name  ${document_name}
     [Teardown]  Run Keywords  Delete Data  AND  Delete Backup  ${backup_id}
