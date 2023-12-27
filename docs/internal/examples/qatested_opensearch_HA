@@ -27,7 +27,6 @@ opensearch:
         password: admin
   securityContextCustom:
     runAsUser: 1000
-    runAsGroup: 1000
     fsGroup: 1000
   fixMount:
     enabled: true
@@ -39,12 +38,12 @@ opensearch:
       role: compute
     resources:
       limits:
-        cpu: 400m
-        memory: 1236Mi
+        cpu: 500m
+        memory: 1536Mi
       requests:
         cpu: 200m
-        memory: 1024Mi
-    javaOpts: -Xms512m -Xmx512m
+        memory: 1536Mi
+    javaOpts: -Xms768m -Xmx768m
     persistence:
       storageClass: csi-cinder-sc-delete
       size: 2Gi
@@ -85,7 +84,6 @@ dbaasAdapter:
     role: compute
   securityContext:
     runAsUser: 1000
-    runAsGroup: 1000
     fsGroup: 1000
 integrationTests:
   enabled: true
@@ -120,6 +118,5 @@ curator:
     role: compute
   securityContext:
     runAsUser: 1000
-    runAsGroup: 1000
     fsGroup: 1000
 ESCAPE_SEQUENCE: "true"
