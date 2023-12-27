@@ -180,6 +180,14 @@ To avoid using `cluster-wide` rights during the deployment, the following condit
           - create
           - get
           - patch
+      - apiGroups:
+          - cert-manager.io
+        resources:
+          - certificates
+        verbs:
+          - create
+          - get
+          - patch
     ```
     </details>
 
