@@ -15,7 +15,7 @@ The topics covered in this section are:
 
 The Disaster Recovery scheme implies two separate OpenSearch clusters, one of which is in the *active* mode, and the other is in the *standby* mode.
 
-![DR scheme](/documentation/installation-guide/disaster-recovery/images/opensearch_dr_with_dbaas.png)
+![DR scheme](/docs/public/images/opensearch_dr_with_dbaas.png)
 
 The Disaster Recovery process for the OpenSearch service includes the following:
 
@@ -45,6 +45,18 @@ The Disaster Recovery (DR) configuration requires two separate OpenSearch cluste
            - opensearch-northamerica.opensearch-service.svc.clusterset.local
    ```
 
+    **Important**: In case you use certificates that weren't created by cert-manager, you have to specify both *active* and *standby* the OpenSearch DNS names in the `opensearch.tls.subjectAlternativeName.additionalDnsNames` parameter.
+    For example, for OpenSearch `cluster-1` and `cluster-2`, the following parameters should be specified.
+
+   ```
+   opensearch:
+     tls:
+       subjectAlternativeName:
+         additionalDnsNames:
+           - opensearch.opensearch-service.svc.cluster-1.local
+           - opensearch.opensearch-service.svc.cluster-2.local
+   ```
+   
 3. The parameter that describes services after which the OpenSearch service switchover has to be run is as follows.
 
     ```

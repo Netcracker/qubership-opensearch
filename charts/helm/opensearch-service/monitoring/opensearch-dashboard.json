@@ -2742,7 +2742,7 @@
             {
               "alias": "$tag_pod_name used",
               "dsType": "influxdb",
-              "expr": "sum(container_memory_usage_bytes{namespace=\"$namespace\",pod=~\"$node_name\",container!=\"\",cluster=\"$cluster\"}) by (pod)",
+              "expr": "sum(container_memory_usage_bytes{namespace=\"$namespace\",pod=~\"$node_name\",container!=\"\",image!=\"\",cluster=\"$cluster\"}) by (pod)",
               "groupBy": [
                 {
                   "params": [
@@ -2824,7 +2824,7 @@
               "tags": []
             },
             {
-              "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$node_name\",container!=\"\",cluster=\"$cluster\"}) by (pod)",
+              "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$node_name\",container!=\"\",image!=\"\",cluster=\"$cluster\"}) by (pod)",
               "interval": "",
               "legendFormat": "{{pod}}:usage",
               "refId": "C"
@@ -3890,7 +3890,7 @@
             {
               "alias": "$tag_pod_name",
               "dsType": "influxdb",
-              "expr": "(sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$node_name\",container!=\"\",cluster=\"$cluster\"}[5m])) by (pod)) * 1000",
+              "expr": "(sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$node_name\",container!=\"\",image!=\"\",cluster=\"$cluster\"}[5m])) by (pod)) * 1000",
               "groupBy": [
                 {
                   "params": [

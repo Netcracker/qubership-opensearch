@@ -70,7 +70,8 @@ func (r DisasterRecoveryReconciler) Status() error {
 func (r DisasterRecoveryReconciler) Configure() error {
 	crCondition := r.cr.Spec.DisasterRecovery.Mode != r.cr.Status.DisasterRecoveryStatus.Mode ||
 		r.cr.Status.DisasterRecoveryStatus.Status == "running" ||
-		r.cr.Status.DisasterRecoveryStatus.Status == "failed"
+		r.cr.Status.DisasterRecoveryStatus.Status == "failed" ||
+		r.cr.Status.DisasterRecoveryStatus.Status == "queue"
 
 	drConfigHash, err :=
 		r.reconciler.calculateConfigDataHash(r.cr.Spec.DisasterRecovery.ConfigMapName, drConfigHashName, r.cr, r.logger)

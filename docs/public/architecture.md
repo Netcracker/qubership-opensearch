@@ -19,16 +19,16 @@ In summary, OpenSearch is necessary for businesses as it empowers them to delive
 The Netcracker platform provides OpenSearch deployment to Kubernetes/OpenShift using helm chart based on community OpenSearch Helm chart with own operator and additional features.
 The deployment procedure and additional features include the following:
 
-* Support of Netcracker deployment jobs for HA scheme and different configurations. For more information, refer to the [Installation of OpenSearch](/documentation/installation-guide/README.md) section.
+* Support of Netcracker deployment jobs for HA scheme and different configurations. For more information, refer to the [Installation of OpenSearch](/docs/public/installation.md) section.
 * Backup and restore data. <!-- #GFCFilterMarkerStart# -->For more information, refer to [OpenSearch Curator Guide](https://git.netcracker.com/PROD.Platform.ElasticStack/docker-elastic-curator/-/blob/master/README.md).<!-- #GFCFilterMarkerEnd# -->
-* Monitoring integration with Grafana Dashboard and Prometheus Alerts. For more information, refer to the [OpenSearch Service Monitoring](/documentation/maintenance-guide/monitoring/README.md) section in the _Cloud Platform Monitoring Guide_.
+* Monitoring integration with Grafana Dashboard and Prometheus Alerts. For more information, refer to the [OpenSearch Service Monitoring](/docs/public/monitoring.md) section in the _Cloud Platform Monitoring Guide_.
 * User Interface (UI) provided by OpenSearch dashboards.
 * DBaaS Adapter for OpenSearch integration. <!-- #GFCFilterMarkerStart# -->For more information, refer to [DBaaS Adapter Guide](https://git.netcracker.com/PROD.Platform.ElasticStack/dbaas-opensearch-adapter/-/blob/master/README.md).<!-- #GFCFilterMarkerEnd# -->
-* Disaster Recovery scheme with data replication. For more information, refer to the [OpenSearch Disaster Recovery](/documentation/installation-guide/disaster-recovery/README.md) section in the _Cloud Platform Disaster Recovery Guide_.
+* Disaster Recovery scheme with data replication. For more information, refer to the [OpenSearch Disaster Recovery](/docs/public/disaster-recovery.md) section in the _Cloud Platform Disaster Recovery Guide_.
 
 # OpenSearch Components
 
-![Application Overview](/documentation/architecture-guide/images/opensearch_components_overview.drawio.png)
+![Application Overview](/docs/public/images/opensearch_components_overview.drawio.png)
 
 ## OpenSearch Operator
 
@@ -99,7 +99,7 @@ The set of pre-install hooks which allow to prepare environment for OpenSearch i
 
 ### HA Joint Deployment Scheme
 
-![HA Scheme](/documentation/architecture-guide/images/opensearch_on_prem_deploy.drawio.png)
+![HA Scheme](/docs/public/images/opensearch_on_prem_deploy.drawio.png)
 
 Following the above pictures, let us describe the main parts of the OpenSearch K8s deployment:
 
@@ -118,7 +118,7 @@ For a non-HA deployment scheme, it is possible to use one pod of OpenSearch clus
 
 ### HA Separated Deployment Scheme
 
-![HA Separated Scheme](/documentation/architecture-guide/images/opensearch_on_prem_deploy_separated.drawio.png)
+![HA Separated Scheme](/docs/public/images/opensearch_on_prem_deploy_separated.drawio.png)
 
 In the separated mode, it is possible to deploy OpenSearch pods with different roles and provide more load distribution:
 
@@ -130,11 +130,11 @@ In the separated mode, it is possible to deploy OpenSearch pods with different r
 
 The Disaster Recovery scheme of OpenSearch deployment assumes that two independent OpenSearch clusters are deployed for both sides on separate Kubernetes environments with indices replication between them.
 
-![DR Scheme](/documentation/architecture-guide/images/opensearch_dr_deploy.drawio.png)
+![DR Scheme](/docs/public/images/opensearch_dr_deploy.drawio.png)
 
 The OpenSearch provides replication of indices data between OpenSearch clusters via Cross Cluster Replication plugin (red arrows).
 
-For more information about these schemes, refer to the [OpenSearch Disaster Recovery](/documentation/installation-guide/disaster-recovery/README.md) section in the _Cloud Platform Disaster Recovery Guide_.
+For more information about these schemes, refer to the [OpenSearch Disaster Recovery](/docs/public/disaster-recovery.md) section in the _Cloud Platform Disaster Recovery Guide_.
 
 ## Integration With Managed Services
 
@@ -147,9 +147,9 @@ Not Applicable; the default HA scheme is used for the deployment to Google Cloud
 The OpenSearch Service allows you to deploy OpenSearch supplementary services (Monitoring, DBaaS Adapter, Curator) without deploying OpenSearch, using Amazon OpenSearch connection and credentials. 
 Thus, the features and functions of these services are adopted to Amazon OpenSearch and available as for Netcracker OpenSearch delivery. 
 
-![AWS Scheme](/documentation/architecture-guide/images/opensearch_aws_deploy.drawio.png)
+![AWS Scheme](/docs/public/images/opensearch_aws_deploy.drawio.png)
 
-For more information, refer to the [Integration With Amazon OpenSearch](/documentation/installation-guide/amazon/README.md) section.
+For more information, refer to the [Integration With Amazon OpenSearch](/docs/public/managed/amazon.md) section.
 
 ### Azure
 

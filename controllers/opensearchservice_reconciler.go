@@ -420,3 +420,64 @@ func (r *OpenSearchServiceReconciler) configureClientWithCertificate(certificate
 	}
 	return httpClient, nil
 }
+
+// findStatefulSet returns the stateful set found by name and namespace and error if it occurred
+func (r *OpenSearchServiceReconciler) findStatefulSet(name string, namespace string, logger logr.Logger) (*appsv1.StatefulSet, error) {
+	logger.Info(fmt.Sprintf("Checking existence of [%s] StatefulSet", name))
+	foundStatefulSet := &appsv1.StatefulSet{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, foundStatefulSet)
+	return foundStatefulSet, err
+}
+
+func (r *OpenSearchServiceReconciler) findPod(name string, namespace string, logger logr.Logger) (*corev1.Pod, error) {
+	pod := &corev1.Pod{}
+	podInfo := types.NamespacedName{Name: name, Namespace: namespace}
+	err := r.Client.Get(context.TODO(), podInfo, pod)
+	return pod, err
+}
+
+// updateStatefulSet tries to update specified stateful set
+func (r *OpenSearchServiceReconciler) updateStatefulSet(statefulSet *appsv1.StatefulSet, logger logr.Logger) error {
+	logger.Info("Updating the found StatefulSet", "StatefulSet.Namespace", statefulSet.Namespace, "StatefulSet.Name", statefulSet.Name)
+	return r.Client.Update(context.TODO(), statefulSet)
+}
+
+// watchStatefulSet returns the stateful set found by name and namespace and error if it occurred
+func (r *OpenSearchServiceReconciler) watchStatefulSet(setName string, cr *opensearchservice.OpenSearchService,
+	logger logr.Logger) (*appsv1.StatefulSet, error) {
+	logger.Info(fmt.Sprintf("Try to start watching %s StatefulSet ...", setName))
+
+	statefulSet, err := r.findStatefulSet(setName, cr.Namespace, logger)
+	if err != nil {
+		logger.Error(err, fmt.Sprintf("Error while searching %s StatefulSet", setName))
+		return nil, err
+	}
+
+	if err := controllerutil.SetControllerReference(cr, statefulSet, r.Scheme); err != nil {
+		logger.Error(err, fmt.Sprintf("Error while set controller owner reference to  %s StatefulSet", setName))
+		return nil, err
+	}
+
+	if err := r.updateStatefulSet(statefulSet, logger); err != nil {
+		logger.Error(err, fmt.Sprintf("Error while updating %s StatefulSet", setName))
+		return nil, err
+	}
+
+	return statefulSet, nil
+}
+
+func (r *OpenSearchServiceReconciler) deletePodByName(podName string, namespace string, logger logr.Logger) error {
+	logger.Info(fmt.Sprintf("Deleting pod %s in %s namespace", podName, namespace))
+
+	pod, err := r.findPod(podName, namespace, logger)
+	if err != nil {
+		return err
+	}
+
+	if err := r.Delete(context.TODO(), pod); err != nil {
+		logger.Error(err, fmt.Sprintf("Pod %s was not deleted", podName))
+		return err
+	}
+
+	return nil
+}

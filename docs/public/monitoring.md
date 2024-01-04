@@ -23,13 +23,13 @@ the last metric value is used.
 
 ## Dashboard
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-monitoring_dashboard.png)
+![Dashboard](/docs/public/images/opensearch-monitoring_dashboard.png)
 
 ## Metrics
 
 **Cluster Overview**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-monitoring_cluster_overview.png)
+![Dashboard](/docs/public/images/opensearch-monitoring_cluster_overview.png)
 
 * `Cluster Status` - Status of OpenSearch cluster.
 
@@ -50,7 +50,7 @@ the last metric value is used.
 
 **OpenSearch Shards**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-monitoring_opensearch_shards.png)
+![Dashboard](/docs/public/images/opensearch-monitoring_opensearch_shards.png)
 
 * `Active primary shards` - The number of active primary shards in OpenSearch cluster.
 * `Active shards` - The number of active primary and replica shards in OpenSearch cluster.
@@ -66,14 +66,14 @@ the last metric value is used.
 
 **OpenSearch Tasks**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-monitoring_opensearch_tasks.png)
+![Dashboard](/docs/public/images/opensearch-monitoring_opensearch_tasks.png)
 
 * `Pending tasks` - The number of pending tasks in OpenSearch cluster.
 * `Time of most waiting tasks` - The maximum time in milliseconds that task is waiting in queue.
 
 **Network Metrics**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-monitoring_network_metrics.png)
+![Dashboard](/docs/public/images/opensearch-monitoring_network_metrics.png)
 
 * `Open transport connections` - The number of open transport connections for each OpenSearch node.
 * `Open http connections` - The number of open HTTP connections for each OpenSearch node. If the
@@ -85,7 +85,7 @@ the last metric value is used.
 
 **JVM Heap and GC Metrics**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-monitoring_jvm_heap_and_gc_metrics.png)
+![Dashboard](/docs/public/images/opensearch-monitoring_jvm_heap_and_gc_metrics.png)
 
 * `JVM heap usage` - The usage of JVM heap memory by each OpenSearch node.
 * `JVM heap usage percent` - OpenSearch is set up to initiate garbage collections whenever JVM 
@@ -122,7 +122,7 @@ The following is a list of scenarios related to JVM Heap:
    The following image shows a heap that is too small. The garbage collections are barely able to free objects,
    leaving little heap space free after each collection.
    
-   ![Small Heap](/documentation/maintenance-guide/monitoring/pictures/small_heap.png)
+   ![Small Heap](/docs/public/images/small_heap.png)
 
 * Heap Size is Too Large
 
@@ -141,18 +141,18 @@ The following is a list of scenarios related to JVM Heap:
    The following image shows a heap that is too large. The heap is almost exclusively junk before each
    collection, and this memory is likely better utilized by the filesystem cache.
    
-   ![Oversize Heap](/documentation/maintenance-guide/monitoring/pictures/oversized-heap.png)
+   ![Oversize Heap](/docs/public/images/oversized-heap.png)
 
 **Memory Metrics**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-monitoring_memory_metrics.png)
+![Dashboard](/docs/public/images/opensearch-monitoring_memory_metrics.png)
 
 * `OS memory usage` - The usage of memory by each OpenSearch node and its limit. These metric is
   useful to avoid reaching the memory limit on nodes.
 
 **Disk Metrics**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-monitoring_disk_metrics.png)
+![Dashboard](/docs/public/images/opensearch-monitoring_disk_metrics.png)
 
 * `Disk usage in percent` - The usage of disk space in percent for an OpenSearch node.
 * `Disk usage` - The usage of disk space allocated to each OpenSearch node and its limit.
@@ -165,7 +165,7 @@ of the node, so these metrics are grouped by both the node name and the node hos
 
 **CPU Metrics**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-monitoring_cpu_metrics.png)
+![Dashboard](/docs/public/images/opensearch-monitoring_cpu_metrics.png)
 
 * `CPU load average (5 min)` - Five-minute CPU load average on the system.
 * `CPU load in percent` - The usage of CPU in percent for each OpenSearch node.
@@ -176,7 +176,7 @@ grouped by both the node name and the node host.
 
 **Indices Statistics**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-monitoring_indices_statistics.png)
+![Dashboard](/docs/public/images/opensearch-monitoring_indices_statistics.png)
 
 * `Indices total operations` - The number of operations performed by indices by the current moment 
   grouped by operation type and OpenSearch node.
@@ -190,7 +190,7 @@ grouped by both the node name and the node host.
 
 **Thread Pool Queues and Requests Metrics**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-monitoring_thread_pool_queues_and_requests_metrics.png)
+![Dashboard](/docs/public/images/opensearch-monitoring_thread_pool_queues_and_requests_metrics.png)
 
 * `Requests latency` - The information on the requests, indexing, flush, get-exists, search query,
   and fetch query. The fetch phase typically takes much less time than the query phase.
@@ -219,7 +219,7 @@ to keep up.
 
 **Backup**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-monitoring_backup.png)
+![Dashboard](/docs/public/images/opensearch-monitoring_backup.png)
 
 * `Backup Daemon Status` - The current activity status of the backup daemon. The activity status
   can be one of following:
@@ -251,7 +251,7 @@ to keep up.
 
 **DBaaS Health**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-monitoring_dbaas_health.png)
+![Dashboard](/docs/public/images/opensearch-monitoring_dbaas_health.png)
 
 * `DBaaS Adapter Status` - The status of DBaaS Adapter.
 * `DBaaS OpenSearch Cluster Status` - The status of OpenSearch cluster from the DBaaS Adapter side.
@@ -266,19 +266,19 @@ This section describes the `OpenSearch Indices` dashboard and its metrics.
 
 An overview of `OpenSearch Indices` dashboard is shown below.
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-indices_dashboard.png)
+![Dashboard](/docs/public/images/opensearch-indices_dashboard.png)
 
 ## Metrics
 
 **Overview**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-indices_overview.png)
+![Dashboard](/docs/public/images/opensearch-indices_overview.png)
 
 * `Indices information` - The number of documents for each index and its size in bytes in descending order of size values presented as a table.
 
 **Incoming Documents Rate per Index**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-indices_incoming_documents_rate.png)
+![Dashboard](/docs/public/images/opensearch-indices_incoming_documents_rate.png)
 
 * ${INDEX_NAME} - The incoming documents rate on primary shards.
 
@@ -286,7 +286,7 @@ Where `${INDEX_NAME}` is the name of index which metrics are presented in the wi
 
 **Store Size per Index**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-indices_store_size.png)
+![Dashboard](/docs/public/images/opensearch-indices_store_size.png)
 
 * ${INDEX_NAME} - The size in bytes occupied by index on primary shards and in total.
 
@@ -294,7 +294,7 @@ Where `${INDEX_NAME}` is the name of index which metrics are presented in the wi
 
 **Indexing Documents Rate per Index**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-indices_indexing_documents_rate.png)
+![Dashboard](/docs/public/images/opensearch-indices_indexing_documents_rate.png)
 
 * ${INDEX_NAME} - The indexing documents rate on primary shards.
 
@@ -302,7 +302,7 @@ Where `${INDEX_NAME}` is the name of index which metrics are presented in the wi
 
 **Deleting Documents Rate per Index**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-indices_deleting_documents_rate.png)
+![Dashboard](/docs/public/images/opensearch-indices_deleting_documents_rate.png)
 
 * ${INDEX_NAME} - The deleting documents rate on primary shards.
 
@@ -316,13 +316,13 @@ This section describes the `OpenSearch Slow Queries` dashboard and its metrics.
 
 An overview of `OpenSearch Slow Queries` dashboard is shown below.
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-slow-queries_dashboard.png)
+![Dashboard](/docs/public/images/opensearch-slow-queries_dashboard.png)
 
 ## Metrics
 
 **Overview**
 
-![Dashboard](/documentation/maintenance-guide/monitoring/pictures/opensearch-slow-queries_overview.png)
+![Dashboard](/docs/public/images/opensearch-slow-queries_overview.png)
 
 * `Slow Queries Information` - The slowest queries in processing interval with index name, shard, query, start time, number of found documents and spent time in descending order of spent time.
 * `Slowest Query` - The time of the slowest query in processing interval.
@@ -442,21 +442,21 @@ This table provides full list of Prometheus metrics being collected by OpenSearc
 This section describes Prometheus monitoring alerts.
 
 <!-- markdownlint-disable line-length -->
-| Name                                           | Summary                                                                 | For | Severity | Expression Example                                                                                                                                                                                        | Description                                         | Troubleshooting Link                                                                                                                                              |
-|------------------------------------------------|-------------------------------------------------------------------------|-----|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| OpenSearchCPULoadAlert                         | OpenSearch's CPU usage is above 95%                                     | 3m  | high     | `max(opensearch_process_cpu_percent{namespace="opensearch-service"}) > 95`                                                                                                                                | OpenSearch CPU usage is above 95%.                  | [OpenSearchCPULoadAlert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchCPULoadAlert)                                                 |
-| OpenSearchDiskUsageAbove75%Alert               | OpenSearch's disk usage is above 75%                                    | 3m  | warning  | `1 - sum(opensearch_fs_total_free_in_bytes{namespace="opensearch-service"}) / sum(opensearch_fs_total_total_in_bytes{namespace="opensearch-service"}) > 0.75 <= 0.85`                                     | OpenSearch disk usage is above 75%                  | [OpenSearchDiskUsageAbove75%Alert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchDiskUsageAbove75%Alert)                             |
-| OpenSearchDiskUsageAbove85%Alert               | OpenSearch's disk usage is above 85%                                    | 3m  | high     | `1 - sum(opensearch_fs_total_free_in_bytes{namespace="opensearch-service"}) / sum(opensearch_fs_total_total_in_bytes{namespace="opensearch-service"}) > 0.85 <= 0.95`                                     | OpenSearch disk usage is above 85%                  | [OpenSearchDiskUsageAbove85%Alert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchDiskUsageAbove85%Alert)                             |
-| OpenSearchDiskUsageAbove95%Alert               | OpenSearch's disk usage is above 95%                                    | 3m  | critical | `1 - sum(opensearch_fs_total_free_in_bytes{namespace="opensearch-service"}) / sum(opensearch_fs_total_total_in_bytes{namespace="opensearch-service"}) > 0.95`                                             | OpenSearch disk usage is above 95%                  | [OpenSearchDiskUsageAbove95%Alert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchDiskUsageAbove95%Alert)                             |
-| OpenSearchMemoryUsageAlert                     | OpenSearch's memory usage is above 95%                                  | 3m  | high     | `max(container_memory_working_set_bytes{namespace="opensearch-service", container="opensearch"}) / max(container_spec_memory_limit_bytes{namespace="opensearch-service", container="opensearch"}) > 0.95` | OpenSearch memory usage is above 95%.               | [OpenSearchMemoryUsageAlert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchMemoryUsageAlert)                                         |
-| OpenSearchHeapMemoryUsageAlert                 | OpenSearch's heap memory usage is above 95%                             | 3m  | high     | `max(opensearch_jvm_mem_heap_used_percent{namespace="opensearch-service"}) > 95`                                                                                                                          | OpenSearch heap memory usage is above 95%.          | [OpenSearchHeapMemoryUsageAlert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchHeapMemoryUsageAlert)                                 |
-| OpenSearchIsDegradedAlert                      | Some of OpenSearch Service pods are down                                | 3m  | high     | `opensearch_cluster_health_status_code{namespace="opensearch-service"} == 6`                                                                                                                              | OpenSearch is Degraded.                             | [OpenSearchIsDegradedAlert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchIsDegradedAlert)                                           |
-| OpenSearchIsDownAlert                          | All of OpenSearch Service pods are down                                 | 3m  | high     | `opensearch_cluster_health_status_code{namespace="opensearch-service"} == 10`                                                                                                                             | OpenSearch is Down.                                 | [OpenSearchIsDownAlert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchIsDownAlert)                                                   |
-| OpenSearchDBaaSIsDownAlert                     | OpenSearch DBaaS agent is Down                                          | 3m  | high     | `opensearch_dbaas_health_status{namespace="opensearch-service"} == 1`                                                                                                                                     | OpenSearch DBaaS agent is Down.                     | [OpenSearchDBaaSIsDownAlert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchDBaaSIsDownAlert)                                         |
-| OpenSearchLastBackupHasFailedAlert             | OpenSearch Last Backup Has Failed                                       | 3m  | high     | `opensearch_backups_metric_last_backup_status{namespace="opensearch-service"} != 1`                                                                                                                       | OpenSearch Last Backup Has Failed.                  | [OpenSearchLastBackupHasFailedAlert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchLastBackupHasFailedAlert)                         |
-| OpenSearchQueryIsTooSlowAlert                  | OpenSearch Query Is Too Slow                                            | 1m  | high     | `opensearch_slow_query_took_millis{namespace="opensearch-service"} > 10000`                                                                                                                               | OpenSearch Query Is Too Slow.                       | [OpenSearchQueryIsTooSlowAlert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchQueryIsTooSlowAlert)                                   |
-| OpenSearchReplicationDegradedAlert             | OpenSearch Replication has Degraded                                     | 3m  | warning  | `opensearch_replication_metric_status{namespace="opensearch-service"} == 2`                                                                                                                               | OpenSearch Replication has Degraded.                | [OpenSearchReplicationDegradedAlert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchReplicationDegradedAlert)                         |
-| OpenSearchReplicationFailedAlert               | OpenSearch Replication has Failed                                       | 3m  | high     | `opensearch_replication_metric_status{namespace="opensearch-service"} == 4`                                                                                                                               | OpenSearch Replication has Failed.                  | [OpenSearchReplicationFailedAlert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchReplicationFailedAlert)                             |
-| OpenSearchReplicationLeaderConnectionLostAlert | OpenSearch Replication Follower lost connection with Leader side        | 3m  | high     | `opensearch_replication_metric_status{namespace="opensearch-service"} == -1`                                                                                                                              | OpenSearch Replication Leader connection lost.      | [OpenSearchReplicationLeaderConnectionLostAlert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchReplicationLeaderConnectionLostAlert) |
-| OpenSearchReplicationTooHighLagAlert           | OpenSearch Replication has Index with Lag higher than expected Maximum. | 3m  | high     | `max(opensearch_replication_metric_index_lag{namespace="opensearch-service"}) > 10000`                                                                                                                    | OpenSearch Replication has Index with too high Lag. | [OpenSearchReplicationTooHighLagAlert](/documentation/maintenance-guide/troubleshooting-guide/README.md#OpenSearchReplicationTooHighLagAlert)                     |
+| Name                                           | Summary                                                                 | For | Severity | Expression Example                                                                                                                                                                                        | Description                                         | Troubleshooting Link                                                                                                             |
+|------------------------------------------------|-------------------------------------------------------------------------|-----|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| OpenSearchCPULoadAlert                         | OpenSearch's CPU usage is above 95%                                     | 3m  | high     | `max(opensearch_process_cpu_percent{namespace="opensearch-service"}) > 95`                                                                                                                                | OpenSearch CPU usage is above 95%.                  | [OpenSearchCPULoadAlert](/docs/public/troubleshooting.md#opensearchcpuloadalert)                                                 |
+| OpenSearchDiskUsageAbove75%Alert               | OpenSearch's disk usage is above 75%                                    | 3m  | warning  | `1 - sum(opensearch_fs_total_free_in_bytes{namespace="opensearch-service"}) / sum(opensearch_fs_total_total_in_bytes{namespace="opensearch-service"}) > 0.75 <= 0.85`                                     | OpenSearch disk usage is above 75%                  | [OpenSearchDiskUsageAbove75%Alert](/docs/public/troubleshooting.md#opensearchdiskusageabove75alert)                              |
+| OpenSearchDiskUsageAbove85%Alert               | OpenSearch's disk usage is above 85%                                    | 3m  | high     | `1 - sum(opensearch_fs_total_free_in_bytes{namespace="opensearch-service"}) / sum(opensearch_fs_total_total_in_bytes{namespace="opensearch-service"}) > 0.85 <= 0.95`                                     | OpenSearch disk usage is above 85%                  | [OpenSearchDiskUsageAbove85%Alert](/docs/public/troubleshooting.md#opensearchdiskusageabove85alert)                              |
+| OpenSearchDiskUsageAbove95%Alert               | OpenSearch's disk usage is above 95%                                    | 3m  | critical | `1 - sum(opensearch_fs_total_free_in_bytes{namespace="opensearch-service"}) / sum(opensearch_fs_total_total_in_bytes{namespace="opensearch-service"}) > 0.95`                                             | OpenSearch disk usage is above 95%                  | [OpenSearchDiskUsageAbove95%Alert](/docs/public/troubleshooting.md#opensearchdiskusageabove95alert)                              |
+| OpenSearchMemoryUsageAlert                     | OpenSearch's memory usage is above 95%                                  | 3m  | high     | `max(container_memory_working_set_bytes{namespace="opensearch-service", container="opensearch"}) / max(container_spec_memory_limit_bytes{namespace="opensearch-service", container="opensearch"}) > 0.95` | OpenSearch memory usage is above 95%.               | [OpenSearchMemoryUsageAlert](/docs/public/troubleshooting.md#opensearchmemoryusagealert)                                         |
+| OpenSearchHeapMemoryUsageAlert                 | OpenSearch's heap memory usage is above 95%                             | 3m  | high     | `max(opensearch_jvm_mem_heap_used_percent{namespace="opensearch-service"}) > 95`                                                                                                                          | OpenSearch heap memory usage is above 95%.          | [OpenSearchHeapMemoryUsageAlert](/docs/public/troubleshooting.md#opensearchheapmemoryusagealert)                                 |
+| OpenSearchIsDegradedAlert                      | Some of OpenSearch Service pods are down                                | 3m  | high     | `opensearch_cluster_health_status_code{namespace="opensearch-service"} == 6`                                                                                                                              | OpenSearch is Degraded.                             | [OpenSearchIsDegradedAlert](/docs/public/troubleshooting.md#opensearchisdegradedalert)                                           |
+| OpenSearchIsDownAlert                          | All of OpenSearch Service pods are down                                 | 3m  | high     | `opensearch_cluster_health_status_code{namespace="opensearch-service"} == 10`                                                                                                                             | OpenSearch is Down.                                 | [OpenSearchIsDownAlert](/docs/public/troubleshooting.md#opensearchisdownalert)                                                   |
+| OpenSearchDBaaSIsDownAlert                     | OpenSearch DBaaS agent is Down                                          | 3m  | high     | `opensearch_dbaas_health_status{namespace="opensearch-service"} == 1`                                                                                                                                     | OpenSearch DBaaS agent is Down.                     | [OpenSearchDBaaSIsDownAlert](/docs/public/troubleshooting.md#opensearchdbaasisdownalert)                                         |
+| OpenSearchLastBackupHasFailedAlert             | OpenSearch Last Backup Has Failed                                       | 3m  | high     | `opensearch_backups_metric_last_backup_status{namespace="opensearch-service"} != 1`                                                                                                                       | OpenSearch Last Backup Has Failed.                  | [OpenSearchLastBackupHasFailedAlert](/docs/public/troubleshooting.md#opensearchlastbackuphasfailedalert)                         |
+| OpenSearchQueryIsTooSlowAlert                  | OpenSearch Query Is Too Slow                                            | 1m  | high     | `opensearch_slow_query_took_millis{namespace="opensearch-service"} > 10000`                                                                                                                               | OpenSearch Query Is Too Slow.                       | [OpenSearchQueryIsTooSlowAlert](/docs/public/troubleshooting.md#opensearchqueryistooslowalert)                                   |
+| OpenSearchReplicationDegradedAlert             | OpenSearch Replication has Degraded                                     | 3m  | warning  | `opensearch_replication_metric_status{namespace="opensearch-service"} == 2`                                                                                                                               | OpenSearch Replication has Degraded.                | [OpenSearchReplicationDegradedAlert](/docs/public/troubleshooting.md#opensearchreplicationdegradedalert)                         |
+| OpenSearchReplicationFailedAlert               | OpenSearch Replication has Failed                                       | 3m  | high     | `opensearch_replication_metric_status{namespace="opensearch-service"} == 4`                                                                                                                               | OpenSearch Replication has Failed.                  | [OpenSearchReplicationFailedAlert](/docs/public/troubleshooting.md#opensearchreplicationfailedalert)                             |
+| OpenSearchReplicationLeaderConnectionLostAlert | OpenSearch Replication Follower lost connection with Leader side        | 3m  | high     | `opensearch_replication_metric_status{namespace="opensearch-service"} == -1`                                                                                                                              | OpenSearch Replication Leader connection lost.      | [OpenSearchReplicationLeaderConnectionLostAlert](/docs/public/troubleshooting.md#opensearchreplicationleaderconnectionlostalert) |
+| OpenSearchReplicationTooHighLagAlert           | OpenSearch Replication has Index with Lag higher than expected Maximum. | 3m  | high     | `max(opensearch_replication_metric_index_lag{namespace="opensearch-service"}) > 10000`                                                                                                                    | OpenSearch Replication has Index with too high Lag. | [OpenSearchReplicationTooHighLagAlert](/docs/public/troubleshooting.md#opensearchreplicationtoohighlagalert)                     |
 <!-- markdownlint-enable line-length -->

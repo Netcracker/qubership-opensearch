@@ -228,6 +228,7 @@ opensearch:
   compatibilityModeEnabled: true
   gcLoggingEnabled: false
   performanceAnalyzerEnabled: true
+  rollingUpdate: false
   securityConfig:
     enabled: true
     path: "/usr/share/opensearch/config/opensearch-security"
@@ -1076,7 +1077,7 @@ statusProvisioner:
   enabled: true
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.streaming_deployment-status-provisioner:master_latest
   lifetimeAfterCompletion: 600
-  podReadinessTimeout: 600
+  podReadinessTimeout: 800
   integrationTestsTimeout: 300
   resources:
     requests:

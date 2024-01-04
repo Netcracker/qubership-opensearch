@@ -13,6 +13,8 @@ type OpenSearch struct {
 	Snapshots                 *Snapshots `json:"snapshots,omitempty"`
 	SecurityConfigurationName string     `json:"securityConfigurationName"`
 	CompatibilityModeEnabled  bool       `json:"compatibilityModeEnabled,omitempty"`
+	RollingUpdate             bool       `json:"rollingUpdate,omitempty"`
+	StatefulSetNames          string     `json:"statefulSetNames,omitempty"`
 }
 
 type Snapshots struct {
@@ -103,6 +105,18 @@ type OpenSearchServiceStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 	DisasterRecoveryStatus DisasterRecoveryStatus `json:"disasterRecoveryStatus,omitempty"`
 	Conditions             []StatusCondition      `json:"conditions,omitempty"`
+	RollingUpdateStatus    RollingUpdateStatus    `json:"rollingUpdateStatus,omitempty"`
+}
+
+type RollingUpdateStatus struct {
+	Status              string              `json:"status,omitempty"`
+	StatefulSetStatuses []StatefulSetStatus `json:"statefulSetStatuses,omitempty"`
+}
+
+type StatefulSetStatus struct {
+	Name                      string  `json:"name,omitempty"`
+	LastStatefulSetGeneration int64   `json:"lastStatefulSetGeneration,omitempty"`
+	UpdatedReplicas           []int32 `json:"updatedReplicas,omitempty"`
 }
 
 // StatusCondition contains description of status of OpenSearchService
