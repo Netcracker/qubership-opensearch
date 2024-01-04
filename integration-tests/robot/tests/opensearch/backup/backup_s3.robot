@@ -1,5 +1,4 @@
 *** Variables ***
-${S3_BUCKET}                 %{S3_BUCKET}
 ${BACKUP_STORAGE_PATH}       /backup-storage
 
 *** Settings ***
@@ -11,7 +10,6 @@ Library           S3BackupLibrary  url=%{S3_URL}
 ...               bucket=%{S3_BUCKET}
 ...               key_id=%{S3_KEY_ID}
 ...               key_secret=%{S3_KEY_SECRET}
-...               ssl_verify=false
 
 *** Test Cases ***
 Full Backup And Restore On S3 Storage
@@ -21,7 +19,7 @@ Full Backup And Restore On S3 Storage
     Delete Data
 
     #Check backup created in S3
-    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}    backup_id=${backup_id}/
+    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}    backup_id=${backup_id}
     Should Be True  ${backup_file_exist}
 
     Full Restore  ${backup_id}  ["${OPENSEARCH_BACKUP_INDEX}"]
@@ -30,7 +28,7 @@ Full Backup And Restore On S3 Storage
 
     #Remove backup from S3
     Delete Backup  ${backup_id}
-    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}    backup_id=${backup_id}/
+    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}    backup_id=${backup_id}
     Should Not Be True  ${backup_file_exist}
     [Teardown]  Run Keywords  Delete Data  AND  Clean Up Backup After Test  ${backup_id}
 
@@ -46,7 +44,7 @@ Granular Backup And Restore On S3 Storage
     Update Document ${document} For Index ${OPENSEARCH_BACKUP_INDEX}-2
 
     #Check backup created in S3
-    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}/granular    backup_id=${backup_id}/
+    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}/granular    backup_id=${backup_id}
     Should Be True  ${backup_file_exist}
 
     Full Restore  ${backup_id}  ["${OPENSEARCH_BACKUP_INDEX}-1", "${OPENSEARCH_BACKUP_INDEX}-2"]
@@ -56,6 +54,6 @@ Granular Backup And Restore On S3 Storage
 
     #Remove backup from S3
     Delete Backup  ${backup_id}
-    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}/granular    backup_id=${backup_id}/
+    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}/granular    backup_id=${backup_id}
     Should Not Be True  ${backup_file_exist}
     [Teardown]  Run Keywords  Delete Data  AND  Clean Up Backup After Test  ${backup_id}
