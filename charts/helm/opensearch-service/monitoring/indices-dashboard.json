@@ -154,9 +154,7 @@
     },
     {
       "collapsed": true,
-      "datasource": {
-        "uid": "$datasource"
-      },
+      "datasource": "$datasource",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -166,9 +164,7 @@
       "id": 10,
       "panels": [
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The number of documents added to index on primary shards per second",
           "fieldConfig": {
             "defaults": {
@@ -254,9 +250,7 @@
           "pluginVersion": "9.5.2",
           "targets": [
             {
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "expr": "rate(opensearch_indices_stats_primaries_docs_count{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}[5m])",
               "format": "time_series",
               "interval": "",
@@ -269,9 +263,7 @@
           "type": "timeseries"
         },
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The size in bytes occupied by index on primary shards and in total",
           "fieldConfig": {
             "defaults": {
@@ -360,9 +352,7 @@
           "targets": [
             {
               "exemplar": true,
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "expr": "opensearch_indices_stats_primaries_store_size_in_bytes{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}",
               "format": "time_series",
               "legendFormat": "{{ index_name }} : primary",
@@ -373,9 +363,7 @@
             },
             {
               "exemplar": true,
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "expr": "opensearch_indices_stats_total_store_size_in_bytes{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}",
               "format": "time_series",
               "legendFormat": "{{ index_name }} : total",
@@ -389,9 +377,7 @@
           "type": "timeseries"
         },
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The number of indexing operations in index per second",
           "fieldConfig": {
             "defaults": {
@@ -480,9 +466,7 @@
           "targets": [
             {
               "exemplar": true,
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "expr": "rate(opensearch_indices_stats_primaries_indexing_index_total{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}[5m])",
               "format": "time_series",
               "legendFormat": "{{ index_name }}",
@@ -496,9 +480,7 @@
           "type": "timeseries"
         },
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "description": "The number of deleted documents from index per second",
           "fieldConfig": {
             "defaults": {
@@ -587,9 +569,7 @@
           "targets": [
             {
               "exemplar": true,
-              "datasource": {
-                "uid": "$datasource"
-              },
+              "datasource": "$datasource",
               "expr": "rate(opensearch_indices_stats_primaries_docs_deleted{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}[5m])",
               "format": "time_series",
               "legendFormat": "{{ index_name }}",
@@ -604,9 +584,7 @@
       ],
       "targets": [
         {
-          "datasource": {
-            "uid": "$datasource"
-          },
+          "datasource": "$datasource",
           "refId": "A"
         }
       ],
