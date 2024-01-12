@@ -252,6 +252,10 @@ Create Database Resource Prefix for Multiple Users
     Should Be Equal As Strings  ${document['age']}  25
     ${response}=  Create OpenSearch Alias  ${resourcePrefix}-test  ${resourcePrefix}-alias
     Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Get OpenSearch Tasks
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Get OpenSearch Task By ID  SZcaJdObTeu2srh12Uwv0Q:1
+    Should Be Equal As Strings  ${response.status_code}  404
 
     Login To OpenSearch  ${username_dml}  ${password_dml}
     ${response}=  Create OpenSearch Index  ${resourcePrefix}-test2
@@ -262,6 +266,10 @@ Create Database Resource Prefix for Multiple Users
     Sleep  ${SLEEP_TIME}
     ${document}=  Find Document By Field  ${resourcePrefix}-test  name  Jack
     Should Be Equal As Strings  ${document['age']}  26
+    ${response}=  Get OpenSearch Tasks
+    Should Be Equal As Strings  ${response.status_code}  403
+    ${response}=  Get OpenSearch Task By ID  SZcaJdObTeu2srh12Uwv0Q:1
+    Should Be Equal As Strings  ${response.status_code}  404
 
     Login To OpenSearch  ${username_readonly}  ${password_readonly}
     ${response}=  Create OpenSearch Index  ${resourcePrefix}-test2
@@ -273,6 +281,8 @@ Create Database Resource Prefix for Multiple Users
     Should Be Equal As Strings  ${document['age']}  26
     ${document}=  Find Document By Field  ${resourcePrefix}-alias  name  Jack
     Should Be Equal As Strings  ${document['age']}  26
+    ${response}=  Get OpenSearch Task By ID  SZcaJdObTeu2srh12Uwv0Q:1
+    Should Be Equal As Strings  ${response.status_code}  403
 
     Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
     Sleep  ${SLEEP_TIME}
