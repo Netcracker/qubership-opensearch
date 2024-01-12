@@ -6,7 +6,6 @@ ${OPENSEARCH_CURATOR_HOST}       %{OPENSEARCH_CURATOR_HOST}
 ${OPENSEARCH_CURATOR_PORT}       %{OPENSEARCH_CURATOR_PORT}
 ${RETRY_TIME}                    300s
 ${RETRY_INTERVAL}                10s
-${OPENSEARCH_BACKUP_INDEX}       opensearch_backup_index
 
 *** Keywords ***
 Prepare
@@ -22,6 +21,7 @@ Prepare Curator
     Create Session  curatorsession  ${OPENSEARCH_CURATOR_PROTOCOL}://${OPENSEARCH_CURATOR_HOST}:${OPENSEARCH_CURATOR_PORT}  auth=${auth}  verify=${verify}
 
 Delete Data
+    [Arguments]  ${OPENSEARCH_BACKUP_INDEX}
     Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}
     Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
     Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-2
@@ -39,6 +39,7 @@ Full Backup
     [Return]  ${response.content}
 
 Granular Backup
+    [Arguments]  ${OPENSEARCH_BACKUP_INDEX}
     ${data}=  Set Variable  {"dbs":["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]}
     ${response}=  Post Request  curatorsession  /backup  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
