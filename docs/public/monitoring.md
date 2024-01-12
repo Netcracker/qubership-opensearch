@@ -276,7 +276,9 @@ An overview of `OpenSearch Indices` dashboard is shown below.
 
 * `Indices information` - The number of documents for each index and its size in bytes in descending order of size values presented as a table.
 
-**Incoming Documents Rate**
+**Indices information**
+
+***Incoming Documents Rate***
 
 ![Dashboard](/docs/public/images/opensearch-indices_incoming_documents_rate.png)
 
@@ -284,7 +286,7 @@ An overview of `OpenSearch Indices` dashboard is shown below.
 
 Where `${INDEX_NAME}` is the name of index which metrics are presented in the widget.
 
-**Store Size**
+***Store Size***
 
 ![Dashboard](/docs/public/images/opensearch-indices_store_size.png)
 
@@ -292,7 +294,7 @@ Where `${INDEX_NAME}` is the name of index which metrics are presented in the wi
 
 Where `${INDEX_NAME}` is the name of index which metrics are presented in the widget.
 
-**Indexing Documents Rate**
+***Indexing Documents Rate***
 
 ![Dashboard](/docs/public/images/opensearch-indices_indexing_documents_rate.png)
 
@@ -300,7 +302,7 @@ Where `${INDEX_NAME}` is the name of index which metrics are presented in the wi
 
 Where `${INDEX_NAME}` is the name of index which metrics are presented in the widget.
 
-**Deleting Documents Rate**
+***Deleting Documents Rate***
 
 ![Dashboard](/docs/public/images/opensearch-indices_deleting_documents_rate.png)
 
