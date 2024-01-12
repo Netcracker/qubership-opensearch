@@ -154,546 +154,463 @@
     },
     {
       "collapsed": true,
-      "datasource": "$datasource",
+      "datasource": {
+        "uid": "$datasource"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 9
       },
       "id": 10,
       "panels": [
         {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "$datasource",
+          "datasource": {
+            "uid": "$datasource"
+          },
           "description": "The number of documents added to index on primary shards per second",
-          "fill": 1,
-          "fillGradient": 0,
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "cps"
+            },
+            "overrides": []
+          },
           "gridPos": {
-            "h": 5,
-            "w": 12,
+            "h": 8,
+            "w": 24,
             "x": 0,
-            "y": 12
+            "y": 10
           },
-          "hiddenSeries": false,
-          "id": 11,
+          "id": 20,
           "interval": "$inter",
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": false,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "maxPerRow": 2,
-          "nullPointMode": "null",
+          "links": [],
+          "maxDataPoints": 100,
           "options": {
-            "alertThreshold": true
+            "legend": {
+              "calcs": [
+                "max"
+              ],
+              "sortBy": "Max",
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
           },
-          "percentage": false,
-          "pluginVersion": "8.4.5",
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "repeat": "index",
-          "repeatDirection": "h",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
+          "pluginVersion": "9.5.2",
           "targets": [
             {
-              "exemplar": true,
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "rate(opensearch_indices_stats_primaries_docs_count{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}[5m])",
+              "format": "time_series",
               "interval": "",
-              "legendFormat": "primary",
+              "legendFormat": "{{ index_name }}",
+              "range": true,
               "refId": "A"
             }
           ],
-          "thresholds": [],
-          "timeRegions": [],
-          "title": "$index",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "mode": "time",
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "cps",
-              "logBase": 1,
-              "min": "0",
-              "show": true
-            },
-            {
-              "format": "short",
-              "logBase": 1,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false
-          }
-        }
-      ],
-      "title": "Incoming Documents Rate per Index",
-      "type": "row"
-    },
-    {
-      "collapsed": true,
-      "datasource": "$datasource",
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 12
-      },
-      "id": 30,
-      "panels": [
+          "title": "Incoming Documents Rate",
+          "type": "timeseries"
+        },
         {
-          "aliasColors": {},
-          "bars": false,
-          "colorBackground": false,
-          "colorValue": false,
-          "colors": [
-            "#299c46",
-            "rgba(237, 129, 40, 0.89)",
-            "#d44a3a"
-          ],
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "$datasource",
+          "datasource": {
+            "uid": "$datasource"
+          },
           "description": "The size in bytes occupied by index on primary shards and in total",
-          "fill": 1,
-          "fillGradient": 0,
-          "format": "none",
-          "gridPos": {
-            "h": 5,
-            "w": 12,
-            "x": 0,
-            "y": 13
-          },
-          "hiddenSeries": true,
-          "id": 31,
-          "interval": "$inter",
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": true,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": false,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "mappingType": 1,
-          "mappingTypes": [
-            {
-              "name": "value to text",
-              "value": 1
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "bytes"
             },
-            {
-              "name": "range to text",
-              "value": 2
-            }
-          ],
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 10
+          },
+          "id": 30,
+          "interval": "$inter",
+          "links": [],
           "maxDataPoints": 100,
-          "maxPerRow": 2,
-          "nullPointMode": "connected",
           "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "8.4.5",
-          "pointradius": 2,
-          "points": false,
-          "postfix": "",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "50%",
-          "rangeMaps": [
-            {
-              "from": "null",
-              "text": "N/A",
-              "to": "null"
+            "legend": {
+              "calcs": [
+                "max",
+                "mean",
+                "lastNotNull"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
             }
-          ],
-          "renderer": "flot",
-          "repeat": "index",
-          "repeatDirection": "h",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "sparkline": {
-            "fillColor": "rgba(31, 118, 189, 0.18)",
-            "full": false,
-            "lineColor": "rgb(31, 120, 193)",
-            "show": false
           },
-          "stack": false,
-          "steppedLine": false,
-          "tableColumn": "",
+          "pluginVersion": "9.5.2",
           "targets": [
             {
               "exemplar": true,
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "opensearch_indices_stats_primaries_store_size_in_bytes{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}",
               "format": "time_series",
+              "legendFormat": "{{ index_name }} : primary",
+              "range": true,
               "instant": false,
               "interval": "",
-              "legendFormat": "primary",
               "refId": "A"
             },
             {
               "exemplar": true,
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "opensearch_indices_stats_total_store_size_in_bytes{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}",
               "format": "time_series",
+              "legendFormat": "{{ index_name }} : total",
+              "range": true,
               "instant": false,
               "interval": "",
-              "legendFormat": "total",
               "refId": "B"
             }
           ],
-          "thresholds": "",
-          "timeRegions": [],
-          "title": "$index",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "valueFontSize": "80%",
-          "valueName": "name",
-          "xaxis": {
-            "mode": "time",
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "bytes",
-              "logBase": 1,
-              "min": 0,
-              "show": true
-            },
-            {
-              "format": "bytes",
-              "logBase": 1,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false
-          }
-        }
-      ],
-      "title": "Store Size per Index",
-      "type": "row"
-    },
-    {
-      "collapsed": true,
-      "datasource": "$datasource",
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 13
-      },
-      "id": 40,
-      "panels": [
+          "title": "Store Size",
+          "type": "timeseries"
+        },
         {
-          "aliasColors": {},
-          "bars": false,
-          "colorBackground": false,
-          "colorValue": false,
-          "colors": [
-            "#299c46",
-            "rgba(237, 129, 40, 0.89)",
-            "#d44a3a"
-          ],
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "$datasource",
+          "datasource": {
+            "uid": "$datasource"
+          },
           "description": "The number of indexing operations in index per second",
-          "fill": 1,
-          "fillGradient": 0,
-          "format": "none",
-          "gridPos": {
-            "h": 5,
-            "w": 12,
-            "x": 0,
-            "y": 14
-          },
-          "hiddenSeries": true,
-          "id": 41,
-          "interval": "$inter",
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": true,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": false,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "mappingType": 1,
-          "mappingTypes": [
-            {
-              "name": "value to text",
-              "value": 1
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "ops"
             },
-            {
-              "name": "range to text",
-              "value": 2
-            }
-          ],
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 10
+          },
+          "id": 40,
+          "interval": "$inter",
+          "links": [],
           "maxDataPoints": 100,
-          "maxPerRow": 2,
-          "nullPointMode": "connected",
           "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "8.4.5",
-          "pointradius": 2,
-          "points": false,
-          "postfix": "",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "50%",
-          "rangeMaps": [
-            {
-              "from": "null",
-              "text": "N/A",
-              "to": "null"
+            "legend": {
+              "calcs": [
+                "max",
+                "mean",
+                "lastNotNull"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
             }
-          ],
-          "renderer": "flot",
-          "repeat": "index",
-          "repeatDirection": "h",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "sparkline": {
-            "fillColor": "rgba(31, 118, 189, 0.18)",
-            "full": false,
-            "lineColor": "rgb(31, 120, 193)",
-            "show": false
           },
-          "stack": false,
-          "steppedLine": false,
-          "tableColumn": "",
+          "pluginVersion": "9.5.2",
           "targets": [
             {
               "exemplar": true,
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "rate(opensearch_indices_stats_primaries_indexing_index_total{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}[5m])",
               "format": "time_series",
+              "legendFormat": "{{ index_name }}",
               "instant": false,
               "interval": "",
-              "legendFormat": "primary",
+              "range": true,
               "refId": "A"
             }
           ],
-          "thresholds": "",
-          "timeRegions": [],
-          "title": "$index",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "valueFontSize": "80%",
-          "valueName": "name",
-          "xaxis": {
-            "mode": "time",
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "ops",
-              "logBase": 1,
-              "min": 0,
-              "show": true
-            },
-            {
-              "format": "short",
-              "logBase": 1,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false
-          }
-        }
-      ],
-      "title": "Indexing Documents Rate per Index",
-      "type": "row"
-    },
-    {
-      "collapsed": true,
-      "datasource": "$datasource",
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 14
-      },
-      "id": 50,
-      "panels": [
+          "title": "Indexing Documents Rate",
+          "type": "timeseries"
+        },
         {
-          "aliasColors": {},
-          "bars": false,
-          "colorBackground": false,
-          "colorValue": false,
-          "colors": [
-            "#299c46",
-            "rgba(237, 129, 40, 0.89)",
-            "#d44a3a"
-          ],
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "$datasource",
+          "datasource": {
+            "uid": "$datasource"
+          },
           "description": "The number of deleted documents from index per second",
-          "fill": 1,
-          "fillGradient": 0,
-          "format": "none",
-          "gridPos": {
-            "h": 5,
-            "w": 12,
-            "x": 0,
-            "y": 15
-          },
-          "hiddenSeries": true,
-          "id": 51,
-          "interval": "$inter",
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": true,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": false,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "mappingType": 1,
-          "mappingTypes": [
-            {
-              "name": "value to text",
-              "value": 1
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "ops"
             },
-            {
-              "name": "range to text",
-              "value": 2
-            }
-          ],
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 10
+          },
+          "id": 50,
+          "interval": "$inter",
+          "links": [],
           "maxDataPoints": 100,
-          "maxPerRow": 2,
-          "nullPointMode": "connected",
           "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pluginVersion": "8.4.5",
-          "pointradius": 2,
-          "points": false,
-          "postfix": "",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "50%",
-          "rangeMaps": [
-            {
-              "from": "null",
-              "text": "N/A",
-              "to": "null"
+            "legend": {
+              "calcs": [
+                "max",
+                "mean",
+                "lastNotNull"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
             }
-          ],
-          "renderer": "flot",
-          "repeat": "index",
-          "repeatDirection": "h",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "sparkline": {
-            "fillColor": "rgba(31, 118, 189, 0.18)",
-            "full": false,
-            "lineColor": "rgb(31, 120, 193)",
-            "show": false
           },
-          "stack": false,
-          "steppedLine": false,
-          "tableColumn": "",
+          "pluginVersion": "9.5.2",
           "targets": [
             {
               "exemplar": true,
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "rate(opensearch_indices_stats_primaries_docs_deleted{namespace=\"$namespace\",index_name=~\"$index\",cluster=\"$cluster\"}[5m])",
               "format": "time_series",
+              "legendFormat": "{{ index_name }}",
               "instant": false,
-              "interval": "",
-              "legendFormat": "primary",
+              "range": true,
               "refId": "A"
             }
           ],
-          "thresholds": "",
-          "timeRegions": [],
-          "title": "$index",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "valueFontSize": "80%",
-          "valueName": "name",
-          "xaxis": {
-            "mode": "time",
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "ops",
-              "logBase": 1,
-              "min": 0,
-              "show": true
-            },
-            {
-              "format": "short",
-              "logBase": 1,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false
-          }
+          "title": "Deleting Documents Rate",
+          "type": "timeseries"
         }
       ],
-      "title": "Deleting Documents Rate per Index",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "refId": "A"
+        }
+      ],
+      "title": "Indices Information",
       "type": "row"
     }
   ],
