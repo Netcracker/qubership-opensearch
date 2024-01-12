@@ -22,7 +22,6 @@ Prepare Curator
 
 Delete Data
     [Arguments]  ${OPENSEARCH_BACKUP_INDEX}
-    Log To Console  ${OPENSEARCH_BACKUP_INDEX}
     Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}
     Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
     Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-2
