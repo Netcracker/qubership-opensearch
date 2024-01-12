@@ -11,7 +11,7 @@ ${RETRY_INTERVAL}                10s
 Prepare
     Prepare OpenSearch
     Prepare Curator
-    Delete Data
+    Delete Data  ${OPENSEARCH_BACKUP_INDEX}
 
 Prepare Curator
     ${auth}=  Create List  ${OPENSEARCH_CURATOR_USERNAME}  ${OPENSEARCH_CURATOR_PASSWORD}
