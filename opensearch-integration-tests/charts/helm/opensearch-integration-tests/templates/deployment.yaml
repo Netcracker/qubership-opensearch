@@ -137,6 +137,16 @@ spec:
                   name: {{ .Values.service.name }}-secret
             - name: PROMETHEUS_URL
               value: {{ .Values.integrationTests.prometheusUrl }}
+            - name: PROMETHEUS_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.service.name }}-secret
+                  key: prometheus-user
+            - name: PROMETHEUS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.service.name }}-secret
+                  key: prometheus-password
             - name: SLOW_QUERIES_INTERVAL_MINUTES
               value: "{{ .Values.integrationTests.slowQueriesIntervalMinutes }}"
           resources:
