@@ -53,7 +53,6 @@ Delete Backup
     Should Be Equal As Strings  ${response.status_code}  200
 
 Delete Backup If Exists
-Clean Up Backup After Test
     [Arguments]  ${backup_id}
     ${response}=  Get Request  curatorsession  /listbackups/${backup_id}
     Run Keyword If    ${response.status_code}==200    Delete Backup  ${backup_id}
