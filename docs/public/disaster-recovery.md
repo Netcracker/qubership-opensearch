@@ -340,7 +340,7 @@ dbaasAdapter:
 You can perform a switchover using the `SiteManager` functionality or OpenSearch disaster recovery REST server API.
 
 <!-- #GFCFilterMarkerStart# -->
-For more information about SiteManager, refer to [Site Manager](https://git.netcracker.com/PROD.Platform.HA/github.sync/DRNavigator/-/blob/main/README.md) article.
+For more information about SiteManager, refer to [Site Manager](https://git.netcracker.com/PROD.Platform.HA/github.sync/DRNavigator/-/blob/main/documentation/public/architecture.md) article.
 <!-- #GFCFilterMarkerEnd# -->
 
 If you want to perform a switchover manually, you need to switch the standby OpenSearch cluster to the active mode and then switch the active OpenSearch cluster to the standby mode. Run the following command from within any OpenSearch pod on the standby side:
