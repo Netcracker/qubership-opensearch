@@ -21,15 +21,15 @@ Prepare Curator
     Create Session  curatorsession  ${OPENSEARCH_CURATOR_PROTOCOL}://${OPENSEARCH_CURATOR_HOST}:${OPENSEARCH_CURATOR_PORT}  auth=${auth}  verify=${verify}
 
 Delete Data
-    [Arguments]  ${OPENSEARCH_BACKUP_INDEX}
-    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}
-    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
-    Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-2
+    [Arguments]  ${prefix}
+    Delete OpenSearch Index  ${prefix}
+    Delete OpenSearch Index  ${prefix}-1
+    Delete OpenSearch Index  ${prefix}-2
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Run Keywords
-    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}  AND
-    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}-1  AND
-    ...  Check OpenSearch Index Does Not Exist  ${OPENSEARCH_BACKUP_INDEX}-2
+    ...  Check OpenSearch Index Does Not Exist  ${prefix}  AND
+    ...  Check OpenSearch Index Does Not Exist  ${prefix}-1  AND
+    ...  Check OpenSearch Index Does Not Exist  ${prefix}-2
 
 Full Backup
     ${response}=  Post Request  curatorsession  /backup
@@ -39,8 +39,8 @@ Full Backup
     [Return]  ${response.content}
 
 Granular Backup
-    [Arguments]  ${OPENSEARCH_BACKUP_INDEX}
-    ${data}=  Set Variable  {"dbs":["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]}
+    [Arguments]  ${indices_list}
+    ${data}=  Set Variable  {"dbs":${indices_list}}
     ${response}=  Post Request  curatorsession  /backup  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
@@ -52,6 +52,7 @@ Delete Backup
     ${response}=  Post Request  curatorsession  /evict/${backup_id}
     Should Be Equal As Strings  ${response.status_code}  200
 
+Delete Backup If Exists
 Clean Up Backup After Test
     [Arguments]  ${backup_id}
     ${response}=  Get Request  curatorsession  /listbackups/${backup_id}

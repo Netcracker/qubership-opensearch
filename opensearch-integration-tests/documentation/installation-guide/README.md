@@ -174,7 +174,7 @@ The `integrationTests.prometheusUrl` parameter specifies the URL (with schema an
 For example, `http://prometheus.cloud.openshift.sdntest.example.com:80`. This parameter must be
 specified if you want to run integration tests with `prometheus` tag.
 
-The `integrationTests.s3.enabled` parameter specifies that Curator stored backups in S3 storage. OpenSearch supports the following S3 providers: AWS S3, MinIO. Google Cloud Storage is not supported. Other S3 providers may work, but are not covered by the OpenSearch test suite.
+The `integrationTests.s3.enabled` parameter specifies that Curator stores backups in S3 storage. OpenSearch supports the following S3 providers: AWS S3, MinIO. Google Cloud Storage is not supported. Other S3 providers may work, but are not covered by the OpenSearch test suite. The default value is `false`.
 
 The `integrationTests.s3.url` parameter specifies the URL to the S3 storage.
 

@@ -12,7 +12,7 @@ Find Backup By Timestamp
     [Tags]  opensearch  backup  find_backup
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-1
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-2
-    ${backup_id}=  Granular Backup  ${OPENSEARCH_BACKUP_INDEX}
+    ${backup_id}=  Granular Backup  ["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]
     ${backup_ts}=  Get Backup Timestamp  ${backup_id}
     ${found_backup_id}=  Find Backup ID By Timestamp  ${backup_ts}
     Should Be Equal As Strings  ${backup_id}  ${found_backup_id}
@@ -34,7 +34,7 @@ Granular Backup And Restore
     [Tags]  opensearch  backup  granular_backup
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-1
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-2
-    ${backup_id}=  Granular Backup  ${OPENSEARCH_BACKUP_INDEX}
+    ${backup_id}=  Granular Backup  ["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]
 
     ${response}=  Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
     Should Be Equal As Strings  ${response.status_code}  200
@@ -51,7 +51,7 @@ Granular Backup And Restore By Timestamp
     [Tags]  opensearch  backup  granular_backup
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-1
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-2
-    ${backup_id}=  Granular Backup  ${OPENSEARCH_BACKUP_INDEX}
+    ${backup_id}=  Granular Backup  ["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]
     ${backup_ts}=  Get Backup Timestamp  ${backup_id}
 
     Delete Data  ${OPENSEARCH_BACKUP_INDEX}
@@ -66,7 +66,7 @@ Delete Backup By ID
     [Tags]  opensearch  backup  backup_deletion
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-1
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-2
-    ${backup_id}=  Granular Backup  ${OPENSEARCH_BACKUP_INDEX}
+    ${backup_id}=  Granular Backup  ["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]
     Delete Backup  ${backup_id}
     Check Backup Absence By Curator  ${backup_id}
     Check Backup Absence By OpenSearch  ${backup_id}
