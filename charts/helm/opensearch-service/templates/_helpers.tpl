@@ -1170,3 +1170,16 @@ Configure OpenSearch statefulset names for rolling update mechanism in operator.
     {{- end }}
     {{- join "," $lst }}
 {{- end -}}
+
+{{- define "opensearch.monitoredImages" -}}
+  {{- printf "deployment %s-service-operator opensearch-service-operator %s, " (.Values.global.clusterName) (index .Values.deployDescriptor "opensearch" "image") -}}
+  {{- if and .Values.opensearch.install .Values.opensearch.master.replicas }}
+  {{- printf "statefullset %s, " (.Values.global.name) (index .Values.deployDescriptor "opensearch" "image") -}}
+  {{- end }}
+  {{- if and .Values.curator.enabled }}
+  {{- printf "deployment %s-curator opensearch %s, " (.Values.global.name) (index .Values.deployDescriptor "opensearch" "image") -}}
+  {{- end }}
+  {{- if .Values.integrationTests.enabled }}
+  {{- printf "deployment %s-integration-tests opensearch %s, " (.Values.global.name) (index .Values.deployDescriptor "opensearch-integration-tests" "image") -}}
+  {{- end }}
+{{- end -}}
