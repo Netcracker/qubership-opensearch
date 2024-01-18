@@ -15,6 +15,9 @@ secret:
   curator:
     username: ""
     password: ""
+  s3:
+    keyId: ""
+    keySecret: ""
 
 tls:
   opensearch:

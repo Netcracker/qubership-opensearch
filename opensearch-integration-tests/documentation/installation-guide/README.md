@@ -62,6 +62,12 @@ It can be empty if authentication is disabled for OpenSearch Curator.
 The `secret.curator.password` parameter specifies the password of the OpenSearch Curator API user.
 It can be empty if authentication is disabled for OpenSearch Curator.
 
+The `secret.s3.keyId` parameter specifies the key ID for the S3 storage.
+It can be empty if s3 is disabled for OpenSearch Curator.
+
+The `secret.s3.keySecret` parameter specifies the key secret for the S3 storage.
+It can be empty if s3 is disabled for OpenSearch Curator.
+
 The `tls.opensearch.secretName` parameter specifies the name of the secret that contains TLS certificates for OpenSearch REST layer. By default, it is empty.
 
 The `tls.opensearch.secretCaKey` parameter specifies the key of root CA certificate in `tls.opensearch.secretName` secret. The default value is `ca.crt`.
