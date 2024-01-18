@@ -1172,14 +1172,24 @@ Configure OpenSearch statefulset names for rolling update mechanism in operator.
 {{- end -}}
 
 {{- define "opensearch.monitoredImages" -}}
-  {{- printf "deployment %s-service-operator opensearch-service-operator %s, " (.Values.global.clusterName) (index .Values.deployDescriptor "opensearch" "image") -}}
+  {{- printf "deployment %s-service-operator opensearch-service-operator %s, " (.Values.global.clusterName) (index .Values.deployDescriptor "opensearch-service" "image") -}}
   {{- if and .Values.opensearch.install .Values.opensearch.master.replicas }}
-  {{- printf "statefullset %s, " (.Values.global.name) (index .Values.deployDescriptor "opensearch" "image") -}}
+  {{- printf "statefullset %s, " (.Values.global.name) (index .Values.deployDescriptor "prod.platform.elasticstack_docker-opensearch" "image") -}}
   {{- end }}
   {{- if and .Values.curator.enabled }}
-  {{- printf "deployment %s-curator opensearch %s, " (.Values.global.name) (index .Values.deployDescriptor "opensearch" "image") -}}
+  {{- printf "deployment %s-curator opensearch-curator %s, " (.Values.global.name) (index .Values.deployDescriptor "docker-elastic-curator" "image") -}}
+  {{- printf "deployment %s-curator opensearch-indices-cleaner %s, " (.Values.global.name) (index .Values.deployDescriptor "prod.platform.elasticstack_docker-elastic-curator" "image") -}}
+  {{- end }}
+  {{- if .Values.dashboards.enabled }}
+  {{- printf "deployment %s-dashboards opensearch-dashboards %s, " (.Values.global.name) (index .Values.deployDescriptor "opensearch-dashboards" "image") -}}
+  {{- end }}
+  {{- if .Values.monitoring.enabled }}
+  {{- printf "deployment %s-monitoring opensearch-monitoring %s, " (.Values.global.name) (index .Values.deployDescriptor "elasticsearch-monitoring" "image") -}}
+  {{- end }}
+  {{- if .Values.dbaasAdapter.enabled }}
+  {{- printf "deployment dbaas-%s-adapter dbaas-opensearch-adapter %s, " (.Values.global.name) (index .Values.deployDescriptor "prod.platform.elasticstack_dbaas-opensearch-adapter" "image") -}}
   {{- end }}
   {{- if .Values.integrationTests.enabled }}
-  {{- printf "deployment %s-integration-tests opensearch %s, " (.Values.global.name) (index .Values.deployDescriptor "opensearch-integration-tests" "image") -}}
+  {{- printf "deployment %s-integration-tests opensearch-integration-tests %s, " (.Values.global.name) (index .Values.deployDescriptor "opensearch-integration-tests" "image") -}}
   {{- end }}
 {{- end -}}
