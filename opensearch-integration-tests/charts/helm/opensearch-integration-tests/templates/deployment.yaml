@@ -145,14 +145,14 @@ spec:
               {{- if .Values.integrationTests.s3.enabled }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.service.name }}-s3-secret
+                  name: {{ .Values.integrationTests.opensearchHost }}-s3-secret
                   key: s3-key-id
               {{- end }}
             - name: S3_KEY_SECRET
               {{- if .Values.integrationTests.s3.enabled }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.service.name }}-s3-secret
+                  name: {{ .Values.integrationTests.opensearchHost }}-s3-secret
                   key: s3-key-secret
               {{- end }}
             - name: PROMETHEUS_URL
