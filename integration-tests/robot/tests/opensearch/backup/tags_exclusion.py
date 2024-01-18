@@ -18,6 +18,5 @@ def get_excluded_tags(environ) -> list:
     if "full_backup" not in environ.get('TAGS'):
         excluded_tags.append('full_backup')
     if environ.get('S3_ENABLED') != 'true':
-        excluded_tags.append('granular_backup_s3')
-        excluded_tags.append('full_backup_s3')
+        excluded_tags.append('backup_s3')
     return excluded_tags

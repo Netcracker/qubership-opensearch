@@ -14,7 +14,7 @@ Library           S3BackupLibrary  url=%{S3_URL}
 
 *** Test Cases ***
 Full Backup And Restore On S3 Storage
-    [Tags]  opensearch  backup  full_backup  full_backup_s3
+    [Tags]  opensearch  backup  backup_s3  full_backup  full_backup_s3
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}
     ${backup_id}=  Full Backup
     Delete Data  ${OPENSEARCH_BACKUP_INDEX}
@@ -34,7 +34,7 @@ Full Backup And Restore On S3 Storage
     [Teardown]  Run Keywords  Delete Data  ${OPENSEARCH_BACKUP_INDEX}  AND  Delete Backup If Exists  ${backup_id}
 
 Granular Backup And Restore On S3 Storage
-    [Tags]  opensearch  backup  granular_backup  granular_backup_s3
+    [Tags]  opensearch  backup  backup_s3  granular_backup  granular_backup_s3
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-1
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-2
     ${backup_id}=  Granular Backup  ["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]
