@@ -1190,6 +1190,6 @@ Configure OpenSearch statefulset names for rolling update mechanism in operator.
   {{- printf "deployment dbaas-%s-adapter dbaas-opensearch-adapter %s, " (.Values.global.name) (index .Values.deployDescriptor "prod.platform.elasticstack_dbaas-opensearch-adapter" "image") -}}
   {{- end }}
   {{- if .Values.integrationTests.enabled }}
-  {{- printf "deployment %s-integration-tests opensearch-integration-tests %s, " (.Values.global.name) (index .Values.deployDescriptor "opensearch-integration-tests" "image") -}}
+  {{- printf "deployment %s-integration-tests opensearch-integration-tests %s, " (.Values.global.name) (index .Values.deployDescriptor "prod.platform.elasticstack_opensearch-service" "image") -}}
   {{- end }}
 {{- end -}}
