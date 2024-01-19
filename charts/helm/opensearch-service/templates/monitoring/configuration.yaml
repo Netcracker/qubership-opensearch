@@ -331,7 +331,7 @@ data:
       interval = "${PROCESSING_INTERVAL_MINUTES}m"
 
       ## Timeout for each command to complete.
-      timeout = "$ELASTICSEARCH_EXEC_PLUGIN_TIMEOUT"
+      timeout = "${PROCESSING_INTERVAL_MINUTES}m"
 
       ## measurement name suffix (for separating different commands)
       # name_prefix = "elasticsearch_"

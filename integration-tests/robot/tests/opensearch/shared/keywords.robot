@@ -191,6 +191,15 @@ Get OpenSearch Index Template
     ${response}=  Get Request  opensearch  /_index_template/${template_name}
     [Return]  ${response}
 
+Get OpenSearch Tasks
+    ${response}=  Get Request  opensearch  /_tasks
+    [Return]  ${response}
+
+Get OpenSearch Task By ID
+    [Arguments]  ${task_id}
+    ${response}=  Get Request  opensearch  /_tasks/${task_id}
+    [Return]  ${response}
+
 Get OpenSearch User
     [Arguments]  ${username}
     ${response}=  Get Request  opensearch  /_plugins/_security/api/internalusers/${username}
