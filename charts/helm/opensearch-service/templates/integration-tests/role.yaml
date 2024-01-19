@@ -34,6 +34,13 @@ rules:
       - list
       - update
       - patch
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
   {{- if .Values.integrationTests.statusWritingEnabled }}
   - apiGroups:
       - apps
