@@ -5,6 +5,8 @@ This section provides information on the password changing procedures in OpenSea
 The secret contains admin credentials for clients of OpenSearch, for example, OpenSearch monitoring and OpenSearch curator.
 For more information, refer to the [Installation Guide](installation.md#parameters).
 
+**Important**: The password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character.
+
 To update internal OpenSearch credentials:
 
 1. Navigate to **OpenShift/Kubernetes > ${NAMESPACE} > Secrets**.
