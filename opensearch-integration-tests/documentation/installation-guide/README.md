@@ -62,6 +62,10 @@ It can be empty if authentication is disabled for OpenSearch Curator.
 The `secret.curator.password` parameter specifies the password of the OpenSearch Curator API user.
 It can be empty if authentication is disabled for OpenSearch Curator.
 
+The `secret.prometheus.user` parameter specifies the username for authentication on Prometheus/VictoriaMetrics secured endpoints.
+
+The `secret.prometheus.password` parameter specifies the password for authentication on Prometheus/VictoriaMetrics secured endpoints.
+
 The `tls.opensearch.secretName` parameter specifies the name of the secret that contains TLS certificates for OpenSearch REST layer. By default, it is empty.
 
 The `tls.opensearch.secretCaKey` parameter specifies the key of root CA certificate in `tls.opensearch.secretName` secret. The default value is `ca.crt`.
@@ -169,7 +173,7 @@ The default value is `opensearch-curator`.
 
 The `integrationTests.prometheusUrl` parameter specifies the URL (with schema and port) to Prometheus.
 For example, `http://prometheus.cloud.openshift.sdntest.example.com:80`. This parameter must be
-specified if you want to run integration tests with `prometheus` tag.
+specified if you want to run integration tests with `prometheus` tag. **Note:** This parameter could be used as VictoriaMetrics URL instead of Prometheus. For example, `http://vmauth-k8s.monitoring:8427`.
 
 The `integrationTests.statusWritingEnabled` parameter specifies whether status of Integration tests execution is to be
 writen to deployment or not. The default value is `true`.
@@ -221,6 +225,9 @@ secret:
     password: "admin"
   curator:
     username: "admin"
+    password: "admin"
+  prometheus:
+    user: "admin"
     password: "admin"
 
 integrationTests:
@@ -332,6 +339,9 @@ secret:
   curator:
     username: "admin"
     password: "admin"
+  prometheus:
+    user: "admin"
+    password: "admin"
 
 integrationTests:
   tags: "smoke"
@@ -401,6 +411,8 @@ secret.dbaasAdapter.username=admin;
 secret.dbaasAdapter.password=admin;
 secret.curator.username=admin;
 secret.curator.password=admin;
+secret.prometheus.user=admin;
+secret.prometheus.password=admin;
 
 integrationTests.tags=smoke;
 integrationTests.opensearchHost=opensearch;

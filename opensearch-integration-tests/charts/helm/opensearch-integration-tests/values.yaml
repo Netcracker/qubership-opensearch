@@ -16,8 +16,8 @@ secret:
     username: ""
     password: ""
   prometheus:
-      user: ""
-      password: ""
+    user: ""
+    password: ""
 
 tls:
   opensearch:
