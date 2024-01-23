@@ -278,7 +278,7 @@ An overview of `OpenSearch Indices` dashboard is shown below.
 
 **Indices Information**
 
-![Dashboard](/docs/public/images/opensearch-indices-information.png)
+![Dashboard](/docs/public/images/opensearch-indices_information.png)
 
 * `Incoming Documents Rate` - The incoming documents rate on primary shards for each index.
 
