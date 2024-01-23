@@ -274,9 +274,9 @@ An overview of `OpenSearch Indices` dashboard is shown below.
 
 ![Dashboard](/docs/public/images/opensearch-indices_overview.png)
 
-* `Indices information` - The number of documents for each index and its size in bytes in descending order of size values presented as a table.
+* `Indices` - The number of documents for each index and its size in bytes in descending order of size values presented as a table.
 
-**Indices**
+**Indices Information**
 
 ![Dashboard](/docs/public/images/opensearch-indices.png)
 

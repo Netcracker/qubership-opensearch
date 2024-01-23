@@ -126,7 +126,7 @@
           "refId": "B"
         }
       ],
-      "title": "Indices Information",
+      "title": "Indices",
       "transformations": [
         {
           "id": "seriesToColumns",
@@ -588,7 +588,7 @@
           "refId": "A"
         }
       ],
-      "title": "Indices",
+      "title": "Indices Information",
       "type": "row"
     }
   ],
