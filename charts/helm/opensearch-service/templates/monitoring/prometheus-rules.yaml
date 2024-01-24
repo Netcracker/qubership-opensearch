@@ -51,16 +51,6 @@ spec:
             severity: critical
             namespace: {{ .Release.Namespace }}
             service: {{ .Release.Name }}
-        - alert: OpenSearchMemoryUsageAlert
-          annotations:
-            description: 'OpenSearch memory usage is above 95%.'
-            summary: OpenSearch's memory usage is above 95%
-          expr: max(container_memory_working_set_bytes{namespace="{{ .Release.Namespace }}", container="opensearch"}) / max(container_spec_memory_limit_bytes{namespace="{{ .Release.Namespace }}", container="opensearch"}) > 0.95
-          for: 3m
-          labels:
-            severity: high
-            namespace: {{ .Release.Namespace }}
-            service: {{ .Release.Name }}
         - alert: OpenSearchHeapMemoryUsageAlert
           annotations:
             description: 'OpenSearch heap memory usage is above 95%.'
