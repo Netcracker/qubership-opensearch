@@ -44,7 +44,8 @@ the last metric value is used.
     * You will be blocked from indexing into that shard.
 * `Nodes Status` - Status of OpenSearch nodes.
 * `CPU Usage` - The maximum current CPU usage (in percent) among all OpenSearch servers.
-* `Memory Usage` - The maximum current memory usage (in percent) among all OpenSearch servers.
+* `JVM Heap Usage` - The maximum current JVM heap memory usage (in percent) among all OpenSearch servers.
+* `Off-Heap Memory Usage` - The maximum memory usage excluding allocated JVM Heap memory.
 * `Cluster Status Transitions` - The transitions of OpenSearch cluster statuses.
 * `Pod Readiness Probe Transitions` - The transitions of readiness probes for each OpenSearch pod.
 
@@ -149,6 +150,8 @@ The following is a list of scenarios related to JVM Heap:
 
 * `OS memory usage` - The usage of memory by each OpenSearch node and its limit. These metric is
   useful to avoid reaching the memory limit on nodes.
+* `Off-heap memory usage` - The usage of memory excluding allocated JVM Heap memory by each OpenSearch node and its limit. 
+  This amount of memory is used by operating system and Apache Lucene.
 
 **Disk Metrics**
 
@@ -448,7 +451,6 @@ This section describes Prometheus monitoring alerts.
 | OpenSearchDiskUsageAbove75%Alert               | OpenSearch's disk usage is above 75%                                    | 3m  | warning  | `1 - sum(opensearch_fs_total_free_in_bytes{namespace="opensearch-service"}) / sum(opensearch_fs_total_total_in_bytes{namespace="opensearch-service"}) > 0.75 <= 0.85`                                     | OpenSearch disk usage is above 75%                  | [OpenSearchDiskUsageAbove75%Alert](/docs/public/troubleshooting.md#opensearchdiskusageabove75alert)                              |
 | OpenSearchDiskUsageAbove85%Alert               | OpenSearch's disk usage is above 85%                                    | 3m  | high     | `1 - sum(opensearch_fs_total_free_in_bytes{namespace="opensearch-service"}) / sum(opensearch_fs_total_total_in_bytes{namespace="opensearch-service"}) > 0.85 <= 0.95`                                     | OpenSearch disk usage is above 85%                  | [OpenSearchDiskUsageAbove85%Alert](/docs/public/troubleshooting.md#opensearchdiskusageabove85alert)                              |
 | OpenSearchDiskUsageAbove95%Alert               | OpenSearch's disk usage is above 95%                                    | 3m  | critical | `1 - sum(opensearch_fs_total_free_in_bytes{namespace="opensearch-service"}) / sum(opensearch_fs_total_total_in_bytes{namespace="opensearch-service"}) > 0.95`                                             | OpenSearch disk usage is above 95%                  | [OpenSearchDiskUsageAbove95%Alert](/docs/public/troubleshooting.md#opensearchdiskusageabove95alert)                              |
-| OpenSearchMemoryUsageAlert                     | OpenSearch's memory usage is above 95%                                  | 3m  | high     | `max(container_memory_working_set_bytes{namespace="opensearch-service", container="opensearch"}) / max(container_spec_memory_limit_bytes{namespace="opensearch-service", container="opensearch"}) > 0.95` | OpenSearch memory usage is above 95%.               | [OpenSearchMemoryUsageAlert](/docs/public/troubleshooting.md#opensearchmemoryusagealert)                                         |
 | OpenSearchHeapMemoryUsageAlert                 | OpenSearch's heap memory usage is above 95%                             | 3m  | high     | `max(opensearch_jvm_mem_heap_used_percent{namespace="opensearch-service"}) > 95`                                                                                                                          | OpenSearch heap memory usage is above 95%.          | [OpenSearchHeapMemoryUsageAlert](/docs/public/troubleshooting.md#opensearchheapmemoryusagealert)                                 |
 | OpenSearchIsDegradedAlert                      | Some of OpenSearch Service pods are down                                | 3m  | high     | `opensearch_cluster_health_status_code{namespace="opensearch-service"} == 6`                                                                                                                              | OpenSearch is Degraded.                             | [OpenSearchIsDegradedAlert](/docs/public/troubleshooting.md#opensearchisdegradedalert)                                           |
 | OpenSearchIsDownAlert                          | All of OpenSearch Service pods are down                                 | 3m  | high     | `opensearch_cluster_health_status_code{namespace="opensearch-service"} == 10`                                                                                                                             | OpenSearch is Down.                                 | [OpenSearchIsDownAlert](/docs/public/troubleshooting.md#opensearchisdownalert)                                                   |
