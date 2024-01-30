@@ -137,7 +137,7 @@ func (r OpenSearchReconciler) updateCredentials() (*util.RestClient, error) {
 }
 
 func (r OpenSearchReconciler) getClusterManagerNode(restClient *util.RestClient) (string, error) {
-	requestPath := "_cat/cluster_manager?h=node"
+	requestPath := "_cat/master?h=node"
 	statusCode, responseBody, err := restClient.SendBasicRequest(http.MethodGet, requestPath, nil, false)
 	if err == nil {
 		if statusCode == http.StatusOK {
