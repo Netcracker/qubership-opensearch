@@ -141,40 +141,6 @@ For more information, refer to [Data Nodes are Out of Space](#data-nodes-are-out
 1. Increase disk space for OpenSearch if it's possible.
 2. If all the data nodes are running low on disk space or some disks are failed, add more data nodes to the cluster.
 
-## OpenSearchMemoryUsageAlert
-
-### Description
-
-One of OpenSearch pods uses 95% of the memory limit.
-
-For more information, refer to [Memory Limit](troubleshooting-scenarios/memory_limit.md).
-
-### Possible Causes
-
-- Insufficient memory resources allocated to OpenSearch pods.
-- Heavy workload during execution.
-
-### Impact
-
-- Potential out-of-memory errors and OpenSearch cluster instability.
-- Degraded performance of services used the OpenSearch.
-
-### Actions for Investigation
-
-1. Get the statistics of the cluster nodes using the following command:
-
-   ```
-   curl -X GET 'http://localhost:9200/_nodes/stats/'
-   ```
-
-2. Monitor the memory usage trends in OpenSearch monitoring dashboard.
-3. Review OpenSearch logs for memory related errors.
-
-### Recommended Actions to Resolve Issue
-
-1. Try to increase memory request, memory limit and heap size for OpenSearch.
-2. Add data nodes to redistribute the load.
-
 ## OpenSearchHeapMemoryUsageAlert
 
 ### Description
