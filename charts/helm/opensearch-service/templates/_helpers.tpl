@@ -1173,7 +1173,7 @@ Configure OpenSearch statefulset names for rolling update mechanism in operator.
 
 {{- define "opensearch.monitoredImages" -}}
   {{- printf "deployment %s-service-operator opensearch-service-operator %s, " (include "opensearch.fullname" .) (index .Values.deployDescriptor "opensearch-service" "image") -}}
-  {{- if and .Values.opensearch.install (eq .Values.global.externalOpensearch.enabled "false") }}
+  {{- if and (not .Values.global.externalOpensearch.enabled) .Values.opensearch.data.enabled }}
   {{- printf "statefulset %s, " (include "opensearch.fullname" .) (index .Values.deployDescriptor "prod.platform.elasticstack_docker-opensearch" "image") -}}
   {{- end }}
   {{- if .Values.curator.enabled }}
@@ -1192,7 +1192,7 @@ Configure OpenSearch statefulset names for rolling update mechanism in operator.
   {{- if .Values.integrationTests.enabled }}
   {{- printf "deployment %s-integration-tests opensearch-integration-tests %s, " (include "opensearch.fullname" .) (index .Values.deployDescriptor "prod.platform.elasticstack_opensearch-service" "image") -}}
   {{- end }}
-  {{- if or (eq .Values.global.disasterRecovery.mode "active") (eq .Values.global.disasterRecovery.mode "standby") }}
+  {{- if not (or (eq .Values.global.disasterRecovery.mode "standby") (eq .Values.global.disasterRecovery.mode "disabled")) }}
   {{- printf "deployment %s-service-operator opensearch-disaster-recovery %s, " (include "opensearch.fullname" .) (index .Values.deployDescriptor "prod.platform.streaming_disaster-recovery-daemon" "image") -}}
   {{- end }}
 {{- end -}}
