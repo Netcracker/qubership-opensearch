@@ -2,9 +2,7 @@
 ${MONITORED_IMAGES}         %{MONITORED_IMAGES}
 
 *** Settings ***
-Library  String
-Library  Collections
-Library  PlatformLibrary  managed_by_operator=true
+Resource  ../shared/keywords.robot
 
 
 *** Test Cases ***
