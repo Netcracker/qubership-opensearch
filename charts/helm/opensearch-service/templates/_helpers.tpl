@@ -1174,7 +1174,7 @@ Configure OpenSearch statefulset names for rolling update mechanism in operator.
 {{- define "opensearch.monitoredImages" -}}
   {{- printf "deployment %s-service-operator opensearch-service-operator %s, " (include "opensearch.fullname" .) (index .Values.deployDescriptor "opensearch-service" "image") -}}
   {{- if and (not .Values.global.externalOpensearch.enabled) .Values.opensearch.data.enabled }}
-  {{- printf "statefulset opensearch %s, " (include "opensearch.fullname" .) (index .Values.deployDescriptor "prod.platform.elasticstack_docker-opensearch" "image") -}}
+  {{- printf "statefulset opensearch opensearch %s, " (index .Values.deployDescriptor "prod.platform.elasticstack_docker-opensearch" "image") -}}
   {{- end }}
   {{- if .Values.curator.enabled }}
   {{- printf "deployment %s-curator opensearch-curator %s, " (include "opensearch.fullname" .) (index .Values.deployDescriptor "docker-elastic-curator" "image") -}}
