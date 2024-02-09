@@ -308,7 +308,6 @@ Alarm notifications from Zabbix are used to notify operators about problems with
 For example, a message from Zabbix triggered for excessive CPU usage is as follows:
 
 `
-Trigger: OpenSearch's CPU usage is above 95%
 Trigger status: PROBLEM
 Trigger severity: Warning
 `
