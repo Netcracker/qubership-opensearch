@@ -16,7 +16,8 @@ Library           S3BackupLibrary  url=%{S3_URL}
 Full Backup And Restore On S3 Storage
     [Tags]  opensearch  backup  backup_s3  full_backup  full_backup_s3
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}
-    ${backup_id}=  Full Backup
+    ${backup_id_bytes}=  Full Backup
+    ${backup_id}  Decode Bytes To String  ${backup_id_bytes}  "UTF-8"
     Delete Data  ${OPENSEARCH_BACKUP_INDEX}
 
     #Check backup is created in S3
@@ -37,7 +38,8 @@ Granular Backup And Restore On S3 Storage
     [Tags]  opensearch  backup  backup_s3  granular_backup  granular_backup_s3
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-1
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-2
-    ${backup_id}=  Granular Backup  ["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]
+    ${backup_id_bytes}=  Granular Backup  ["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]
+    ${backup_id}  Decode Bytes To String  ${backup_id_bytes}  "UTF-8"
 
     ${response}=  Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
     Should Be Equal As Strings  ${response.status_code}  200
