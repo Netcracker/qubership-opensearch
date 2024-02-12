@@ -259,7 +259,7 @@
       "fillGradient": 0,
       "gridPos": {
         "h": 6,
-        "w": 12,
+        "w": 8,
         "x": 4,
         "y": 1
       },
@@ -433,7 +433,7 @@
       "gridPos": {
         "h": 6,
         "w": 4,
-        "x": 16,
+        "x": 12,
         "y": 1
       },
       "id": 65133,
@@ -529,12 +529,10 @@
       "valueName": "current"
     },
     {
-      "circleBackground": false,
-      "colorBackground": false,
-      "colorValue": true,
       "datasource": "$datasource",
+      "colorValue": true,
       "defaultColor": "rgb(117, 117, 117)",
-      "description": "Maximum current Memory usage (in percent) among all OpenSearch servers.",
+      "description": "Maximum current usage JVM heap memory (in percent) among all OpenSearch servers.",
       "format": "percent",
       "gauge": {
         "maxValue": 100,
@@ -546,7 +544,7 @@
       "gridPos": {
         "h": 6,
         "w": 4,
-        "x": 20,
+        "x": 16,
         "y": 1
       },
       "id": 65142,
@@ -564,7 +562,119 @@
           "value": 2
         }
       ],
-      "math": "",
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "postfixFontSize": "50%",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sortOrder": "asc",
+      "sortOrderOptions": [
+        {
+          "text": "Ascending",
+          "value": "asc"
+        },
+        {
+          "text": "Descending",
+          "value": "desc"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "targets": [
+        {
+          "datasource": "$datasource",
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "max(opensearch_jvm_mem_heap_used_percent{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"})",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [
+        {
+          "$$hashKey": "object:75",
+          "color": "#37872D",
+          "value": 0
+        },
+        {
+          "$$hashKey": "object:78",
+          "color": "#37872D",
+          "value": 90
+        },
+        {
+          "$$hashKey": "object:81",
+          "color": "#C4162A",
+          "value": 100
+        }
+      ],
+      "title": "JVM Heap Usage",
+      "tooltip": {
+        "show": true
+      },
+      "type": "blackmirror1-singlestat-math-panel",
+      "valueFontSize": "100%",
+      "valueMappingColorBackground": "#767171",
+      "valueMaps": [
+        {
+          "$$hashKey": "object:44",
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current",
+      "circleBackground": false,
+      "colorBackground": false
+    },
+    {
+      "circleBackground": false,
+      "colorBackground": false,
+      "colorValue": true,
+      "datasource": "$datasource",
+      "editorMode": "code",
+      "defaultColor": "rgb(117, 117, 117)",
+      "description": "The maximum memory usage excluding allocated JVM Heap memory (in percent) among all OpenSearch servers.\\nThis amount of memory is used by operating system and Apache Lucene.",
+      "format": "percent",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": true,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "id": 65926,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "$$hashKey": "object:41",
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "$$hashKey": "object:42",
+          "name": "range to text",
+          "value": 2
+        }
+      ],
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "postfix": "",
@@ -600,7 +710,7 @@
         {
           "datasource": "$datasource",
           "exemplar": false,
-          "expr": "100 * max(container_memory_working_set_bytes{namespace=\"$namespace\", pod=~\"$node_name\",container=\"opensearch\",cluster=\"$cluster\"}) / max(container_spec_memory_limit_bytes{namespace=\"$namespace\", pod=~\"$node_name\", container=\"opensearch\",cluster=\"$cluster\"})",
+          "expr": "100 * (max(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$node_name\",container!=\"\",image!=\"\",cluster=\"$cluster\"}) - max(opensearch_jvm_mem_heap_max_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"})) / (max(kube_pod_container_resource_limits_memory_bytes{exported_namespace=\"$namespace\",exported_pod=~\"$node_name\",cluster=\"$cluster\"}) - max(opensearch_jvm_mem_heap_max_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}))",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -624,7 +734,7 @@
           "value": 100
         }
       ],
-      "title": "Memory Usage",
+      "title": "Off-Heap Memory Usage",
       "tooltip": {
         "show": true
       },
@@ -2686,7 +2796,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 18
+            "y": 6
           },
           "hiddenSeries": false,
           "id": 65067,
@@ -2846,6 +2956,149 @@
           "yaxis": {
             "align": false
           }
+        },
+        {
+          "datasource": "$datasource",
+          "description": "The usage of memory excluding allocated JVM Heap memory by each OpenSearch node and its limit. \n  This amount of memory is used by operating system and Apache Lucene.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "barAlignment": 0,
+                "lineWidth": 1,
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "spanNulls": false,
+                "insertNulls": false,
+                "showPoints": "never",
+                "pointSize": 3,
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                },
+                "axisPlacement": "auto",
+                "axisLabel": "",
+                "axisColorMode": "text",
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "axisCenteredZero": false,
+                "hideFrom": {
+                  "tooltip": false,
+                  "viz": false,
+                  "legend": false
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                },
+                "lineStyle": {
+                  "fill": "solid"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "bytes"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byFrameRefID",
+                  "options": "A"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "red",
+                      "mode": "fixed"
+                    }
+                  },
+                  {
+                    "id": "custom.lineWidth",
+                    "value": 1
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byFrameRefID",
+                  "options": "B"
+                },
+                "properties": [
+                  {
+                    "id": "custom.fillOpacity",
+                    "value": 10
+                  },
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "green",
+                      "mode": "palette-classic",
+                      "seriesBy": "last"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 39
+          },
+          "id": 65925,
+          "options": {
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            },
+            "legend": {
+              "showLegend": true,
+              "displayMode": "table",
+              "placement": "right",
+              "calcs": [
+                "max",
+                "last"
+              ]
+            }
+          },
+          "targets": [
+            {
+              "datasource": "$datasource",
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "max(label_replace(kube_pod_container_resource_limits_memory_bytes{exported_namespace=\"$namespace\",exported_pod=~\"$node_name\",cluster=\"$cluster\"}, \"node_name\", \"$1\", \"exported_pod\", \"(.+)\")) by (node_name) - max(opensearch_jvm_mem_heap_max_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
+              "instant": false,
+              "legendFormat": "{{node_name}}:limit",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "datasource": "$datasource",
+              "editorMode": "code",
+              "expr": "max(label_replace(container_memory_working_set_bytes{namespace=\"$namespace\",pod=~\"$node_name\",container!=\"\",image!=\"\",cluster=\"$cluster\"}, \"node_name\", \"$1\", \"pod\", \"(.+)\")) by (node_name) - max(opensearch_jvm_mem_heap_max_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)\n",
+              "hide": false,
+              "instant": false,
+              "legendFormat": "{{node_name}}:usage",
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "Off-heap memory usage",
+          "type": "timeseries"
         }
       ],
       "title": "Memory metrics",
