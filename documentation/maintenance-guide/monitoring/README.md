@@ -44,7 +44,8 @@ the last metric value is used.
     * You will be blocked from indexing into that shard.
 * `Nodes Status` - Status of OpenSearch nodes.
 * `CPU Usage` - The maximum current CPU usage (in percent) among all OpenSearch servers.
-* `Memory Usage` - The maximum current memory usage (in percent) among all OpenSearch servers.
+* `JVM Heap Usage` - The maximum current JVM heap memory usage (in percent) among all OpenSearch servers.
+* `Off-Heap Memory Usage` - The maximum memory usage excluding allocated JVM Heap memory.
 * `Cluster Status Transitions` - The transitions of OpenSearch cluster statuses.
 * `Pod Readiness Probe Transitions` - The transitions of readiness probes for each OpenSearch pod.
 
@@ -149,6 +150,8 @@ The following is a list of scenarios related to JVM Heap:
 
 * `OS memory usage` - The usage of memory by each OpenSearch node and its limit. These metric is
   useful to avoid reaching the memory limit on nodes.
+* `Off-heap memory usage` - The usage of memory excluding allocated JVM Heap memory by each OpenSearch node and its limit.
+  This amount of memory is used by operating system and Apache Lucene.
 
 **Disk Metrics**
 
@@ -451,7 +454,6 @@ guide to resolve issues.
 |                                               | OpenSearchDiskUsageAbove75%Alert   | Disk usage by one of the pods in the OpenSearch cluster comes close to the 75% limit                                                                                                                                                                                         | [OpenSearch Disk Usage](../troubleshooting-guide/README.md#opensearch-disk-usage)       |
 |                                               | OpenSearchDiskUsageAbove85%Alert   | Disk usage by one of the pods in the OpenSearch cluster comes close to the 85% limit                                                                                                                                                                                         | [OpenSearch Disk Usage](../troubleshooting-guide/README.md#opensearch-disk-usage)       |
 |                                               | OpenSearchDiskUsageAbove95%Alert   | Disk usage by one of the pods in the OpenSearch cluster comes close to the 95% limit                                                                                                                                                                                         | [OpenSearch Disk Usage](../troubleshooting-guide/README.md#opensearch-disk-usage)       |
-| OpenSearch's memory usage is above 95%        | OpenSearchMemoryUsageAlert         | Memory usage by one of the pods in the OpenSearch cluster comes close to the limit                                                                                                                                                                                           | [OpenSearch Memory Usage](../troubleshooting-guide/README.md#opensearch-memory-usage)   |
 | OpenSearch's heap memory usage is above 95%   | OpenSearchHeapMemoryUsageAlert     | Heap memory usage by one of the pods in the OpenSearch cluster comes close to the limit                                                                                                                                                                                      | [OpenSearch Memory Usage](../troubleshooting-guide/README.md#opensearch-memory-usage)   |
 | OpenSearch is Degraded on {HOST.NAME}         | OpenSearchIsDegradedAlert          | One or more replica shards is missing                                                                                                                                                                                                                                        | [OpenSearch is Degraded](../troubleshooting-guide/README.md#opensearch-is-degraded)     |
 | OpenSearch is Down on {HOST.NAME}             | OpenSearchIsDownAlert              | One or more primary shards does not allocate in the cluster                                                                                                                                                                                                                  | [OpenSearch is Down](../troubleshooting-guide/README.md#opensearch-is-down)             |
