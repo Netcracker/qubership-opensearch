@@ -277,39 +277,19 @@ An overview of `OpenSearch Indices` dashboard is shown below.
 
 ![Dashboard](/docs/public/images/opensearch-indices_overview.png)
 
-* `Indices information` - The number of documents for each index and its size in bytes in descending order of size values presented as a table.
+* `Indices` - The number of documents for each index and its size in bytes in descending order of size values presented as a table.
 
-**Incoming Documents Rate per Index**
+**Indices Information**
 
-![Dashboard](/docs/public/images/opensearch-indices_incoming_documents_rate.png)
+![Dashboard](/docs/public/images/opensearch-indices_indices_information.png)
 
-* ${INDEX_NAME} - The incoming documents rate on primary shards.
+* `Incoming Documents Rate` - The incoming documents rate on primary shards for each index.
 
-Where `${INDEX_NAME}` is the name of index which metrics are presented in the widget.
+* `Store Size` - The size in bytes occupied by index on primary shards and in total.
 
-**Store Size per Index**
+* `Indexing Documents Rate` - The indexing documents rate on primary shards for each index.
 
-![Dashboard](/docs/public/images/opensearch-indices_store_size.png)
-
-* ${INDEX_NAME} - The size in bytes occupied by index on primary shards and in total.
-
-Where `${INDEX_NAME}` is the name of index which metrics are presented in the widget.
-
-**Indexing Documents Rate per Index**
-
-![Dashboard](/docs/public/images/opensearch-indices_indexing_documents_rate.png)
-
-* ${INDEX_NAME} - The indexing documents rate on primary shards.
-
-Where `${INDEX_NAME}` is the name of index which metrics are presented in the widget.
-
-**Deleting Documents Rate per Index**
-
-![Dashboard](/docs/public/images/opensearch-indices_deleting_documents_rate.png)
-
-* ${INDEX_NAME} - The deleting documents rate on primary shards.
-
-Where `${INDEX_NAME}` is the name of index which metrics are presented in the widget.
+* `Deleting Documents Rate` - The deleting documents rate on primary shards for each index.
 
 # OpenSearch Slow Queries
 
