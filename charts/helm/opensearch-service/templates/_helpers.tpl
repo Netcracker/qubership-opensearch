@@ -1227,7 +1227,7 @@ Configure OpenSearch statefulset names for rolling update mechanism in operator.
     {{- printf "deployment %s-integration-tests opensearch-integration-tests not_found, " (include "opensearch.fullname" .) -}}
   {{- end -}}
   {{- if index .Values.deployDescriptor "prod.platform.streaming_disaster-recovery-daemon" -}}
-    {{- if not (or (eq .Values.global.disasterRecovery.mode "standby") (eq .Values.global.disasterRecovery.mode "disabled")) -}}
+    {{- if or (eq .Values.global.disasterRecovery.mode "standby") (eq .Values.global.disasterRecovery.mode "disabled") -}}
       {{- printf "deployment %s-service-operator opensearch-disaster-recovery %s, " (include "opensearch.fullname" .) (index .Values.deployDescriptor "prod.platform.streaming_disaster-recovery-daemon" "image") -}}
     {{- end -}}
   {{- else -}}
