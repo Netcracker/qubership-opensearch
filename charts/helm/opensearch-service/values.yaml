@@ -144,6 +144,7 @@ global:
   tls:
     enabled: false
     cipherSuites: []
+    renewCerts: true
     generateCerts:
       enabled: true
       certProvider: cert-manager
