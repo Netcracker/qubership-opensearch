@@ -135,6 +135,26 @@ spec:
                 secretKeyRef:
                   key: curator-password
                   name: {{ .Values.service.name }}-secret
+            - name: S3_ENABLED
+              value: {{ .Values.integrationTests.s3.enabled | quote }}
+            - name: S3_URL
+              value: {{ .Values.integrationTests.s3.url | quote }}
+            - name: S3_BUCKET
+              value: {{ .Values.integrationTests.s3.bucket | quote }}
+            - name: S3_KEY_ID
+              {{- if .Values.integrationTests.s3.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.service.name }}-secret
+                  key: s3-key-id
+              {{- end }}
+            - name: S3_KEY_SECRET
+              {{- if .Values.integrationTests.s3.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.service.name }}-secret
+                  key: s3-key-secret
+              {{- end }}
             - name: PROMETHEUS_URL
               value: {{ .Values.integrationTests.prometheusUrl }}
             - name: SLOW_QUERIES_INTERVAL_MINUTES

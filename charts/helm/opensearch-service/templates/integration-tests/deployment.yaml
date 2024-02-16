@@ -154,6 +154,26 @@ spec:
                 secretKeyRef:
                   key: password
                   name: {{ template "opensearch.fullname" . }}-curator-secret
+            - name: S3_ENABLED
+              value: {{ .Values.opensearch.snapshots.s3.enabled | quote }}
+            - name: S3_URL
+              value: {{ .Values.opensearch.snapshots.s3.url | quote }}
+            - name: S3_BUCKET
+              value: {{ .Values.opensearch.snapshots.s3.bucket | quote }}
+            - name: S3_KEY_ID
+              {{- if .Values.opensearch.snapshots.s3.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-s3-secret
+                  key: s3-key-id
+              {{- end }}
+            - name: S3_KEY_SECRET
+              {{- if .Values.opensearch.snapshots.s3.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-s3-secret
+                  key: s3-key-secret
+              {{- end }}
             {{- end }}
             {{- if .Values.integrationTests.statusWritingEnabled }}
             - name: STATUS_CUSTOM_RESOURCE_GROUP

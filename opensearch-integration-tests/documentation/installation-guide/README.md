@@ -62,6 +62,12 @@ It can be empty if authentication is disabled for OpenSearch Curator.
 The `secret.curator.password` parameter specifies the password of the OpenSearch Curator API user.
 It can be empty if authentication is disabled for OpenSearch Curator.
 
+The `secret.s3.keyId` parameter specifies the key ID for the S3 storage.
+It can be empty if s3 is disabled for OpenSearch Curator.
+
+The `secret.s3.keySecret` parameter specifies the key secret for the S3 storage.
+It can be empty if s3 is disabled for OpenSearch Curator.
+
 The `tls.opensearch.secretName` parameter specifies the name of the secret that contains TLS certificates for OpenSearch REST layer. By default, it is empty.
 
 The `tls.opensearch.secretCaKey` parameter specifies the key of root CA certificate in `tls.opensearch.secretName` secret. The default value is `ca.crt`.
@@ -91,8 +97,10 @@ The `integrationTests.tags` parameter specifies the tags combined with `AND`, `O
 * `regression` tag runs all tests connected to regression scenarios.
 * `opensearch` tag runs all tests connected to OpenSearch scenarios:
   * `backup` tag runs all tests connected to the backup scenarios except `Full Backup And Restore` test:
-    * `Full Backup And Restore` test is performed when `full_backup` tag is specified explicitly.
-    * `granular_backup` tag runs `Granular Backup And Restore` test.
+    * `Full Backup And Restore` and `Full Backup And Restore On S3 Storage` test are performed when `full_backup` tag is specified explicitly.
+    * `find_backup` tag runs `Find Backup By Timestamp` test.
+    * `granular_backup` tag runs `Granular Backup And Restore`, `Granular Backup And Restore On S3 Storage` and `Granular Backup And Restore By Timestamp` tests.
+    * `granular_backup_s3` tag runs `Granular Backup And Restore On S3 Storage` test.
     * `backup_deletion` tag runs `Delete Backup By ID` test.
     * `unauthorized_access` tag runs `Unauthorized Access` test.
   * `prometheus` tag runs all tests connected to Prometheus scenarios:
@@ -170,6 +178,12 @@ The default value is `opensearch-curator`.
 The `integrationTests.prometheusUrl` parameter specifies the URL (with schema and port) to Prometheus.
 For example, `http://prometheus.cloud.openshift.sdntest.example.com:80`. This parameter must be
 specified if you want to run integration tests with `prometheus` tag.
+
+The `integrationTests.s3.enabled` parameter specifies that Curator stores backups in S3 storage. OpenSearch supports the following S3 providers: AWS S3, MinIO. Google Cloud Storage is not supported. Other S3 providers may work, but are not covered by the OpenSearch test suite. The default value is `false`.
+
+The `integrationTests.s3.url` parameter specifies the URL to the S3 storage.
+
+The `integrationTests.s3.bucket` parameter specifies the existing bucket in the S3 storage.
 
 The `integrationTests.statusWritingEnabled` parameter specifies whether status of Integration tests execution is to be
 writen to deployment or not. The default value is `true`.
