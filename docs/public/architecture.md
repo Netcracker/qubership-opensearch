@@ -47,7 +47,7 @@ With this enhanced Docker container, users can effortlessly deploy and manage ro
 
 ## OpenSearch Curator
 
-The OpenSearch Curator is a microservice that offers a convenient REST API for performing backups and restores of OpenSearch indices using OpenSearch Snapshot API. 
+The OpenSearch Curator is a microservice that offers a convenient REST API for performing backups and restores of OpenSearch indices, templates and aliases using OpenSearch Snapshot API. 
 It enables users to initiate backups and restores programmatically, making it easier to automate these processes. 
 Additionally, the daemon allows users to schedule regular backups, ensuring data protection and disaster recovery. 
 Furthermore, it offers the capability to store backups on remote S3 storage, providing a secure and scalable solution for long-term data retention.
