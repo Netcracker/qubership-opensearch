@@ -51,7 +51,7 @@ integration:
     deploy-param: elasticsearchDbaasAdapterImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: feature/change_curator_implementation_and_fix_gaps
+    location: master
     docker-image-id: timestamp
     deploy-param: opensearchCurator
   - type: find-latest-deployment-descriptor
