@@ -23,6 +23,7 @@ RUN set -x && apk upgrade --no-cache --available
 
 RUN set -x \
     && pip3 install -r ${ROBOT_HOME}/requirements.txt \
+    && pip3 install --upgrade certifi \
     && rm -rf /var/cache/apk/*
 
 USER 1000:0
