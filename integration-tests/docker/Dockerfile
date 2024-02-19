@@ -13,6 +13,14 @@ COPY docker/requirements.txt ${ROBOT_HOME}/requirements.txt
 COPY docker/opensearch_pods_checker.py ${ROBOT_HOME}/opensearch_pods_checker.py
 COPY robot ${ROBOT_HOME}
 
+
+RUN set -x \
+    && apk add --update --no-cache openssl
+
+# Upgrade all tools to avoid vulnerabilities
+RUN set -x && apk upgrade --no-cache --available
+
+
 RUN set -x \
     && pip3 install -r ${ROBOT_HOME}/requirements.txt \
     && rm -rf /var/cache/apk/*
