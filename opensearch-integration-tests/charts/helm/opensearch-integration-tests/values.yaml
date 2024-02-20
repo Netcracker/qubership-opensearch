@@ -15,6 +15,9 @@ secret:
   curator:
     username: ""
     password: ""
+  prometheus:
+    user: ""
+    password: ""
 
 tls:
   opensearch:
