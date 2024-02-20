@@ -36,7 +36,7 @@ Full Backup
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${response.content}
-    [Return]  ${response.content}
+    [Return]  ${response.text}
 
 Granular Backup
     [Arguments]  ${indices_list}
@@ -45,7 +45,7 @@ Granular Backup
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${response.content}
-    [Return]  ${response.content}
+    [Return]  ${response.text}
 
 Delete Backup
     [Arguments]  ${backup_id}
