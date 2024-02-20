@@ -51,6 +51,32 @@ spec:
               value: "{{ template "curator.tlsEnabled" . }}"
             - name: SNAPSHOT_REPOSITORY_NAME
               value: {{ .Values.curator.snapshotRepositoryName | default "snapshots" }}
+            - name: DBAAS_ADAPTER_ADDRESS
+              value: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (include "dbaas-adapter.address" .) }}
+            - name: DBAAS_ADAPTER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+            - name: DBAAS_ADAPTER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+            - name: DBAAS_AGGREGATOR_REGISTRATION_ADDRESS
+              value: {{ .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
+            - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER
+              value: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
+            - name: DBAAS_AGGREGATOR_REGISTRATION_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: registration-auth-username
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+            - name: DBAAS_AGGREGATOR_REGISTRATION_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: registration-auth-password
+                  name: {{ template "dbaas-adapter.name" . }}-secret
           {{- if .Values.curator.backupSchedule }}
             - name: BACKUP_SCHEDULE
               value: {{ .Values.curator.backupSchedule }}
