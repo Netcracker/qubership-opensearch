@@ -62,11 +62,9 @@ It can be empty if authentication is disabled for OpenSearch Curator.
 The `secret.curator.password` parameter specifies the password of the OpenSearch Curator API user.
 It can be empty if authentication is disabled for OpenSearch Curator.
 
-The `secret.s3.keyId` parameter specifies the key ID for the S3 storage.
-It can be empty if s3 is disabled for OpenSearch Curator.
+The `secret.prometheus.user` parameter specifies the username for authentication on Prometheus/VictoriaMetrics secured endpoints.
 
-The `secret.s3.keySecret` parameter specifies the key secret for the S3 storage.
-It can be empty if s3 is disabled for OpenSearch Curator.
+The `secret.prometheus.password` parameter specifies the password for authentication on Prometheus/VictoriaMetrics secured endpoints.
 
 The `tls.opensearch.secretName` parameter specifies the name of the secret that contains TLS certificates for OpenSearch REST layer. By default, it is empty.
 
@@ -97,12 +95,8 @@ The `integrationTests.tags` parameter specifies the tags combined with `AND`, `O
 * `regression` tag runs all tests connected to regression scenarios.
 * `opensearch` tag runs all tests connected to OpenSearch scenarios:
   * `backup` tag runs all tests connected to the backup scenarios except `Full Backup And Restore` test:
-    * `Full Backup And Restore` and `Full Backup And Restore On S3 Storage` test are performed when `full_backup` tag is specified explicitly.
-    * `find_backup` tag runs `Find Backup By Timestamp` test.
-    * `granular_backup` tag runs `Granular Backup And Restore`, `Granular Backup And Restore On S3 Storage` and `Granular Backup And Restore By Timestamp` tests.
-    * `granular_backup_s3` tag runs `Granular Backup And Restore On S3 Storage` test.
-    * `full_backup_s3` tag runs `Full Backup And Restore On S3 Storage` test.
-    * `backup_s3` tag runs `Granular Backup And Restore On S3 Storage` and `Full Backup And Restore On S3 Storage` test.
+    * `Full Backup And Restore` test is performed when `full_backup` tag is specified explicitly.
+    * `granular_backup` tag runs `Granular Backup And Restore` test.
     * `backup_deletion` tag runs `Delete Backup By ID` test.
     * `unauthorized_access` tag runs `Unauthorized Access` test.
   * `prometheus` tag runs all tests connected to Prometheus scenarios:
@@ -179,13 +173,7 @@ The default value is `opensearch-curator`.
 
 The `integrationTests.prometheusUrl` parameter specifies the URL (with schema and port) to Prometheus.
 For example, `http://prometheus.cloud.openshift.sdntest.example.com:80`. This parameter must be
-specified if you want to run integration tests with `prometheus` tag.
-
-The `integrationTests.s3.enabled` parameter specifies that Curator stores backups in S3 storage. OpenSearch supports the following S3 providers: AWS S3, MinIO. Google Cloud Storage is not supported. Other S3 providers may work, but are not covered by the OpenSearch test suite. The default value is `false`.
-
-The `integrationTests.s3.url` parameter specifies the URL to the S3 storage.
-
-The `integrationTests.s3.bucket` parameter specifies the existing bucket in the S3 storage.
+specified if you want to run integration tests with `prometheus` tag. **Note:** This parameter could be used as VictoriaMetrics URL instead of Prometheus. For example, `http://vmauth-k8s.monitoring:8427`.
 
 The `integrationTests.statusWritingEnabled` parameter specifies whether status of Integration tests execution is to be
 writen to deployment or not. The default value is `true`.
@@ -237,6 +225,9 @@ secret:
     password: "admin"
   curator:
     username: "admin"
+    password: "admin"
+  prometheus:
+    user: "admin"
     password: "admin"
 
 integrationTests:
@@ -348,6 +339,9 @@ secret:
   curator:
     username: "admin"
     password: "admin"
+  prometheus:
+    user: "admin"
+    password: "admin"
 
 integrationTests:
   tags: "smoke"
@@ -417,6 +411,8 @@ secret.dbaasAdapter.username=admin;
 secret.dbaasAdapter.password=admin;
 secret.curator.username=admin;
 secret.curator.password=admin;
+secret.prometheus.user=admin;
+secret.prometheus.password=admin;
 
 integrationTests.tags=smoke;
 integrationTests.opensearchHost=opensearch;

@@ -1100,6 +1100,9 @@ integrationTests:
       username: ""
       password: ""
       registrationToken: ""
+    prometheus:
+      user: ""
+      password: ""
 
   tags: "smoke"
   opensearchPort: 9200
