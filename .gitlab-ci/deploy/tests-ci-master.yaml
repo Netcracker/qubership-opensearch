@@ -15,6 +15,9 @@ secret:
   curator:
     username: "admin"
     password: "admin"
+  prometheus:
+    user: "admin"
+    password: "admin"
 
 tls:
   opensearch:
@@ -35,7 +38,7 @@ integrationTests:
   opensearchDbaasAdapterApiVersion: v2
   opensearchCuratorHost: "opensearch-curator"
   opensearchCuratorPort: 8080
-  prometheusUrl: "http://vmsingle-k8s.monitoring:8429"
+  prometheusUrl: "http://vmauth-k8s.monitoring:8427"
 
   resources:
     requests:

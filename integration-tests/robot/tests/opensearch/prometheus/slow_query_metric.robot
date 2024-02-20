@@ -7,6 +7,8 @@ ${SLEEP}                          5s
 
 *** Settings ***
 Library  MonitoringLibrary  host=%{PROMETHEUS_URL}
+...                         username=%{PROMETHEUS_USER}
+...                         password=%{PROMETHEUS_PASSWORD}
 Resource  ../shared/keywords.robot
 Suite Setup  Prepare OpenSearch
 
