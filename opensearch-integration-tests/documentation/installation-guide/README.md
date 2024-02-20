@@ -95,8 +95,12 @@ The `integrationTests.tags` parameter specifies the tags combined with `AND`, `O
 * `regression` tag runs all tests connected to regression scenarios.
 * `opensearch` tag runs all tests connected to OpenSearch scenarios:
   * `backup` tag runs all tests connected to the backup scenarios except `Full Backup And Restore` test:
-    * `Full Backup And Restore` test is performed when `full_backup` tag is specified explicitly.
-    * `granular_backup` tag runs `Granular Backup And Restore` test.
+    * `Full Backup And Restore` and `Full Backup And Restore On S3 Storage` test are performed when `full_backup` tag is specified explicitly.
+    * `find_backup` tag runs `Find Backup By Timestamp` test.
+    * `granular_backup` tag runs `Granular Backup And Restore`, `Granular Backup And Restore On S3 Storage` and `Granular Backup And Restore By Timestamp` tests.
+    * `granular_backup_s3` tag runs `Granular Backup And Restore On S3 Storage` test.
+    * `full_backup_s3` tag runs `Full Backup And Restore On S3 Storage` test.
+    * `backup_s3` tag runs `Granular Backup And Restore On S3 Storage` and `Full Backup And Restore On S3 Storage` test.
     * `backup_deletion` tag runs `Delete Backup By ID` test.
     * `unauthorized_access` tag runs `Unauthorized Access` test.
   * `prometheus` tag runs all tests connected to Prometheus scenarios:

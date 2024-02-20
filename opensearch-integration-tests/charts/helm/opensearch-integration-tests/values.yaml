@@ -18,6 +18,9 @@ secret:
   prometheus:
     user: ""
     password: ""
+  s3:
+    keyId: ""
+    keySecret: ""
 
 tls:
   opensearch:
@@ -44,6 +47,11 @@ integrationTests:
   opensearchDbaasAdapterRepository: "snapshots"
   opensearchDbaasAdapterApiVersion: v2
   opensearchCuratorHost: "opensearch-curator"
+
+  s3:
+    enabled: false
+    url: ""
+    bucket: ""
 
   prometheusUrl: ""
 
