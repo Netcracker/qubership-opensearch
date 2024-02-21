@@ -51,6 +51,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: RECONCILE_PERIOD
+              value: {{ default "60" .Values.operator.reconcilePeriod | quote }}
             - name: OPENSEARCH_PROTOCOL
               {{ if or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}
               value: "https"
