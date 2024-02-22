@@ -34,6 +34,9 @@ spec:
 {{ toYaml .Values.opensearch.data.podAnnotations | indent 8 }}
 {{- end }}
     spec:
+      {{- if .Values.opensearch.data.priorityClassName }}
+      priorityClassName: {{ .Values.opensearch.data.priorityClassName | quote }}
+      {{- end }}
       {{- if and .Values.podScheduler.enabled (eq (include "data-nodes-volumes-enabled" .) "true") }}
       schedulerName: {{ template "opensearch.fullname" . }}-pod-scheduler
       {{- end }}

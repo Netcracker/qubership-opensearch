@@ -256,6 +256,9 @@ spec:
               - key: {{ .Values.opensearch.snapshots.s3.gcs.secretKey }}
                 path: key.json
         {{- end }}
+      {{- if .Values.curator.priorityClassName }}
+      priorityClassName: {{ .Values.curator.priorityClassName | quote }}
+      {{- end }}
     {{- with .Values.curator.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}
