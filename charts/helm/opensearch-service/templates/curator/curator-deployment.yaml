@@ -53,6 +53,11 @@ spec:
               value: {{ .Values.curator.snapshotRepositoryName | default "snapshots" }}
             - name: DBAAS_ADAPTER_ADDRESS
               value: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (include "dbaas-adapter.address" .) }}
+            - name: DBAAS_AGGREGATOR_REGISTRATION_ADDRESS
+              value: {{ .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
+            - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER
+              value: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
+          {{- if .Values.dbaasAdapter.enabled }}
             - name: DBAAS_ADAPTER_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -63,10 +68,6 @@ spec:
                 secretKeyRef:
                   key: password
                   name: {{ template "dbaas-adapter.name" . }}-secret
-            - name: DBAAS_AGGREGATOR_REGISTRATION_ADDRESS
-              value: {{ .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
-            - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER
-              value: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
             - name: DBAAS_AGGREGATOR_REGISTRATION_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -77,6 +78,7 @@ spec:
                 secretKeyRef:
                   key: registration-auth-password
                   name: {{ template "dbaas-adapter.name" . }}-secret
+          {{- end -}}
           {{- if .Values.curator.backupSchedule }}
             - name: BACKUP_SCHEDULE
               value: {{ .Values.curator.backupSchedule }}
