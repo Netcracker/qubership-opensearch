@@ -35,8 +35,8 @@ spec:
               value: "{{ join " " (include "opensearch.certDnsNames" . | fromYamlArray) }}"
             - name: ADDITIONAL_IP_ADDRESSES
               value: "{{ join " " (include "opensearch.certIpAddresses" . | fromYamlArray) }}"
-            - name: DURATION_DAYS
-              value: "{{ .Values.global.tls.generateCerts.durationDays | default 365 }}"
+            - name: RENEW_CERTS
+              value: "{{ .Values.global.tls.renewCerts }}"
             - name: TRANSPORT_CERTIFICATES_SECRET_NAME
               value: {{ template "opensearch.transport-cert-secret-name" . }}
             - name: ADMIN_CERTIFICATES_SECRET_NAME
