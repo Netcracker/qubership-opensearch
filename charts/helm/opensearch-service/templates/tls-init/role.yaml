@@ -17,4 +17,11 @@ rules:
       - create
       - get
       - update
+  - apiGroups: [""]
+    resources:
+      - pods
+    verbs:
+      - delete
+      - get
+      - list
 {{- end }}
