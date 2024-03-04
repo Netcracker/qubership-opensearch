@@ -82,6 +82,25 @@ BuildOpensearchServiceOperator:
   script:
     - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator.yaml"
 
+.BuildTlsInitTemplate:
+  stage: build
+  image: ${CI_IMAGE}
+  tags:
+    - NETCRACKER
+  artifacts:
+    when: always
+    paths:
+      - manifest.txt
+    expire_in: 1 week
+
+BuildTlsInit:
+  extends: .BuildTlsInitTemplate
+  allow_failure: false
+  variables:
+    PREFIX: ""
+  script:
+    - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/tls-init.yaml"
+
 .manifest:
   tags:
     - NETCRACKER-MEDIUM
@@ -136,17 +155,18 @@ build opensearch manifest:
   needs:
     - BuildIntegrationTests
     - BuildOpensearchServiceOperator
+    - BuildTlsInit
   variables:
     PREFIX: ".gitlab-ci/build/opensearch"
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
     PARAMETERS: "{integration: [{type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, docker-image-id: timestamp, deploy-param: opensearchOperator}, {type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, prefix: integration-tests, docker-image-id: timestamp, deploy-param: opensearchIntegrationTests}, {type: scripts, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, alias: timestamp, zip-name: migration-artifacts.zip, name: migration-artifacts, pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh}]}"
 
-build opensearch manifest 2.9.0:
+build opensearch manifest 2.11.1:
   stage: manifest
   extends: .manifest
   allow_failure: false
   variables:
-    PREFIX: "delivery/2.9.0"
+    PREFIX: "delivery/2.11.1"
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
     PARAMETERS: "{integration: [{type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, docker-image-id: timestamp, deploy-param: opensearchOperator}, {type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, prefix: integration-tests, docker-image-id: timestamp, deploy-param: opensearchIntegrationTests}, {type: scripts, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, alias: timestamp, zip-name: migration-artifacts.zip, name: migration-artifacts, pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh}]}"
   rules:
@@ -338,18 +358,18 @@ manifest opensearch validation:
   variables:
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
 
-vulnerability report 2.9.0:
+vulnerability report 2.11.1:
   needs:
-    - job: build opensearch manifest 2.9.0
+    - job: build opensearch manifest 2.11.1
   extends: .vulnerability_report
   variables:
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
   rules:
     - if: '$CI_COMMIT_REF_NAME =~ /^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$/'
 
-manifest validation 2.9.0:
+manifest validation 2.11.1:
   needs:
-    - job: build opensearch manifest 2.9.0
+    - job: build opensearch manifest 2.11.1
   extends: .manifestValidation
   variables:
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
@@ -367,7 +387,7 @@ manifest validation 2.9.0:
     - export UUID=$(cat ./"$PROPERTIES_FILENAME" | grep "UUID=" | awk -F = '{print $2}')
     - python -u /scripts/promote_all.py
 
-opensearch 2.9.0 promoteManifest:
+opensearch 2.11.1 promoteManifest:
   extends: .promoteManifest
   variables:
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
