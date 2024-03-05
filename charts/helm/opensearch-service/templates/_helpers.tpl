@@ -1206,3 +1206,4 @@ Configure OpenSearch statefulset names for rolling update mechanism in operator.
     {{- printf "deployment %s-service-operator opensearch-disaster-recovery %s, " (include "opensearch.fullname" .) (include "opensearch-service.find_image" (list . "prod.platform.streaming_disaster-recovery-daemon")) -}}
   {{- end -}}
 {{- end -}}
+
