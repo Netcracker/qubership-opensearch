@@ -8,7 +8,10 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/util/workqueue"
 	"net/http"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
@@ -20,7 +23,11 @@ import (
 )
 
 const (
-	opensearchSecretHashName = "secret.opensearch"
+	defaultReadinessTimeout          = 800 * time.Second
+	maxRateLimiterDelay              = 60
+	minRateLimiterDelay              = 5
+	opensearchSecretHashName         = "secret.opensearch"
+	opensearchServiceConditionReason = "ReconcileCycleStatus"
 )
 
 var opensearchSecretHash = ""
@@ -74,6 +81,32 @@ func (r *OpenSearchServiceReconciler) Reconcile(ctx context.Context, request ctr
 		return ctrl.Result{}, err
 	}
 
+	r.StatusUpdater = util.NewStatusUpdater(r.Client, instance)
+	if err = r.updateConditions(NewCondition(statusFalse,
+		typeInProgress,
+		opensearchServiceConditionReason,
+		"Reconciliation cycle started")); err != nil {
+		return ctrl.Result{}, err
+	}
+	defer func() {
+		var status opensearchservice.StatusCondition
+		if err != nil {
+			status = NewCondition(statusFalse,
+				typeFailed,
+				opensearchServiceConditionReason,
+				fmt.Sprintf("Reconciliation cycle is failed: %s", err.Error()))
+		} else {
+			status = NewCondition(statusTrue,
+				typeSuccessful,
+				opensearchServiceConditionReason,
+				"Reconciliation cycle is successfully finished")
+		}
+		err = r.updateConditions(status)
+		if err != nil {
+			reqLogger.Error(err, "Unable to update custom resource conditions")
+		}
+	}()
+
 	opensearchSecretName := fmt.Sprintf("%s-secret", instance.Name)
 	opensearchSecretHash, err = r.calculateSecretDataHash(opensearchSecretName, opensearchSecretHashName, instance, log)
 	if err != nil {
@@ -83,17 +116,31 @@ func (r *OpenSearchServiceReconciler) Reconcile(ctx context.Context, request ctr
 	reconcilers := r.buildReconcilers(instance, log)
 
 	for _, reconciler := range reconcilers {
-		if err := reconciler.Reconcile(); err != nil {
+		if err = reconciler.Reconcile(); err != nil {
 			reqLogger.Error(err, fmt.Sprintf("Error when reconciling `%T`", reconciler))
 			return ctrl.Result{}, err
 		}
 	}
 
 	if instance.Spec.OpenSearch != nil {
-		err = r.checkOpenSearchIsReady(instance)
+		var readinessTimeout time.Duration
+		readinessTimeout, err = time.ParseDuration(instance.Spec.OpenSearch.ReadinessTimeout)
 		if err != nil {
-			log.Info(fmt.Sprintf("OpenSearch check - %v", err))
-			return ctrl.Result{RequeueAfter: time.Second * 20}, err
+			log.Error(err, fmt.Sprintf("Readiness timeout is specified incorrectly, %s value is used",
+				defaultReadinessTimeout))
+			readinessTimeout = defaultReadinessTimeout
+		}
+		err = wait.Poll(time.Second*20, readinessTimeout, func() (bool, error) {
+			err := r.checkOpenSearchIsReady(instance)
+			if err != nil {
+				log.Info(fmt.Sprintf("OpenSearch check - %v", err))
+				return false, nil
+			}
+			return true, nil
+		})
+		if err != nil {
+			err = fmt.Errorf("OpenSearch is not ready after %s", readinessTimeout)
+			return ctrl.Result{}, err
 		}
 	}
 
@@ -175,5 +222,17 @@ func (r *OpenSearchServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.ConfigMap{}).
 		Owns(&appsv1.StatefulSet{}).
 		WithEventFilter(statusPredicate).
+		WithOptions(controller.Options{RateLimiter: customRateLimiter()}).
 		Complete(r)
+}
+
+/*
+RateLimiter is used for calculating a delay before the next operator's reconcile function call.
+Use ExponentialFailureRateLimiter which increases the delay exponentially until the delay is greater than the maximum.
+After that, the delay will be fixed and equal to the maximum delay (the maxDelay parameter).
+*/
+func customRateLimiter() workqueue.RateLimiter {
+	maxDelay, _ := util.GetIntEnvironmentVariable("RECONCILE_PERIOD", maxRateLimiterDelay)
+	return workqueue.NewItemExponentialFailureRateLimiter(minRateLimiterDelay*time.Second,
+		time.Duration(maxDelay)*time.Second)
 }

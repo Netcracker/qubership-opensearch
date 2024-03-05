@@ -50,6 +50,7 @@ type OpenSearchServiceReconciler struct {
 	ResourceHashes        map[string]string
 	ReplicationWatcher    ReplicationWatcher
 	SlowLogIndicesWatcher SlowLogIndicesWatcher
+	StatusUpdater         util.StatusUpdater
 }
 
 // findSecret returns the secret found by name and namespace and error if it occurred

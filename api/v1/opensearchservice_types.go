@@ -15,6 +15,7 @@ type OpenSearch struct {
 	CompatibilityModeEnabled  bool       `json:"compatibilityModeEnabled,omitempty"`
 	RollingUpdate             bool       `json:"rollingUpdate,omitempty"`
 	StatefulSetNames          string     `json:"statefulSetNames,omitempty"`
+	ReadinessTimeout          string     `json:"readinessTimeout,omitempty"`
 }
 
 type Snapshots struct {

@@ -195,6 +195,7 @@ global:
 operator:
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest
   replicas: 1
+  reconcilePeriod: 60
 
   ## Tolerations for pod assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
@@ -230,6 +231,7 @@ opensearch:
   gcLoggingEnabled: false
   performanceAnalyzerEnabled: true
   rollingUpdate: false
+  readinessTimeout: "800s"
   securityConfig:
     enabled: true
     path: "/usr/share/opensearch/config/opensearch-security"
@@ -247,8 +249,8 @@ opensearch:
     rolesSecret:
     rolesMappingSecret:
     tenantsSecret:
-    #The following option simplifies securityConfig by using a single secret and specifying the respective secrets in the corresponding files instead of creating different secrets for config,internal users, roles, roles mapping and tenants
-    #Note that this is an alternative to the above secrets and shouldn't be used if the above secrets are used
+    # The following option simplifies securityConfig by using a single secret and specifying the respective secrets in the corresponding files instead of creating different secrets for config,internal users, roles, roles mapping and tenants
+    # Note that this is an alternative to the above secrets and shouldn't be used if the above secrets are used
     config:
       securityConfigSecret:
       data: {}
@@ -665,7 +667,7 @@ opensearch:
     plugins.security.restapi.password_score_based_validation_strength: fair
     plugins.security.nodes_dn:
       - CN=opensearch-node,OU=Opensearch,O=Opensearch,L=Opensearch,C=CA
-    #Change it to generated certificate parameters
+    # Change it to generated certificate parameters
     plugins.security.authcz.admin_dn:
       - CN=opensearch-admin,OU=Opensearch,O=Opensearch,L=Opensearch,C=CA
       - C=CA,L=Opensearch,O=Opensearch,OU=Opensearch,CN=opensearch-admin
@@ -1079,6 +1081,7 @@ statusProvisioner:
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.streaming_deployment-status-provisioner:master_latest
   lifetimeAfterCompletion: 600
   podReadinessTimeout: 800
+  crProcessingTimeout: 600
   integrationTestsTimeout: 300
   resources:
     requests:
