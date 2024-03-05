@@ -1208,3 +1208,18 @@ Configure OpenSearch statefulset names for rolling update mechanism in operator.
     {{- printf "deployment %s-service-operator opensearch-disaster-recovery %s, " (include "opensearch.fullname" .) (include "find_image" (list . "prod.platform.streaming_disaster-recovery-daemon")) -}}
   {{- end -}}
 {{- end -}}
+
+{{/*
+Is Openshift enabled.
+*/}}
+{{- define "openshift.enabled" -}}
+  {{- if (ne (.Values.PAAS_PLATFORM_CUSTOM | toString) "<nil>") -}}
+    {{- not (eq .Values.PAAS_PLATFORM_CUSTOM "KUBERNETES") }}
+  {{- else -}}
+    {{- if (ne (.Values.PAAS_PLATFORM | toString) "<nil>") -}}
+      {{- not (eq .Values.PAAS_PLATFORM "KUBERNETES") }}
+    {{- else -}}
+      {{- .Values.global.openshift.enabled  }}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
