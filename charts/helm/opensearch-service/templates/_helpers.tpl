@@ -1209,17 +1209,3 @@ Configure OpenSearch statefulset names for rolling update mechanism in operator.
   {{- end -}}
 {{- end -}}
 
-{{/*
-Is Openshift enabled.
-*/}}
-{{- define "openshift.enabled" -}}
-  {{- if (ne (.Values.PAAS_PLATFORM_CUSTOM | toString) "<nil>") -}}
-    {{- not (eq .Values.PAAS_PLATFORM_CUSTOM "KUBERNETES") }}
-  {{- else -}}
-    {{- if (ne (.Values.PAAS_PLATFORM | toString) "<nil>") -}}
-      {{- not (eq .Values.PAAS_PLATFORM "KUBERNETES") }}
-    {{- else -}}
-      {{- .Values.global.openshift.enabled  }}
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
