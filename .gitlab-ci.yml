@@ -2,6 +2,7 @@ variables:
   DOCKER_REPOSITORY: "artifactorycn.netcracker.com:17023"
   CI_IMAGE: "artifactorycn.netcracker.com:17023/tools/monitoring-gitlab-ci:0.0.1"
   GO_LINTER_IMAGE: "artifactorycn.netcracker.com:17064/golangci/golangci-lint:v1.50.1"
+  HELM_LINTER_IMAGE: "artifactorycn.netcracker.com:17114/helmpack/chart-testing:v3.10.1"
   GO_PROXY: "https://artifactorycn.netcracker.com/pd.sandbox-staging.go.group"
   INTEGRATION_TESTS_POD_NAME: opensearch-integration-tests
   TAGS: NOTha
@@ -35,6 +36,18 @@ workflow:
     - charts/**/*
     - controllers/*
     - opensearch-integration-tests/**/*
+
+LinterHelm:
+  allow_failure: true
+  image: ${HELM_LINTER_IMAGE}
+  before_script:
+    - helm version
+    - ct version
+  script:
+    - ct lint --validate-maintainers=false --charts charts/helm/opensearch-service
+  stage: linter
+  tags:
+    - NETCRACKER
 
 LinterGo:
   allow_failure: true

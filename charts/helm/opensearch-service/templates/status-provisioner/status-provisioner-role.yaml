@@ -5,6 +5,12 @@ metadata:
   name: {{ template "opensearch.fullname" . }}-status-provisioner
 rules:
   - apiGroups:
+      - netcracker.com
+    resources:
+      - opensearchservices
+    verbs:
+      - get
+  - apiGroups:
       - apps
     resources:
       - deployments/status
