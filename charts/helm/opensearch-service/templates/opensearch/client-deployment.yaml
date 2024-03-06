@@ -31,6 +31,9 @@ spec:
 {{ toYaml .Values.opensearch.client.podAnnotations | indent 8 }}
 {{- end }}
     spec:
+      {{- if .Values.opensearch.client.priorityClassName }}
+      priorityClassName: {{ .Values.opensearch.client.priorityClassName | quote }}
+      {{- end }}
       {{- if .Values.opensearch.client.imagePullSecrets }}
       imagePullSecrets:
 {{ toYaml .Values.opensearch.client.imagePullSecrets | indent 8 }}

@@ -24,6 +24,9 @@ spec:
         pre.hook.backup.velero.io/command: {{ template "opensearch.velero-pre-hook-backup-flush" . }}
       {{- end }}
     spec:
+      {{- if .Values.operator.priorityClassName }}
+      priorityClassName: {{ .Values.operator.priorityClassName | quote }}
+      {{- end }}
       serviceAccountName: {{ template "opensearch.fullname" . }}-service-operator
       containers:
         - name: {{ template "opensearch.fullname" . }}-service-operator

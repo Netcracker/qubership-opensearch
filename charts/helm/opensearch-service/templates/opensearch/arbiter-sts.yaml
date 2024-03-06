@@ -45,6 +45,9 @@ spec:
 {{ toYaml .Values.opensearch.arbiter.podAnnotations | indent 8 }}
 {{- end }}
     spec:
+      {{- if .Values.opensearch.arbiter.priorityClassName }}
+      priorityClassName: {{ .Values.opensearch.arbiter.priorityClassName | quote }}
+      {{- end }}
       {{- if and .Values.podScheduler.enabled (eq (include "arbiter-nodes-volumes-enabled" .) "true") }}
       schedulerName: {{ template "opensearch.fullname" . }}-pod-scheduler
       {{- end }}
