@@ -80,6 +80,9 @@ spec:
           securityContext:
             {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
       serviceAccountName: {{ template "opensearch.fullname" . }}-pod-scheduler
+      {{- if .Values.podScheduler.priorityClassName }}
+      priorityClassName: {{ .Values.podScheduler.priorityClassName | quote }}
+      {{- end }}
       {{- with .Values.podScheduler.affinity }}
       affinity:
         {{ toYaml . | indent 8 | trim }}

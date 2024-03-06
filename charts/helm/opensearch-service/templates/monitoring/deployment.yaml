@@ -127,6 +127,9 @@ spec:
           secret:
             secretName: {{ template "opensearch.rest-cert-secret-name" . }}
         {{- end }}
+      {{- if .Values.monitoring.priorityClassName }}
+      priorityClassName: {{ .Values.monitoring.priorityClassName | quote }}
+      {{- end }}
     {{- with .Values.monitoring.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}
