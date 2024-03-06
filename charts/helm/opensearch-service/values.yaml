@@ -212,6 +212,11 @@ operator:
 #                values:
 #                  - opensearch-service-operator
 #          topologyKey: "kubernetes.io/hostname"
+
+  # used to assign priority to the OpenSearch Operator pod
+  # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+  priorityClassName: ""
+
   customLabels: {}
   securityContext: {}
 
@@ -393,6 +398,10 @@ opensearch:
                 role: master
     podAnnotations: {}
 
+    # used to assign priority to the OpenSearch master pods
+    # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+    priorityClassName: ""
+
     extraInitContainers: []
 #      - name: do-something
 #        image: busybox
@@ -472,6 +481,10 @@ opensearch:
               matchLabels:
                 role: master
     podAnnotations: {}
+
+    # used to assign priority to the OpenSearch arbiter pods
+    # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+    priorityClassName: ""
 
     extraInitContainers: []
 #      - name: do-something
@@ -562,6 +575,10 @@ opensearch:
     podAnnotations: {}
     customLabels: {}
 
+    # used to assign priority to the OpenSearch data pods
+    # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+    priorityClassName: ""
+
   client:
     enabled: true
     ## Enables dedicated deployment for client/ingest. Otherwise, master nodes as client/ingest
@@ -635,6 +652,10 @@ opensearch:
                   role: client
     podAnnotations: {}
     customLabels: {}
+
+    # used to assign priority to the OpenSearch client pods
+    # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+    priorityClassName: ""
 
   snapshots:
     enabled: false
@@ -784,6 +805,9 @@ podScheduler:
     limits:
       cpu: 50m
       memory: 128Mi
+  # used to assign priority to the OpenSearch pod scheduler pod
+  # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+  priorityClassName: ""
   securityContext: {}
 #    runAsUser: 1000
   customLabels: {}
@@ -850,6 +874,10 @@ monitoring:
   #                    - opensearch
   #            topologyKey: "kubernetes.io/hostname"
   #          weight: 100
+
+  # used to assign priority to the OpenSearch monitoring pod
+  # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+  priorityClassName: ""
 
   securityContext:
     runAsUser: 1000
@@ -930,6 +958,10 @@ dbaasAdapter:
   #                  - dbaas-opensearch-adapter
   #          topologyKey: "kubernetes.io/hostname"
 
+  # used to assign priority to the OpenSearch DBaaS adapter pod
+  # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+  priorityClassName: ""
+
   securityContext:
     runAsUser: 1000
 
@@ -1001,6 +1033,10 @@ elasticsearchDbaasAdapter:
   #                  - dbaas-opensearch-adapter
   #          topologyKey: "kubernetes.io/hostname"
 
+  # used to assign priority to the ElasticSearch DBaaS adapter pods
+  # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+  priorityClassName: ""
+
   securityContext: {}
   #    runAsUser: 1000
   customLabels: {}
@@ -1070,6 +1106,10 @@ curator:
   #            topologyKey: "kubernetes.io/hostname"
   #          weight: 100
 
+  # used to assign priority to the OpenSearch curator pod
+  # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+  priorityClassName: ""
+
   securityContext: {}
   #    runAsUser: 1000
   #    fsGroup: 1000
@@ -1135,6 +1175,10 @@ integrationTests:
 #          weight: 100
   customLabels: {}
   securityContext: {}
+
+  # used to assign priority to the OpenSearch integration tests pod
+  # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+  priorityClassName: ""
 
 nameOverride: "opensearch"
 fullnameOverride: "opensearch"

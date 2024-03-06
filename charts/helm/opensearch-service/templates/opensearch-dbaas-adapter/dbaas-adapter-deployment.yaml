@@ -137,6 +137,9 @@ spec:
           secret:
            secretName: {{ template "dbaas-adapter.tlsSecretName" . }}
         {{- end }}
+      {{- if .Values.dbaasAdapter.priorityClassName }}
+      priorityClassName: {{ .Values.dbaasAdapter.priorityClassName | quote }}
+      {{- end }}
     {{- with .Values.dbaasAdapter.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}

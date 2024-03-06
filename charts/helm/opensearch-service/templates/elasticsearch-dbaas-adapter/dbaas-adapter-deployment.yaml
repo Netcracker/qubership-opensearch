@@ -123,6 +123,9 @@ spec:
           secret:
             secretName: {{ template "opensearch.rest-cert-secret-name" . }}
         {{- end }}
+      {{- if .Values.elasticsearchDbaasAdapter.priorityClassName }}
+      priorityClassName: {{ .Values.elasticsearchDbaasAdapter.priorityClassName | quote }}
+      {{- end }}
     {{- with .Values.elasticsearchDbaasAdapter.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}

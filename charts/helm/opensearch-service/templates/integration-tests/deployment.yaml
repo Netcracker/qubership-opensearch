@@ -31,6 +31,9 @@ spec:
         {{- with .Values.integrationTests.securityContext }}
           {{- toYaml . | nindent 8 -}}
         {{- end }}
+      {{- if .Values.integrationTests.priorityClassName }}
+      priorityClassName: {{ .Values.integrationTests.priorityClassName | quote }}
+      {{- end }}
       containers:
         - name: {{ template "opensearch.fullname" . }}-integration-tests
           image: {{ template "integration-tests.image" . }}
