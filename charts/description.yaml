@@ -145,6 +145,12 @@ integration:
     docker-image-id: timestamp
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
+    repo: PROD.Platform.ElasticStack/opensearch-service
+    location: master
+    prefix: tls-init
+    docker-image-id: timestamp
+    deploy-param: opensearchTlsInit
+  - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/elasticsearch-telegraf
     location: master
     docker-image-id: timestamp
@@ -176,7 +182,7 @@ integration:
     docker-image-id: timestamp
     deploy-param: deploymentStatusProvisioner
   - type: image
-    docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.9.0
+    docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.11.1
     deploy-param: dockerDashboards
   - type: image
     docker-image: artifactorycn.netcracker.com:17064/library/busybox:1.35.0

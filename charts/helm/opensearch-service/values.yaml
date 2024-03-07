@@ -1,6 +1,6 @@
 dashboards:
   enabled: false
-  dockerImage: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.9.0
+  dockerImage: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.11.1
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
@@ -771,6 +771,7 @@ opensearch:
   maxMapCount: 262144
 
   dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_docker-opensearch:master_latest
+  dockerTlsInitImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_tls-init
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
