@@ -1185,3 +1185,40 @@ Configure OpenSearch statefulset names for rolling update mechanism in operator.
     {{- end }}
     {{- join "," $lst }}
 {{- end -}}
+
+{{ define "opensearch-service.findImage" }}
+  {{- $root := index . 0 -}}
+  {{- $service_name := index . 1 -}}
+  {{- if index $root.Values.deployDescriptor $service_name }}
+  {{- index $root.Values.deployDescriptor $service_name "image" }}
+  {{- else }}
+  {{- "not_found" }}
+  {{- end }}
+{{- end }}
+
+{{- define "opensearch-service.monitoredImages" -}}
+  {{- printf "deployment %s-service-operator %s-service-operator %s, " (include "opensearch.fullname" .) (include "opensearch.fullname" .) (include "opensearch-service.findImage" (list . "opensearch-service")) -}}
+  {{- if and (not .Values.global.externalOpensearch.enabled) .Values.opensearch.master.enabled -}}
+    {{- printf "statefulset %s opensearch %s, " ( include "master-nodes" . ) (include "opensearch-service.findImage" (list . "prod.platform.elasticstack_docker-opensearch")) -}}
+  {{- end -}}
+  {{- if .Values.curator.enabled -}}
+    {{- printf "deployment %s-curator %s-curator %s, " (include "opensearch.fullname" .) (include "opensearch.fullname" .) (include "opensearch-service.findImage" (list . "docker-elastic-curator")) -}}
+    {{- printf "deployment %s-curator %s-indices-cleaner %s, " (include "opensearch.fullname" .) (include "opensearch.fullname" .) (include "opensearch-service.findImage" (list . "prod.platform.elasticstack_docker-elastic-curator")) -}}
+  {{- end -}}
+  {{- if .Values.dashboards.enabled -}}
+    {{- printf "deployment %s-dashboards %s-dashboards %s, " (include "opensearch.fullname" .) (include "opensearch.fullname" .) (include "opensearch-service.findImage" (list . "opensearch-dashboards")) -}}
+  {{- end -}}
+  {{- if .Values.monitoring.enabled -}}
+    {{- printf "deployment %s-monitoring %s-monitoring %s, " (include "opensearch.fullname" .) (include "opensearch.fullname" .) (include "opensearch-service.findImage" (list . "elasticsearch-monitoring")) -}}
+  {{- end -}}
+  {{- if .Values.dbaasAdapter.enabled -}}
+    {{- printf "deployment dbaas-%s-adapter %s %s, " (include "opensearch.fullname" .) (include "dbaas-adapter.name" .) (include "opensearch-service.opensearch-service.findImage" (list . "prod.platform.elasticstack_dbaas-opensearch-adapter")) -}}
+  {{- end -}}
+  {{- if .Values.integrationTests.enabled -}}
+    {{- printf "deployment %s-integration-tests %s-integration-tests %s, " (include "opensearch.fullname" .) (include "opensearch.fullname" .) (include "opensearch-service.findImage" (list . "prod.platform.elasticstack_opensearch-service")) -}}
+  {{- end -}}
+  {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") -}}
+    {{- printf "deployment %s-service-operator %s-disaster-recovery %s, " (include "opensearch.fullname" .) (include "opensearch.fullname" .) (include "opensearch-service.findImage" (list . "prod.platform.streaming_disaster-recovery-daemon")) -}}
+  {{- end -}}
+{{- end -}}
+

@@ -1501,6 +1501,7 @@ This section contains information about integration test tags that can be used i
     * `ha_elected_master_is_crashed` tag runs `Elected Master Is Crashed` test.
     * `ha_data_files_corrupted_on_primary_shard` tag runs `Data Files Corrupted On Primary Shard` test.
     * `ha_data_files_corrupted_on_replica_shard` tag runs `Data Files Corrupted On Replica Shard` test.
+* `opensearch_images` tag runs `Test Hardcoded Images` test.
 
 # Installation
 
