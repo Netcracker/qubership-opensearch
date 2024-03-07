@@ -51,11 +51,11 @@ spec:
               value: "{{ template "curator.tlsEnabled" . }}"
             - name: SNAPSHOT_REPOSITORY_NAME
               value: {{ .Values.curator.snapshotRepositoryName | default "snapshots" }}
-          {{- if .Values.dbaasAdapter.enabled }}
+          {{- if eq (include "dbaas.enabled" .) "true" }}
             - name: DBAAS_ADAPTER_ADDRESS
               value: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (include "dbaas-adapter.address" .) }}
             - name: DBAAS_AGGREGATOR_REGISTRATION_ADDRESS
-              value: {{ .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
+              value: {{ include "dbaas.registrationUrl" . | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
             - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER
               value: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
             - name: DBAAS_ADAPTER_USERNAME
@@ -267,6 +267,9 @@ spec:
         {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
         {{- with .Values.curator.securityContext }}
           {{- toYaml . | nindent 8 -}}
+        {{- end }}
+        {{- if and (ne (.Values.INFRA_OPENSEARCH_FS_GROUP | toString) "<nil>") .Values.global.cloudIntegrationEnabled }}
+        fsGroup: {{ .Values.INFRA_OPENSEARCH_FS_GROUP }}
         {{- end }}
     {{- with .Values.curator.affinity }}
       affinity:

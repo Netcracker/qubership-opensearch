@@ -1,4 +1,4 @@
-{{- if .Values.dbaasAdapter.enabled }}
+{{- if eq (include "dbaas.enabled" .) "true" }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -44,7 +44,7 @@ spec:
             - name: API_VERSION
               value: {{ .Values.dbaasAdapter.apiVersion | quote }}
             - name: DBAAS_AGGREGATOR_REGISTRATION_ADDRESS
-              value: {{ .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
+              value: {{ include "dbaas.registrationUrl" . | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
             - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER
               value: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
             - name: DBAAS_AGGREGATOR_REGISTRATION_USERNAME

@@ -41,7 +41,7 @@ spec:
               name: opensearch-certs
               subPath: {{ template "opensearch.rest-root-ca-path" . }}
           {{- end }}
-          {{ if and .Values.dbaasAdapter.enabled (eq (include "dbaas-adapter.tlsEnabled" .) "true") }}
+          {{ if and (eq (include "dbaas.enabled" .) "true") (eq (include "dbaas-adapter.tlsEnabled" .) "true") }}
             - mountPath: /certs/dbaas-adapter/crt.pem
               name: dbaas-adapter-certs
               subPath: "ca.crt"
@@ -156,7 +156,7 @@ spec:
           secret:
             secretName: {{ template "disasterRecovery.certSecretName" . }}
         {{- end }}
-        {{ if and .Values.dbaasAdapter.enabled (eq (include "dbaas-adapter.tlsEnabled" .) "true") }}
+        {{ if and (eq (include "dbaas.enabled" .) "true") (eq (include "dbaas-adapter.tlsEnabled" .) "true") }}
         - name: dbaas-adapter-certs
           secret:
             secretName: {{ template "dbaas-adapter.tlsSecretName" . }}

@@ -127,10 +127,11 @@ dashboards:
         - ALL
 #    readOnlyRootFilesystem: true
     runAsNonRoot: true
-    runAsUser: 1000
 
 global:
   clusterName: opensearch
+
+  cloudIntegrationEnabled: true
 
   externalOpensearch:
     enabled: false
@@ -613,8 +614,7 @@ opensearch:
       className: ""
       labels: {}
       path: /
-      hosts:
-        - chart-example.local
+      hosts: []
       tls: []
       #  - secretName: chart-example-tls
       #    hosts:
@@ -879,8 +879,7 @@ monitoring:
   # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
   priorityClassName: ""
 
-  securityContext:
-    runAsUser: 1000
+  securityContext: {}
 
   monitoringCoreosGroup: false
   customLabels: {}
@@ -962,83 +961,8 @@ dbaasAdapter:
   # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
   priorityClassName: ""
 
-  securityContext:
-    runAsUser: 1000
-
-  customLabels: {}
-
-# DBaaS adapter based on Elasticsearch client
-elasticsearchDbaasAdapter:
-  enabled: false
-  name: "dbaas-elasticsearch-adapter"
-  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_dbaas_elasticsearch:master_latest
-  ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
-  ## Default to "Always".
-  imagePullPolicy: ""
-
-  dbaasAdapterAddress: ""
-  dbaasUsername: ""
-  dbaasPassword: ""
-
-  dbaasAggregatorRegistrationAddress: ""
-  dbaasAggregatorPhysicalDatabaseIdentifier: ""
-  registrationAuthUsername: ""
-  registrationAuthPassword: ""
-
-  opensearchHost:
-  opensearchPort: 9200
-  opensearchProtocol:
-  opensearchRepo: "snapshots"
-  opensearchRepoRoot: "/usr/share/opensearch"
-  opensearchClusterVersion: ""
-  netcrackerOpensearchClusterVersion: ""
-
-  resources:
-    requests:
-      memory: 32Mi
-      cpu: 200m
-    limits:
-      memory: 32Mi
-      cpu: 200m
-
-  ## Node labels for pod assignment
-  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
-  #
-  nodeSelector: {}
-
-  ## Tolerations for pod assignment
-  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
-  ##
-  tolerations: []
-
-  affinity: {}
-  #    podAffinity:
-  #      preferredDuringSchedulingIgnoredDuringExecution:
-  #        - podAffinityTerm:
-  #            labelSelector:
-  #              matchExpressions:
-  #                - key: component
-  #                  operator: In
-  #                  values:
-  #                    - opensearch
-  #            topologyKey: "kubernetes.io/hostname"
-  #          weight: 100
-  #    podAntiAffinity:
-  #      requiredDuringSchedulingIgnoredDuringExecution:
-  #        - labelSelector:
-  #            matchExpressions:
-  #              - key: component
-  #                operator: In
-  #                values:
-  #                  - dbaas-opensearch-adapter
-  #          topologyKey: "kubernetes.io/hostname"
-
-  # used to assign priority to the ElasticSearch DBaaS adapter pods
-  # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
-  priorityClassName: ""
-
   securityContext: {}
-  #    runAsUser: 1000
+
   customLabels: {}
 
 curator:

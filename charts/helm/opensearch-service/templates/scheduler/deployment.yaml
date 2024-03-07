@@ -36,8 +36,8 @@ spec:
               kube_url=$(echo "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}")
               while true; do
                 {{- if and .Values.opensearch.master.enabled .Values.opensearch.master.persistence.enabled }}
-                {{- if not (eq (.Values.opensearch.master.replicas | int) (len .Values.opensearch.master.persistence.nodes) ) }}
-                {{ fail printf "Number of nodes ('.Values.opensearch.master.persistence.nodes') must be equal to replicas ('.Values.opensearch.master.replicas'). %s != %s" (.Values.opensearch.master.replicas | int) (len .Values.opensearch.master.persistence.nodes) }}
+                {{- if not (eq ((include "opensearch.master.replicas" .) | int) (len .Values.opensearch.master.persistence.nodes) ) }}
+                {{ fail printf "Number of nodes ('.Values.opensearch.master.persistence.nodes') must be equal to replicas ('.Values.opensearch.master.replicas'). %s != %s" ((include "opensearch.master.replicas" .) | int) (len .Values.opensearch.master.persistence.nodes) }}
                 {{- end }}
                 for podname in $(kubectl get pods -o json -l 'app={{ template "opensearch.fullname" . }},role=master,!arbiter' -n {{ .Release.Namespace }} | jq '.items[] | select(.spec.schedulerName == "{{ template "opensearch.fullname" . }}-pod-scheduler") | select(.spec.nodeName == null) | .metadata.name' | tr -d '"'); do
                   nodes=({{- range .Values.opensearch.master.persistence.nodes }}{{ printf "%s " . }}{{- end }})
@@ -48,8 +48,8 @@ spec:
                 done
                 {{- end }}
                 {{- if and .Values.opensearch.arbiter.enabled .Values.opensearch.arbiter.persistence.enabled }}
-                {{- if not (eq (.Values.opensearch.arbiter.replicas | int) (len .Values.opensearch.arbiter.persistence.nodes) ) }}
-                {{ fail printf "Number of nodes ('.Values.opensearch.arbiter.persistence.nodes') must be equal to replicas ('.Values.opensearch.arbiter.replicas'). %s != %s" (.Values.opensearch.arbiter.replicas | int) (len .Values.opensearch.arbiter.persistence.nodes) }}
+                {{- if not (eq ((include "opensearch.arbiter.replicas" .) | int) (len .Values.opensearch.arbiter.persistence.nodes) ) }}
+                {{ fail printf "Number of nodes ('.Values.opensearch.arbiter.persistence.nodes') must be equal to replicas ('.Values.opensearch.arbiter.replicas'). %s != %s" ((include "opensearch.arbiter.replicas" .) | int) (len .Values.opensearch.arbiter.persistence.nodes) }}
                 {{- end }}
                 for podname in $(kubectl get pods -o json -l 'app={{ template "opensearch.fullname" . }},role=master,arbiter=arbiter' -n {{ .Release.Namespace }} | jq '.items[] | select(.spec.schedulerName == "{{ template "opensearch.fullname" . }}-pod-scheduler") | select(.spec.nodeName == null) | .metadata.name' | tr -d '"'); do
                   nodes=({{- range .Values.opensearch.arbiter.persistence.nodes }}{{ printf "%s " . }}{{- end }})
@@ -60,8 +60,8 @@ spec:
                 done
                 {{- end }}
                 {{- if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled .Values.opensearch.data.persistence.enabled }}
-                {{- if not (eq (.Values.opensearch.data.replicas | int) (len .Values.opensearch.data.persistence.nodes) ) }}
-                {{ fail "Number of nodes ('.Values.opensearch.data.persistence.nodes') must be equal to number of replicas ('.Values.opensearch.data.replicas'). %s != %s" (.Values.opensearch.data.replicas | int) (len .Values.opensearch.data.persistence.nodes) }}
+                {{- if not (eq ((include "opensearch.data.replicas" .) | int) (len .Values.opensearch.data.persistence.nodes) ) }}
+                {{ fail "Number of nodes ('.Values.opensearch.data.persistence.nodes') must be equal to number of replicas ('.Values.opensearch.data.replicas'). %s != %s" ((include "opensearch.data.replicas" .) | int) (len .Values.opensearch.data.persistence.nodes) }}
                 {{- end }}
                 for podname in $(kubectl get pods -o json -l 'app={{ template "opensearch.fullname" . }},role=data,!arbiter' -n {{ .Release.Namespace }} | jq '.items[] | select(.spec.schedulerName == "{{ template "opensearch.fullname" . }}-pod-scheduler") | select(.spec.nodeName == null) | .metadata.name' | tr -d '"'); do
                   nodes=({{- range .Values.opensearch.data.persistence.nodes }}{{ printf "%s " . }}{{- end}})

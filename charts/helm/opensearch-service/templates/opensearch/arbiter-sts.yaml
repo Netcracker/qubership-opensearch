@@ -12,7 +12,7 @@ metadata:
   name: {{ template "opensearch.fullname" . }}-arbiter
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: {{ .Values.opensearch.arbiter.replicas }}
+  replicas: {{ (include "opensearch.arbiter.replicas" .) }}
   serviceName: {{ template "master-nodes" . }}
   selector:
     matchLabels:
@@ -72,6 +72,9 @@ spec:
         {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
         {{- with .Values.opensearch.securityContextCustom }}
           {{- toYaml . | nindent 8 -}}
+        {{- end }}
+        {{- if and (ne (.Values.INFRA_OPENSEARCH_FS_GROUP | toString) "<nil>") .Values.global.cloudIntegrationEnabled }}
+        fsGroup: {{ .Values.INFRA_OPENSEARCH_FS_GROUP }}
         {{- end }}
       initContainers:
 {{- if .Values.opensearch.sysctl.enabled }}
@@ -409,11 +412,11 @@ spec:
         resources:
           requests:
             storage: {{ .Values.opensearch.arbiter.persistence.size | quote }}
-    {{- if .Values.opensearch.arbiter.persistence.storageClass }}
-    {{- if (eq "-" .Values.opensearch.arbiter.persistence.storageClass) }}
+    {{- if (include "opensearch.arbiter.storageClassName" .) }}
+    {{- if (eq "-" (include "opensearch.arbiter.storageClassName" .)) }}
         storageClassName: ""
     {{- else }}
-        storageClassName: "{{ .Values.opensearch.arbiter.persistence.storageClass }}"
+        storageClassName: "{{ (include "opensearch.arbiter.storageClassName" .) }}"
     {{- end }}
     {{- end }}
   {{- end }}
