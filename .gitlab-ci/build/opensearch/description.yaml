@@ -51,11 +51,6 @@ integration:
     docker-image-id: timestamp
     deploy-param: opensearchDbaasAdapter
   - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.ElasticStack/dbaas_elasticsearch
-    location: master
-    docker-image-id: timestamp
-    deploy-param: elasticsearchDbaasAdapterImage
-  - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
     location: master
     docker-image-id: timestamp

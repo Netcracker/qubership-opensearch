@@ -1,4 +1,4 @@
-{{- if (and .Values.monitoring.enabled (ne .Values.monitoring.monitoringType "influxdb") .Values.monitoring.installDashboard) }}
+{{- if (and (eq (include "monitoring.enabled" .) "true") (ne .Values.monitoring.monitoringType "influxdb") .Values.monitoring.installDashboard) }}
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -81,7 +81,7 @@ spec:
             severity: high
             namespace: {{ .Release.Namespace }}
             service: {{ .Release.Name }}
-        {{- if (or .Values.dbaasAdapter.enabled .Values.elasticsearchDbaasAdapter.enabled) }}
+        {{- if (eq (include "dbaas.enabled" .) "true") }}
         - alert: OpenSearchDBaaSIsDownAlert
           annotations:
             description: 'OpenSearch DBaaS agent is Down.'

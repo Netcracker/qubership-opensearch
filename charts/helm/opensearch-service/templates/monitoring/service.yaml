@@ -1,4 +1,4 @@
-{{- if .Values.monitoring.enabled }}
+{{- if (eq (include "monitoring.enabled" .) "true") }}
 apiVersion: v1
 kind: Service
 metadata:

@@ -53,7 +53,7 @@ spec:
     secretName: {{ template "opensearch.fullname" . }}-dashboards-config
     {{- end }}
   {{- end }}
-  {{- if .Values.monitoring.enabled }}
+  {{- if (eq (include "monitoring.enabled" .) "true") }}
   monitoring:
     name: {{ template "opensearch.fullname" . }}-monitoring
     {{- if eq .Values.monitoring.monitoringType "influxdb" }}
@@ -65,20 +65,15 @@ spec:
       minSeconds: {{ .Values.monitoring.slowQueries.minSeconds }}
     {{- end }}
   {{- end }}
-  {{- if .Values.dbaasAdapter.enabled }}
+  {{- if eq (include "dbaas.enabled" .) "true" }}
   dbaasAdapter:
     name: {{ template "dbaas-adapter.name" . }}
     secretName: {{ template "dbaas-adapter.name" . }}-secret
     {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}
     adapterAddress: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (include "dbaas-adapter.address" .) }}
-    aggregatorAddress: {{ .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
+    aggregatorAddress: {{ include "dbaas.registrationUrl" . | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
     physicalDatabaseIdentifier: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
     {{- end }}
-  {{- end }}
-  {{- if .Values.elasticsearchDbaasAdapter.enabled }}
-  elasticsearchDbaasAdapter:
-    name: {{ .Values.elasticsearchDbaasAdapter.name }}
-    secretName: {{ .Values.elasticsearchDbaasAdapter.name }}-secret
   {{- end }}
   {{- if .Values.curator.enabled }}
   curator:
