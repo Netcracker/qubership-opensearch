@@ -22,7 +22,7 @@ spec:
         {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
       containers:
         - name: tls-init
-          image: {{ template "opensearch.image" . }}
+          image: {{ template "tls-init.image" . }}
           imagePullPolicy: "{{ .Values.opensearch.imagePullPolicy | default "Always" }}"
           env:
             - name: OPENSEARCH_FULLNAME

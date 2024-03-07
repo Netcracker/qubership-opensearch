@@ -889,6 +889,21 @@ Find an OpenSearch image in various places.
 {{- end -}}
 
 {{/*
+Find an OpenSearch image in various places.
+*/}}
+{{- define "tls-init.image" -}}
+  {{- if .Values.deployDescriptor -}}
+    {{- if .Values.opensearchTlsInit -}}
+      {{- printf "%s" .Values.opensearchTlsInit -}}
+    {{- else -}}
+      {{- printf "%s" (index .Values.deployDescriptor.opensearchTlsInit.image) -}}
+    {{- end -}}
+  {{- else -}}
+    {{- printf "%s" .Values.opensearch.dockerTlsInitImage -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
 Find an OpenSearch monitoring image in various places.
 */}}
 {{- define "monitoring.image" -}}
