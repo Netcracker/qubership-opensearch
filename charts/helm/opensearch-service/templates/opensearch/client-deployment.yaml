@@ -9,7 +9,7 @@ metadata:
   name: {{ template "opensearch.fullname" . }}-client
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: {{ .Values.opensearch.client.replicas }}
+  replicas: {{ (include "opensearch.client.replicas" .) }}
   selector:
     matchLabels:
 {{ include "opensearch.labels.selector" . | indent 6 }}

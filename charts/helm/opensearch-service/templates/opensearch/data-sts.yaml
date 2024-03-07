@@ -9,7 +9,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   serviceName: {{ template "opensearch.fullname" . }}-data-svc
-  replicas: {{ .Values.opensearch.data.replicas }}
+  replicas: {{ (include "opensearch.data.replicas" .) }}
   selector:
     matchLabels:
 {{ include "opensearch.labels.selector" . | indent 6 }}
@@ -98,6 +98,9 @@ spec:
         {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
         {{- with .Values.opensearch.securityContextCustom }}
           {{- toYaml . | nindent 8 -}}
+        {{- end }}
+        {{- if and (ne (.Values.INFRA_OPENSEARCH_FS_GROUP | toString) "<nil>") .Values.global.cloudIntegrationEnabled }}
+        fsGroup: {{ .Values.INFRA_OPENSEARCH_FS_GROUP }}
         {{- end }}
       containers:
         - name: opensearch
@@ -267,11 +270,11 @@ spec:
         resources:
           requests:
             storage: {{ .Values.opensearch.data.persistence.size | quote }}
-    {{- if .Values.opensearch.data.persistence.storageClass }}
-    {{- if (eq "-" .Values.opensearch.data.persistence.storageClass) }}
+    {{- if (include "opensearch.data.storageClassName" .) }}
+    {{- if (eq "-" (include "opensearch.data.storageClassName" .)) }}
         storageClassName: ""
     {{- else }}
-        storageClassName: "{{ .Values.opensearch.data.persistence.storageClass }}"
+        storageClassName: "{{ (include "opensearch.data.storageClassName" .) }}"
     {{- end }}
     {{- end }}
   {{- end }}

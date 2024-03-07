@@ -67,9 +67,9 @@ Define OpenSearch data nodes count.
   {{- .Values.global.externalOpensearch.dataNodesCount }}
 {{- else }}
   {{- if .Values.opensearch.data.dedicatedPod.enabled }}
-    {{- .Values.opensearch.data.replicas }}
+    {{- (include "opensearch.data.replicas" .) }}
   {{- else }}
-    {{- .Values.opensearch.master.replicas }}
+    {{- (include "opensearch.master.replicas" .) }}
   {{- end }}
 {{- end -}}
 {{- end -}}
@@ -81,18 +81,18 @@ Define OpenSearch total nodes count.
 {{- if .Values.global.externalOpensearch.enabled }}
   {{- .Values.global.externalOpensearch.nodesCount }}
 {{- else }}
-  {{- $masterNodes := .Values.opensearch.master.replicas }}
+  {{- $masterNodes := (include "opensearch.master.replicas" .) }}
   {{- $dataNodes := 0 }}
   {{- if .Values.opensearch.data.dedicatedPod.enabled }}
-    {{- $dataNodes = .Values.opensearch.data.replicas | int }}
+    {{- $dataNodes = (include "opensearch.data.replicas" .) | int }}
   {{- end }}
   {{- $clientNodes := 0 }}
   {{- if .Values.opensearch.client.dedicatedPod.enabled }}
-    {{- $clientNodes = .Values.opensearch.client.replicas | int }}
+    {{- $clientNodes = (include "opensearch.client.replicas" .) | int }}
   {{- end }}
   {{- $arbiterNodes := 0 }}
   {{- if .Values.opensearch.arbiter.enabled }}
-    {{- $arbiterNodes = .Values.opensearch.arbiter.replicas | int }}
+    {{- $arbiterNodes = (include "opensearch.arbiter.replicas" .) | int }}
   {{- end }}
   {{- add $masterNodes $dataNodes $clientNodes $arbiterNodes }}
 {{- end -}}
@@ -389,12 +389,12 @@ Define roles for OpenSearch cluster manager nodes.
 Define the list of full names of OpenSearch master nodes.
 */}}
 {{- define "initial-master-nodes" -}}
-{{- $replicas := .Values.opensearch.master.replicas | int }}
+{{- $replicas := (include "opensearch.master.replicas" .) | int }}
   {{- range $i, $e := untilStep 0 $replicas 1 -}}
     {{ template "master-nodes" $ }}-{{ $i }},
   {{- end -}}
 {{- if .Values.opensearch.arbiter.enabled }}
-{{- $arbiter_replicas := .Values.opensearch.arbiter.replicas | int }}
+{{- $arbiter_replicas := (include "opensearch.arbiter.replicas" .) | int }}
   {{- range $i, $e := untilStep 0 $arbiter_replicas 1 -}}
     {{ template "opensearch.fullname" $ }}-arbiter-{{ $i }},
   {{- end -}}
@@ -594,21 +594,6 @@ Opensearch protocol for dbaas adapter
 {{- end -}}
 
 {{/*
-Elastic protocol for dbaas adapter
-*/}}
-{{- define "dbaas-adapter.elasticsearch-protocol" -}}
-{{- if .Values.global.externalOpensearch.enabled }}
-  {{- if contains "https" .Values.global.externalOpensearch.url }}
-    {{- printf "https" }}
- {{- else }}
-    {{- printf "http" }}
- {{- end -}}
-{{- else }}
-    {{- default "http" .Values.elasticsearchDbaasAdapter.opensearchProtocol }}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Whether TLS for OpenSearch curator is enabled
 */}}
 {{- define "curator.tlsEnabled" -}}
@@ -706,7 +691,7 @@ External Opensearch port
 Whether TLS for DBaaS Adapter is enabled
 */}}
 {{- define "dbaas-adapter.tlsEnabled" -}}
-  {{- if and .Values.global.tls.enabled .Values.dbaasAdapter.tls.enabled (contains "https" .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress) -}}
+  {{- if and .Values.global.tls.enabled .Values.dbaasAdapter.tls.enabled (contains "https" (include "dbaas.registrationUrl" .)) -}}
     {{- printf "true" -}}
   {{- else -}}
     {{- printf "false" -}}
@@ -796,17 +781,14 @@ Calculates resources that should be monitored during deployment by Deployment St
     {{- if .Values.curator.enabled }}
     {{- $resources = append $resources (printf "Deployment %s-curator" (include "opensearch.fullname" .)) -}}
     {{- end }}
-    {{- if .Values.dbaasAdapter.enabled }}
+    {{- if eq (include "dbaas.enabled" .) "true" }}
     {{- $resources = append $resources (printf "Deployment dbaas-%s-adapter" (include "opensearch.fullname" .)) -}}
-    {{- end }}
-    {{- if .Values.elasticsearchDbaasAdapter.enabled }}
-    {{- $resources = append $resources (printf "Deployment %s" .Values.elasticsearchDbaasAdapter.name) -}}
     {{- end }}
     {{- if .Values.integrationTests.enabled }}
     {{- $resources = append $resources (printf "Deployment %s-integration-tests" (include "opensearch.fullname" .)) -}}
     {{- end }}
     {{- end }}
-    {{- if .Values.monitoring.enabled }}
+    {{- if (eq (include "monitoring.enabled" .) "true") }}
     {{- $resources = append $resources (printf "Deployment %s-monitoring" (include "opensearch.fullname" .)) -}}
     {{- end }}
     {{- if not .Values.global.externalOpensearch.enabled -}}
@@ -930,21 +912,6 @@ Find a DBaaS OpenSearch adapter image in various places.
     {{- end -}}
   {{- else -}}
     {{- printf "%s" .Values.dbaasAdapter.dockerImage -}}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-Find a DBaaS Elasticsearch adapter image in various places.
-*/}}
-{{- define "elasticsearch-dbaas-adapter.image" -}}
-  {{- if .Values.deployDescriptor -}}
-    {{- if .Values.elasticsearchDbaasAdapterImage -}}
-      {{- printf "%s" .Values.elasticsearchDbaasAdapterImage -}}
-    {{- else -}}
-      {{- printf "%s" (index .Values.deployDescriptor.elasticsearchDbaasAdapterImage.image) -}}
-    {{- end -}}
-  {{- else -}}
-    {{- printf "%s" .Values.elasticsearchDbaasAdapter.dockerImage -}}
   {{- end -}}
 {{- end -}}
 
@@ -1184,4 +1151,193 @@ Configure OpenSearch statefulset names for rolling update mechanism in operator.
         {{- $lst = append $lst (printf "%s-arbiter" (include "opensearch.fullname" . )) }}
     {{- end }}
     {{- join "," $lst }}
+{{- end -}}
+
+{{/*
+Master storage class from various places.
+*/}}
+{{- define "opensearch.master.storageClassName" -}}
+  {{- if and (ne (.Values.STORAGE_RWO_CLASS | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.STORAGE_RWO_CLASS -}}
+  {{- else -}}
+    {{- .Values.opensearch.master.persistence.storageClass -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Data storage class from various places.
+*/}}
+{{- define "opensearch.data.storageClassName" -}}
+  {{- if and (ne (.Values.STORAGE_RWO_CLASS | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.STORAGE_RWO_CLASS -}}
+  {{- else -}}
+    {{- .Values.opensearch.data.persistence.storageClass -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Arbiter storage class from various places.
+*/}}
+{{- define "opensearch.arbiter.storageClassName" -}}
+  {{- if and (ne (.Values.STORAGE_RWO_CLASS | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.STORAGE_RWO_CLASS -}}
+  {{- else -}}
+    {{- .Values.opensearch.arbiter.persistence.storageClass -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Snapshot storage class from various places.
+*/}}
+{{- define "opensearch.snapshot.storageClassName" -}}
+  {{- if and (ne (.Values.STORAGE_RWX_CLASS | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.STORAGE_RWX_CLASS -}}
+  {{- else -}}
+    {{- .Values.opensearch.snapshots.storageClass -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Master replicas from various places.
+*/}}
+{{- define "opensearch.master.replicas" -}}
+  {{- if and (ne (.Values.INFRA_OPENSEARCH_REPLICAS | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.INFRA_OPENSEARCH_REPLICAS }}
+  {{- else -}}
+    {{- .Values.opensearch.master.replicas -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Arbiter replicas from various places.
+*/}}
+{{- define "opensearch.data.replicas" -}}
+  {{- if and (ne (.Values.INFRA_OPENSEARCH_REPLICAS | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.INFRA_OPENSEARCH_REPLICAS -}}
+  {{- else -}}
+    {{- .Values.opensearch.data.replicas -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Data replicas from various places.
+*/}}
+{{- define "opensearch.arbiter.replicas" -}}
+  {{- if and (ne (.Values.INFRA_OPENSEARCH_REPLICAS | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.INFRA_OPENSEARCH_REPLICAS -}}
+  {{- else -}}
+    {{- .Values.opensearch.arbiter.replicas -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Client replicas from various places.
+*/}}
+{{- define "opensearch.client.replicas" -}}
+  {{- if and (ne (.Values.INFRA_OPENSEARCH_REPLICAS | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.INFRA_OPENSEARCH_REPLICAS -}}
+  {{- else -}}
+    {{- .Values.opensearch.client.replicas -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+DBaaS Enabled from various places.
+*/}}
+{{- define "dbaas.enabled" -}}
+  {{- if and (ne (.Values.DBAAS_ENABLED | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.DBAAS_ENABLED -}}
+  {{- else -}}
+    {{- .Values.dbaasAdapter.enabled -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+DBaaS registration URL from various places.
+*/}}
+{{- define "dbaas.registrationUrl" -}}
+  {{- if and (ne (.Values.API_DBAAS_ADDRESS | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.API_DBAAS_ADDRESS -}}
+  {{- else -}}
+    {{- .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+DBaaS registration username from various places.
+*/}}
+{{- define "dbaas.registrationUsername" -}}
+  {{- if and (ne (.Values.DBAAS_CLUSTER_DBA_CREDENTIALS_USERNAME | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.DBAAS_CLUSTER_DBA_CREDENTIALS_USERNAME -}}
+  {{- else -}}
+    {{- .Values.dbaasAdapter.registrationAuthUsername -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+DBaaS registration password from various places.
+*/}}
+{{- define "dbaas.registrationPassword" -}}
+  {{- if and (ne (.Values.DBAAS_CLUSTER_DBA_CREDENTIALS_PASSWORD | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.DBAAS_CLUSTER_DBA_CREDENTIALS_PASSWORD -}}
+  {{- else -}}
+    {{- .Values.dbaasAdapter.registrationAuthPassword -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+OpenSearch admin username from various places.
+*/}}
+{{- define "opensearch.username" -}}
+  {{- if and (ne (.Values.INFRA_OPENSEARCH_USERNAME | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.INFRA_OPENSEARCH_USERNAME -}}
+  {{- else -}}
+    {{- .Values.opensearch.securityConfig.authc.basic.username -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+DBaaS registration password from various places.
+*/}}
+{{- define "opensearch.password" -}}
+  {{- if and (ne (.Values.INFRA_OPENSEARCH_PASSWORD | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.INFRA_OPENSEARCH_PASSWORD -}}
+  {{- else -}}
+    {{- .Values.opensearch.securityConfig.authc.basic.password -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Monitoring installation required
+*/}}
+{{- define "monitoring.enabled" -}}
+  {{- if and (ne (.Values.MONITORING_ENABLED | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.MONITORING_ENABLED }}
+  {{- else -}}
+    {{- .Values.monitoring.enabled -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Whether ingress for OpenSearch enabled
+*/}}
+{{- define "opensearch.ingressEnabled" -}}
+  {{- if and (ne (.Values.PRODUCTION_MODE | toString) "<nil>") .Values.global.cloudIntegrationEnabled}}
+    {{- (eq .Values.PRODUCTION_MODE false) }}
+  {{- else -}}
+    {{- .Values.opensearch.client.ingress.enabled }}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Ingress host for OpenSearch
+*/}}
+{{- define "opensearch.ingressHost" -}}
+  {{- if .Values.opensearch.client.ingress.hosts }}
+    {{- .Values.opensearch.client.ingress.hosts }}
+  {{- else -}}
+    {{- if and (ne (.Values.SERVER_HOSTNAME | toString) "<nil>") .Values.global.cloudIntegrationEnabled }}
+      {{- printf "opensearch-%s.%s" .Release.Namespace .Values.SERVER_HOSTNAME | toStrings }}
+    {{- end -}}
+  {{- end -}}
 {{- end -}}
