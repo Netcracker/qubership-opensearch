@@ -747,8 +747,8 @@ opensearch:
 
   maxMapCount: 262144
 
-  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_docker-opensearch:feature_upgrade_2.11.x_latest
-  dockerTlsInitImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:feature_upgrade_2.11.x_latest_tls-init
+  dockerImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_docker-opensearch:master_latest
+  dockerTlsInitImage: artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_tls-init
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
