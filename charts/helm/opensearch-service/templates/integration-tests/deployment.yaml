@@ -107,7 +107,7 @@ spec:
             - name: SLOW_QUERIES_INTERVAL_MINUTES
               value: "{{ default 5 .Values.monitoring.slowQueries.processingIntervalMinutes }}"
             {{- end }}
-            {{- if .Values.dbaasAdapter.enabled }}
+            {{- if eq (include "dbaas.enabled" .) "true" }}
             - name: DBAAS_ADAPTER_TYPE
               value: "opensearch"
             - name: OPENSEARCH_DBAAS_ADAPTER_HOST
@@ -130,25 +130,6 @@ spec:
                   name: {{ template "dbaas-adapter.name" . }}-secret
             - name: OPENSEARCH_DBAAS_ADAPTER_API_VERSION
               value: {{ .Values.dbaasAdapter.apiVersion | quote }}
-            {{- else if .Values.elasticsearchDbaasAdapter.enabled }}
-            - name: DBAAS_ADAPTER_TYPE
-              value: "elasticsearch"
-            - name: OPENSEARCH_DBAAS_ADAPTER_HOST
-              value: {{ .Values.elasticsearchDbaasAdapter.name }}
-            - name: OPENSEARCH_DBAAS_ADAPTER_PORT
-              value: "{{ .Values.integrationTests.opensearchDbaasAdapterPort | default 8080 }}"
-            - name: OPENSEARCH_DBAAS_ADAPTER_REPOSITORY
-              value: {{ .Values.elasticsearchDbaasAdapter.opensearchRepo | default "snapshots" }}
-            - name: OPENSEARCH_DBAAS_ADAPTER_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: username
-                  name: {{ .Values.elasticsearchDbaasAdapter.name }}-secret
-            - name: OPENSEARCH_DBAAS_ADAPTER_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: {{ .Values.elasticsearchDbaasAdapter.name }}-secret
             {{- end }}
             {{- if .Values.curator.enabled }}
             - name: OPENSEARCH_CURATOR_PROTOCOL

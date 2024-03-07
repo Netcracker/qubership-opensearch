@@ -1,4 +1,4 @@
-{{- if (and .Values.monitoring.enabled (ne .Values.monitoring.monitoringType "influxdb") .Values.monitoring.installDashboard) }}
+{{- if (and (eq (include "monitoring.enabled" .) "true") (ne .Values.monitoring.monitoringType "influxdb") .Values.monitoring.installDashboard) }}
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -15,7 +15,7 @@ spec:
         {{- if .Values.curator.enabled }}
         {{- include  "global.tlsStaticMetric" (dict "namespace" .Release.Namespace "application" "opensearch-service" "service" (printf "%s-curator" (include "opensearch.fullname" .)) "enableTls" (include "curator.tlsEnabled" .) "secret" (include "curator.certSecretName" .) "certProvider" (include "certProvider" .) "certificate" (printf "%s-curator-tls-certificate" (include "opensearch.fullname" .))) | nindent 8 }}
         {{- end }}
-        {{- if .Values.dbaasAdapter.enabled }}
+        {{- if eq (include "dbaas.enabled" .) "true" }}
         {{- include  "global.tlsStaticMetric" (dict "namespace" .Release.Namespace "application" "opensearch-service" "service" (include "dbaas-adapter.name" .) "enableTls" (include "dbaas-adapter.tlsEnabled" .) "secret" (include "dbaas-adapter.tlsSecretName" .) "certProvider" (include "certProvider" .) "certificate" (printf "%s-tls-certificate" (include "dbaas-adapter.name" .))) | nindent 8 }}
         {{- end }}
         {{- if eq (include "opensearch.enableDisasterRecovery" .) "true" }}

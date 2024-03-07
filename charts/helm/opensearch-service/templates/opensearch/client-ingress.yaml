@@ -1,5 +1,5 @@
 {{- if not .Values.global.externalOpensearch.enabled }}
-{{- if and .Values.opensearch.client.ingress.enabled .Values.opensearch.client.enabled }}
+{{- if and (eq (include "opensearch.ingressEnabled" .) "true") .Values.opensearch.client.enabled }}
 {{- $fullName := printf "%s" (include "opensearch.fullname" .) }}
 {{- $ingressPath := .Values.opensearch.client.ingress.path }}
 kind: Ingress
@@ -35,7 +35,7 @@ spec:
   tls:
     {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
     - hosts:
-      {{- range .Values.opensearch.client.ingress.hosts }}
+      {{- range (include "opensearch.ingressHost" . | fromYamlArray) }}
       - {{ . | quote }}
       {{- end }}
       secretName: {{ template "opensearch.rest-cert-secret-name" . }}
@@ -53,7 +53,7 @@ spec:
   ingressClassName: {{ .Values.opensearch.client.ingress.className }}
   {{- end }}
   rules:
-  {{- range .Values.opensearch.client.ingress.hosts }}
+  {{- range (include "opensearch.ingressHost" . | fromYamlArray) }}
     - host: {{ . | quote }}
       http:
         paths:

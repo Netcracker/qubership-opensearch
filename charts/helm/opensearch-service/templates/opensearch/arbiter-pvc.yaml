@@ -1,10 +1,11 @@
 {{- if  not .Values.global.externalOpensearch.enabled }}
 {{- if and .Values.opensearch.arbiter.enabled .Values.opensearch.arbiter.persistence.enabled (not (empty .Values.opensearch.arbiter.persistence.persistentVolumes)) }}
-{{- if not (eq (len .Values.opensearch.arbiter.persistence.persistentVolumes) (.Values.opensearch.arbiter.replicas | int)) }}
+{{- if not (eq (len .Values.opensearch.arbiter.persistence.persistentVolumes) ((include "opensearch.arbiter.replicas" .) | int)) }}
 {{ fail "Number of persistent volumes ('.Values.opensearch.arbiter.persistence.persistentVolumes') must be equal to replicas ('.Values.opensearch.arbiter.replicas'). " }}
 {{- end }}
 {{- $arbiter_fullname := printf "%s-arbiter" (include "opensearch.fullname" .) }}
 {{- $size := .Values.opensearch.arbiter.persistence.size }}
+{{- $storage_class := (include "opensearch.arbiter.storageClassName" .) }}
 {{- range $index, $pvName := .Values.opensearch.arbiter.persistence.persistentVolumes }}
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -19,11 +20,11 @@ spec:
     requests:
       storage: {{ $size }}
   volumeName: {{ $pvName }}
-  {{- if $.Values.opensearch.arbiter.persistence.storageClass }}
-  {{- if (eq "-" $.Values.opensearch.arbiter.persistence.storageClass) }}
+  {{- if $storage_class }}
+  {{- if (eq "-" $storage_class) }}
   storageClassName: ""
   {{- else }}
-  storageClassName: "{{ $.Values.opensearch.arbiter.persistence.storageClass }}"
+  storageClassName: "{{ $storage_class }}"
   {{- end }}
   {{- end }}
 ---

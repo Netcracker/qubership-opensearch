@@ -16,7 +16,7 @@ metadata:
   name: {{ template "master-nodes" . }}
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: {{ .Values.opensearch.master.replicas }}
+  replicas: {{ (include "opensearch.master.replicas" .) }}
   serviceName: {{ template "master-nodes" . }}
   selector:
     matchLabels:
@@ -70,6 +70,9 @@ spec:
         {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
         {{- with .Values.opensearch.securityContextCustom }}
           {{- toYaml . | nindent 8 -}}
+        {{- end }}
+        {{- if and (ne (.Values.INFRA_OPENSEARCH_FS_GROUP | toString) "<nil>") .Values.global.cloudIntegrationEnabled }}
+        fsGroup: {{ .Values.INFRA_OPENSEARCH_FS_GROUP }}
         {{- end }}
       initContainers:
 {{- if .Values.opensearch.sysctl.enabled }}
@@ -407,11 +410,11 @@ spec:
         resources:
           requests:
             storage: {{ .Values.opensearch.master.persistence.size | quote }}
-    {{- if .Values.opensearch.master.persistence.storageClass }}
-    {{- if (eq "-" .Values.opensearch.master.persistence.storageClass) }}
+    {{- if (include "opensearch.master.storageClassName" .) }}
+    {{- if (eq "-" (include "opensearch.master.storageClassName" .)) }}
         storageClassName: ""
     {{- else }}
-        storageClassName: "{{ .Values.opensearch.master.persistence.storageClass }}"
+        storageClassName: "{{ (include "opensearch.master.storageClassName" .) }}"
     {{- end }}
     {{- end }}
   {{- end }}

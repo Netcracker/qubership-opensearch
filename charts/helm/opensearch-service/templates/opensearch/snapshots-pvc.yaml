@@ -15,6 +15,6 @@ spec:
   {{- if .Values.opensearch.snapshots.persistentVolume }}
   volumeName: {{ .Values.opensearch.snapshots.persistentVolume }}
   {{- end }}
-  storageClassName: "{{ .Values.opensearch.snapshots.storageClass }}"
+  storageClassName: "{{ include "opensearch.snapshot.storageClassName" .}}"
 {{- end }}
 {{- end }}
