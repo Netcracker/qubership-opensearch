@@ -1,6 +1,6 @@
 module git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service
 
-go 1.20
+go 1.22
 
 require (
 	github.com/go-logr/logr v0.4.0
