@@ -10,7 +10,7 @@ COPY docker/generate-certificates.sh ${OPENSEARCH_TLS_INIT_HOME}/bin/generate-ce
 
 # Install the tools we need: openssl to create certificates and corresponding openssl-libs.
 RUN set -x \
-    && apk add --update --no-cache build-base apk-tools bash openssl curl jq \
+    && apk add --update --no-cache build-base apk-tools coreutils bash openssl curl jq \
     && rm -rf /var/cache/apk/* \
     && mkdir ${OPENSEARCH_CONFIGS} \
     && chmod 777 ${OPENSEARCH_TLS_INIT_HOME} \
