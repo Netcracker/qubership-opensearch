@@ -163,7 +163,7 @@ global:
     tls:
       enabled: true
       certificates:
-        crt: "" 
+        crt: ""
         key: ""
         ca: ""
       secretName: ""
@@ -317,7 +317,7 @@ opensearch:
     ## TLS is mandatory for the transport and admin layer and can not be disabled
     transport:
       certificates:
-        crt: "" 
+        crt: ""
         key: ""
         ca: ""
       existingCertSecret:
@@ -326,7 +326,7 @@ opensearch:
       existingCertSecretRootCASubPath: ca.crt
     rest:
       certificates:
-        crt: "" 
+        crt: ""
         key: ""
         ca: ""
       existingCertSecret:
@@ -335,7 +335,7 @@ opensearch:
       existingCertSecretRootCASubPath: ca.crt
     admin:
       certificates:
-        crt: "" 
+        crt: ""
         key: ""
         ca: ""
       existingCertSecret:
@@ -930,7 +930,7 @@ dbaasAdapter:
   tls:
     enabled: true
     certificates:
-      crt: "" 
+      crt: ""
       key: ""
       ca: ""
     secretName: ""
@@ -1005,7 +1005,7 @@ curator:
   tls:
     enabled: true
     certificates:
-      crt: "" 
+      crt: ""
       key: ""
       ca: ""
     secretName: ""
