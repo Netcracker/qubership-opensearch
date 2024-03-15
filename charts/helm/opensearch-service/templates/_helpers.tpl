@@ -530,9 +530,12 @@ TLS secret name for Disaster Recovery
     {{- if and (or .Values.global.tls.generateCerts.enabled (eq (include "disasterRecovery.certificatesSpecified" .) "true")) (not .Values.global.disasterRecovery.tls.secretName) -}}
       {{- template "opensearch.fullname" . -}}-drd-tls-secret
     {{- else -}}
-      {{- .Values.global.disasterRecovery.tls.secretName -}}
+      {{- required "The TLS secret name should be specified in the 'disasterRecovery.tls.secretName' parameter when the service is deployed with disasterRecovery and TLS enabled, but without certificates generation." .Values.global.disasterRecovery.tls.secretName -}}
     {{- end -}}
   {{- else -}}
+     {{/*
+       The empty string is needed for correct prometheus rule configuration in `tls_static_metrics.yaml`
+     */}}
     {{- "" -}}
   {{- end -}}
 {{- end -}}
@@ -688,9 +691,12 @@ TLS secret name for OpenSearch curator
     {{- if and (or .Values.global.tls.generateCerts.enabled (eq (include "curator.certificatesSpecified" .) "true")) (not .Values.curator.tls.secretName) -}}
       {{- template "opensearch.fullname" . }}-curator-tls-secret
     {{- else -}}
-      {{- .Values.curator.tls.secretName -}}
+      {{- required "The TLS secret name should be specified in the 'curator.tls.secretName' parameter when the service is deployed with curator and TLS enabled, but without certificates generation." .Values.curator.tls.secretName -}}
     {{- end -}}
   {{- else -}}
+     {{/*
+       The empty string is needed for correct prometheus rule configuration in `tls_static_metrics.yaml`
+     */}}
     {{- "" -}}
   {{- end -}}
 {{- end -}}
@@ -792,9 +798,12 @@ TLS secret name for Disaster Recovery
     {{- if and (or .Values.global.tls.generateCerts.enabled (eq (include "dbaas-adapter.certificatesSpecified" .) "true")) (not .Values.dbaasAdapter.tls.secretName) -}}
       {{- template "dbaas-adapter.name" . }}-tls-secret
     {{- else -}}
-      {{- .Values.dbaasAdapter.tls.secretName -}}
+      {{- required "The TLS secret name should be specified in the 'dbaasAdapter.tls.secretName' parameter when the service is deployed with dbaasAdapter and TLS enabled, but without certificates generation." .Values.dbaasAdapter.tls.secretName -}}
     {{- end -}}
   {{- else -}}
+     {{/*
+       The empty string is needed for correct prometheus rule configuration in `tls_static_metrics.yaml`
+     */}}
     {{- "" -}}
   {{- end -}}
 {{- end -}}

@@ -116,104 +116,81 @@ You can automatically generate TLS-based secrets using Helm by specifying certif
    ```yaml
     global:
       tls:
-         enabled: true
-         cipherSuites: []
-         generateCerts:
-            enabled: true
-            certProvider: dev
+        enabled: true
+        cipherSuites: []
+        generateCerts:
+          enabled: true
+          certProvider: dev
+          clusterIssuerName: ""
 
-      disasterRecovery:
-         tls:
-            enabled: true
-            certificates:
-              crt: LS0tLS1CRUdJTiBSU0E...  
-              key: LS0tLS1CRUdJTiBSU0EgUFJJV...
-              ca: LS0tLS1CRUdJTiBSU0E...
-            secretName: "opensearch-drd-tls-secret"
-   ```
+    disasterRecovery:
+      tls:
+        enabled: true
+        certificates:
+          crt: LS0tLS1CRUdJTiBSU0E...  
+          key: LS0tLS1CRUdJTiBSU0EgUFJJV...
+          ca: LS0tLS1CRUdJTiBSU0E...
+        secretName: "opensearch-drd-tls-secret"
+        cipherSuites: []
+        subjectAlternativeName:
+          additionalDnsNames: []
+          additionalIpAddresses: []
 
-## Full example
+    opensearch:
+      tls:
+        enabled: true
+        cipherSuites: []
+        subjectAlternativeName:
+          additionalDnsNames: []
+          additionalIpAddresses: []
+        transport:
+          certificates:
+           crt: LS0tLS1CRUdJTiBSU0E...  
+           key: LS0tLS1CRUdJTiBSU0EgUFJJV...
+           ca: LS0tLS1CRUdJTiBSU0E...
+          existingCertSecret: opensearch-transport-certs
+          existingCertSecretCertSubPath: tls.crt
+          existingCertSecretKeySubPath: tls.key
+          existingCertSecretRootCASubPath: ca.crt
+        rest:
+          certificates:
+           crt: LS0tLS1CRUdJTiBSU0E...  
+           key: LS0tLS1CRUdJTiBSU0EgUFJJV...
+           ca: LS0tLS1CRUdJTiBSU0E...
+          existingCertSecret: opensearch-rest-certs
+          existingCertSecretCertSubPath: tls.crt
+          existingCertSecretKeySubPath: tls.key
+          existingCertSecretRootCASubPath: ca.crt
+        admin:
+          certificates:
+           crt: LS0tLS1CRUdJTiBSU0E...  
+           key: LS0tLS1CRUdJTiBSU0EgUFJJV...
+           ca: LS0tLS1CRUdJTiBSU0E...
+          existingCertSecret: opensearch-admin-certs
+          existingCertSecretCertSubPath: tls.crt
+          existingCertSecretKeySubPath: tls.key
+          existingCertSecretRootCASubPath: ca.crt
 
-Full list of parameters to enable and configure TLS encryption for components of OpenSearch service is as follows:
-
-```yaml
-global:
-  tls:
-    enabled: true
-    cipherSuites: []
-    generateCerts:
-      enabled: true
-      certProvider: dev
-      clusterIssuerName: ""
-
-  disasterRecovery:
-    tls:
-      enabled: true
-      certificates:
-        crt: LS0tLS1CRUdJTiBSU0E...  
-        key: LS0tLS1CRUdJTiBSU0EgUFJJV...
-        ca: LS0tLS1CRUdJTiBSU0E...
-      secretName: "opensearch-drd-tls-secret"
-      cipherSuites: []
-      subjectAlternativeName:
-        additionalDnsNames: []
-        additionalIpAddresses: []
-
-opensearch:
-   tls:
-      enabled: true
-      cipherSuites: []
-      subjectAlternativeName:
+    curator:
+      tls:
+        enabled: true
+        certificates:
+         crt: LS0tLS1CRUdJTiBSU0E...  
+         key: LS0tLS1CRUdJTiBSU0EgUFJJV...
+         ca: LS0tLS1CRUdJTiBSU0E...
+        secretName: "opensearch-curator-tls-secret"
+        subjectAlternativeName:
          additionalDnsNames: []
          additionalIpAddresses: []
-      transport:
-         certificates:
-           crt: LS0tLS1CRUdJTiBSU0E...  
-           key: LS0tLS1CRUdJTiBSU0EgUFJJV...
-           ca: LS0tLS1CRUdJTiBSU0E...
-         existingCertSecret: opensearch-transport-certs
-         existingCertSecretCertSubPath: tls.crt
-         existingCertSecretKeySubPath: tls.key
-         existingCertSecretRootCASubPath: ca.crt
-      rest:
-         certificates:
-           crt: LS0tLS1CRUdJTiBSU0E...  
-           key: LS0tLS1CRUdJTiBSU0EgUFJJV...
-           ca: LS0tLS1CRUdJTiBSU0E...
-         existingCertSecret: opensearch-rest-certs
-         existingCertSecretCertSubPath: tls.crt
-         existingCertSecretKeySubPath: tls.key
-         existingCertSecretRootCASubPath: ca.crt
-      admin:
-         certificates:
-           crt: LS0tLS1CRUdJTiBSU0E...  
-           key: LS0tLS1CRUdJTiBSU0EgUFJJV...
-           ca: LS0tLS1CRUdJTiBSU0E...
-         existingCertSecret: opensearch-admin-certs
-         existingCertSecretCertSubPath: tls.crt
-         existingCertSecretKeySubPath: tls.key
-         existingCertSecretRootCASubPath: ca.crt
-
-curator:
-   tls:
-      enabled: true
-      certificates:
-        crt: LS0tLS1CRUdJTiBSU0E...  
-        key: LS0tLS1CRUdJTiBSU0EgUFJJV...
-        ca: LS0tLS1CRUdJTiBSU0E...
-      secretName: "opensearch-curator-tls-secret"
-      subjectAlternativeName:
-        additionalDnsNames: []
-        additionalIpAddresses: []
-dbaasAdapter:
-   tls:
-      enabled: true
-      certificates:
-        crt: LS0tLS1CRUdJTiBSU0E...  
-        key: LS0tLS1CRUdJTiBSU0EgUFJJV...
-        ca: LS0tLS1CRUdJTiBSU0E...
-      secretName: "dbaas-opensearch-adapter-tls-secret"
-```
+    dbaasAdapter:
+      tls:
+        enabled: true
+        certificates:
+         crt: LS0tLS1CRUdJTiBSU0E...  
+         key: LS0tLS1CRUdJTiBSU0EgUFJJV...
+         ca: LS0tLS1CRUdJTiBSU0E...
+        secretName: "dbaas-opensearch-adapter-tls-secret"
+   ```
 
 # Certificate Renewal
 
