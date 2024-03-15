@@ -594,6 +594,13 @@ Opensearch protocol for dbaas adapter
 {{- end -}}
 
 {{/*
+OpenSearch curator Name
+*/}}
+{{- define "curator.name" -}}
+{{ printf "%s-curator" (include "opensearch.fullname" .) }}
+{{- end -}}
+
+{{/*
 Whether TLS for OpenSearch curator is enabled
 */}}
 {{- define "curator.tlsEnabled" -}}
@@ -608,6 +615,17 @@ OpenSearch curator Port
     {{- "8443" -}}
   {{- else -}}
     {{- "8080" -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+OpenSearch curator Protocol
+*/}}
+{{- define "curator.protocol" -}}
+  {{- if and .Values.global.tls.enabled .Values.curator.tls.enabled -}}
+    {{- "https" -}}
+  {{- else -}}
+    {{- "http" -}}
   {{- end -}}
 {{- end -}}
 
@@ -736,6 +754,13 @@ DBaaS Adapter address
 */}}
 {{- define "dbaas-adapter.address" -}}
   {{- printf "%s://%s.%s:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.name" .) .Release.Namespace (include "dbaas-adapter.port" .) -}}
+{{- end -}}
+
+{{/*
+OpenSearch curator address
+*/}}
+{{- define "curator.address" -}}
+  {{- printf "%s://%s.%s:%s" (include "curator.protocol" .) (include "curator.name" .) .Release.Namespace (include "curator.port" .) -}}
 {{- end -}}
 
 {{/*
