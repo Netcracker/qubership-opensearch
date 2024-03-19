@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -99,13 +100,9 @@ func (r OpenSearchReconciler) Reconcile() error {
 		return nil
 	}
 
-	r.logger.Info("Begin OpenSearch Reconcile procedure.")
+	r.waitAfterTlsInitJobIfNecessary()
 
-	client, err := r.createRestClientWithOldCreds()
-	if err != nil {
-		r.logger.Error(err, "Error while creating rest client with old creds")
-		return err
-	}
+	r.logger.Info("Begin OpenSearch Reconcile procedure.")
 
 	statefulSets, err := r.getStatefulSets()
 	if err != nil {
@@ -118,15 +115,21 @@ func (r OpenSearchReconciler) Reconcile() error {
 		return nil
 	}
 
-	perform, err := r.needToPerformRollingUpdate(client, statefulSets)
+	client, err := r.getClientForRollingUpdate(statefulSets)
+	if err != nil {
+		r.logger.Error(err, "Error while creating client for Rolling Update")
+		return err
+	}
+
+	perform, err := r.needToPerformRollingUpdate(statefulSets, client)
 	if err != nil {
 		return err
 	}
 	if !perform {
-		if err := r.updateRollingUpdateStatus(rollingUpdateDoneStatus); err != nil {
+		if err = r.updateRollingUpdateStatus(rollingUpdateDoneStatus); err != nil {
 			return err
 		}
-		if err := r.enableAllocationIfNecessary(client); err != nil {
+		if err = r.enableAllocationIfNecessary(client); err != nil {
 			return err
 		}
 		r.logger.Info("End OpenSearch Reconcile procedure")
@@ -139,6 +142,63 @@ func (r OpenSearchReconciler) Reconcile() error {
 
 	r.logger.Info("End OpenSearch Reconcile procedure")
 	return nil
+}
+
+func (r OpenSearchReconciler) waitAfterTlsInitJobIfNecessary() {
+	sleepTime, err := util.GetIntEnvironmentVariable("TIME_TO_SLEEP_AFTER_TLS_INIT_JOB", 0)
+	if err != nil {
+		r.logger.Info("Can't parse environment variable, so skip sleeping")
+		return
+	}
+	// The sleep helps to handle the situation when TLS-Init job deleted OpenSearch pods, because
+	// stateful set & container statuses are not changed immediately after requesting pod deletion
+	sleepPeriod := time.Duration(sleepTime) * time.Second
+	r.logger.Info(fmt.Sprintf("Sleep for %s before beginning OpenSearch Reconcile procedure", sleepPeriod))
+	time.Sleep(sleepPeriod)
+}
+
+func (r OpenSearchReconciler) getClientForRollingUpdate(statefulSets []*v1.StatefulSet) (*util.RestClient, error) {
+	tlsEnabledInPods, err := r.isTLSEnabledInPod(statefulSets)
+	if err != nil {
+		return nil, err
+	}
+	if !tlsEnabledInPods {
+		r.logger.Info("Create HTTP REST client for Rolling Update")
+		return r.createHttpClientWithOldCreds()
+	}
+	r.logger.Info("Create expected REST client for Rolling Update")
+	return r.createExpectedRestClientWithOldCreds()
+}
+
+func (r OpenSearchReconciler) isTLSEnabledInPod(statefulSets []*v1.StatefulSet) (bool, error) {
+	podName := fmt.Sprintf("%s-%d", statefulSets[0].Name, 0)
+
+	pod, err := r.reconciler.findPod(podName, r.cr.Namespace, r.logger)
+	if err != nil {
+		return false, err
+	}
+
+	vars := pod.Spec.Containers[0].Env
+	for _, envVar := range vars {
+		if envVar.Name == "TLS_ENABLED" {
+			if envVar.Value == "true" {
+				r.logger.Info(fmt.Sprintf("TLS status is enabled in OpenSearch pod %s", podName))
+				return true, nil
+			}
+		}
+	}
+	r.logger.Info(fmt.Sprintf("TLS status is disabled in OpenSearch pod %s", podName))
+	return false, nil
+}
+
+func (r OpenSearchReconciler) createHttpClientWithOldCreds() (*util.RestClient, error) {
+	url := os.Getenv(opensearchHostEnvVar)
+	if url == "" {
+		url = fmt.Sprintf("http://%s-internal:%d", r.cr.Name, opensearchHttpPort)
+	}
+	client := r.reconciler.createHttpClient()
+	oldCredentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(oldSecretPattern, r.cr.Name), r.cr.Namespace, r.logger)
+	return util.NewRestClient(url, client, oldCredentials), nil
 }
 
 func (r OpenSearchReconciler) getStatefulSets() ([]*v1.StatefulSet, error) {
@@ -198,7 +258,7 @@ func (r OpenSearchReconciler) checkOpenSearchHealth(restClient *util.RestClient)
 	return nil
 }
 
-func (r OpenSearchReconciler) needToPerformRollingUpdate(client *util.RestClient, statefulSets []*v1.StatefulSet) (bool, error) {
+func (r OpenSearchReconciler) needToPerformRollingUpdate(statefulSets []*v1.StatefulSet, client *util.RestClient) (bool, error) {
 	for _, statefulSet := range statefulSets {
 		if statefulSet.Spec.UpdateStrategy.Type != v1.OnDeleteStatefulSetStrategyType {
 			r.logger.Info(fmt.Sprintf("Need to skip Rolling Update, because %s stateful set "+
@@ -213,6 +273,38 @@ func (r OpenSearchReconciler) needToPerformRollingUpdate(client *util.RestClient
 		return true, nil
 	}
 
+	if err := r.checkStatefulSetsAndPodsReadiness(statefulSets); err != nil {
+		return false, err
+	}
+
+	if r.allOpenSearchNodesAlreadyUpdated(statefulSets) {
+		return false, nil
+	}
+
+	if err := r.checkOpenSearchHealth(client); err != nil {
+		r.logger.Info("Can't perform Rolling Update because OpenSearch is not healthy")
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (r OpenSearchReconciler) checkStatefulSetsAndPodsReadiness(statefulSets []*v1.StatefulSet) error {
+	for _, statefulSet := range statefulSets {
+		if *statefulSet.Spec.Replicas != statefulSet.Status.ReadyReplicas {
+			return fmt.Errorf("can't perform rolling update, because not all pods are ready in %s stateful set", statefulSet.Name)
+		}
+		for replica := *statefulSet.Spec.Replicas - 1; replica >= 0; replica-- {
+			podName := fmt.Sprintf("%s-%d", statefulSet.Name, replica)
+			if !r.isOpenSearchPodReady(podName) {
+				return fmt.Errorf("can't perform rolling update, because %s pod is not ready in %s stateful set", podName, statefulSet.Name)
+			}
+		}
+	}
+	return nil
+}
+
+func (r OpenSearchReconciler) allOpenSearchNodesAlreadyUpdated(statefulSets []*v1.StatefulSet) bool {
 	allNodesAlreadyUpdated := true
 	for _, statefulSet := range statefulSets {
 		if *statefulSet.Spec.Replicas != statefulSet.Status.UpdatedReplicas {
@@ -222,14 +314,9 @@ func (r OpenSearchReconciler) needToPerformRollingUpdate(client *util.RestClient
 	}
 	if allNodesAlreadyUpdated {
 		r.logger.Info("All OpenSearch nodes are already updated")
-		return false, nil
+		return true
 	}
-
-	if err := r.checkOpenSearchHealth(client); err != nil {
-		return false, err
-	}
-
-	return true, nil
+	return false
 }
 
 func (r OpenSearchReconciler) updateRollingUpdateStatus(status string) error {
@@ -392,44 +479,51 @@ func (r OpenSearchReconciler) execFlushProcedure(client *util.RestClient) error 
 
 func (r OpenSearchReconciler) runRollingUpdate(client *util.RestClient, statefulSets []*v1.StatefulSet) error {
 	r.logger.Info("Running Rolling Update procedure...")
+	var err error
 	enabledAllocationAfterPodRestart := false
 	defer func() {
 		if enabledAllocationAfterPodRestart {
 			return
 		}
-		if err := r.changeAllocationSetting(true, client); err != nil {
+		if err = r.changeAllocationSetting(true, client); err != nil {
 			r.logger.Error(err, "Error while enabling location after failing in rolling update.")
 		}
 	}()
 
 	if r.cr.Status.RollingUpdateStatus.Status != rollingUpdateRunningStatus {
-		if err := r.changeAllocationSetting(false, client); err != nil {
+		if err = r.changeAllocationSetting(false, client); err != nil {
 			return err
 		}
-		if err := r.execFlushProcedure(client); err != nil {
+		if err = r.execFlushProcedure(client); err != nil {
 			return err
 		}
-		if err := r.updateRollingUpdateStatus(rollingUpdateRunningStatus); err != nil {
+		if err = r.updateRollingUpdateStatus(rollingUpdateRunningStatus); err != nil {
 			return err
 		}
 	}
 
-	if err := r.restartOpenSearchPods(statefulSets); err != nil {
+	if err = r.restartOpenSearchPods(statefulSets); err != nil {
 		r.logger.Error(err, "Error while OpenSearch pods restarting")
 		return err
 	}
 
+	client, err = r.createExpectedRestClientWithOldCreds()
+	if err != nil {
+		r.logger.Error(err, "Error while creation new client after pods restarting.")
+		return err
+	}
+
 	enabledAllocationAfterPodRestart = true
-	if err := r.changeAllocationSetting(true, client); err != nil {
+	if err = r.changeAllocationSetting(true, client); err != nil {
 		r.logger.Error(err, "Error while enabling location after rolling update.")
 		return err
 	}
 
-	if err := r.checkOpenSearchHealth(client); err != nil {
+	if err = r.checkOpenSearchHealth(client); err != nil {
 		return err
 	}
 
-	if err := r.updateRollingUpdateStatus(rollingUpdateDoneStatus); err != nil {
+	if err = r.updateRollingUpdateStatus(rollingUpdateDoneStatus); err != nil {
 		return err
 	}
 
@@ -526,22 +620,26 @@ func (r OpenSearchReconciler) getUpdatedReplicasSlice(statefulSet *v1.StatefulSe
 	return status.UpdatedReplicas, nil
 }
 
+func (r OpenSearchReconciler) isOpenSearchPodReady(podName string) bool {
+	pod, err := r.reconciler.findPod(podName, r.cr.Namespace, r.logger)
+	if err != nil {
+		return false
+	}
+
+	r.logger.Info(fmt.Sprintf("%s pod found, checking container status ...", podName))
+	if len(pod.Status.ContainerStatuses) == 0 {
+		r.logger.Info(fmt.Sprintf("%s pod doesn't have any container. Skip this check iteration", podName))
+		return false
+	}
+
+	r.logger.Info(fmt.Sprintf("Container ready: %t", pod.Status.ContainerStatuses[0].Ready))
+	return pod.Status.ContainerStatuses[0].Ready
+}
+
 func (r OpenSearchReconciler) waitUntilOpenSearchPodIsReady(podName string) error {
 	r.logger.Info(fmt.Sprintf("Waiting until %s pod becomes ready...", podName))
 	return wait.Poll(podCheckInterval, podCheckTimeout, func() (bool, error) {
-		pod, err := r.reconciler.findPod(podName, r.cr.Namespace, r.logger)
-		if err != nil {
-			return false, nil
-		}
-
-		r.logger.Info(fmt.Sprintf("%s pod found, checking container status ...", podName))
-		if len(pod.Status.ContainerStatuses) == 0 {
-			r.logger.Info(fmt.Sprintf("%s pod doesn't have any container. Skip this check iteration", podName))
-			return false, nil
-		}
-
-		r.logger.Info(fmt.Sprintf("Container ready: %t", pod.Status.ContainerStatuses[0].Ready))
-		return pod.Status.ContainerStatuses[0].Ready, nil
+		return r.isOpenSearchPodReady(podName), nil
 	})
 }
 
@@ -613,7 +711,7 @@ func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
 	return restClient, nil
 }
 
-func (r OpenSearchReconciler) createRestClientWithOldCreds() (*util.RestClient, error) {
+func (r OpenSearchReconciler) createExpectedRestClientWithOldCreds() (*util.RestClient, error) {
 	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
 	client, err := r.reconciler.configureClient()
 	if err != nil {
