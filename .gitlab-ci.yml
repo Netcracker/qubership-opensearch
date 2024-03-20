@@ -109,8 +109,6 @@ BuildOpensearchServiceOperator:
 BuildTlsInit:
   extends: .BuildTlsInitTemplate
   allow_failure: false
-  variables:
-    PREFIX: ""
   script:
     - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/tls-init.yaml"
 
@@ -172,7 +170,7 @@ build opensearch manifest:
   variables:
     PREFIX: ".gitlab-ci/build/opensearch"
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
-    PARAMETERS: "{integration: [{type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, docker-image-id: timestamp, deploy-param: opensearchOperator}, {type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, prefix: integration-tests, docker-image-id: timestamp, deploy-param: opensearchIntegrationTests}, {type: scripts, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, alias: timestamp, zip-name: migration-artifacts.zip, name: migration-artifacts, pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh}]}"
+    PARAMETERS: "{integration: [{type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, docker-image-id: timestamp, deploy-param: opensearchOperator}, {type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, prefix: tls-init, docker-image-id: timestamp, deploy-param: opensearchTlsInit}, {type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, prefix: integration-tests, docker-image-id: timestamp, deploy-param: opensearchIntegrationTests}, {type: scripts, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, alias: timestamp, zip-name: migration-artifacts.zip, name: migration-artifacts, pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh}]}"
 
 build opensearch manifest 2.11.1:
   stage: manifest
@@ -181,7 +179,7 @@ build opensearch manifest 2.11.1:
   variables:
     PREFIX: "delivery/2.11.1"
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
-    PARAMETERS: "{integration: [{type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, docker-image-id: timestamp, deploy-param: opensearchOperator}, {type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, prefix: integration-tests, docker-image-id: timestamp, deploy-param: opensearchIntegrationTests}, {type: scripts, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, alias: timestamp, zip-name: migration-artifacts.zip, name: migration-artifacts, pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh}]}"
+    PARAMETERS: "{integration: [{type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, docker-image-id: timestamp, deploy-param: opensearchOperator}, {type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, prefix: tls-init, docker-image-id: timestamp, deploy-param: opensearchTlsInit}, {type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, prefix: integration-tests, docker-image-id: timestamp, deploy-param: opensearchIntegrationTests}, {type: scripts, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, alias: timestamp, zip-name: migration-artifacts.zip, name: migration-artifacts, pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh}]}"
   rules:
     - if: '$CI_COMMIT_REF_NAME =~ /^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$/'
 
