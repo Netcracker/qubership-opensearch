@@ -35,12 +35,6 @@ integration:
     docker-image-id: timestamp
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
-    prefix: tls-init
-    docker-image-id: timestamp
-    deploy-param: opensearchTlsInit
-  - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/elasticsearch-telegraf
     location: master
     docker-image-id: timestamp
