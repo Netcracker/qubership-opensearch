@@ -162,6 +162,10 @@ global:
     image: artifactorycn.netcracker.com:17008/product/prod.platform.streaming_disaster-recovery-daemon:master_latest
     tls:
       enabled: true
+      certificates:
+        crt: ""
+        key: ""
+        ca: ""
       secretName: ""
       cipherSuites: []
       subjectAlternativeName:
@@ -312,16 +316,28 @@ opensearch:
       additionalIpAddresses: []
     ## TLS is mandatory for the transport and admin layer and can not be disabled
     transport:
+      certificates:
+        crt: ""
+        key: ""
+        ca: ""
       existingCertSecret:
       existingCertSecretCertSubPath: tls.crt
       existingCertSecretKeySubPath: tls.key
       existingCertSecretRootCASubPath: ca.crt
     rest:
+      certificates:
+        crt: ""
+        key: ""
+        ca: ""
       existingCertSecret:
       existingCertSecretCertSubPath: tls.crt
       existingCertSecretKeySubPath: tls.key
       existingCertSecretRootCASubPath: ca.crt
     admin:
+      certificates:
+        crt: ""
+        key: ""
+        ca: ""
       existingCertSecret:
       existingCertSecretCertSubPath: tls.crt
       existingCertSecretKeySubPath: tls.key
@@ -913,6 +929,10 @@ dbaasAdapter:
 
   tls:
     enabled: true
+    certificates:
+      crt: ""
+      key: ""
+      ca: ""
     secretName: ""
     subjectAlternativeName:
       additionalDnsNames: []
@@ -984,6 +1004,10 @@ curator:
 
   tls:
     enabled: true
+    certificates:
+      crt: ""
+      key: ""
+      ca: ""
     secretName: ""
     subjectAlternativeName:
       additionalDnsNames: []
