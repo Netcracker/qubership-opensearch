@@ -252,7 +252,7 @@ data:
     [[inputs.elasticsearch]]
       # An array of glob pattern strings.
       # Fields with a field key matching one of the patterns will be discarded from the metric.
-      fielddrop = ["status_code", "plugins_*"]
+      fieldexclude = ["status_code", "plugins_*", "__segments_segment_replication_*"]
 
       ## specify a list of one or more OpenSearch servers
       # you can add username and password to your url to use basic authentication:
@@ -260,7 +260,7 @@ data:
       servers = ["$ELASTICSEARCH_PROTOCOL://$ELASTICSEARCH_HOST:$ELASTICSEARCH_PORT"]
 
       ## Timeout for HTTP requests to the OpenSearch server(s)
-      http_timeout = "8s"
+      timeout = "8s"
 
       ## When local is true (the default), the node will read only its own stats.
       ## Set local to false when you want to read the node stats from all nodes
