@@ -840,7 +840,7 @@ monitoring:
 
   opensearchHost:
   opensearchPort: 9200
-  opensearchExecPluginTimeout: "20s"
+  opensearchExecPluginTimeout: "15s"
 
   opensearchDbaasAdapterHost:
   opensearchDbaasAdapterPort: 8080
