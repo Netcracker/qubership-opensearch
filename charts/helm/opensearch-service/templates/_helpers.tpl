@@ -213,6 +213,19 @@ IP addresses used to generate TLS certificate with "Subject Alternative Name" fi
 {{- end -}}
 
 {{/*
+Whether transport certificates are Specified
+*/}}
+{{- define "opensearch.transportCertificatesSpecified" -}}
+  {{- $filled := false -}}
+  {{- range $key, $value := .Values.opensearch.tls.transport.certificates -}}
+    {{- if $value -}}
+        {{- $filled = true -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $filled -}}
+{{- end -}}
+
+{{/*
 Define the name of the transport certificates secret.
 */}}
 {{- define "opensearch.transport-cert-secret-name" -}}
@@ -261,6 +274,19 @@ Define the path to the transport root CA in secret.
 {{- end -}}
 
 {{/*
+Whether admin certificates are Specified
+*/}}
+{{- define "opensearch.adminCertificatesSpecified" -}}
+  {{- $filled := false -}}
+  {{- range $key, $value := .Values.opensearch.tls.admin.certificates -}}
+    {{- if $value -}}
+        {{- $filled = true -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $filled -}}
+{{- end -}}
+
+{{/*
 Define the name of the admin certificates secret.
 */}}
 {{- define "opensearch.admin-cert-secret-name" -}}
@@ -306,6 +332,19 @@ Define the path to the admin root CA in secret.
 {{- else -}}
   {{- .Values.opensearch.tls.admin.existingCertSecretRootCASubPath -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Whether rest certificates are Specified
+*/}}
+{{- define "opensearch.restCertificatesSpecified" -}}
+  {{- $filled := false -}}
+  {{- range $key, $value := .Values.opensearch.tls.rest.certificates -}}
+    {{- if $value -}}
+        {{- $filled = true -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $filled -}}
 {{- end -}}
 
 {{/*
@@ -471,14 +510,34 @@ Cipher suites that can be used in Disaster Recovery
 {{- end -}}
 
 {{/*
+Whether DRD certificates are Specified
+*/}}
+{{- define "disasterRecovery.certificatesSpecified" -}}
+  {{- $filled := false -}}
+  {{- range $key, $value := .Values.global.disasterRecovery.tls.certificates -}}
+    {{- if $value -}}
+        {{- $filled = true -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $filled -}}
+{{- end -}}
+
+{{/*
 TLS secret name for Disaster Recovery
 */}}
 {{- define "disasterRecovery.certSecretName" -}}
-{{- if and (not .Values.global.tls.generateCerts.enabled) .Values.global.disasterRecovery.tls.secretName }}
-  {{- .Values.global.disasterRecovery.tls.secretName -}}
-{{- else }}
-  {{- template "opensearch.fullname" . -}}-drd-tls-secret
-{{- end -}}
+  {{- if and .Values.global.disasterRecovery.tls.enabled .Values.global.tls.enabled -}}
+    {{- if and (or .Values.global.tls.generateCerts.enabled (eq (include "disasterRecovery.certificatesSpecified" .) "true")) (not .Values.global.disasterRecovery.tls.secretName) -}}
+      {{- template "opensearch.fullname" . -}}-drd-tls-secret
+    {{- else -}}
+      {{- required "The TLS secret name should be specified in the 'disasterRecovery.tls.secretName' parameter when the service is deployed with disasterRecovery and TLS enabled, but without certificates generation." .Values.global.disasterRecovery.tls.secretName -}}
+    {{- end -}}
+  {{- else -}}
+     {{/*
+       The empty string is needed for correct prometheus rule configuration in `tls_static_metrics.yaml`
+     */}}
+    {{- "" -}}
+  {{- end -}}
 {{- end -}}
 
 {{/*
@@ -612,15 +671,35 @@ OpenSearch curator Port
 {{- end -}}
 
 {{/*
+Whether curator certificates are Specified
+*/}}
+{{- define "curator.certificatesSpecified" -}}
+  {{- $filled := false -}}
+  {{- range $key, $value := .Values.curator.tls.certificates -}}
+    {{- if $value -}}
+        {{- $filled = true -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $filled -}}
+{{- end -}}
+
+{{/*
 TLS secret name for OpenSearch curator
 */}}
 {{- define "curator.certSecretName" -}}
-{{- if and (not .Values.global.tls.generateCerts.enabled) .Values.curator.tls.secretName }}
-  {{- .Values.curator.tls.secretName -}}
-{{- else }}
-  {{- template "opensearch.fullname" . }}-curator-tls-secret
+  {{- if and .Values.curator.tls.enabled .Values.global.tls.enabled -}}
+    {{- if and (or .Values.global.tls.generateCerts.enabled (eq (include "curator.certificatesSpecified" .) "true")) (not .Values.curator.tls.secretName) -}}
+      {{- template "opensearch.fullname" . }}-curator-tls-secret
+    {{- else -}}
+      {{- required "The TLS secret name should be specified in the 'curator.tls.secretName' parameter when the service is deployed with curator and TLS enabled, but without certificates generation." .Values.curator.tls.secretName -}}
+    {{- end -}}
+  {{- else -}}
+     {{/*
+       The empty string is needed for correct prometheus rule configuration in `tls_static_metrics.yaml`
+     */}}
+    {{- "" -}}
+  {{- end -}}
 {{- end -}}
-{{- end }}
 
 {{/*
 DNS names used to generate TLS certificate with "Subject Alternative Name" field for OpenSearch curator
@@ -699,15 +778,35 @@ Whether TLS for DBaaS Adapter is enabled
 {{- end -}}
 
 {{/*
-TLS secret name for OpenSearch DBaaS Adapter
+Whether DBaaS Adapter certificates are Specified
+*/}}
+{{- define "dbaas-adapter.certificatesSpecified" -}}
+  {{- $filled := false -}}
+  {{- range $key, $value := .Values.dbaasAdapter.tls.certificates -}}
+    {{- if $value -}}
+        {{- $filled = true -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $filled -}}
+{{- end -}}
+
+{{/*
+TLS secret name for Disaster Recovery
 */}}
 {{- define "dbaas-adapter.tlsSecretName" -}}
-  {{- if and (not .Values.global.tls.generateCerts.enabled) .Values.dbaasAdapter.tls.secretName -}}
-    {{- .Values.dbaasAdapter.tls.secretName -}}
-  {{- else }}
-    {{- template "dbaas-adapter.name" . }}-tls-secret
+  {{- if and .Values.dbaasAdapter.tls.enabled .Values.global.tls.enabled -}}
+    {{- if and (or .Values.global.tls.generateCerts.enabled (eq (include "dbaas-adapter.certificatesSpecified" .) "true")) (not .Values.dbaasAdapter.tls.secretName) -}}
+      {{- template "dbaas-adapter.name" . }}-tls-secret
+    {{- else -}}
+      {{- required "The TLS secret name should be specified in the 'dbaasAdapter.tls.secretName' parameter when the service is deployed with dbaasAdapter and TLS enabled, but without certificates generation." .Values.dbaasAdapter.tls.secretName -}}
+    {{- end -}}
+  {{- else -}}
+     {{/*
+       The empty string is needed for correct prometheus rule configuration in `tls_static_metrics.yaml`
+     */}}
+    {{- "" -}}
   {{- end -}}
-{{- end }}
+{{- end -}}
 
 {{/*
 DBaaS Adapter protocol
