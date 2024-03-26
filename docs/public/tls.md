@@ -17,7 +17,7 @@ You can enable TLS encryption for OpenSearch DBaaS Adapter when `global.tls.enab
 
 **Important:** By default OpenSearch is deployed with self-signed certificates for development purposes. To integration with Cert Manager please follow the example sections below.
 
-# Examples
+# SSL Configuration using CertManager
 
 ## Minimal example
 
@@ -95,8 +95,90 @@ dbaasAdapter:
    tls:
       enabled: true
 ```
-
 **Important**: Production environment requires `ClusterIssuer` for certificates generation.
+
+# SSL Configuration using parameters with manually generated Certificates
+
+You can automatically generate TLS-based secrets using Helm by specifying certificates in deployment parameters. For example, to generate `opensearch-drd-tls-secret` :
+
+1. Following certificates should be generated in BASE64 format :
+   ```yaml
+    ca.crt: ${ROOT_CA_CERTIFICATE}
+    tls.crt: ${CERTIFICATE}
+    tls.key: ${PRIVATE_KEY}
+   ```
+   Where:
+   * `${ROOT_CA_CERTIFICATE}` is the root CA in BASE64 format.
+   * `${CERTIFICATE}` is the certificate in BASE64 format.
+   * `${PRIVATE_KEY}` is the private key in BASE64 format.
+
+2. Specify the certificates and other deployment parameters:
+   ```yaml
+    global:
+      tls:
+        enabled: true
+        cipherSuites: []
+        generateCerts:
+          enabled: true
+          certProvider: dev
+          clusterIssuerName: ""
+
+      disasterRecovery:
+        tls:
+          enabled: true
+          certificates:
+            crt: LS0tLS1CRUdJTiBSU0E...  
+            key: LS0tLS1CRUdJTiBSU0EgUFJJV...
+            ca: LS0tLS1CRUdJTiBSU0E...
+          secretName: "opensearch-drd-tls-secret"
+          cipherSuites: []
+          subjectAlternativeName:
+            additionalDnsNames: []
+            additionalIpAddresses: []
+
+    opensearch:
+      tls:
+        enabled: true
+        cipherSuites: []
+        subjectAlternativeName:
+          additionalDnsNames: []
+          additionalIpAddresses: []
+        transport:
+          certificates:
+            crt: LS0tLS1CRUdJTiBSU0E...  
+            key: LS0tLS1CRUdJTiBSU0EgUFJJV...
+            ca: LS0tLS1CRUdJTiBSU0E...
+        rest:
+          certificates:
+            crt: LS0tLS1CRUdJTiBSU0E...  
+            key: LS0tLS1CRUdJTiBSU0EgUFJJV...
+            ca: LS0tLS1CRUdJTiBSU0E...
+        admin:
+          certificates:
+            crt: LS0tLS1CRUdJTiBSU0E...  
+            key: LS0tLS1CRUdJTiBSU0EgUFJJV...
+            ca: LS0tLS1CRUdJTiBSU0E...
+
+    curator:
+      tls:
+        enabled: true
+        certificates:
+          crt: LS0tLS1CRUdJTiBSU0E...  
+          key: LS0tLS1CRUdJTiBSU0EgUFJJV...
+          ca: LS0tLS1CRUdJTiBSU0E...
+        secretName: "opensearch-curator-tls-secret"
+        subjectAlternativeName:
+          additionalDnsNames: []
+          additionalIpAddresses: []
+    dbaasAdapter:
+      tls:
+        enabled: true
+        certificates:
+          crt: LS0tLS1CRUdJTiBSU0E...  
+          key: LS0tLS1CRUdJTiBSU0EgUFJJV...
+          ca: LS0tLS1CRUdJTiBSU0E...
+        secretName: "dbaas-opensearch-adapter-tls-secret"
+   ```
 
 # Certificate Renewal
 
