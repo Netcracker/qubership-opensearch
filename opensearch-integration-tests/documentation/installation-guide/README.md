@@ -96,7 +96,17 @@ The `integrationTests.tags` parameter specifies the tags combined with `AND`, `O
 * `opensearch` tag runs all tests connected to OpenSearch scenarios:
   * `backup` tag runs all tests connected to the backup scenarios except `Full Backup And Restore` test:
     * `Full Backup And Restore` test is performed when `full_backup` tag is specified explicitly.
-    * `granular_backup` tag runs `Granular Backup And Restore` test.
+    * `find_backup` tag runs `Find Backup By Timestamp` test.
+    * `granular_backup` tag runs `Granular Backup And Restore` and `Granular Backup And Restore By Timestamp` tests.
+    * `backup_databases` tag runs all tests connected to the backup of OpenSearch resources as database:
+      * `restore_with_alias` tag runs `Granular Backup And Restore With Alias` test.
+      * `restore_with_template` tag runs `Granular Backup And Restore With Template` test.
+      * `restore_with_alias_and_template` tag runs `Granular Backup And Restore With Template And Alias` test.
+      * `restore_with_rename` tag runs `Granular Backup And Renaming Restore` test.
+      * `restore_with_rename_after_data_deletion` tag runs `Granular Backup And Renaming Restore With Manual Data Deletion` test.
+      * `restore_with_partial_rename` tag runs `Granular Backup And Partial Renaming Restore` test.
+      * `restore_with_cleanup` tag runs `Granular Backup And Restore With Cleanup` test.
+      * `restore_with_rename_and_cleanup` tag runs `Granular Backup And Renaming Restore With Cleanup` test.
     * `backup_deletion` tag runs `Delete Backup By ID` test.
     * `unauthorized_access` tag runs `Unauthorized Access` test.
   * `prometheus` tag runs all tests connected to Prometheus scenarios:
