@@ -140,10 +140,12 @@ Full Backup And Restore
     ${backup_id}=  Full Backup
 
     Delete Data
+    Create OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
 
     Full Restore  ${backup_id}  ["${OPENSEARCH_BACKUP_INDEX}"]
     Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_INDEX}
     Check That Document Exists By Field  ${OPENSEARCH_BACKUP_INDEX}  name  ${document_name}
+    Check OpenSearch Does Not Have Closed Indices
     [Teardown]  Run Keywords  Delete Data  AND  Delete Backup  ${backup_id}
 
 Granular Backup And Restore

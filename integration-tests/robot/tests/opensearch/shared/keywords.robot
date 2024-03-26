@@ -36,6 +36,10 @@ Generate Index Name
     ${suffix}=  Generate Random String  5  [LOWER]
     [Return]  ${index_name}-${suffix}
 
+Generate Database Name
+    ${suffix}=  Generate Random String  15  [LOWER]
+    [Return]  backup-test-${suffix}
+
 Create OpenSearch Index
     [Arguments]  ${name}  ${data}=${None}
     ${json}=  Run Keyword If  ${data}  To Json  ${data}
@@ -62,6 +66,15 @@ Check OpenSearch Index Does Not Exist
     [Arguments]  ${name}
     ${response}=  Get OpenSearch Index  ${name}
     Should Be Equal As Strings  ${response.status_code}  404
+
+Check OpenSearch Does Not Have Closed Indices
+    ${response}=  Get OpenSearch Index  *?expand_wildcards=closed
+    Check Response Is Empty  ${response}
+
+Check Response Is Empty
+    [Arguments]  ${response}
+    Should Be Equal As Strings  ${response.status_code}  200
+    Should Be Equal As Strings  ${response.text}  {}
 
 Bulk Update Index Data
     [Arguments]  ${index_name}  ${binary_data}  ${timeout}=${None}
@@ -159,18 +172,6 @@ Create OpenSearch Alias
     ${response}=  Put Request  opensearch  /${index_name}/_alias/${alias}
     [Return]  ${response}
 
-Create OpenSearch Index Template
-    [Arguments]  ${template_name}  ${index_pattern}  ${settings}={"number_of_shards":1}
-    ${template}=  Set Variable  {"index_patterns":["${index_pattern}"],"template": {"settings":${settings}}}
-    ${response}=  Put Request  opensearch  /_index_template/${template_name}  data=${template}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
-
-Create OpenSearch Template
-    [Arguments]  ${template_name}  ${index_pattern}  ${settings}={"number_of_shards":1}
-    ${template}=  Set Variable  {"index_patterns":["${index_pattern}"],"settings":${settings}}
-    ${response}=  Put Request  opensearch  /_template/${template_name}  data=${template}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
-
 Get OpenSearch Alias
     [Arguments]  ${alias}
     ${response}=  Get Request  opensearch  /_alias/${alias}
@@ -181,6 +182,18 @@ Get OpenSearch Alias For Index
     ${response}=  Get Request  opensearch  /${index_name}/_alias/${alias}
     [Return]  ${response}
 
+Create OpenSearch Index Template
+    [Arguments]  ${template_name}  ${index_pattern}  ${settings}={"number_of_shards":1}  ${aliases}={}
+    ${template}=  Set Variable  {"index_patterns":["${index_pattern}"],"template": {"settings":${settings}, "aliases": ${aliases}}}
+    ${response}=  Put Request  opensearch  /_index_template/${template_name}  data=${template}  headers=${headers}
+    Should Be Equal As Strings  ${response.status_code}  200
+
+Create OpenSearch Template
+    [Arguments]  ${template_name}  ${index_pattern}  ${settings}={"number_of_shards":1}
+    ${template}=  Set Variable  {"index_patterns":["${index_pattern}"],"settings":${settings}}
+    ${response}=  Put Request  opensearch  /_template/${template_name}  data=${template}  headers=${headers}
+    Should Be Equal As Strings  ${response.status_code}  200
+
 Get OpenSearch Template
     [Arguments]  ${template_name}
     ${response}=  Get Request  opensearch  /_template/${template_name}
@@ -189,6 +202,11 @@ Get OpenSearch Template
 Get OpenSearch Index Template
     [Arguments]  ${template_name}
     ${response}=  Get Request  opensearch  /_index_template/${template_name}
+    [Return]  ${response}
+
+Delete OpenSearch Index Template
+    [Arguments]  ${template_name}
+    ${response}=  Delete Request  opensearch  /_index_template/${template_name}
     [Return]  ${response}
 
 Get OpenSearch Tasks
@@ -209,6 +227,13 @@ Check OpenSearch User Exists
     [Arguments]  ${username}
     ${response}=  Get OpenSearch User  ${username}
     Should Be Equal As Strings  ${response.status_code}  200
+
+Get Index Settings
+    [Arguments]  ${index_name}
+    ${response}=  Get Request  opensearch  /${index_name}/_settings
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${content}=  Convert Json ${response.content} To Type
+    [Return]  ${content}
 
 Make Index Read Only
     [Arguments]  ${index_name}
