@@ -90,7 +90,10 @@ Create Backup Name
 
 Check OpenSearch Backup Exists
     [Arguments]  ${backup_id}
-    ${response}=  Get Request  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${backup_id}
+    # DBaaS adapter manipulates backups via Curator.
+    # The backup_id in backup-daemon and the real snapshot name in opensearch are different.
+    ${opensearch_backup_id}=    Convert To Lowercase    ${backup_id}
+    ${response}=  Get Request  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${opensearch_backup_id}
     Should Be Equal As Strings  ${response.status_code}  200
 
 Check OpenSearch Backup Does Not Exist
