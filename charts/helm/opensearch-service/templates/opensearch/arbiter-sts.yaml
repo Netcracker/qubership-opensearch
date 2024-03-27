@@ -13,7 +13,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.opensearch.arbiter.replicas }}
-  serviceName: {{ template "master-nodes" . }}
+  serviceName: {{ template "opensearch.fullname" . }}-discovery
   selector:
     matchLabels:
 {{ include "opensearch.labels.selector" . | indent 6 }}
@@ -24,7 +24,6 @@ spec:
   podManagementPolicy: Parallel
   updateStrategy:
     type: {{ .Values.opensearch.arbiter.updateStrategy }}
-  serviceName: {{ template "opensearch.fullname" . }}-discovery
   template:
     metadata:
       labels:
@@ -399,9 +398,9 @@ spec:
     - metadata:
         name: pvc
         annotations:
-      {{- range $key, $value := .Values.opensearch.arbiter.persistence.annotations }}
-        {{ $key }}: {{ $value }}
-      {{- end }}
+        {{- range $key, $value := .Values.opensearch.arbiter.persistence.annotations }}
+          {{ $key }}: {{ $value }}
+        {{- end }}
       spec:
         accessModes:
       {{- range .Values.opensearch.arbiter.persistence.accessModes }}

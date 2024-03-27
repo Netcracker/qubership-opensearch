@@ -10,7 +10,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.opensearch.master.replicas }}
-  serviceName: {{ template "master-nodes" . }}
+  serviceName: {{ template "opensearch.fullname" . }}-discovery
   selector:
     matchLabels:
 {{ include "opensearch.labels.selector" . | indent 6 }}
@@ -18,7 +18,6 @@ spec:
   podManagementPolicy: Parallel
   updateStrategy:
     type: {{ .Values.opensearch.master.updateStrategy }}
-  serviceName: {{ template "opensearch.fullname" . }}-discovery
   template:
     metadata:
       labels:
@@ -398,9 +397,9 @@ spec:
     - metadata:
         name: pvc
         annotations:
-      {{- range $key, $value := .Values.opensearch.master.persistence.annotations }}
-        {{ $key }}: {{ $value }}
-      {{- end }}
+        {{- range $key, $value := .Values.opensearch.master.persistence.annotations }}
+          {{ $key }}: {{ $value }}
+        {{- end }}
       spec:
         accessModes:
       {{- range .Values.opensearch.master.persistence.accessModes }}
