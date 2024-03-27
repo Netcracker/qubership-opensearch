@@ -137,7 +137,7 @@ Restore Backup By Dbaas Adapter
     ...  Check That Document Does Not Exist By Field  ${index_name_first}  age  1  AND
     ...  Check That Document Exists By Field  ${index_name_second}  surname  surname
 
-    Restore Indices From Backup By Dbaas Agent ${backup_id}  ["${index_name_first}","${index_name_second}"]
+    Restore Indices From Backup By Dbaas Agent  ${backup_id}  ["${dbs_prefix}"]
 
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Run Keywords
