@@ -64,29 +64,11 @@ Check Restore Status
     ${restore_status}=  Get Request  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/track/restore/${backup_id}
     Should Contain  str(${restore_status.content})  SUCCESS
 
-Create OpenSearch Backup
-    [Arguments]  @{indices_list}
-    ${indices}=  Evaluate  ','.join(${indices_list})
-    ${backup_id}=  Create Backup Name
-    ${backup_data}=  Set Variable  {"indices": "${indices}"}
-    ${response}=  Put Request  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${backup_id}?wait_for_completion=true  data=${backup_data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
-    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Check OpenSearch Backup Exists  ${backup_id}
-    [Return]  ${backup_id}
-
 Delete OpenSearch Backup
     [Arguments]  ${backup_id}
     ${response}=  Delete Request  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${backup_id}
     ${boolean_success_result}=  Evaluate  ${response.status_code} in [200, 404]
     Should Be True  ${boolean_success_result}
-
-Create Backup Name
-    [Arguments]  ${prefix}=dbaas
-    ${date}=  Get Current Date
-    ${converted_date}=  Convert Date  ${date}  %Y_%d_%m_t_%H_%M_%S
-    ${name}=  Catenate  SEPARATOR=_  ${prefix}  ${converted_date}
-    [Return]  ${name}
 
 Check OpenSearch Backup Exists
     [Arguments]  ${backup_id}
@@ -118,7 +100,7 @@ Delete Backup By Dbaas Adapter
     ${index_name}=  Generate Name  dbaas-backup-index
     Create OpenSearch Index  ${index_name}
     Check OpenSearch Index Exists  ${index_name}
-    ${backup_id}=  Create OpenSearch Backup  ${index_name}
+    ${backup_id}=  Create Backup By Dbaas Agent  ["${index_name}"]
     Delete Backup By Dbaas Agent  ${backup_id}
     Check OpenSearch Backup Does Not Exist  ${backup_id}
     [Teardown]  Run Keywords  Delete OpenSearch Backup  ${backup_id}
@@ -140,7 +122,7 @@ Restore Backup By Dbaas Adapter
     ...  Check That Document Exists By Field  ${index_name_first}  age  1  AND
     ...  Check That Document Exists By Field  ${index_name_second}  age  2
 
-    ${backup_id}=  Create OpenSearch Backup  ${index_name_first}  ${index_name_second}
+    ${backup_id}=  Create Backup By Dbaas Agent  ["${index_name_first}","${index_name_second}"]
 
     ${update_document_second}=  Set Variable  {"surname": "surname"}
 
@@ -152,7 +134,7 @@ Restore Backup By Dbaas Adapter
     ...  Check That Document Does Not Exist By Field  ${index_name_first}  age  1  AND
     ...  Check That Document Exists By Field  ${index_name_second}  surname  surname
 
-    Restore Indices From Backup By Dbaas Agent  ${backup_id}  ["${index_name_first}","${index_name_second}"]
+    Restore Indices From Backup By Dbaas Agent ${backup_id}  ["${index_name_first}","${index_name_second}"]
 
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Run Keywords
