@@ -259,9 +259,9 @@ spec:
     - metadata:
         name: pvc
         annotations:
-      {{- range $key, $value := .Values.opensearch.data.persistence.annotations }}
-        {{ $key }}: {{ $value }}
-      {{- end }}
+        {{- range $key, $value := .Values.opensearch.data.persistence.annotations }}
+          {{ $key }}: {{ $value }}
+        {{- end }}
       spec:
         accessModes:
       {{- range .Values.opensearch.data.persistence.accessModes }}
