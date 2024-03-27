@@ -87,7 +87,7 @@ Check OpenSearch Backup Does Not Exist
 Create Backup By Dbaas Adapter
     [Tags]  dbaas  dbaas_backup  dbaas_create_backup
     ${index_name}=  Generate Name  dbaas-backup-index
-    ${dbs_prefix}=  Set Variable  dbaas_create_backup_test
+    ${dbs_prefix}=  Set Variable  dbaas_integration_test
     Create OpenSearch Index  ${index_name}
     Sleep  5s  reason=Index should be created
     Check OpenSearch Index Exists  ${index_name}
@@ -99,7 +99,7 @@ Create Backup By Dbaas Adapter
 Delete Backup By Dbaas Adapter
     [Tags]  dbaas  dbaas_backup  dbaas_delete_backup
     ${index_name}=  Generate Name  dbaas-backup-index
-    ${dbs_prefix}=  Set Variable  dbaas_delete_backup_test
+    ${dbs_prefix}=  Set Variable  dbaas_integration_test
     Create OpenSearch Index  ${index_name}
     Check OpenSearch Index Exists  ${index_name}
     ${backup_id}=  Create Backup By Dbaas Agent  ["${dbs_prefix}"]
@@ -112,7 +112,7 @@ Restore Backup By Dbaas Adapter
     [Tags]  dbaas  dbaas_backup  dbaas_restore_backup
     ${index_name_first}=  Generate Name  dbaas-restore-index-first
     ${index_name_second}=  Generate Name  dbaas-restore-index-second
-    ${dbs_prefix}=  Set Variable  dbaas_restore_backup_test
+    ${dbs_prefix}=  Set Variable  dbaas_integration_test
     Create OpenSearch Index  ${index_name_first}
     Create OpenSearch Index  ${index_name_second}
     ${document_first}=  Set Variable  {"age": "1", "name": "first"}
