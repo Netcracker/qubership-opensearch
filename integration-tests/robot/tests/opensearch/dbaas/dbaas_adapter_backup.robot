@@ -31,7 +31,7 @@ Prepare Dbaas Adapter
 Generate Name
     [Arguments]  ${name}
     ${prefix}=  Generate Random String  5  [LOWER]
-    [Return]  ${prefix}-${name}
+    [Return]  dbaas_integration_test-${prefix}-${name}
 
 Create Backup By Dbaas Agent
     [Arguments]  ${indices_list}
@@ -87,10 +87,11 @@ Check OpenSearch Backup Does Not Exist
 Create Backup By Dbaas Adapter
     [Tags]  dbaas  dbaas_backup  dbaas_create_backup
     ${index_name}=  Generate Name  dbaas-backup-index
+    ${dbs_prefix}=  Set Variable  dbaas_create_backup_test
     Create OpenSearch Index  ${index_name}
     Sleep  5s  reason=Index should be created
     Check OpenSearch Index Exists  ${index_name}
-    ${backup_id}=  Create Backup By Dbaas Agent  ["${index_name}"]
+    ${backup_id}=  Create Backup By Dbaas Agent  ["${dbs_prefix}"]
     Check OpenSearch Backup Exists  ${backup_id}
     [Teardown]  Run Keywords  Delete OpenSearch Backup  ${backup_id}
                 ...  AND  Delete OpenSearch Index  ${index_name}
@@ -98,9 +99,10 @@ Create Backup By Dbaas Adapter
 Delete Backup By Dbaas Adapter
     [Tags]  dbaas  dbaas_backup  dbaas_delete_backup
     ${index_name}=  Generate Name  dbaas-backup-index
+    ${dbs_prefix}=  Set Variable  dbaas_delete_backup_test
     Create OpenSearch Index  ${index_name}
     Check OpenSearch Index Exists  ${index_name}
-    ${backup_id}=  Create Backup By Dbaas Agent  ["${index_name}"]
+    ${backup_id}=  Create Backup By Dbaas Agent  ["${dbs_prefix}"]
     Delete Backup By Dbaas Agent  ${backup_id}
     Check OpenSearch Backup Does Not Exist  ${backup_id}
     [Teardown]  Run Keywords  Delete OpenSearch Backup  ${backup_id}
@@ -110,6 +112,7 @@ Restore Backup By Dbaas Adapter
     [Tags]  dbaas  dbaas_backup  dbaas_restore_backup
     ${index_name_first}=  Generate Name  dbaas-restore-index-first
     ${index_name_second}=  Generate Name  dbaas-restore-index-second
+    ${dbs_prefix}=  Set Variable  dbaas_restore_backup_test
     Create OpenSearch Index  ${index_name_first}
     Create OpenSearch Index  ${index_name_second}
     ${document_first}=  Set Variable  {"age": "1", "name": "first"}
@@ -122,7 +125,7 @@ Restore Backup By Dbaas Adapter
     ...  Check That Document Exists By Field  ${index_name_first}  age  1  AND
     ...  Check That Document Exists By Field  ${index_name_second}  age  2
 
-    ${backup_id}=  Create Backup By Dbaas Agent  ["${index_name_first}","${index_name_second}"]
+    ${backup_id}=  Create Backup By Dbaas Agent  ["${dbs_prefix}"]
 
     ${update_document_second}=  Set Variable  {"surname": "surname"}
 
