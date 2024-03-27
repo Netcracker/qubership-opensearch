@@ -426,8 +426,11 @@ The overall goal of choosing a number of shards is to distribute an index evenly
 
 * 10–30 GiB for workloads that prioritize low search latency
 * 30–50 GiB for write-heavy workloads such as log analytics
+* 20 shards per 1 GB of heap
 
 Only performance testing different numbers of shards and different shard sizes can determine the optimal number of shards for your index.
+
+The full recommendations you can find in [Size your shards](https://www.elastic.co/guide/en/elasticsearch/reference/current/size-your-shards.html) and [Sizing OpenSearch](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/sizing-domains.html).
 
 ### Index Templates
 
@@ -447,11 +450,11 @@ The Amazon guide suggests starting a configuration with 2 vCPU cores and 8 GiB o
 
 ### Small
 
-Recommended for development purposes, PoC, and demos.
+Recommended for development purposes, PoC, and demos. For 40 shards and 50Gb of indexed data.
 
 | Module                      | CPU   | RAM, Gi | Storage, Gb |
 |-----------------------------|-------|---------|-------------|
-| OpenSearch (x3)             | 1     | 4       | 50          |
+| OpenSearch (x3)             | 1     | 4       | 100         |
 | Dashboards                  | 0.1   | 0.5     | 0           |
 | OpenSearch Monitoring       | 0.2   | 0.2     | 0           |
 | OpenSearch DBaaS adapter    | 0.2   | 0.1     | 0           |
@@ -462,7 +465,7 @@ Recommended for development purposes, PoC, and demos.
 | Pod Scheduler               | 0.1   | 0.1     | 0           |
 | Status Provisioner          | 0.1   | 0.1     | 0           |
 | TLS init job                | 0.1   | 0.1     | 0           |
-| **Total (Rounded)**         | **5** | **14**  | **200**     |
+| **Total (Rounded)**         | **5** | **14**  | **350**     |
 
 <details>
 <summary>Click to expand YAML</summary>
@@ -565,11 +568,11 @@ statusProvisioner:
 
 ### Medium
 
-Recommended for deployments with average load.
+Recommended for deployments with average load. For 80 shards and 100Gb of indexed data.
 
 | Module                      | CPU   | RAM, Gi | Storage, Gb |
 |-----------------------------|-------|---------|-------------|
-| OpenSearch (x3)             | 2     | 8       | 100         |
+| OpenSearch (x3)             | 2     | 8       | 200         |
 | Dashboards                  | 0.1   | 0.5     | 0           |
 | OpenSearch Monitoring       | 0.2   | 0.2     | 0           |
 | OpenSearch DBaaS adapter    | 0.2   | 0.1     | 0           |
@@ -580,7 +583,7 @@ Recommended for deployments with average load.
 | Pod Scheduler               | 0.1   | 0.1     | 0           |
 | Status Provisioner          | 0.1   | 0.1     | 0           |
 | TLS init job                | 0.1   | 0.1     | 0           |
-| **Total (Rounded)**         | **8** | **26**  | **400**     |
+| **Total (Rounded)**         | **8** | **26**  | **600**     |
 
 <details>
 <summary>Click to expand YAML</summary>
@@ -683,7 +686,7 @@ statusProvisioner:
 
 ### Large
 
-Recommended for deployments with high workload and a large amount of data.
+Recommended for deployments with high workload and a large amount of data. For 160 shards and 200Gb of indexed data.
 
 | Module                      | CPU    | RAM, Gi | Storage, Gb |
 |-----------------------------|--------|---------|-------------|
@@ -798,6 +801,8 @@ statusProvisioner:
 ```
 
 </details>
+
+**NOTE:** the following scaling may include additional OpenSearch replicas (universal or data).
 
 # Parameters
 
