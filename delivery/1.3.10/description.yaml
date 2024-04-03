@@ -122,7 +122,7 @@ cloud:
 integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: 0.2.13
+    location: 0.2.14
     docker-image-id: timestamp
     deploy-param: opensearchOperator
   - type: find-latest-deployment-descriptor
@@ -132,7 +132,7 @@ integration:
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: 0.2.13
+    location: 0.2.14
     prefix: integration-tests
     docker-image-id: timestamp
     deploy-param: opensearchIntegrationTests
@@ -143,33 +143,33 @@ integration:
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/elasticsearch-telegraf
-    location: 0.1.21
+    location: 0.1.24
     docker-image-id: timestamp
     deploy-param: opensearchMonitoring
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/dbaas-opensearch-adapter
-    location: 0.1.5
+    location: 0.1.9
     docker-image-id: timestamp
     deploy-param: opensearchDbaasAdapter
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/dbaas_elasticsearch
-    location: 1.0.29
+    location: 1.0.31
     docker-image-id: timestamp
     deploy-param: elasticsearchDbaasAdapterImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: 0.1.2
+    location: 0.1.5
     docker-image-id: timestamp
     deploy-param: opensearchCurator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: 0.1.2
+    location: 0.1.5
     prefix: elasticsearch_indices_cleaner
     docker-image-id: timestamp
     deploy-param: opensearchIndicesCleaner
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/deployment-status-provisioner
-    location: 0.0.15
+    location: 0.0.18
     docker-image-id: timestamp
     deploy-param: deploymentStatusProvisioner
   - type: image
@@ -183,21 +183,21 @@ integration:
     deploy-param: kubectl
   - type: scripts
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: 0.2.13
+    location: 0.2.14
     alias: timestamp
     zip-name: migration-artifacts.zip
     name: migration-artifacts
     pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh
   - type: scripts
     repo: PROD.Platform.ElasticStack/deployment-utils
-    location: 0.1.7
+    location: 0.1.8
     alias: timestamp
     zip-name: devops-scripts.zip
     name: crd-upgrade
     pre-deploy-entry-point: crd-upgrade.sh
   - type: scripts
     repo: PROD.Platform.ElasticStack/deployment-utils
-    location: 0.1.7
+    location: 0.1.8
     alias: latest
     zip-name: devops-scripts.zip
     name: privileged-pss
