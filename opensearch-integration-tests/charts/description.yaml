@@ -19,7 +19,7 @@ deployment:
     resource: Deployment
     conditions: Successful
     interval: 30
-    max_tries: 60
+    max_tries: 90
     delay: 60
 
 cloud:
