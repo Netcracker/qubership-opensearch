@@ -709,6 +709,16 @@ During OpenSearch credentials change there was a problem to update the `opensear
 
 Actualize the `opensearch-secret-old` secret manually by specifying the credentials from the `opensearch-secret` secret.
 
+### Not yet initialized (you may need to run securityadmin)
+
+```
+[ERROR][o.o.s.a.BackendRegistry  ] [opensearch-2] Not yet initialized (you may need to run securityadmin)
+```
+
+This error means the OpenSearch hasn't been properly initialized or configured.
+
+To resolve it you need to restart OpenSearch pods.
+
 ## DBaaS Adapter Health
 
 OpenSearch monitoring has `DBaaS Adapter Status` indicator of DBaaS Adapter health.
