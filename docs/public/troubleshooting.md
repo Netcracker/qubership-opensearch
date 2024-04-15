@@ -717,7 +717,7 @@ Actualize the `opensearch-secret-old` secret manually by specifying the credenti
 
 This error means the OpenSearch hasn't been properly initialized or configured.
 
-To resolve it you need to restart OpenSearch pods.
+To resolve it you need restart OpenSearch pods Only if the error doesn't disappear for a long time (more that 5 minutes after all pods are running). Because this error is Ok for some time when cluster is starting.
 
 ## DBaaS Adapter Health
 
