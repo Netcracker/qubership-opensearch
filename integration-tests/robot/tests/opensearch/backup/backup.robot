@@ -16,7 +16,7 @@ Find Backup By Timestamp
     ${backup_ts}=  Get Backup Timestamp  ${backup_id}
     ${found_backup_id}=  Find Backup ID By Timestamp  ${backup_ts}
     Should Be Equal As Strings  ${backup_id}  ${found_backup_id}
-    [Teardown]  Run Keywords  Delete Data  AND  Delete Backup  ${backup_id}
+    [Teardown]  Run Keywords  Delete Data  ${OPENSEARCH_BACKUP_INDEX}  AND  Delete Backup  ${backup_id}
 
 Full Backup And Restore
     [Tags]  opensearch  backup  full_backup
