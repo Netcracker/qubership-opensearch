@@ -33,7 +33,7 @@ Full Backup And Restore
     [Teardown]  Run Keywords  Delete Data  ${OPENSEARCH_BACKUP_INDEX}  AND  Delete Backup  ${backup_id}
 
 Granular Backup And Restore
-    [Tags]  opensearch  backup  granular_backup
+    [Tags]  opensearch  backup  granular_backup  restore
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-1
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-2
     ${backup_id}=  Granular Backup  ["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]
@@ -50,7 +50,7 @@ Granular Backup And Restore
     [Teardown]  Run Keywords  Delete Data  ${OPENSEARCH_BACKUP_INDEX}  AND  Delete Backup  ${backup_id}
 
 Granular Backup And Restore By Timestamp
-    [Tags]  opensearch  backup  granular_backup
+    [Tags]  opensearch  backup  granular_backup  restore_by_timestamp
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-1
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-2
     ${backup_id}=  Granular Backup  ["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]
