@@ -51,6 +51,8 @@ spec:
             {{- if .Values.deployDescriptor }}
             - name: MONITORED_IMAGES
               value: {{ include "opensearch-service.monitoredImages" . }}
+            - name: LIST_MONITORED_IMAGES
+              value: '{{ .Values | toJson | quote }}'
             {{- end }}
             - name: OPENSEARCH_HOST
               value: {{ (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-host" .) (include "opensearch.fullname" .)) }}
