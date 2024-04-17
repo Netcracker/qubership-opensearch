@@ -1495,7 +1495,7 @@ Ingress host for OpenSearch
     {{- printf "deployment %s %s %s, " (include "dbaas-adapter.name" .) (include "dbaas-adapter.name" .) (include "opensearch-service.findImage" (list . "prod.platform.elasticstack_dbaas-opensearch-adapter")) -}}
   {{- end -}}
   {{- if .Values.integrationTests.enabled -}}
-    {{- printf "deployment %s-integration-tests %s-integration-tests %s, " (include "opensearch.fullname" .) (include "opensearch.fullname" .) (include "opensearch-service.findImage" (list . "prod.platform.elasticstack_opensearch-service")) -}}
+    {{- printf "deployment %s-integration-tests %s-integration-tests %s, " (include "opensearch.fullname" .) (include "opensearch.fullname" .) (index .Values "opensearchIntegrationTests") -}}
   {{- end -}}
   {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") -}}
     {{- printf "deployment %s-service-operator %s-disaster-recovery %s, " (include "opensearch.fullname" .) (include "opensearch.fullname" .) (include "opensearch-service.findImage" (list . "prod.platform.streaming_disaster-recovery-daemon")) -}}
