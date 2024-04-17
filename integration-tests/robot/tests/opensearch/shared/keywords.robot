@@ -182,21 +182,42 @@ Get OpenSearch Alias For Index
     ${response}=  Get Request  opensearch  /${index_name}/_alias/${alias}
     [Return]  ${response}
 
+Create OpenSearch Component Template
+    [Arguments]  ${template_name}  ${settings}={}  ${aliases}={}
+    ${template}=  Set Variable  {"template": {"settings":${settings}, "aliases": ${aliases}}}
+    ${response}=  Put Request  opensearch  /_component_template/${template_name}  data=${template}  headers=${headers}
+    Should Be Equal As Strings  ${response.status_code}  200
+
 Create OpenSearch Index Template
-    [Arguments]  ${template_name}  ${index_pattern}  ${settings}={"number_of_shards":1}  ${aliases}={}
-    ${template}=  Set Variable  {"index_patterns":["${index_pattern}"],"template": {"settings":${settings}, "aliases": ${aliases}}}
+    [Arguments]  ${template_name}  ${index_pattern}  ${settings}={}  ${aliases}={}  ${composed_of}=[]
+    ${template}=  Set Variable  {"index_patterns":["${index_pattern}"],"template": {"settings":${settings}, "aliases": ${aliases}}, "composed_of": ${composed_of}}
     ${response}=  Put Request  opensearch  /_index_template/${template_name}  data=${template}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
 
 Create OpenSearch Template
-    [Arguments]  ${template_name}  ${index_pattern}  ${settings}={"number_of_shards":1}
-    ${template}=  Set Variable  {"index_patterns":["${index_pattern}"],"settings":${settings}}
+    [Arguments]  ${template_name}  ${index_pattern}  ${settings}={}  ${aliases}={}
+    ${template}=  Set Variable  {"index_patterns":["${index_pattern}"],"settings":${settings},"aliases": ${aliases}}
     ${response}=  Put Request  opensearch  /_template/${template_name}  data=${template}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
 
 Get OpenSearch Template
     [Arguments]  ${template_name}
     ${response}=  Get Request  opensearch  /_template/${template_name}
+    [Return]  ${response}
+
+Delete OpenSearch Template
+    [Arguments]  ${template_name}
+    ${response}=  Delete Request  opensearch  /_template/${template_name}
+    [Return]  ${response}
+
+Get OpenSearch Component Template
+    [Arguments]  ${template_name}
+    ${response}=  Get Request  opensearch  /_component_template/${template_name}
+    [Return]  ${response}
+
+Delete OpenSearch Component Template
+    [Arguments]  ${template_name}
+    ${response}=  Delete Request  opensearch  /_component_template/${template_name}
     [Return]  ${response}
 
 Get OpenSearch Index Template
