@@ -105,7 +105,7 @@ You can automatically generate TLS-based secrets using Helm by specifying certif
         cipherSuites: []
         generateCerts:
           enabled: false
-          certProvider: helm
+          certProvider: dev
           clusterIssuerName: ""
 
       disasterRecovery:
