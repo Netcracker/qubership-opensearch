@@ -48,7 +48,7 @@ spec:
                   fieldPath: metadata.namespace
             - name: TAGS
               value: {{ .Values.integrationTests.tags }}
-            {{- if .Values.deployDescriptor }}
+            {{- if and .Values.deployDescriptor .Values.opensearchIntegrationTests}}
             - name: MONITORED_IMAGES
               value: {{ include "opensearch-service.monitoredImages" . }}
             {{- end }}
