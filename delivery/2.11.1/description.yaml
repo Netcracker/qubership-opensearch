@@ -153,7 +153,7 @@ integration:
     deploy-param: opensearchIndicesCleaner
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/deployment-status-provisioner
-    location: 0.1.9
+    location: 0.0.19
     docker-image-id: timestamp
     deploy-param: deploymentStatusProvisioner
   - type: image
