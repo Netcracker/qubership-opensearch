@@ -716,30 +716,6 @@ OpenSearch curator address
   {{- printf "%s://%s.%s:%s" (include "curator.protocol" .) (include "curator.name" .) .Release.Namespace (include "curator.port" .) -}}
 {{- end -}}
 
-{{/*
-OpenSearch curator Name
-*/}}
-{{- define "curator.name" -}}
-{{ printf "%s-curator" (include "opensearch.fullname" .) }}
-{{- end -}}
-
-{{/*
-OpenSearch curator Protocol
-*/}}
-{{- define "curator.protocol" -}}
-  {{- if and .Values.global.tls.enabled .Values.curator.tls.enabled -}}
-    {{- "https" -}}
-  {{- else -}}
-    {{- "http" -}}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-OpenSearch curator address
-*/}}
-{{- define "curator.address" -}}
-  {{- printf "%s://%s.%s:%s" (include "curator.protocol" .) (include "curator.name" .) .Release.Namespace (include "curator.port" .) -}}
-{{- end -}}
 
 {{/*
 TLS secret name for OpenSearch DBaaS Adapter
