@@ -197,7 +197,7 @@ integration:
     pre-deploy-entry-point: crd-upgrade.sh
   - type: scripts
     repo: PROD.Platform.ElasticStack/deployment-utils
-    location: 0.1.10
+    location: 0.1.9
     alias: latest
     zip-name: devops-scripts.zip
     name: privileged-pss
