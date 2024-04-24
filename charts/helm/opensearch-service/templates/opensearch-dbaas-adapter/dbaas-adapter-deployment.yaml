@@ -83,6 +83,18 @@ spec:
               value: "/app/config/"
             - name: TLS_ENABLED
               value: "{{ template "dbaas-adapter.tlsEnabled" . }}"
+            - name: CURATOR_ADDRESS
+              value: {{ (include "curator.address" .) }}
+            - name: CURATOR_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  key: username
+            - name: CURATOR_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  key: password
           image: {{ template "dbaas-adapter.image" . }}
           imagePullPolicy: {{ .Values.dbaasAdapter.imagePullPolicy | default "Always" | quote }}
           livenessProbe:
