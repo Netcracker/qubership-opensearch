@@ -119,7 +119,7 @@ You can automatically generate TLS-based secrets using Helm by specifying certif
         enabled: true
         cipherSuites: []
         generateCerts:
-          enabled: true
+          enabled: false
           certProvider: dev
           clusterIssuerName: ""
 
@@ -179,6 +179,10 @@ You can automatically generate TLS-based secrets using Helm by specifying certif
           ca: LS0tLS1CRUdJTiBSU0E...
         secretName: "dbaas-opensearch-adapter-tls-secret"
    ```
+
+**Pay attention**, when you upgrade OpenSearch from non TLS installation to TLS with manually specified 
+certificates you need to delete `<fullname>-admin-certs`, `<fullname>-admin-certs` and `<fullname>-admin-certs` 
+secrets manually before upgrade, where `<fullname>` is the OpenSearch full name.
 
 # Certificate Renewal
 
