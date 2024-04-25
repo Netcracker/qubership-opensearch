@@ -115,7 +115,7 @@ dashboards:
     create: true
     ## The name of the ServiceAccount to use.
     ## If not set and create is true, a name is generated using the fullname template
-    name:
+    name: ""
 
   podAnnotations: {}
 
@@ -253,16 +253,16 @@ opensearch:
         subject_key: preferred_username
         openid_connect_url: ""
         roles_key: preferred_username
-    actionGroupsSecret:
-    configSecret:
-    internalUsersSecret:
-    rolesSecret:
-    rolesMappingSecret:
-    tenantsSecret:
+    actionGroupsSecret: ""
+    configSecret: ""
+    internalUsersSecret: ""
+    rolesSecret: ""
+    rolesMappingSecret: ""
+    tenantsSecret: ""
     # The following option simplifies securityConfig by using a single secret and specifying the respective secrets in the corresponding files instead of creating different secrets for config,internal users, roles, roles mapping and tenants
     # Note that this is an alternative to the above secrets and shouldn't be used if the above secrets are used
     config:
-      securityConfigSecret:
+      securityConfigSecret: ""
       data: {}
 #        config.yml: |-
 #        internal_users.yml: |-
@@ -320,7 +320,7 @@ opensearch:
         crt: ""
         key: ""
         ca: ""
-      existingCertSecret:
+      existingCertSecret: ""
       existingCertSecretCertSubPath: tls.crt
       existingCertSecretKeySubPath: tls.key
       existingCertSecretRootCASubPath: ca.crt
@@ -329,7 +329,7 @@ opensearch:
         crt: ""
         key: ""
         ca: ""
-      existingCertSecret:
+      existingCertSecret: ""
       existingCertSecretCertSubPath: tls.crt
       existingCertSecretKeySubPath: tls.key
       existingCertSecretRootCASubPath: ca.crt
@@ -338,7 +338,7 @@ opensearch:
         crt: ""
         key: ""
         ca: ""
-      existingCertSecret:
+      existingCertSecret: ""
       existingCertSecretCertSubPath: tls.crt
       existingCertSecretKeySubPath: tls.key
       existingCertSecretRootCASubPath: ca.crt
@@ -357,7 +357,7 @@ opensearch:
       ## Requires persistence.enabled: true
       ## If defined, PVC must be created manually before volume will be bound
       ##
-      existingClaim:
+      existingClaim: ""
 
       ## The subdirectory of the volume to mount to, useful in dev environments
       ## and one PV for multiple services.
@@ -444,7 +444,7 @@ opensearch:
       ## Requires persistence.enabled: true
       ## If defined, PVC must be created manually before volume will be bound
       ##
-      existingClaim:
+      existingClaim: ""
 
       ## The subdirectory of the volume to mount to, useful in dev environments
       ## and one PV for multiple services.
@@ -531,7 +531,7 @@ opensearch:
       ## Requires persistence.enabled: true
       ## If defined, PVC must be created manually before volume will be bound
       ##
-      existingClaim:
+      existingClaim: ""
 
       ## The subdirectory of the volume to mount to, useful in dev environments
       ## and one PV for multiple services.
@@ -778,11 +778,11 @@ opensearch:
 
   transportKeyPassphrase:
     enabled: false
-    passPhrase:
+    passPhrase: ""
 
   sslKeyPassphrase:
     enabled: false
-    passPhrase:
+    passPhrase: ""
 
   maxMapCount: 262144
 
@@ -799,7 +799,7 @@ opensearch:
     create: true
     ## The name of the ServiceAccount to use.
     ## If not set and create is true, a name is generated using the fullname template
-    name:
+    name: ""
 
   tlsInit:
     resources:
@@ -851,14 +851,14 @@ monitoring:
     minSeconds: 5
     indicesPattern: "*"
   thresholds:
-    lagAlert:
+    lagAlert: -1
     slowQuerySecondsAlert: 10
 
-  opensearchHost:
+  opensearchHost: ""
   opensearchPort: 9200
   opensearchExecPluginTimeout: "15s"
 
-  opensearchDbaasAdapterHost:
+  opensearchDbaasAdapterHost: ""
   opensearchDbaasAdapterPort: 8080
 
   resources:
@@ -919,9 +919,9 @@ dbaasAdapter:
   registrationAuthUsername: ""
   registrationAuthPassword: ""
 
-  opensearchHost:
+  opensearchHost: ""
   opensearchPort: 9200
-  opensearchProtocol:
+  opensearchProtocol: "https"
   opensearchRepo: "snapshots"
   opensearchRepoRoot: "/usr/share/opensearch"
   opensearchClusterVersion: ""

@@ -148,7 +148,7 @@ spec:
             severity: high
             namespace: {{ .Release.Namespace }}
             service: {{ .Release.Name }}
-        {{- if .Values.monitoring.thresholds.lagAlert }}
+        {{- if eq (include "monitoring.thresholds.lagAlert.defined" .) "true" }}
         - alert: OpenSearchReplicationTooHighLagAlert
           annotations:
             description: 'OpenSearch Replication has Index with too high Lag.'
