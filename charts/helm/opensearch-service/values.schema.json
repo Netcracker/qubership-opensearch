@@ -124,12 +124,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/curator/properties/resources/properties/limits/properties/cpu",
                                     "title": "The curator.resources.limits.cpu schema",
                                     "description": "The maximum number of CPUs the curator and indices cleaner containers should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "200m"
                                 },
                                 "memory": {
@@ -150,12 +150,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/curator/properties/resources/properties/requests/properties/cpu",
                                     "title": "The curator.resources.requests.cpu schema",
                                     "description": "The minimum number of CPUs the curator and indices cleaner containers should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "200m"
                                 },
                                 "memory": {
@@ -528,12 +528,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/dashboards/properties/resources/properties/limits/properties/cpu",
                                     "title": "The dashboards.resources.limits.cpu schema",
                                     "description": "The maximum number of CPUs the dashboards' container should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "100m"
                                 },
                                 "memory": {
@@ -554,12 +554,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/dashboards/properties/resources/properties/requests/properties/cpu",
                                     "title": "The dashboards.resources.requests.cpu schema",
                                     "description": "The minimum number of CPUs the dashboards' container should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "100m"
                                 },
                                 "memory": {
@@ -836,7 +836,7 @@
                     "$id": "#/properties/dbaasAdapter/properties/opensearchProtocol",
                     "title": "The dbaasAdapter.opensearchProtocol schema",
                     "description": "The protocol of communication with the OpenSearch",
-                    "default": "https"
+                    "default": ""
                 },
                 "opensearchRepo": {
                     "type": "string",
@@ -880,12 +880,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/dbaasAdapter/properties/resources/properties/limits/properties/cpu",
                                     "title": "The dbaasAdapter.resources.limits.cpu schema",
                                     "description": "The maximum number of CPUs the DBaaS adapter container should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "200m"
                                 },
                                 "memory": {
@@ -906,12 +906,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/dbaasAdapter/properties/resources/properties/requests/properties/cpu",
                                     "title": "The dbaasAdapter.resources.requests.cpu schema",
                                     "description": "The minimum number of CPUs the DBaaS adapter container should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "200m"
                                 },
                                 "memory": {
@@ -1153,12 +1153,12 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "$id": "#/properties/global/properties/disasterRecovery/properties/resources/properties/limits/properties/cpu",
                                             "title": "The global.disasterRecovery.resources.limits.cpu schema",
                                             "description": "The maximum number of CPUs the disaster recovery daemon container should use",
                                             "internal": true,
                                             "envSpecific": true,
+                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "default": "100m"
                                         },
                                         "memory": {
@@ -1179,12 +1179,12 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "$id": "#/properties/global/properties/disasterRecovery/properties/resources/properties/requests/properties/cpu",
                                             "title": "The global.disasterRecovery.resources.requests.cpu schema",
                                             "description": "The minimum number of CPUs the disaster recovery daemon container should use",
                                             "internal": true,
                                             "envSpecific": true,
+                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "default": "25m"
                                         },
                                         "memory": {
@@ -1579,12 +1579,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/integrationTests/properties/resources/properties/limits/properties/cpu",
                                     "title": "The integrationTests.resources.limits.cpu schema",
                                     "description": "The maximum number of CPUs the container should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "400m"
                                 },
                                 "memory": {
@@ -1605,12 +1605,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/integrationTests/properties/resources/properties/requests/properties/cpu",
                                     "title": "The integrationTests.resources.requests.cpu schema",
                                     "description": "The minimum number of CPUs the container should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "200m"
                                 },
                                 "memory": {
@@ -1839,12 +1839,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/monitoring/properties/resources/properties/limits/properties/cpu",
                                     "title": "The monitoring.resources.limits.cpu schema",
                                     "description": "The maximum number of CPUs the monitoring container should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "200m"
                                 },
                                 "memory": {
@@ -1865,12 +1865,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/monitoring/properties/resources/properties/requests/properties/cpu",
                                     "title": "The monitoring.resources.requests.cpu schema",
                                     "description": "The minimum number of CPUs the monitoring container should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "200m"
                                 },
                                 "memory": {
@@ -2205,12 +2205,12 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "$id": "#/properties/opensearch/properties/arbiter/properties/resources/properties/limits/properties/cpu",
                                             "title": "The opensearch.arbiter.resources.limits.cpu schema",
                                             "description": "The maximum number of CPUs the OpenSearch arbiter node container should use",
                                             "internal": true,
                                             "envSpecific": true,
+                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "default": "500m"
                                         },
                                         "memory": {
@@ -2231,12 +2231,12 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "$id": "#/properties/opensearch/properties/arbiter/properties/resources/properties/requests/properties/cpu",
                                             "title": "The opensearch.arbiter.resources.requests.cpu schema",
                                             "description": "The minimum number of CPUs the OpenSearch arbiter node container should use",
                                             "internal": true,
                                             "envSpecific": true,
+                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "default": "200m"
                                         },
                                         "memory": {
@@ -2512,12 +2512,12 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "$id": "#/properties/opensearch/properties/client/properties/resources/properties/limits/properties/cpu",
                                             "title": "The opensearch.client.resources.limits.cpu schema",
                                             "description": "The maximum number of CPUs the OpenSearch client node container should use",
                                             "internal": true,
                                             "envSpecific": true,
+                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "default": "1"
                                         },
                                         "memory": {
@@ -2538,12 +2538,12 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "$id": "#/properties/opensearch/properties/client/properties/resources/properties/requests/properties/cpu",
                                             "title": "The opensearch.client.resources.requests.cpu schema",
                                             "description": "The minimum number of CPUs the OpenSearch client node container should use",
                                             "internal": true,
                                             "envSpecific": true,
+                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "default": "200m"
                                         },
                                         "memory": {
@@ -2847,12 +2847,12 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "$id": "#/properties/opensearch/properties/data/properties/resources/properties/limits/properties/cpu",
                                             "title": "The opensearch.data.resources.limits.cpu schema",
                                             "description": "The maximum number of CPUs the OpenSearch data node container should use",
                                             "internal": true,
                                             "envSpecific": true,
+                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "default": "500m"
                                         },
                                         "memory": {
@@ -2873,12 +2873,12 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "$id": "#/properties/opensearch/properties/data/properties/resources/properties/requests/properties/cpu",
                                             "title": "The opensearch.data.resources.requests.cpu schema",
                                             "description": "The minimum number of CPUs the OpenSearch data node container should use",
                                             "internal": true,
                                             "envSpecific": true,
+                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "default": "200m"
                                         },
                                         "memory": {
@@ -3259,12 +3259,12 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "$id": "#/properties/opensearch/properties/master/properties/resources/properties/limits/properties/cpu",
                                             "title": "The opensearch.master.resources.limits.cpu schema",
                                             "description": "The maximum number of CPUs the OpenSearch master node container should use",
                                             "internal": true,
                                             "envSpecific": true,
+                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "default": "500m"
                                         },
                                         "memory": {
@@ -3285,12 +3285,12 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "$id": "#/properties/opensearch/properties/master/properties/resources/properties/requests/properties/cpu",
                                             "title": "The opensearch.master.resources.requests.cpu schema",
                                             "description": "The minimum number of CPUs the OpenSearch master node container should use",
                                             "internal": true,
                                             "envSpecific": true,
+                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "default": "200m"
                                         },
                                         "memory": {
@@ -3977,12 +3977,12 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "$id": "#/properties/opensearch/properties/tlsInit/properties/resources/properties/limits/properties/cpu",
                                             "title": "The opensearch.tlsInit.resources.limits.cpu schema",
                                             "description": "The maximum number of CPUs the job for TLS initialization should use",
                                             "internal": true,
                                             "envSpecific": true,
+                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "default": "100m"
                                         },
                                         "memory": {
@@ -4003,12 +4003,12 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "$id": "#/properties/opensearch/properties/tlsInit/properties/resources/properties/requests/properties/cpu",
                                             "title": "The opensearch.tlsInit.resources.requests.cpu schema",
                                             "description": "The minimum number of CPUs the job for TLS initialization should use",
                                             "internal": true,
                                             "envSpecific": true,
+                                            "comment": "don't use type field, because it breaks backward compatibility",
                                             "default": "25m"
                                         },
                                         "memory": {
@@ -4114,12 +4114,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/operator/properties/resources/properties/limits/properties/cpu",
                                     "title": "The operator.resources.limits.cpu schema",
                                     "description": "The maximum number of CPUs the operator container should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "100m"
                                 },
                                 "memory": {
@@ -4140,12 +4140,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/operator/properties/resources/properties/requests/properties/cpu",
                                     "title": "The operator.resources.requests.cpu schema",
                                     "description": "The minimum number of CPUs the operator container should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "25m"
                                 },
                                 "memory": {
@@ -4238,12 +4238,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/podScheduler/properties/resources/properties/limits/properties/cpu",
                                     "title": "The podScheduler.resources.limits.cpu schema",
                                     "description": "The maximum number of CPUs the Pod Scheduler container should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "50m"
                                 },
                                 "memory": {
@@ -4264,12 +4264,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/podScheduler/properties/resources/properties/requests/properties/cpu",
                                     "title": "The podScheduler.resources.requests.cpu schema",
                                     "description": "The minimum number of CPUs the Pod Scheduler container should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "15m"
                                 },
                                 "memory": {
@@ -4362,12 +4362,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/statusProvisioner/properties/resources/properties/limits/properties/cpu",
                                     "title": "The statusProvisioner.resources.limits.cpu schema",
                                     "description": "The maximum number of CPUs the container should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "100m"
                                 },
                                 "memory": {
@@ -4388,12 +4388,12 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "$id": "#/properties/statusProvisioner/properties/resources/properties/requests/properties/cpu",
                                     "title": "The statusProvisioner.resources.requests.cpu schema",
                                     "description": "The minimum number of CPUs the container should use",
                                     "internal": true,
                                     "envSpecific": true,
+                                    "comment": "don't use type field, because it breaks backward compatibility",
                                     "default": "50m"
                                 },
                                 "memory": {
