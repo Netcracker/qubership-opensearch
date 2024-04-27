@@ -1465,3 +1465,12 @@ Ingress host for OpenSearch
     {{- end -}}
   {{- end -}}
 {{- end -}}
+
+
+{{- define "monitoring.lagAlertThresholdDefined" -}}
+  {{- if .Values.monitoring.thresholds.lagAlert }}
+    {{- gt .Values.monitoring.thresholds.lagAlert -1 }}
+  {{- else -}}
+    {{- "false" }}
+  {{- end -}}
+{{- end -}}
