@@ -16,7 +16,7 @@ In summary, OpenSearch is necessary for businesses as it empowers them to delive
 
 ## Netcracker OpenSearch Delivery and Features
 
-The Netcracker platform provides OpenSearch deployment to Kubernetes/OpenShift using helm chart based on community OpenSearch Helm chart with own operator and additional features.
+The Netcracker platform provides OpenSearch deployment to Kubernetes/OpenShift using helm chart based on community OpenSearch Helm chart with its own operator and additional features.
 The deployment procedure and additional features include the following:
 
 * Support of Netcracker deployment jobs for HA scheme and different configurations. For more information, refer to the [Installation of OpenSearch](/docs/public/installation.md) section.
@@ -27,33 +27,34 @@ The deployment procedure and additional features include the following:
 * Disaster Recovery scheme with data replication. For more information, refer to the [OpenSearch Disaster Recovery](/docs/public/disaster-recovery.md) section in the _Cloud Platform Disaster Recovery Guide_.
 
 # OpenSearch Components
+The following image illustrates the components of OpenSearch.
 
 ![Application Overview](/docs/public/images/opensearch_components_overview.drawio.png)
 
 ## OpenSearch Operator
 
 The OpenSearch Operator is a microservice designed specifically for Kubernetes environments. 
-It simplifies management of OpenSearch clusters, which are critical for distributed coordination.
+It simplifies the management of OpenSearch clusters, which are critical for distributed coordination.
 With the OpenSearch Operator, administrators can easily maintain their OpenSearch security configurations, focusing on other important aspects of their applications without worrying about the intricacies of cluster management.
 
-In addition, OpenSearch operator performs disaster recovery logic and orchestrates OpenSearch switchover and failover operations. 
+In addition, the OpenSearch operator performs disaster recovery logic and orchestrates OpenSearch switchover and failover operations. 
 
 ## OpenSearch
 
-The OpenSearch is custom distribution of original OpenSearch adapted for cloud environment, offering additional features and tools for enhanced functionality and management. 
+OpenSearch is custom distribution of original OpenSearch adapted for the cloud environment, offering additional features and tools for enhanced functionality and management. 
 It incorporates logging capabilities to capture and analyze important system events. 
 Additionally, it includes health check functionalities and other tools, streamlining the monitoring and maintenance of OpenSearch clusters. 
 With this enhanced Docker container, users can effortlessly deploy and manage robust and secure OpenSearch environments with comprehensive tooling support.
 
 ## OpenSearch Curator
 
-The OpenSearch Curator is a microservice that offers a convenient REST API for performing backups and restores of OpenSearch indices, templates and aliases using OpenSearch Snapshot API. 
+The OpenSearch Curator is a microservice that offers a convenient REST API for performing backups and restores of OpenSearch indices, templates, and aliases using the OpenSearch Snapshot API. 
 It enables users to initiate backups and restores programmatically, making it easier to automate these processes. 
 Additionally, the daemon allows users to schedule regular backups, ensuring data protection and disaster recovery. 
 Furthermore, it offers the capability to store backups on remote S3 storage, providing a secure and scalable solution for long-term data retention.
 
-One more feature of OpenSearch Curator is cleaning old indices by provided configuration pattern and schedule. 
-It  provides significant business value by optimizing storage utilization, improving search performance, and reducing operational costs associated with managing and maintaining large volumes of outdated data.
+One more feature of the OpenSearch Curator is cleaning old indices by a specified configuration pattern and schedule. 
+It provides significant business value by optimizing storage utilization, improving search performance, and reducing operational costs associated with managing and maintaining large volumes of outdated data.
 
 ## OpenSearch Monitoring
 
@@ -65,18 +66,18 @@ With OpenSearch Monitoring, users can effectively monitor the health and perform
 
 ## DBaaS Adapter
 
-The DBaaS Adapter microservice implements the Database-as-a-Service (DBaaS) approach for OpenSearch. In the terms of DBaaS OpenSearch the database is a logical scope of entities (indices, aliases and templates) with the same prefix name.
-When users create database the DBaaS Adapter generates prefix and creates user with right for all entities of generated prefix name.
+The DBaaS Adapter microservice implements the Database-as-a-Service (DBaaS) approach for OpenSearch. In terms of DBaaS OpenSearch, the database is a logical scope of entities (indices, aliases and templates) with the same prefix name.
+When users create a database, the DBaaS Adapter generates a prefix and creates a user with permissisons for all entities of the generated prefix name.
 
 ## OpenSearch Dashboard
 
 The OpenSearch Dashboard is a user interface (UI) tool designed for OpenSearch by Amazon, providing a user-friendly platform to manage OpenSearch indices and perform read and write operations. 
-With AKHQ, users can easily navigate and monitor OpenSearch indices, manage security and monitor performance. 
+With AKHQ, users can easily navigate and monitor OpenSearch indices, manage security, and monitor performance. 
 It simplifies OpenSearch administration tasks, enabling efficient management of OpenSearch clusters through a comprehensive and intuitive interface.
 
 ## Pod Scheduler
 
-The Pod Scheduler is a service running as a pod in Kubernetes, is responsible for binding specific pods of the OpenSearch StatefulSet to designated Kubernetes nodes based on configuration. 
+The Pod Scheduler service, running as a pod in Kubernetes, is responsible for binding specific pods of the OpenSearch StatefulSet to designated Kubernetes nodes based on configuration. 
 This scheduler ensures that pods requiring host-path persistent volumes are assigned to the appropriate nodes, aligning with the defined configuration. 
 By orchestrating this allocation process, the scheduler optimizes resource utilization and enables efficient utilization of host-path persistent volumes within the Kubernetes cluster.
 
@@ -85,11 +86,11 @@ By orchestrating this allocation process, the scheduler optimizes resource utili
 The Status Provisioner service is designed to monitor the health of all OpenSearch components and relay their status information in the App | DP Deployer contract. 
 It checks the availability and functionality of various OpenSearch components after deployment that they are functioning properly. 
 By providing this status information in the Deployer contract, the Status Provisioner service enables seamless integration with other systems that rely on the health and operational status of OpenSearch components.
-After providing status the Status Provisioner pod is auto-removed.
+After providing the status, the Status Provisioner pod is auto-removed.
 
 ## Pre-Install Jobs
 
-The set of pre-install hooks which allow to prepare environment for OpenSearch installation. It includes:
+The set of pre-install hooks that allow to prepare the environment for OpenSearch installation. It includes:
 
 * TLS Init Job - generate self-signed certificates for OpenSearch modules.
 
@@ -98,25 +99,27 @@ The set of pre-install hooks which allow to prepare environment for OpenSearch i
 ## On-Prem
 
 ### HA Joint Deployment Scheme
+The following image shows the OpenSearch HA deployment scheme. 
 
 ![HA Scheme](/docs/public/images/opensearch_on_prem_deploy.drawio.png)
 
-Following the above pictures, let us describe the main parts of the OpenSearch K8s deployment:
+Following the above picture, let us describe the main parts of the OpenSearch K8s deployment:
 
 * The minimal number of replicas for HA scheme of OpenSearch is 3.
-* OpenSearch pods are distributed through Kubernetes nodes and availability zones based on affinity policy during deployment.
+* OpenSearch pods are distributed through Kubernetes nodes and availability zones based on the affinity policy during deployment.
 * Each OpenSearch pod has its own Persistent Volume storage.
-* In addition to OpenSearch main storage, the OpenSearch Backup Daemon pod has its own Persistent Volume for backups.
-* OpenSearch Monitoring pod is deployed near OpenSearch cluster and collects corresponding metrics.
-* OpenSearch Dashboard pod is deployed with Ingress to access to UI.
-* DBaaS Adapter pod communicates with DBaaS Aggregator and perform corresponding operations to OpenSearch.
+* In addition to the OpenSearch main storage, the OpenSearch Backup Daemon pod has its own Persistent Volume for backups.
+* The OpenSearch Monitoring pod is deployed near the OpenSearch cluster and collects the corresponding metrics.
+* The OpenSearch Dashboard pod is deployed with Ingress to access the UI.
+* The DBaaS Adapter pod communicates with the DBaaS Aggregator and performs the corresponding operations in OpenSearch.
 * All components are deployed by Helm.
 
 ### Non-HA Deployment Scheme
 
-For a non-HA deployment scheme, it is possible to use one pod of OpenSearch cluster.
+For a non-HA deployment scheme, it is possible to use one pod of the OpenSearch cluster.
 
 ### HA Separated Deployment Scheme
+The following image shows the OpenSearch HA deployment sheme in the separated mode.
 
 ![HA Separated Scheme](/docs/public/images/opensearch_on_prem_deploy_separated.drawio.png)
 
@@ -124,7 +127,7 @@ In the separated mode, it is possible to deploy OpenSearch pods with different r
 
 * Master nodes perform coordination and partition assignment. They also require small storage to store meta information.
 * Data nodes store indices data.
-* Client nodes accept client request and forward then to corresponding master nodes.
+* Client nodes accept client requests and forward them to the corresponding master nodes.
 
 ### DR Deployment Scheme
 
@@ -132,11 +135,11 @@ The Disaster Recovery scheme of OpenSearch deployment assumes that two independe
 
 ![DR Scheme](/docs/public/images/opensearch_dr_deploy.drawio.png)
 
-The OpenSearch provides replication of indices data between OpenSearch clusters via Cross Cluster Replication plugin (red arrows).
+OpenSearch provides replication of indices data between the OpenSearch clusters via the Cross Cluster Replication plugin (red arrows).
 
 For more information about these schemes, refer to the [OpenSearch Disaster Recovery](/docs/public/disaster-recovery.md) section in the _Cloud Platform Disaster Recovery Guide_.
 
-## Integration With Managed Services
+## Integration with Managed Services
 
 ### Google Cloud
 
@@ -144,8 +147,8 @@ Not Applicable; the default HA scheme is used for the deployment to Google Cloud
 
 ### AWS OpenSearch
 
-The OpenSearch Service allows you to deploy OpenSearch supplementary services (Monitoring, DBaaS Adapter, Curator) without deploying OpenSearch, using Amazon OpenSearch connection and credentials. 
-Thus, the features and functions of these services are adopted to Amazon OpenSearch and available as for Netcracker OpenSearch delivery. 
+The OpenSearch Service allows you to deploy OpenSearch supplementary services (Monitoring, DBaaS Adapter, Curator) without deploying OpenSearch, using the Amazon OpenSearch connection and credentials. 
+Thus, the features and functions of these services are adapted to Amazon OpenSearch and available as for Netcracker OpenSearch delivery. 
 
 ![AWS Scheme](/docs/public/images/opensearch_aws_deploy.drawio.png)
 
