@@ -1501,3 +1501,11 @@ Ingress host for OpenSearch
     {{- printf "deployment %s-service-operator %s-disaster-recovery %s, " (include "opensearch.fullname" .) (include "opensearch.fullname" .) (include "opensearch-service.findImage" (list . "prod.platform.streaming_disaster-recovery-daemon")) -}}
   {{- end -}}
 {{- end -}}
+
+{{- define "monitoring.lagAlertThresholdDefined" -}}
+  {{- if .Values.monitoring.thresholds.lagAlert }}
+    {{- gt .Values.monitoring.thresholds.lagAlert -1 }}
+  {{- else -}}
+    {{- "false" }}
+  {{- end -}}
+{{- end -}}
