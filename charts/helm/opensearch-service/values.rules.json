@@ -1,0 +1,25 @@
+{
+  "^(.*).resources.(requests|limits).cpu$": {
+    "comment": "Add flag for all cpu parameters",
+    "add": {
+      "internal": true,
+      "envSpecific": true,
+      "comment": "don't use type field, because it breaks backward compatibility"
+    },
+    "remove": ["type"]
+  },
+  "^(.*).resources.(requests|limits).memory$": {
+    "comment": "Add flag for all memory parameters",
+    "add": {
+      "internal": true,
+      "envSpecific": true
+    }
+  },
+  "^opensearch.(master|arbiter|data|client).(replicas|javaOpts)$": {
+    "comment": "Add flag for OpenSearch parameters",
+    "add": {
+      "internal": true,
+      "envSpecific": true
+    }
+  }
+}
