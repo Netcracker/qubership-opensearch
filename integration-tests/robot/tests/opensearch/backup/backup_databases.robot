@@ -5,7 +5,7 @@ ${OPENSEARCH_CURATOR_PORT}       %{OPENSEARCH_CURATOR_PORT}
 ${OPENSEARCH_CURATOR_USERNAME}   %{OPENSEARCH_CURATOR_USERNAME=}
 ${OPENSEARCH_CURATOR_PASSWORD}   %{OPENSEARCH_CURATOR_PASSWORD=}
 ${RETRY_TIME}                    300s
-${RETRY_INTERVAL}                10s
+${RETRY_INTERVAL}                5s
 
 *** Settings ***
 Resource  ../shared/keywords.robot
@@ -36,10 +36,15 @@ Delete Databases
     FOR  ${db}  IN  ${database}  ${database_two}  ${renaming_database}
         Delete OpenSearch Index  ${db}*
         Delete OpenSearch Index Template  ${db}*
-        Sleep  5s
+        Delete OpenSearch Component Template  ${db}*
+        Delete OpenSearch Template  ${db}*
         ${response}=  Get OpenSearch Index  ${db}*
         Check Response Is Empty  ${response}
         ${response}=  Get OpenSearch Index Template  ${db}*
+        Should Be Equal As Strings  ${response.status_code}  404
+        ${response}=  Get OpenSearch Component Template  ${db}*
+        Should Be Equal As Strings  ${response.status_code}  404
+        ${response}=  Get OpenSearch Template  ${db}*
         Should Be Equal As Strings  ${response.status_code}  404
         ${response}=  Get OpenSearch Alias  ${db}*
         Check Response Is Empty  ${response}
@@ -94,7 +99,7 @@ Delete Backup
 
 *** Test Cases ***
 Granular Backup And Restore With Alias
-    [Tags]  opensearch  backup  backup_databases  restore_with_alias
+    [Tags]  opensearch  backup  granular_backup  backup_databases  restore_with_alias
     ${index_name}=  Generate Index Name  ${database}
     ${document_name}=  Create Index With Generated Data  ${index_name}
     Create OpenSearch Alias  ${index_name}  ${database}-alias
@@ -112,7 +117,7 @@ Granular Backup And Restore With Alias
     [Teardown]  Run Keywords  Delete Databases  AND  Delete Backup  ${backup_id}
 
 Granular Backup And Restore With Template
-    [Tags]  opensearch  backup  backup_databases  restore_with_template
+    [Tags]  opensearch  backup  granular_backup  backup_databases  restore_with_template
     Create OpenSearch Index Template  ${database}-template  ${database}*  {"number_of_shards":3, "number_of_replicas": 1}
     ${index_name}=  Generate Index Name  ${database}
     ${document_name}=  Create Index With Generated Data  ${index_name}
@@ -130,8 +135,57 @@ Granular Backup And Restore With Template
     Should Be Equal As Strings  ${response.status_code}  404
     [Teardown]  Run Keywords  Delete Databases  AND  Delete Backup  ${backup_id}
 
+Granular Backup And Restore With Component Templates
+    [Tags]  opensearch  backup  granular_backup  backup_databases  restore_with_component_templates
+    Create OpenSearch Component Template  ${database}-settings-template  settings={"number_of_shards":2, "number_of_replicas": 1}
+    Create OpenSearch Component Template  ${database}-alias-template  aliases={"${database}-alias": {}}
+    Create OpenSearch Index Template  ${database}-template  ${database}*  composed_of=["${database}-settings-template", "${database}-alias-template"]
+    ${index_name}=  Generate Index Name  ${database}
+    ${document_name}=  Create Index With Generated Data  ${index_name}
+
+    ${backup_id}=  Granular Backup  ["${database}"]
+    ${document_name_2}=  Generate And Add Unique Data To Index By Id  ${index_name}  3
+    Delete Databases
+    Granular Restore    ${backup_id}    ["${database}"]
+
+    Check OpenSearch Index Exists    ${index_name}
+    ${settings}=  Get Index Settings  ${index_name}
+    Should Be Equal As Strings  ${settings['${index_name}']['settings']['index']['number_of_shards']}  2
+    Check That Document Exists By Field  ${index_name}  name  ${document_name}
+    Check That Document Does Not Exist By Field  ${index_name}  name  ${document_name_2}
+    ${response}=  Get OpenSearch Index Template  ${database}-template
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Get OpenSearch Component Template  ${database}-settings-template
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Get OpenSearch Component Template  ${database}-alias-template
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Get OpenSearch Alias  ${database}-alias
+    Should Be Equal As Strings  ${response.status_code}  200
+    [Teardown]  Run Keywords  Delete Databases  AND  Delete Backup  ${backup_id}
+
+Granular Backup And Restore With Obsolete Template
+    [Tags]  opensearch  backup  granular_backup  backup_databases  restore_with_obsolete_template
+    Create OpenSearch Template  ${database}-obsolete-template  ${database}*  {"number_of_shards":5, "number_of_replicas": 1}
+    ${index_name}=  Generate Index Name  ${database}
+    ${document_name}=  Create Index With Generated Data  ${index_name}
+
+    ${backup_id}=  Granular Backup  ["${database}"]
+    ${document_name_2}=  Generate And Add Unique Data To Index By Id  ${index_name}  3
+    Granular Restore    ${backup_id}    ["${database}"]
+
+    Check OpenSearch Index Exists    ${index_name}
+    ${settings}=  Get Index Settings  ${index_name}
+    Should Be Equal As Strings  ${settings['${index_name}']['settings']['index']['number_of_shards']}  5
+    Check That Document Exists By Field  ${index_name}  name  ${document_name}
+    Check That Document Does Not Exist By Field  ${index_name}  name  ${document_name_2}
+    ${response}=  Get OpenSearch Template  ${database}-obsolete-template
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Get OpenSearch Alias  ${database}-alias
+    Should Be Equal As Strings  ${response.status_code}  404
+    [Teardown]  Run Keywords  Delete Databases  AND  Delete Backup  ${backup_id}
+
 Granular Backup And Restore With Template And Alias
-    [Tags]  opensearch  backup  backup_databases  restore_with_alias_and_template
+    [Tags]  opensearch  backup  granular_backup  backup_databases  restore_with_alias_and_template
     Create OpenSearch Index Template  ${database}-template  ${database}*  {"number_of_shards":3, "number_of_replicas": 1}  {"${database}-alias": {}}
     ${index_name}=  Generate Index Name  ${database}
     ${document_name}=  Create Index With Generated Data  ${index_name}
@@ -149,8 +203,9 @@ Granular Backup And Restore With Template And Alias
     [Teardown]  Run Keywords  Delete Databases  AND  Delete Backup  ${backup_id}
 
 Granular Backup And Renaming Restore
-    [Tags]  opensearch  backup  backup_databases  restore_with_rename
-    Create OpenSearch Index Template  ${database}-template  ${database}*  {"number_of_shards":3, "number_of_replicas": 1}  {"${database}-alias": {}}
+    [Tags]  opensearch  backup  granular_backup  backup_databases  restore_with_rename
+    Create OpenSearch Component Template  ${database}-alias-template  aliases={"${database}-alias": {}}
+    Create OpenSearch Index Template  ${database}-template  ${database}*  {"number_of_shards":3, "number_of_replicas": 1}  composed_of=["${database}-alias-template"]
     ${index_name_1}=  Generate Index Name  ${database}
     ${document_name_1}=  Create Index With Generated Data  ${index_name_1}
     ${index_name_2}=  Generate Index Name  ${database}
@@ -179,12 +234,14 @@ Granular Backup And Renaming Restore
     Check That Document Exists By Field  ${new_index_name}  name  ${document_name_2}
     ${response}=  Get OpenSearch Index Template  ${renaming_database}-template
     Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Get OpenSearch Component Template  ${renaming_database}-alias-template
+    Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Get OpenSearch Alias  ${renaming_database}-alias
     Should Be Equal As Strings  ${response.status_code}  200
     [Teardown]  Run Keywords  Delete Databases  AND  Delete Backup  ${backup_id}
 
 Granular Backup And Renaming Restore With Manual Data Deletion
-    [Tags]  opensearch  backup  backup_databases  restore_with_rename_after_data_deletion
+    [Tags]  opensearch  backup  granular_backup  backup_databases  restore_with_rename_after_data_deletion
     Create OpenSearch Index Template  ${database}-template  ${database}*  {"number_of_shards":3, "number_of_replicas": 1}  {"${database}-alias": {}}
     ${index_name}=  Generate Index Name  ${database}
     ${document_name}=  Create Index With Generated Data  ${index_name}
@@ -209,12 +266,12 @@ Granular Backup And Renaming Restore With Manual Data Deletion
     [Teardown]  Run Keywords  Delete Databases  AND  Delete Backup  ${backup_id}
 
 Granular Backup And Partial Renaming Restore
-    [Tags]  opensearch  backup  backup_databases  restore_with_partial_rename
+    [Tags]  opensearch  backup  granular_backup  backup_databases  restore_with_partial_rename
     Create OpenSearch Index Template  ${database}-template  ${database}*  {"number_of_shards":3, "number_of_replicas": 1}  {"${database}-alias": {}}
     ${index_name}=  Generate Index Name  ${database}
     ${document_name}=  Create Index With Generated Data  ${index_name}
 
-    Create OpenSearch Index Template  ${database_two}-template  ${database_two}*  {"number_of_shards":4, "number_of_replicas": 1}  {"${database_two}-alias": {}}
+    Create OpenSearch Template  ${database_two}-template  ${database_two}*  {"number_of_shards":4, "number_of_replicas": 1}  {"${database_two}-alias": {}}
     ${index_name_two}=  Generate Index Name  ${database_two}
     ${document_name_two}=  Create Index With Generated Data  ${index_name_two}
 
@@ -239,21 +296,23 @@ Granular Backup And Partial Renaming Restore
     ${settings}=  Get Index Settings  ${new_index_name}
     Should Be Equal As Strings  ${settings['${new_index_name}']['settings']['index']['number_of_shards']}  4
     Check That Document Exists By Field  ${new_index_name}  name  ${document_name_two}
-    ${response}=  Get OpenSearch Index Template  ${renaming_database}-template
+    ${response}=  Get OpenSearch Template  ${renaming_database}-template
     Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Get OpenSearch Alias  ${renaming_database}-alias
     Should Be Equal As Strings  ${response.status_code}  200
     [Teardown]  Run Keywords  Delete Databases  AND  Delete Backup  ${backup_id}
 
 Granular Backup And Restore With Cleanup
-    [Tags]  opensearch  backup  backup_databases  restore_with_cleanup
-    Create OpenSearch Index Template  ${database}-template  ${database}*  {"number_of_shards":3, "number_of_replicas": 1}  {"${database}-alias": {}}
+    [Tags]  opensearch  backup  granular_backup  backup_databases  restore_with_cleanup
+    Create OpenSearch Component Template  ${database}-settings-template  {"number_of_shards":3, "number_of_replicas": 1}
+    Create OpenSearch Index Template  ${database}-template  ${database}*  aliases={"${database}-alias": {}}  composed_of=["${database}-settings-template"]
     ${index_name}=  Generate Index Name  ${database}
     ${document_name}=  Create Index With Generated Data  ${index_name}
 
     ${backup_id}=  Granular Backup  ["${database}"]
     Delete Databases
-    Create OpenSearch Index Template  ${database}-template  ${database}*  {"number_of_shards":4, "number_of_replicas": 1}  {"${database}-alias": {}}
+    Create OpenSearch Component Template  ${database}-settings-template  {"number_of_shards":4, "number_of_replicas": 1}
+    Create OpenSearch Index Template  ${database}-template  ${database}*  aliases={"${database}-new-alias": {}}  composed_of=["${database}-settings-template"]
     ${index_name_2}=  Generate Index Name  ${database}
     ${document_name_2}=  Create Index With Generated Data  ${index_name_2}
     ${document_name_3}=  Create Index With Generated Data  ${index_name}
@@ -268,13 +327,17 @@ Granular Backup And Restore With Cleanup
     Check OpenSearch Index Does Not Exist  ${index_name_2}
     ${response}=  Get OpenSearch Index Template  ${database}-template
     Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Get OpenSearch Component Template  ${database}-settings-template
+    Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Get OpenSearch Alias  ${database}-alias
     Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Get OpenSearch Alias  ${database}-new-alias
+    Should Be Equal As Strings  ${response.status_code}  404
     [Teardown]  Run Keywords  Delete Databases  AND  Delete Backup  ${backup_id}
 
 Granular Backup And Renaming Restore With Cleanup
-    [Tags]  opensearch  backup  backup_databases  restore_with_rename_and_cleanup
-    Create OpenSearch Index Template  ${database}-template  ${database}*  {"number_of_shards":3, "number_of_replicas": 1}  {"${database}-alias": {}}
+    [Tags]  opensearch  backup  granular_backup  backup_databases  restore_with_rename_and_cleanup
+    Create OpenSearch Template  ${database}-template  ${database}*  {"number_of_shards":3, "number_of_replicas": 1}  {"${database}-alias": {}}
     ${index_name}=  Generate Index Name  ${database}
     ${document_name}=  Create Index With Generated Data  ${index_name}
 
@@ -282,12 +345,12 @@ Granular Backup And Renaming Restore With Cleanup
     ${index_name_two}=  Generate Index Name  ${database_two}
     ${document_name_two}=  Create Index With Generated Data  ${index_name_two}
 
-    Create OpenSearch Index Template  ${renaming_database}-template  ${renaming_database}*  {"number_of_shards":4, "number_of_replicas": 1}  {"${renaming_database}-alias": {}}
+    Create OpenSearch Template  ${renaming_database}-template  ${renaming_database}*  {"number_of_shards":4, "number_of_replicas": 1}  {"${renaming_database}-alias": {}}
     ${index_name_three}=  Generate Index Name  ${renaming_database}
     ${document_name_three}=  Create Index With Generated Data  ${index_name_three}
 
-    ${backup_id}=  Granular Backup  ["${database}"]
-    Granular Restore    ${backup_id}    ["${database}"]  renames={"${database}": "${renaming_database}"}  clean=true
+    ${backup_id}=  Granular Backup  ["${database}","${database_two}"]
+    Granular Restore    ${backup_id}    ["${database}","${database_two}"]  renames={"${database}": "${renaming_database}"}  clean=true
 
     Check OpenSearch Index Exists  ${index_name_two}
     Check That Document Exists By Field  ${index_name_two}  name  ${document_name_two}
@@ -298,7 +361,7 @@ Granular Backup And Renaming Restore With Cleanup
 
     Check OpenSearch Index Exists    ${index_name}
     Check That Document Exists By Field  ${index_name}  name  ${document_name}
-    ${response}=  Get OpenSearch Index Template  ${database}-template
+    ${response}=  Get OpenSearch Template  ${database}-template
     Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Get OpenSearch Alias  ${database}-alias
     Should Be Equal As Strings  ${response.status_code}  200
@@ -309,7 +372,7 @@ Granular Backup And Renaming Restore With Cleanup
     ${settings}=  Get Index Settings  ${new_index_name}
     Should Be Equal As Strings  ${settings['${new_index_name}']['settings']['index']['number_of_shards']}  3
     Check That Document Exists By Field  ${new_index_name}  name  ${document_name}
-    ${response}=  Get OpenSearch Index Template  ${renaming_database}-template
+    ${response}=  Get OpenSearch Template  ${renaming_database}-template
     Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Get OpenSearch Alias  ${renaming_database}-alias
     Should Be Equal As Strings  ${response.status_code}  200

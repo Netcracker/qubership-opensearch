@@ -735,7 +735,14 @@ func (r OpenSearchReconciler) createSnapshotsRepository(restClient *util.RestCli
 	requestBody := r.getSnapshotsRepositoryBody()
 	var statusCode int
 	var err error
+	var body []byte
 	for i := 0; i < attemptsNumber; i++ {
+		statusCode, body, err = restClient.SendRequest(http.MethodGet,
+			fmt.Sprintf("%s/*", requestPath), nil)
+		// repository recreation is required if snapshots folder is changed not by OpenSearch
+		if err == nil && statusCode == http.StatusNotFound && strings.Contains(string(body), "no_such_file_exception") {
+			r.deleteSnapshotsRepository(restClient, requestPath)
+		}
 		statusCode, _, err = restClient.SendRequest(http.MethodPut, requestPath, strings.NewReader(requestBody))
 		if err == nil && statusCode == http.StatusOK {
 			r.logger.Info("Snapshot repository is created")
@@ -744,6 +751,14 @@ func (r OpenSearchReconciler) createSnapshotsRepository(restClient *util.RestCli
 		time.Sleep(5 * time.Second)
 	}
 	return fmt.Errorf("snapshots repository is not created; response status code is %d", statusCode)
+}
+
+// deleteSnapshotsRepository deletes snapshots repository in OpenSearch
+func (r OpenSearchReconciler) deleteSnapshotsRepository(restClient *util.RestClient, path string) {
+	body, err := restClient.SendRequestWithStatusCodeCheck(http.MethodDelete, path, nil)
+	if err != nil {
+		r.logger.Error(err, fmt.Sprintf("Unable to remove OpenSearch repository: %s", body))
+	}
 }
 
 func (r OpenSearchReconciler) updateCompatibilityMode(restClient *util.RestClient) error {
