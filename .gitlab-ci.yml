@@ -8,10 +8,11 @@ variables:
   TAGS: NOTha
   # Name should be formed as follows: ci_master_openshift_sdntest_<namespace_name>_token
   CLOUD_TOKEN: ${ci_master_openshift_sdntest_opensearch_service_v2_token}
-  DATABASE_CI_TOOLS_IMAGE: "artifactorycn.netcracker.com:17008/product/prod.platform.databases_ci-tools:release_notes_latest"
+  DATABASE_CI_TOOLS_IMAGE: "artifactorycn.netcracker.com:17008/product/prod.platform.databases_ci-tools:master_latest"
   OPENSEARCH_PROPERTIES_FILE: "opensearch.properties"
   OPENSEARCH_TESTS_PROPERTIES_FILE: "opensearchtests.properties"
   JENKINS_URL: "https://cisrvrecn.netcracker.com"
+  SNIPPET_ID: 3126
 
 stages:
   - linter
@@ -23,7 +24,6 @@ stages:
   - deploytests
   - manifestValidation
   - promoteManifest
-  - milestones
   - releaseNotes
 
 workflow:
@@ -117,7 +117,9 @@ BuildTlsInit:
     - NETCRACKER-MEDIUM
   image: ${DATABASE_CI_TOOLS_IMAGE}
   variables:
-    DP_BUILD_JOB_NAME: "DP.Pub.Microservice_builder_v2"
+    JOB_USER: ${JENKINS_USER}
+    JOB_TOKEN: ${JENKINS_PASSWORD}
+    JOB_NAME: "DP.Pub.Microservice_builder_v2"
     ARTIFACTS_NUMBER: 1
     JOB_ARTIFACT_FILENAME: "docker-repository/build_env.properties"
   script:
@@ -258,11 +260,11 @@ ci-master tests DP deploy:
       allow_failure: true
   tags:
     - NETCRACKER
-  image: artifactorycn.netcracker.com:17008/product/prod.platform.databases_ci-tools:release_notes_latest
+  image: ${DATABASE_CI_TOOLS_IMAGE}
   variables:
     JOB_USER: "arla1017"
     JOB_TOKEN: "${cloud_deploy_token}"
-    DP_BUILD_JOB_NAME: "INFRA/job/groovy.deploy.v3"
+    JOB_NAME: "INFRA/job/groovy.deploy.v3"
     JENKINS_URL: "https://cloud-deployer.netcracker.com"
     DEPLOY_MODE: Clean Install
   script:
@@ -316,9 +318,11 @@ k8s2 APP opensearch deploy:
   allow_failure: true
   tags:
     - NETCRACKER
-  image: artifactorycn.netcracker.com:17008/product/prod.platform.databases_ci-tools:release_notes_latest
+  image: ${DATABASE_CI_TOOLS_IMAGE}
   variables:
-    DP_BUILD_JOB_NAME: "DP.Pub.Sandbox_Vulnerability_Scanner_v2"
+    JOB_USER: ${JENKINS_USER}
+    JOB_TOKEN: ${JENKINS_PASSWORD}
+    JOB_NAME: "DP.Pub.Sandbox_Vulnerability_Scanner_v2"
     JENKINS_URL: "https://cisrvrecn.netcracker.com"
   script:
     - export APP_VERSION=$(cat ./"$PROPERTIES_FILENAME" | grep URLS_APPLICATION-MANIFEST_TIMESTAMP | awk -F = '{print $2}')
@@ -391,7 +395,7 @@ manifest validation 2.11.1:
   stage: promoteManifest
   tags:
     - NETCRACKER
-  image: artifactorycn.netcracker.com:17008/product/prod.platform.databases_ci-tools:release_notes_latest
+  image: ${DATABASE_CI_TOOLS_IMAGE}
   only:
     - /^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$/
   script:
@@ -402,29 +406,21 @@ opensearch 2.11.1 promoteManifest:
   extends: .promoteManifest
   variables:
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
-    SNIPPET_ID: 3126
 
-# ReleaseNotes:
-#   stage: releaseNotes
-#   tags:
-#     - NETCRACKER
-#   only:
-#     - /^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$/
-#   variables:
-#     DOC_LINK: kafka-service-operator/documentation
-#     APP_DEP_NAME: kafka-service
-#   image: artifactorycn.netcracker.com:17008/product/prod.platform.databases_ci-tools:release_notes_latest
-#   script:
-#     - export DOCKER_IMAGE=$(cat ./result.properties | grep "DOCKER_NAME_TIMESTAMP" | awk -F = '{print $2}')
-#     - export APP_VERSION=$(cat ./"$RABBITMQ_PROPERTIES_FILE" | grep "UUID=" | awk -F = '{print $2}')')
-#     - python -u /scripts/changelog.py
-
-ManageMilestones:
-  stage: milestones
+ReleaseNotes:
+  stage: releaseNotes
   tags:
     - NETCRACKER
   only:
     - /^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$/
-  image: artifactorycn.netcracker.com:17008/product/prod.platform.databases_ci-tools:release_notes_latest
+  variables:
+    CI_PROJECT_NAMESPACE: PROD.Platform.ElasticStack
+    PREFIXES: "delivery/2.11.1"
+    TEMPLATE_SNIPPET_ID: 3262
+  image: ${DATABASE_CI_TOOLS_IMAGE}
+  needs:
+    - job: vulnerability report 2.11.1
+      artifacts: true
+    - job: opensearch 2.11.1 promoteManifest
   script:
-    - /scripts/milestones.sh
+    - python -u /scripts/release_notes.py
