@@ -74,8 +74,7 @@ Data Files Corrupted On Primary Shard
     [Tags]  ha  opensearch_ha  ha_data_files_corrupted_on_primary_shard
     ${uuid}=  Get Index Uuid  ${index_name}
     ${index_information}=  Get Index Information  ${index_name}
-    ${master_node}=  Get Master Node Name
-    ${row}=  Get Primary Shard Description To Corrupt  ${index_information}  ${master_node}
+    ${row}=  Get Primary Shard Description To Corrupt  ${index_information}
     ${command}=  Get Command To Corrupt Shard  ${uuid}  ${row['shard']}
     Execute Command In Pod  ${master_node}  ${OPENSEARCH_NAMESPACE}  ${command}
     Sleep  ${SLEEP_TIME}
