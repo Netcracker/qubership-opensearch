@@ -122,38 +122,38 @@ cloud:
 integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/disaster-recovery-daemon
-    location: master
+    location: 0.3.7
     docker-image-id: timestamp
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-opensearch
-    location: master
+    location: 0.3.1_2.11.1
     docker-image-id: timestamp
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/elasticsearch-telegraf
-    location: master
+    location: 0.1.26
     docker-image-id: timestamp
     deploy-param: opensearchMonitoring
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/dbaas-opensearch-adapter
-    location: master
+    location: 0.2.1
     docker-image-id: timestamp
     deploy-param: opensearchDbaasAdapter
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: master
+    location: 0.2.3
     docker-image-id: timestamp
     deploy-param: opensearchCurator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: master
+    location: 0.2.3
     prefix: elasticsearch_indices_cleaner
     docker-image-id: timestamp
     deploy-param: opensearchIndicesCleaner
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/deployment-status-provisioner
-    location: master
+    location: 0.0.20
     docker-image-id: timestamp
     deploy-param: deploymentStatusProvisioner
   - type: image
@@ -167,7 +167,7 @@ integration:
     deploy-param: kubectl
   - type: scripts
     repo: PROD.Platform.ElasticStack/deployment-utils
-    location: 0.1.1
+    location: 0.1.10
     alias: timestamp
     zip-name: devops-scripts.zip
     name: crd-upgrade
