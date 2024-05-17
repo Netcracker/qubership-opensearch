@@ -386,13 +386,13 @@ opensearch:
       annotations: {}
 
     resources:
-      limits:
-        cpu: 500m
-        memory: 1536Mi
       requests:
-        cpu: 200m
-        memory: 1536Mi
-    javaOpts: "-Xms718m -Xmx718m"
+        cpu: 250m
+        memory: 2Gi
+      limits:
+        cpu: 1000m
+        memory: 4Gi 
+    javaOpts: "-Xms1024m -Xmx1024m"
     podDisruptionBudget:
       enabled: false
       minAvailable: 1
@@ -473,13 +473,13 @@ opensearch:
       annotations: {}
 
     resources:
-      limits:
-        cpu: 500m
-        memory: 1536Mi
       requests:
-        cpu: 200m
-        memory: 1536Mi
-    javaOpts: "-Xms718m -Xmx718m"
+        cpu: 250m
+        memory: 2Gi
+      limits:
+        cpu: 1000m
+        memory: 4Gi 
+    javaOpts: "-Xms1024m -Xmx1024m"
     readinessProbe: {}
     livenessProbe:
       tcpSocket:
@@ -560,13 +560,13 @@ opensearch:
       annotations: {}
 
     resources:
-      limits:
-        cpu: 500m
-        memory: 1536Mi
       requests:
-        cpu: 200m
-        memory: 1536Mi
-    javaOpts: "-Xms718m -Xmx718m"
+        cpu: 250m
+        memory: 2Gi
+      limits:
+        cpu: 1000m
+        memory: 4Gi 
+    javaOpts: "-Xms1024m -Xmx1024m"
     podDisruptionBudget:
       enabled: false
       minAvailable: 1
