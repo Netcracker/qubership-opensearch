@@ -68,21 +68,6 @@ opensearch:
       subjectAlternativeName:
          additionalDnsNames: []
          additionalIpAddresses: []
-      transport:
-         existingCertSecret:
-         existingCertSecretCertSubPath: transport-crt.pem
-         existingCertSecretKeySubPath: transport-key.pem
-         existingCertSecretRootCASubPath: transport-root-ca.pem
-      rest:
-         existingCertSecret:
-         existingCertSecretCertSubPath: rest-crt.pem
-         existingCertSecretKeySubPath: rest-key.pem
-         existingCertSecretRootCASubPath: rest-root-ca.pem
-      admin:
-         existingCertSecret:
-         existingCertSecretCertSubPath: admin-crt.pem
-         existingCertSecretKeySubPath: admin-key.pem
-         existingCertSecretRootCASubPath: admin-root-ca.pem
 
 curator:
    tls:
@@ -119,7 +104,7 @@ You can automatically generate TLS-based secrets using Helm by specifying certif
         enabled: true
         cipherSuites: []
         generateCerts:
-          enabled: true
+          enabled: false
           certProvider: dev
           clusterIssuerName: ""
 
