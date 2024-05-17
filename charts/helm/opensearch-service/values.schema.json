@@ -31,21 +31,21 @@
                     "$id": "#/properties/curator/properties/dockerImage",
                     "title": "The curator.dockerImage schema",
                     "description": "The docker image of OpenSearch curator",
-                    "default": "Calculates automatically"
+                    "default": "artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_docker-elastic-curator:master_latest"
                 },
                 "dockerIndicesCleanerImage": {
                     "type": "string",
                     "$id": "#/properties/curator/properties/dockerIndicesCleanerImage",
                     "title": "The curator.dockerIndicesCleanerImage schema",
                     "description": "The docker image of OpenSearch indices cleaner",
-                    "default": "Calculates automatically"
+                    "default": "artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_docker-elastic-curator:master_latest_elasticsearch_indices_cleaner"
                 },
                 "enabled": {
                     "type": "boolean",
                     "$id": "#/properties/curator/properties/enabled",
                     "title": "The curator.enabled schema",
                     "description": "Whether the installation of OpenSearch curator is to be enabled",
-                    "default": true
+                    "default": false
                 },
                 "evictionPolicy": {
                     "type": "string",
@@ -59,7 +59,7 @@
                     "$id": "#/properties/curator/properties/imagePullPolicy",
                     "title": "The curator.imagePullPolicy schema",
                     "description": "The image pull policy for OpenSearch curator container",
-                    "default": "Always"
+                    "default": ""
                 },
                 "indicesCleanerConfiguration": {
                     "type": "array",
@@ -80,14 +80,14 @@
                     "$id": "#/properties/curator/properties/indicesCleanerSchedulerUnit",
                     "title": "The curator.indicesCleanerSchedulerUnit schema",
                     "description": "The scheduler unit which specifies measure for value in `curator",
-                    "default": "days"
+                    "default": ""
                 },
                 "indicesCleanerSchedulerUnitCount": {
                     "type": "string",
                     "$id": "#/properties/curator/properties/indicesCleanerSchedulerUnitCount",
                     "title": "The curator.indicesCleanerSchedulerUnitCount schema",
                     "description": "The count value for `curator",
-                    "default": "1"
+                    "default": ""
                 },
                 "nodeSelector": {
                     "type": "object",
@@ -101,7 +101,7 @@
                     "$id": "#/properties/curator/properties/opensearchHost",
                     "title": "The curator.opensearchHost schema",
                     "description": "The host address of OpenSearch, including the port",
-                    "default": "<name>-internal:9200"
+                    "default": ""
                 },
                 "password": {
                     "type": "string",
@@ -189,7 +189,7 @@
                     "$id": "#/properties/curator/properties/snapshotRepositoryName",
                     "title": "The curator.snapshotRepositoryName schema",
                     "description": "The name of snapshot repository in the OpenSearch",
-                    "default": "snapshots"
+                    "default": ""
                 },
                 "tls": {
                     "type": "object",
@@ -305,14 +305,14 @@
                     "$id": "#/properties/dashboards/properties/dockerImage",
                     "title": "The dashboards.dockerImage schema",
                     "description": "The docker image of dashboards",
-                    "default": "Calculates automatically"
+                    "default": "artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.11.1"
                 },
                 "enabled": {
                     "type": "boolean",
                     "$id": "#/properties/dashboards/properties/enabled",
                     "title": "The dashboards.enabled schema",
                     "description": "Whether the installation of Dashboards is to be enabled",
-                    "default": true
+                    "default": false
                 },
                 "envFrom": {
                     "type": "array",
@@ -368,7 +368,7 @@
                     "$id": "#/properties/dashboards/properties/imagePullPolicy",
                     "title": "The dashboards.imagePullPolicy schema",
                     "description": "The image pull policy for the dashboards' container",
-                    "default": "Always"
+                    "default": ""
                 },
                 "imagePullSecrets": {
                     "type": "array",
@@ -399,7 +399,7 @@
                             "$id": "#/properties/dashboards/properties/ingress/properties/enabled",
                             "title": "The dashboards.ingress.enabled schema",
                             "description": "Whether the dashboards' ingress is to be enabled",
-                            "default": true
+                            "default": false
                         },
                         "hosts": {
                             "type": "array",
@@ -426,8 +426,14 @@
                             "title": "The dashboards.ingress.hosts schema",
                             "description": "The list of host names for the dashboards' ingress",
                             "default": [
-                                "{\"host\": \"chart-example.local\"",
-                                "\"paths\": [{\"path\": \"/\"}]}"
+                                {
+                                    "host": "chart-example.local",
+                                    "paths": [
+                                        {
+                                            "path": "/"
+                                        }
+                                    ]
+                                }
                             ]
                         },
                         "tls": {
@@ -467,7 +473,7 @@
                                     "$id": "#/properties/dashboards/properties/opensearchAccount/properties/keyPassphrase/properties/enabled",
                                     "title": "The dashboards.opensearchAccount.keyPassphrase.enabled schema",
                                     "description": "Whether mounting in key passphrase for `opensearchAccount` is to be enabled",
-                                    "default": true
+                                    "default": false
                                 }
                             },
                             "$id": "#/properties/dashboards/properties/opensearchAccount/properties/keyPassphrase",
@@ -491,7 +497,7 @@
                     "$id": "#/properties/dashboards/properties/opensearchHosts",
                     "title": "The dashboards.opensearchHosts schema",
                     "description": "The OpenSearch hosts for dashboards to connect",
-                    "default": "<protocol>://<name>-internal:9200"
+                    "default": ""
                 },
                 "podAnnotations": {
                     "type": "object",
@@ -600,8 +606,7 @@
                                 "ALL"
                             ]
                         },
-                        "runAsNonRoot": true,
-                        "runAsUser": 1000
+                        "runAsNonRoot": true
                     }
                 },
                 "serverHost": {
@@ -745,21 +750,21 @@
                     "$id": "#/properties/dbaasAdapter/properties/dbaasAdapterAddress",
                     "title": "The dbaasAdapter.dbaasAdapterAddress schema",
                     "description": "The address of OpenSearch DBaaS adapter, where aggregator should send requests",
-                    "default": "<protocol>://dbaas-<name>-adapter.<namespace>:<port>"
+                    "default": ""
                 },
                 "dbaasAggregatorPhysicalDatabaseIdentifier": {
                     "type": "string",
                     "$id": "#/properties/dbaasAdapter/properties/dbaasAggregatorPhysicalDatabaseIdentifier",
                     "title": "The dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier schema",
                     "description": "The unique ID of physical database, which OpenSearch DBaaS adapter connects to",
-                    "default": "<namespace>"
+                    "default": ""
                 },
                 "dbaasAggregatorRegistrationAddress": {
                     "type": "string",
                     "$id": "#/properties/dbaasAdapter/properties/dbaasAggregatorRegistrationAddress",
                     "title": "The dbaasAdapter.dbaasAggregatorRegistrationAddress schema",
                     "description": "The address of DBaaS aggregator, which should register physical database",
-                    "default": "<protocol>://dbaas-aggregator.dbaas:<port>"
+                    "default": ""
                 },
                 "dbaasPassword": {
                     "type": "string",
@@ -780,21 +785,21 @@
                     "$id": "#/properties/dbaasAdapter/properties/dockerImage",
                     "title": "The dbaasAdapter.dockerImage schema",
                     "description": "The docker image of OpenSearch DBaaS adapter",
-                    "default": "Calculates automatically"
+                    "default": "artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_dbaas-opensearch-adapter:master_latest"
                 },
                 "enabled": {
                     "type": "boolean",
                     "$id": "#/properties/dbaasAdapter/properties/enabled",
                     "title": "The dbaasAdapter.enabled schema",
                     "description": "Whether the installation of OpenSearch DBaaS adapter is to be enabled",
-                    "default": true
+                    "default": false
                 },
                 "imagePullPolicy": {
                     "type": "string",
                     "$id": "#/properties/dbaasAdapter/properties/imagePullPolicy",
                     "title": "The dbaasAdapter.imagePullPolicy schema",
                     "description": "The image pull policy for OpenSearch DBaaS adapter container",
-                    "default": "Always"
+                    "default": ""
                 },
                 "netcrackerOpensearchClusterVersion": {
                     "type": "string",
@@ -822,7 +827,7 @@
                     "$id": "#/properties/dbaasAdapter/properties/opensearchHost",
                     "title": "The dbaasAdapter.opensearchHost schema",
                     "description": "The host address of OpenSearch",
-                    "default": "<name>.<namespace>"
+                    "default": ""
                 },
                 "opensearchPort": {
                     "type": "integer",
@@ -938,9 +943,7 @@
                     "$id": "#/properties/dbaasAdapter/properties/securityContext",
                     "title": "The dbaasAdapter.securityContext schema",
                     "description": "The pod-level security attributes and common container settings for OpenSearch DBaaS adapter pod",
-                    "default": {
-                        "runAsUser": 1000
-                    }
+                    "default": {}
                 },
                 "tls": {
                     "type": "object",
@@ -1076,14 +1079,14 @@
                                     "$id": "#/properties/global/properties/disasterRecovery/properties/httpAuth/properties/enabled",
                                     "title": "The global.disasterRecovery.httpAuth.enabled schema",
                                     "description": "Whether site manager authentication is to be enabled",
-                                    "default": true
+                                    "default": false
                                 },
                                 "restrictedEnvironment": {
                                     "type": "boolean",
                                     "$id": "#/properties/global/properties/disasterRecovery/properties/httpAuth/properties/restrictedEnvironment",
                                     "title": "The global.disasterRecovery.httpAuth.restrictedEnvironment schema",
                                     "description": "Whether the `system:auth-delegator` cluster role is to be bound to the OpenSearch operator service account",
-                                    "default": true
+                                    "default": false
                                 },
                                 "smNamespace": {
                                     "type": "string",
@@ -1109,7 +1112,7 @@
                             "$id": "#/properties/global/properties/disasterRecovery/properties/image",
                             "title": "The global.disasterRecovery.image schema",
                             "description": "The image of the OpenSearch Disaster Recovery container",
-                            "default": "Calculates automatically"
+                            "default": "artifactorycn.netcracker.com:17008/product/prod.platform.streaming_disaster-recovery-daemon:master_latest"
                         },
                         "indicesPattern": {
                             "type": "string",
@@ -1137,7 +1140,7 @@
                             "$id": "#/properties/global/properties/disasterRecovery/properties/replicationWatcherEnabled",
                             "title": "The global.disasterRecovery.replicationWatcherEnabled schema",
                             "description": "Whether the Replication Watcher feature is to be enabled",
-                            "default": true
+                            "default": false
                         },
                         "replicationWatcherIntervalSeconds": {
                             "type": "integer",
@@ -1214,7 +1217,7 @@
                                     "$id": "#/properties/global/properties/disasterRecovery/properties/serviceExport/properties/enabled",
                                     "title": "The global.disasterRecovery.serviceExport.enabled schema",
                                     "description": "Whether the `net",
-                                    "default": true
+                                    "default": false
                                 },
                                 "region": {
                                     "type": "string",
@@ -1318,15 +1321,13 @@
                                     "$id": "#/properties/global/properties/disasterRecovery/properties/certificates/properties/key",
                                     "type": "string",
                                     "title": "The global.disasterRecovery.certificates.key schema",
-                                    "description": "The private key in BASE64 format",
-                                    "default": ""
+                                    "description": "The private key in BASE64 format"
                                 },
                                 "ca": {
                                     "$id": "#/properties/global/properties/disasterRecovery/properties/certificates/properties/ca",
                                     "type": "string",
                                     "title": "The global.disasterRecovery.certificates.ca schema",
-                                    "description": "The root CA certificate in BASE64 format",
-                                    "default": ""
+                                    "description": "The root CA certificate in BASE64 format"
                                 }
                             }
                         }
@@ -1350,7 +1351,7 @@
                             "$id": "#/properties/global/properties/externalOpensearch/properties/enabled",
                             "title": "The global.externalOpensearch.enabled schema",
                             "description": "Whether external OpenSearch is to be used",
-                            "default": true
+                            "default": false
                         },
                         "nodesCount": {
                             "type": "integer",
@@ -1400,7 +1401,7 @@
                             "$id": "#/properties/global/properties/psp/properties/create",
                             "title": "The global.psp.create schema",
                             "description": "Whether `PodSecurityPolicy` is to be created and used",
-                            "default": true
+                            "default": false
                         }
                     },
                     "$id": "#/properties/global/properties/psp",
@@ -1429,7 +1430,7 @@
                             "$id": "#/properties/global/properties/tls/properties/enabled",
                             "title": "The global.tls.enabled schema",
                             "description": "Whether TLS is to be enabled for all OpenSearch services",
-                            "default": true
+                            "default": false
                         },
                         "generateCerts": {
                             "type": "object",
@@ -1521,14 +1522,14 @@
                     "$id": "#/properties/integrationTests/properties/dockerImage",
                     "title": "The integrationTests.dockerImage schema",
                     "description": "The docker image of OpenSearch integration tests",
-                    "default": "Calculates automatically"
+                    "default": "artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_integration-tests"
                 },
                 "enabled": {
                     "type": "boolean",
                     "$id": "#/properties/integrationTests/properties/enabled",
                     "title": "The integrationTests.enabled schema",
                     "description": "Whether the installation of OpenSearch integration tests is to be enabled",
-                    "default": true
+                    "default": false
                 },
                 "identityProviderUrl": {
                     "type": "string",
@@ -1739,7 +1740,7 @@
                     "$id": "#/properties/monitoring/properties/dockerImage",
                     "title": "The monitoring.dockerImage schema",
                     "description": "The docker image of OpenSearch monitoring",
-                    "default": "Calculates automatically"
+                    "default": "artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_elasticsearch-telegraf:master_latest"
                 },
                 "enabled": {
                     "type": "boolean",
@@ -1753,14 +1754,14 @@
                     "$id": "#/properties/monitoring/properties/imagePullPolicy",
                     "title": "The monitoring.imagePullPolicy schema",
                     "description": "The image pull policy for OpenSearch monitoring container",
-                    "default": "Always"
+                    "default": ""
                 },
                 "includeIndices": {
                     "type": "boolean",
                     "$id": "#/properties/monitoring/properties/includeIndices",
                     "title": "The monitoring.includeIndices schema",
                     "description": "Whether the collection of indices metrics is to be included in the Telegraf plugin",
-                    "default": true
+                    "default": false
                 },
                 "installDashboard": {
                     "type": "boolean",
@@ -1774,7 +1775,7 @@
                     "$id": "#/properties/monitoring/properties/monitoringCoreosGroup",
                     "title": "The monitoring.monitoringCoreosGroup schema",
                     "description": "Whether the `monitoringCoreosGroup` verbs are to be added to the OpenSearch service operator role",
-                    "default": true
+                    "default": false
                 },
                 "monitoringType": {
                     "type": "string",
@@ -1897,9 +1898,7 @@
                     "$id": "#/properties/monitoring/properties/securityContext",
                     "title": "The monitoring.securityContext schema",
                     "description": "The pod-level security attributes and common container settings for the OpenSearch monitoring pods",
-                    "default": {
-                        "runAsUser": 1000
-                    }
+                    "default": {}
                 },
                 "slowQueries": {
                     "type": "object",
@@ -1909,7 +1908,7 @@
                             "$id": "#/properties/monitoring/properties/slowQueries/properties/enabled",
                             "title": "The monitoring.slowQueries.enabled schema",
                             "description": "Whether the slow queries metric is to be enabled",
-                            "default": true
+                            "default": false
                         },
                         "indicesPattern": {
                             "type": "string",
@@ -1979,7 +1978,8 @@
                             "type": "integer",
                             "$id": "#/properties/monitoring/properties/thresholds/properties/lagAlert",
                             "title": "The monitoring.thresholds.lagAlert schema",
-                            "description": "The maximum value of replication lag before a replication alert occurs"
+                            "description": "The maximum value of replication lag before a replication alert occurs",
+                            "default": -1
                         },
                         "slowQuerySecondsAlert": {
                             "type": "integer",
@@ -2024,7 +2024,20 @@
                             "$id": "#/properties/opensearch/properties/arbiter/properties/affinity",
                             "title": "The opensearch.arbiter.affinity schema",
                             "description": "The affinity scheduling rules in `JSON` format",
-                            "default": {}
+                            "default": {
+                                "podAntiAffinity": {
+                                    "requiredDuringSchedulingIgnoredDuringExecution": [
+                                        {
+                                            "topologyKey": "kubernetes.io/hostname",
+                                            "labelSelector": {
+                                                "matchLabels": {
+                                                    "role": "master"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
                         },
                         "customLabels": {
                             "type": "object",
@@ -2038,7 +2051,7 @@
                             "$id": "#/properties/opensearch/properties/arbiter/properties/enabled",
                             "title": "The opensearch.arbiter.enabled schema",
                             "description": "Whether the OpenSearch arbiter nodes are to be enabled",
-                            "default": true
+                            "default": false
                         },
                         "extraContainers": {
                             "type": "array",
@@ -2104,7 +2117,7 @@
                                     "title": "The opensearch.arbiter.persistence.accessModes schema",
                                     "description": "The list of access modes of persistent volumes for OpenSearch arbiter nodes",
                                     "default": [
-                                        "\"ReadWriteOnce\""
+                                        "ReadWriteOnce"
                                     ]
                                 },
                                 "annotations": {
@@ -2289,15 +2302,13 @@
                                     "$id": "#/properties/opensearch/properties/arbiter/properties/podDisruptionBudget/properties/enabled",
                                     "type": "boolean",
                                     "title": "The opensearch.arbiter.podDisruptionBudget.enabled schema",
-                                    "description": "Whether the disruption budget for OpenSearch arbiter nodes is to be created",
-                                    "default": true
+                                    "description": "Whether the disruption budget for OpenSearch arbiter nodes is to be created"
                                 },
                                 "minAvailable": {
                                     "$id": "#/properties/opensearch/properties/arbiter/properties/podDisruptionBudget/properties/minAvailable",
                                     "type": "integer",
                                     "title": "The opensearch.arbiter.podDisruptionBudget.minAvailable schema",
-                                    "description": "The minimum number or percentage of pods that [should remain scheduled](https://kubernetes",
-                                    "default": 1
+                                    "description": "The minimum number or percentage of pods that [should remain scheduled](https://kubernetes"
                                 },
                                 "maxUnavailable": {
                                     "$id": "#/properties/opensearch/properties/arbiter/properties/podDisruptionBudget/properties/maxUnavailable",
@@ -2321,7 +2332,23 @@
                             "$id": "#/properties/opensearch/properties/client/properties/affinity",
                             "title": "The opensearch.client.affinity schema",
                             "description": "The affinity scheduling rules in `JSON` format",
-                            "default": {}
+                            "default": {
+                                "podAntiAffinity": {
+                                    "preferredDuringSchedulingIgnoredDuringExecution": [
+                                        {
+                                            "weight": 1,
+                                            "podAffinityTerm": {
+                                                "topologyKey": "kubernetes.io/hostname",
+                                                "labelSelector": {
+                                                    "matchLabels": {
+                                                        "role": "client"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
                         },
                         "customLabels": {
                             "type": "object",
@@ -2338,7 +2365,7 @@
                                     "$id": "#/properties/opensearch/properties/client/properties/dedicatedPod/properties/enabled",
                                     "title": "The opensearch.client.dedicatedPod.enabled schema",
                                     "description": "Whether dedicated `Deployment` for data is to be enabled",
-                                    "default": true
+                                    "default": false
                                 }
                             },
                             "$id": "#/properties/opensearch/properties/client/properties/dedicatedPod",
@@ -2381,7 +2408,7 @@
                                     "$id": "#/properties/opensearch/properties/client/properties/ingress/properties/enabled",
                                     "title": "The opensearch.client.ingress.enabled schema",
                                     "description": "Whether OpenSearch client ingress is to be enabled",
-                                    "default": true
+                                    "default": false
                                 },
                                 "hosts": {
                                     "type": "array",
@@ -2462,7 +2489,7 @@
                                     "$id": "#/properties/opensearch/properties/client/properties/podDisruptionBudget/properties/enabled",
                                     "title": "The opensearch.client.podDisruptionBudget.enabled schema",
                                     "description": "Whether the disruption budget for OpenSearch client nodes is to be created",
-                                    "default": true
+                                    "default": false
                                 },
                                 "minAvailable": {
                                     "type": "integer",
@@ -2518,7 +2545,7 @@
                                             "internal": true,
                                             "envSpecific": true,
                                             "comment": "don't use type field, because it breaks backward compatibility",
-                                            "default": "1"
+                                            "default": 1
                                         },
                                         "memory": {
                                             "type": "string",
@@ -2619,7 +2646,38 @@
                     "$id": "#/properties/opensearch/properties/config",
                     "title": "The opensearch.config schema",
                     "description": "The configuration of common properties for OpenSearch (`opensearch",
-                    "default": {}
+                    "default": {
+                        "plugins.security.allow_unsafe_democertificates": true,
+                        "plugins.security.allow_default_init_securityindex": "${ALLOW_SECURITY_INITIALIZATION}",
+                        "plugins.security.audit.type": "log4j",
+                        "plugins.security.audit.config.log4j.level": "INFO",
+                        "plugins.security.unsupported.restapi.allow_securityconfig_modification": true,
+                        "plugins.security.restapi.roles_enabled": [
+                            "all_access",
+                            "security_rest_api_access"
+                        ],
+                        "plugins.security.restapi.password_score_based_validation_strength": "fair",
+                        "plugins.security.nodes_dn": [
+                            "CN=opensearch-node,OU=Opensearch,O=Opensearch,L=Opensearch,C=CA"
+                        ],
+                        "plugins.security.authcz.admin_dn": [
+                            "CN=opensearch-admin,OU=Opensearch,O=Opensearch,L=Opensearch,C=CA",
+                            "C=CA,L=Opensearch,O=Opensearch,OU=Opensearch,CN=opensearch-admin"
+                        ],
+                        "plugins.security.enable_snapshot_restore_privilege": true,
+                        "plugins.security.check_snapshot_restore_write_privileges": true,
+                        "path.repo": [
+                            "/usr/share/opensearch/snapshots"
+                        ],
+                        "plugins.security.ssl.transport.pemcert_filepath": "transport-crt.pem",
+                        "plugins.security.ssl.transport.pemkey_filepath": "transport-key.pem",
+                        "plugins.security.ssl.transport.pemtrustedcas_filepath": "transport-root-ca.pem",
+                        "plugins.security.ssl.transport.enforce_hostname_verification": false,
+                        "plugins.security.ssl.http.enabled": "${TLS_ENABLED}",
+                        "plugins.security.ssl.http.pemcert_filepath": "rest-crt.pem",
+                        "plugins.security.ssl.http.pemkey_filepath": "rest-key.pem",
+                        "plugins.security.ssl.http.pemtrustedcas_filepath": "rest-root-ca.pem"
+                    }
                 },
                 "configDirectory": {
                     "type": "string",
@@ -2637,7 +2695,23 @@
                             "$id": "#/properties/opensearch/properties/data/properties/affinity",
                             "title": "The opensearch.data.affinity schema",
                             "description": "The affinity scheduling rules in `JSON` format",
-                            "default": {}
+                            "default": {
+                                "podAntiAffinity": {
+                                    "preferredDuringSchedulingIgnoredDuringExecution": [
+                                        {
+                                            "weight": 1,
+                                            "podAffinityTerm": {
+                                                "topologyKey": "kubernetes.io/hostname",
+                                                "labelSelector": {
+                                                    "matchLabels": {
+                                                        "role": "data"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
                         },
                         "customLabels": {
                             "type": "object",
@@ -2654,7 +2728,7 @@
                                     "$id": "#/properties/opensearch/properties/data/properties/dedicatedPod/properties/enabled",
                                     "title": "The opensearch.data.dedicatedPod.enabled schema",
                                     "description": "Whether dedicated `StatefulSet` for data is to be enabled",
-                                    "default": true
+                                    "default": false
                                 }
                             },
                             "$id": "#/properties/opensearch/properties/data/properties/dedicatedPod",
@@ -2718,7 +2792,7 @@
                                     "title": "The opensearch.data.persistence.accessModes schema",
                                     "description": "The list of access modes of persistent volumes for OpenSearch data nodes",
                                     "default": [
-                                        "\"ReadWriteOnce\""
+                                        "ReadWriteOnce"
                                     ]
                                 },
                                 "annotations": {
@@ -2797,7 +2871,7 @@
                                     "$id": "#/properties/opensearch/properties/data/properties/podDisruptionBudget/properties/enabled",
                                     "title": "The opensearch.data.podDisruptionBudget.enabled schema",
                                     "description": "Whether the disruption budget for OpenSearch data nodes is to be created",
-                                    "default": true
+                                    "default": false
                                 },
                                 "minAvailable": {
                                     "type": "integer",
@@ -2938,14 +3012,14 @@
                     "$id": "#/properties/opensearch/properties/dockerImage",
                     "title": "The opensearch.dockerImage schema",
                     "description": "The docker image of OpenSearch",
-                    "default": "Calculates automatically"
+                    "default": "artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_docker-opensearch:master_latest"
                 },
                 "dockerTlsInitImage": {
                     "type": "string",
                     "$id": "#/properties/opensearch/properties/dockerTlsInitImage",
                     "title": "The opensearch.dockerTlsInitImage schema",
                     "description": "The docker image of OpenSearch TLS init container",
-                    "default": "Calculates automatically"
+                    "default": "artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest_tls-init"
                 },
                 "extraEnvs": {
                     "type": "array",
@@ -2983,7 +3057,7 @@
                             "$id": "#/properties/opensearch/properties/fixmount/properties/enabled",
                             "title": "The opensearch.fixmount.enabled schema",
                             "description": "Whether `initContainer` to fix mount permissions is to be enabled",
-                            "default": true
+                            "default": false
                         },
                         "securityContext": {
                             "type": "object",
@@ -3002,14 +3076,14 @@
                     "$id": "#/properties/opensearch/properties/gcLoggingEnabled",
                     "title": "The opensearch.gcLoggingEnabled schema",
                     "description": "Whether garbage collection logging is to be enabled for OpenSearch",
-                    "default": true
+                    "default": false
                 },
                 "imagePullPolicy": {
                     "type": "string",
                     "$id": "#/properties/opensearch/properties/imagePullPolicy",
                     "title": "The opensearch.imagePullPolicy schema",
                     "description": "The image pull policy for OpenSearch containers",
-                    "default": "Always"
+                    "default": ""
                 },
                 "initContainer": {
                     "type": "object",
@@ -3019,7 +3093,7 @@
                             "$id": "#/properties/opensearch/properties/initContainer/properties/dockerImage",
                             "title": "The opensearch.initContainer.dockerImage schema",
                             "description": "The docker image of OpenSearch init containers",
-                            "default": "Calculates automatically"
+                            "default": "artifactorycn.netcracker.com:17064/library/busybox:1.35.0"
                         }
                     },
                     "$id": "#/properties/opensearch/properties/initContainer",
@@ -3039,7 +3113,23 @@
                     "$id": "#/properties/opensearch/properties/loggingConfig",
                     "title": "The opensearch.loggingConfig schema",
                     "description": "The configuration of logging properties for OpenSearch (`logging",
-                    "default": {}
+                    "default": {
+                        "es.logger.level": "INFO",
+                        "rootLogger": "${es.logger.level}, console",
+                        "logger": {
+                            "action": "DEBUG",
+                            "com.amazonaws": "WARN"
+                        },
+                        "appender": {
+                            "console": {
+                                "type": "console",
+                                "layout": {
+                                    "type": "consolePattern",
+                                    "conversionPattern": "[%d{ISO8601}][%-5p][%-25c] %m%n"
+                                }
+                            }
+                        }
+                    }
                 },
                 "master": {
                     "type": "object",
@@ -3050,7 +3140,20 @@
                             "$id": "#/properties/opensearch/properties/master/properties/affinity",
                             "title": "The opensearch.master.affinity schema",
                             "description": "The affinity scheduling rules in `JSON` format",
-                            "default": {}
+                            "default": {
+                                "podAntiAffinity": {
+                                    "requiredDuringSchedulingIgnoredDuringExecution": [
+                                        {
+                                            "topologyKey": "kubernetes.io/hostname",
+                                            "labelSelector": {
+                                                "matchLabels": {
+                                                    "role": "master"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
                         },
                         "customLabels": {
                             "type": "object",
@@ -3130,7 +3233,7 @@
                                     "title": "The opensearch.master.persistence.accessModes schema",
                                     "description": "The list of access modes of persistent volumes for OpenSearch master nodes",
                                     "default": [
-                                        "\"ReadWriteOnce\""
+                                        "ReadWriteOnce"
                                     ]
                                 },
                                 "annotations": {
@@ -3209,7 +3312,7 @@
                                     "$id": "#/properties/opensearch/properties/master/properties/podDisruptionBudget/properties/enabled",
                                     "title": "The opensearch.master.podDisruptionBudget.enabled schema",
                                     "description": "Whether the disruption budget for OpenSearch master nodes is to be created",
-                                    "default": true
+                                    "default": false
                                 },
                                 "minAvailable": {
                                     "type": "integer",
@@ -3364,7 +3467,7 @@
                     "$id": "#/properties/opensearch/properties/rollingUpdate",
                     "title": "The opensearch.rollingUpdate schema",
                     "description": "Whether operator performs rolling update on its own in accordance with [guide](#operator-rolling-upgrade-feature)",
-                    "default": true
+                    "default": false
                 },
                 "securityConfig": {
                     "type": "object",
@@ -3548,7 +3651,7 @@
                             "$id": "#/properties/opensearch/properties/snapshots/properties/enabled",
                             "title": "The opensearch.snapshots.enabled schema",
                             "description": "Whether persistent volume claim for snapshot repository is to be created and mounted",
-                            "default": true
+                            "default": false
                         },
                         "persistentVolume": {
                             "type": "string",
@@ -3593,7 +3696,7 @@
                                     "$id": "#/properties/opensearch/properties/snapshots/properties/s3/properties/enabled",
                                     "title": "The opensearch.snapshots.s3.enabled schema",
                                     "description": "Whether OpenSearch backups are to be stored in S3 storage",
-                                    "default": true
+                                    "default": false
                                 },
                                 "gcs": {
                                     "type": "object",
@@ -3636,14 +3739,14 @@
                                     "$id": "#/properties/opensearch/properties/snapshots/properties/s3/properties/pathStyleAccess",
                                     "title": "The opensearch.snapshots.s3.pathStyleAccess schema",
                                     "description": "Whether path style access to S3 storage is to be enabled",
-                                    "default": true
+                                    "default": false
                                 },
                                 "region": {
                                     "type": "string",
                                     "$id": "#/properties/opensearch/properties/snapshots/properties/s3/properties/region",
                                     "title": "The opensearch.snapshots.s3.region schema",
                                     "description": "The region in the S3 storage",
-                                    "default": "default"
+                                    "default": ""
                                 },
                                 "url": {
                                     "type": "string",
@@ -3684,7 +3787,7 @@
                             "$id": "#/properties/opensearch/properties/sslKeyPassphrase/properties/enabled",
                             "title": "The opensearch.sslKeyPassphrase.enabled schema",
                             "description": "Whether OpenSearch SSL key passphrase is required",
-                            "default": true
+                            "default": false
                         },
                         "passPhrase": {
                             "type": "string",
@@ -3706,7 +3809,7 @@
                             "$id": "#/properties/opensearch/properties/sysctl/properties/enabled",
                             "title": "The opensearch.sysctl.enabled schema",
                             "description": "Whether the `initContainer` parameter to set `sysctl` to `vm",
-                            "default": true
+                            "default": false
                         }
                     },
                     "$id": "#/properties/opensearch/properties/sysctl",
@@ -4043,7 +4146,7 @@
                             "$id": "#/properties/opensearch/properties/transportKeyPassphrase/properties/enabled",
                             "title": "The opensearch.transportKeyPassphrase.enabled schema",
                             "description": "Whether OpenSearch transport key passphrase is required",
-                            "default": true
+                            "default": false
                         },
                         "passPhrase": {
                             "type": "string",
@@ -4084,7 +4187,7 @@
                     "$id": "#/properties/operator/properties/dockerImage",
                     "title": "The operator.dockerImage schema",
                     "description": "The docker image of OpenSearch Service Operator",
-                    "default": "Calculates automatically"
+                    "default": "artifactorycn.netcracker.com:17008/product/prod.platform.elasticstack_opensearch-service:master_latest"
                 },
                 "priorityClassName": {
                     "type": "string",
@@ -4208,7 +4311,7 @@
                     "$id": "#/properties/podScheduler/properties/dockerImage",
                     "title": "The podScheduler.dockerImage schema",
                     "description": "The docker image for Pod Scheduler",
-                    "default": "Calculates automatically"
+                    "default": "artifactorycn.netcracker.com:17014/product/prod.platform.streaming_docker-kubectl:0.0.2_20230324-083045"
                 },
                 "enabled": {
                     "type": "boolean",
@@ -4325,7 +4428,7 @@
                     "$id": "#/properties/statusProvisioner/properties/dockerImage",
                     "title": "The statusProvisioner.dockerImage schema",
                     "description": "The image for Deployment Status Provisioner pod",
-                    "default": "Calculates automatically"
+                    "default": "artifactorycn.netcracker.com:17008/product/prod.platform.streaming_deployment-status-provisioner:master_latest"
                 },
                 "enabled": {
                     "type": "boolean",
@@ -4437,92 +4540,79 @@
             "$id": "#/properties/STORAGE_RWO_CLASS",
             "type": "string",
             "title": "The STORAGE_RWO_CLASS schema",
-            "description": "This parameter specifies the storage class for OpenSearch nodes (master, arbiter, data and client)",
-            "default": ""
+            "description": "This parameter specifies the storage class for OpenSearch nodes (master, arbiter, data)"
         },
         "STORAGE_RWX_CLASS": {
             "$id": "#/properties/STORAGE_RWX_CLASS",
             "type": "string",
             "title": "The STORAGE_RWX_CLASS schema",
-            "description": "This parameter specifies the name of shared storage class to store OpenSearch snapshots",
-            "default": ""
+            "description": "This parameter specifies the name of shared storage class to store OpenSearch snapshots"
         },
         "INFRA_OPENSEARCH_REPLICAS": {
             "$id": "#/properties/INFRA_OPENSEARCH_REPLICAS",
             "type": "integer",
             "title": "The INFRA_OPENSEARCH_REPLICAS schema",
-            "description": "This parameter specifies the number of OpenSearch nodes (master, arbiter, data and client)",
-            "default": 3
+            "description": "This parameter specifies the number of OpenSearch nodes (master, arbiter, data and client)"
         },
         "DBAAS_ENABLED": {
             "$id": "#/properties/DBAAS_ENABLED",
             "type": "boolean",
             "title": "The DBAAS_ENABLED schema",
-            "description": "Whether the installation of OpenSearch DBaaS adapter is to be enabled",
-            "default": true
+            "description": "Whether the installation of OpenSearch DBaaS adapter is to be enabled"
         },
         "API_DBAAS_ADDRESS": {
             "$id": "#/properties/API_DBAAS_ADDRESS",
             "type": "string",
             "title": "The API_DBAAS_ADDRESS schema",
-            "description": "The address of DBaaS aggregator, which should register physical database",
-            "default": ""
+            "description": "The address of DBaaS aggregator, which should register physical database"
         },
         "DBAAS_CLUSTER_DBA_CREDENTIALS_USERNAME": {
             "$id": "#/properties/DBAAS_CLUSTER_DBA_CREDENTIALS_USERNAME",
             "type": "string",
             "title": "The DBAAS_CLUSTER_DBA_CREDENTIALS_USERNAME schema",
-            "description": "The name of user for DBaaS aggregator's registration API",
-            "default": ""
+            "description": "The name of user for DBaaS aggregator's registration API"
         },
         "DBAAS_CLUSTER_DBA_CREDENTIALS_PASSWORD": {
             "$id": "#/properties/DBAAS_CLUSTER_DBA_CREDENTIALS_PASSWORD",
             "type": "string",
             "title": "The DBAAS_CLUSTER_DBA_CREDENTIALS_PASSWORD schema",
-            "description": "The password of user for DBaaS aggregator's registration API",
-            "default": ""
+            "description": "The password of user for DBaaS aggregator's registration API"
         },
         "INFRA_OPENSEARCH_USERNAME": {
             "$id": "#/properties/INFRA_OPENSEARCH_USERNAME",
             "type": "string",
             "title": "The INFRA_OPENSEARCH_USERNAME schema",
-            "description": "The username of the OpenSearch user with `admin` privileges",
-            "default": ""
+            "description": "The username of the OpenSearch user with `admin` privileges"
         },
         "INFRA_OPENSEARCH_PASSWORD": {
             "$id": "#/properties/INFRA_OPENSEARCH_PASSWORD",
             "type": "string",
             "title": "The INFRA_OPENSEARCH_PASSWORD schema",
-            "description": "The password of the OpenSearch user with `admin` privileges",
-            "default": ""
+            "description": "The password of the OpenSearch user with `admin` privileges"
         },
         "MONITORING_ENABLED": {
             "$id": "#/properties/MONITORING_ENABLED",
             "type": "boolean",
             "title": "The MONITORING_ENABLED schema",
-            "description": "Specifies whether OpenSearch Monitoring component is to be deployed or not",
-            "default": true
+            "description": "Specifies whether OpenSearch Monitoring component is to be deployed or not"
         },
         "PRODUCTION_MODE": {
             "$id": "#/properties/PRODUCTION_MODE",
             "type": "boolean",
             "title": "The PRODUCTION_MODE schema",
-            "description": "Whether OpenSearch client ingress is to be enabled",
-            "default": true
+            "description": "Whether OpenSearch client ingress is to be enabled"
         },
         "SERVER_HOSTNAME": {
             "$id": "#/properties/SERVER_HOSTNAME",
             "type": "string",
             "title": "The SERVER_HOSTNAME schema",
-            "description": "This parameter specifies OpenSearch client ingress host",
-            "default": ""
+            "description": "This parameter specifies OpenSearch client ingress host"
         },
         "INFRA_OPENSEARCH_FS_GROUP": {
             "$id": "#/properties/INFRA_OPENSEARCH_FS_GROUP",
             "type": "string",
             "title": "The INFRA_OPENSEARCH_FS_GROUP schema",
-            "description": "This parameter specifies fs group for OpenSearch curator",
-            "default": ""
+            "description": "This parameter specifies fs group for OpenSearch curator"
         }
     },
     "title": "The opensearch-service schema"
