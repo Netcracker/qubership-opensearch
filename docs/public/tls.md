@@ -165,6 +165,10 @@ You can automatically generate TLS-based secrets using Helm by specifying certif
         secretName: "dbaas-opensearch-adapter-tls-secret"
    ```
 
+**Pay attention**, when you upgrade OpenSearch from non TLS installation to TLS with manually specified 
+certificates you need to delete `<fullname>-admin-certs`, `<fullname>-admin-certs` and `<fullname>-admin-certs` 
+secrets manually before upgrade, where `<fullname>` is the OpenSearch full name.
+
 # Certificate Renewal
 
 `CertManager` automatically renews certificates. It calculates the time to renew a certificate based on the issued `X.509` certificate's duration and a `renewBefore` value. The `renewBefore` parameter specifies how long before expiry a certificate should be renewed. By default, the value of `renewBefore` parameter is `2/3` through the `X.509` certificate's duration. For more information, see [Cert Manager Renewal](https://cert-manager.io/docs/usage/certificate/#renewal). After certificate renewed by `CertManager` the secret contains new certificate, but running applications store previous certificate in pods. As `CertManager` generates new certificates before old expired the both certificates are valid for some time (`renewBefore`). OpenSearch service does not have any handlers for certificates secret changes, so you need to manually restart **all** OpenSearch service pods before old certificate is expired.
