@@ -76,7 +76,7 @@ Data Files Corrupted On Primary Shard
     ${index_information}=  Get Index Information  ${index_name}
     ${row}=  Get Primary Shard Description To Corrupt  ${index_information}
     ${command}=  Get Command To Corrupt Shard  ${uuid}  ${row['shard']}
-    Execute Command In Pod  ${master_node}  ${OPENSEARCH_NAMESPACE}  ${command}
+    Execute Command In Pod  ${row['node']}  ${OPENSEARCH_NAMESPACE}  ${command}
     Sleep  ${SLEEP_TIME}
     # OpenSearch doesn’t detect problems with data files before reading.
     # After several requests OpenSearch reassigns shard with corrupted files and all requests finish successfully.
