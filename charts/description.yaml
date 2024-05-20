@@ -50,11 +50,11 @@ deployment:
           storageClass: "local-path"
         resources:
           limits:
-            cpu: 800m
-            memory: 2048Mi
+            cpu: 1000m
+            memory: 4Gi
           requests:
-            cpu: 300m
-            memory: 2048Mi
+            cpu: 250m
+            memory: 2Gi
         javaOpts: "-Xms1024m -Xmx1024m"
       client:
         ingress:
