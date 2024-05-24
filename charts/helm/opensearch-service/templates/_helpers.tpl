@@ -173,6 +173,17 @@ Provider used to generate TLS certificates
 {{- end -}}
 
 {{/*
+Whether Enhanced Security Plugin for OpenSearch is enabled
+*/}}
+{{- define "opensearch.enhancedSecurityPluginEnabled" -}}
+  {{- if and (not .Values.global.externalOpensearch.enabled) .Values.opensearch.securityConfig.enhancedSecurityPlugin.enabled -}}
+    {{- printf "true" -}}
+  {{- else -}}
+    {{- printf "false" -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
 Whether TLS for OpenSearch is enabled
 */}}
 {{- define "opensearch.tlsEnabled" -}}
