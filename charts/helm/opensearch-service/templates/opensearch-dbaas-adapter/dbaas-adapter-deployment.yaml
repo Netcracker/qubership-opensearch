@@ -132,6 +132,10 @@ spec:
             - mountPath: /tls
               name: dbaas-adapter-certs
             {{- end }}
+            {{ if eq (include "curator.tlsEnabled" .) "true" }}
+            - mountPath: /tls/curator
+              name: curator-certs
+            {{- end }}
           ports:
             - protocol: TCP
               containerPort: {{ template "dbaas-adapter.port" . }}
@@ -148,6 +152,11 @@ spec:
         - name: dbaas-adapter-certs
           secret:
            secretName: {{ template "dbaas-adapter.tlsSecretName" . }}
+        {{- end }}
+        {{ if eq (include "curator.tlsEnabled" .) "true" }}
+        - name: curator-certs
+          secret:
+            secretName: {{ template "curator.certSecretName" . }}
         {{- end }}
       {{- if .Values.dbaasAdapter.priorityClassName }}
       priorityClassName: {{ .Values.dbaasAdapter.priorityClassName | quote }}
