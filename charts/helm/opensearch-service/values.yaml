@@ -261,8 +261,6 @@ opensearch:
     tenantsSecret: ""
     # The following option simplifies securityConfig by using a single secret and specifying the respective secrets in the corresponding files instead of creating different secrets for config,internal users, roles, roles mapping and tenants
     # Note that this is an alternative to the above secrets and shouldn't be used if the above secrets are used
-    enhancedSecurityPlugin:
-      enabled: false
     config:
       securityConfigSecret: ""
       data: {}
@@ -271,6 +269,8 @@ opensearch:
 #        roles.yml: |-
 #        rolesMapping.yml: |-
 #        tenants.yml: |-
+    enhancedSecurityPlugin:
+      enabled: true
 
   ## securityContext to apply to the pod. Allows for running as non-root
   securityContextCustom: {}
