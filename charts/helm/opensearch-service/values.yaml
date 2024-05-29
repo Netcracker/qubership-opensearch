@@ -1131,3 +1131,13 @@ integrationTests:
 
 nameOverride: "opensearch"
 fullnameOverride: "opensearch"
+
+# Cloud Release Integration
+# The name of the Service exposed for the database.
+SERVICE_NAME: "opensearch-service"
+# Microservice belonging to a group
+PART_OF: "opensearch-service"
+# Delimiter for labels
+DELIMITER: "-"
+# Artifact descriptor version which is installed.
+ARTIFACT_DESCRIPTOR_VERSION: ""  # TO_BE_REPLACED

@@ -5,7 +5,11 @@ kind: Job
 metadata:
   name: {{ template "opensearch.fullname" . }}-status-provisioner
   labels:
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    name: {{ template "opensearch.fullname" . }}-status-provisioner
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-status-provisioner
+    app.kubernetes.io/instance: {{ cat (printf "%s-status-provisioner"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+    app.kubernetes.io/technology: python
 spec:
   {{- if or (gt .Capabilities.KubeVersion.Major "1") (ge .Capabilities.KubeVersion.Minor "12") }}
   ttlSecondsAfterFinished: {{ .Values.statusProvisioner.lifetimeAfterCompletion | default 600 }}
@@ -21,6 +25,8 @@ spec:
   {{- toYaml . | nindent 8 -}}
 {{- end }}
         component: status-provisioner
+        name: {{ template "opensearch.fullname" . }}-status-provisioner
+        app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-status-provisioner
 {{ include "opensearch.labels.standard" . | nindent 8 }}
     spec:
       restartPolicy: Never

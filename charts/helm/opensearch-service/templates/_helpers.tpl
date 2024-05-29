@@ -34,6 +34,15 @@ heritage: "{{ .Release.Service }}"
 {{- end -}}
 
 {{/*
+Common opensearch operator chart related resources labels
+*/}}
+{{- define "opensearch-service.defaultLabels" -}}
+app.kubernetes.io/version: '{{ .Values.ARTIFACT_DESCRIPTOR_VERSION | trunc 63 | trimAll "-_." }}'
+app.kubernetes.io/component: 'backend'
+app.kubernetes.io/part-of: '{{ .Values.PART_OF }}'
+{{- end -}}
+
+{{/*
 Define labels for Deployment/StatefulSet selectors.
 We cannot have the chart label here as it will prevent upgrades.
 */}}

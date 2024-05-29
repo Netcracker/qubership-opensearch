@@ -6,6 +6,11 @@ metadata:
   labels:
 {{ include "opensearch.labels.standard" . | indent 4 }}
     role: client
+    name: {{ template "opensearch.fullname" . }}-client
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-client
+    app.kubernetes.io/instance: {{ cat (printf "%s-client"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+    app.kubernetes.io/technology: python
   name: {{ template "opensearch.fullname" . }}-client
   namespace: {{ .Release.Namespace }}
 spec:
@@ -25,6 +30,8 @@ spec:
 {{- end }}
 {{ include "opensearch.labels.standard" . | indent 8 }}
         role: client
+        name: {{ template "opensearch.fullname" . }}-client
+        app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-client
       annotations:
         "opensearch/config-checksum": {{ include (print $.Template.BasePath "/opensearch/config-secret.yaml") . | sha256sum }}
 {{- if .Values.opensearch.client.podAnnotations }}

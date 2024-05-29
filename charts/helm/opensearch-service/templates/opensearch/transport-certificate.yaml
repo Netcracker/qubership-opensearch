@@ -5,6 +5,8 @@ kind: Certificate
 metadata:
   name: {{ template "opensearch.fullname" . }}-tls-transport-certificate
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   secretName: {{ template "opensearch.transport-cert-secret-name" . }}
   duration: {{ default 365 .Values.global.tls.generateCerts.durationDays | mul 24 }}h

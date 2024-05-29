@@ -5,6 +5,10 @@ metadata:
   labels:
 {{ include "opensearch.labels.standard" . | indent 4 }}
     name: {{ template "dbaas-adapter.name" . }}
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ template "dbaas-adapter.name" . }}
+    app.kubernetes.io/instance: {{ cat (printf "%s"  (include "dbaas-adapter.name" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+    app.kubernetes.io/technology: go
     component: dbaas-opensearch-adapter
   name: {{ template "dbaas-adapter.name" . }}
 spec:
@@ -26,6 +30,7 @@ spec:
 {{ include "opensearch.labels.standard" . | indent 8 }}
         name: {{ template "dbaas-adapter.name" . }}
         component: dbaas-opensearch-adapter
+        app.kubernetes.io/name: {{ template "dbaas-adapter.name" . }}
     spec:
       containers:
         - env:

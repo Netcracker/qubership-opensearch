@@ -7,4 +7,6 @@ apiVersion: net.gke.io/v1
 metadata:
   name: {{ template "opensearch.fullname" . }}-{{.Values.global.disasterRecovery.serviceExport.region}}
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 {{- end }}

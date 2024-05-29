@@ -5,6 +5,8 @@ kind: Certificate
 metadata:
   name: {{ template "opensearch.fullname" . }}-root-ca-certificate
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   secretName: {{ template "opensearch.fullname" . }}-ca-cert
   duration: {{ default 730 .Values.global.tls.generateCerts.durationDays | mul 24 }}h
