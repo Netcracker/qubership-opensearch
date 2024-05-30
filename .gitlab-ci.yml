@@ -37,6 +37,16 @@ workflow:
     - controllers/*
     - opensearch-integration-tests/**/*
 
+MR Labels:
+  stage: linter
+  tags:
+    - NETCRACKER
+  image: ${DATABASE_CI_TOOLS_IMAGE}
+  script:
+    - python -u /scripts/mr_labels_linter.py
+  only:
+    - merge_request
+
 LinterHelm:
   allow_failure: true
   image: ${HELM_LINTER_IMAGE}
