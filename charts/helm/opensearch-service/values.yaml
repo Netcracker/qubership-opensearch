@@ -262,6 +262,8 @@ opensearch:
 #        roles.yml: |-
 #        rolesMapping.yml: |-
 #        tenants.yml: |-
+    enhancedSecurityPlugin:
+      enabled: true
 
   ## securityContext to apply to the pod. Allows for running as non-root
   securityContextCustom: {}
