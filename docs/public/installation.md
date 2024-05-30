@@ -1514,6 +1514,13 @@ This section contains information about integration test tags that can be used i
       * `dbaas_delete_resource_prefix_for_multiple_users` tag runs `Delete Database Resource Prefix for Multiple Users` test with DBaaS adapter `v2` API.
     * `dbaas_recovery` tag runs tests connected to recovery users in OpenSearch via DBaaS adapter:
       * `dbaas_recover_users` tag runs `Recover Users In OpenSearch` test with DBaaS adapter `v2` API.
+    * `dbaas_ism` tag runs all tests connected to OpenSearch ISM API usage scenarios via DBaaS adapter:
+      * `dbaas_ism_policy_crud` tag runs `Policy CRUD` test with DBaaS adapter `v2` API.
+      * `dbaas_ism_unallowed_policy_crud` tag runs `Policy CRUD With Unallowed Resource Prefix` test with DBaaS adapter `v2` API.
+      * `dbaas_ism_index_crud` tag runs `Managed Index CRUD` test with DBaaS adapter `v2` API.
+      * `dbaas_ism_unallowed_index_crud` tag runs `Managed Index CRUD With Unallowed Resource Prefix` test with DBaaS adapter `v2` API.
+      * `dbaas_ism_rollover_and_delete` tag runs `Roll Over And Delete` test with DBaaS adapter `v2` API.
+      * `dbaas_ism_rollover_and_delete_with_template` tag runs `Roll Over And Delete Index With ISM Template` test with DBaaS adapter `v2` API.
     * `dbaas_v1` tag runs all tests connected to DBaaS adapter v1 scenarios.
     * `dbaas_v2` tag runs all tests connected to DBaaS adapter v2 scenarios.
 * `ha` tag runs all tests connected to HA scenarios:
