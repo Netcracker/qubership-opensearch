@@ -8,7 +8,7 @@ metadata:
     name: {{ template "opensearch.fullname" . }}-data
     app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-data
     app.kubernetes.io/instance: {{ cat (printf "%s-data"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
-    app.kubernetes.io/technology: python
+    app.kubernetes.io/technology: java-others
     role: data
   name: {{ template "opensearch.fullname" . }}-data
   namespace: {{ .Release.Namespace }}
@@ -36,7 +36,7 @@ spec:
         name: {{ template "opensearch.fullname" . }}-data
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-data
         app.kubernetes.io/instance: {{ cat (printf "%s-data"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
-        app.kubernetes.io/technology: python
+        app.kubernetes.io/technology: java-others
         role: data
       annotations:
         "opensearch/config-checksum": {{ include (print $.Template.BasePath "/opensearch/config-secret.yaml") . | sha256sum }}
