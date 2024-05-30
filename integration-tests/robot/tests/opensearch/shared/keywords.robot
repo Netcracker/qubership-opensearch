@@ -278,3 +278,68 @@ Clone Index
     [Arguments]  ${index_name}  ${clone_index_name}
     ${response}=  Put Request  opensearch  /${index_name}/_clone/${clone_index_name}  headers=${headers}
     [Return]  ${response}
+
+Create Policy
+    [Arguments]  ${policy_name}  ${body}
+    ${response}=  Put Request  opensearch  _plugins/_ism/policies/${policy_name}  data=${body}  headers=${headers}
+    Log  ${response.text}
+    [Return]  ${response}
+
+Get Policy
+    [Arguments]  ${policy_name}  ${with_content}=True
+    ${response}=  Get Request  opensearch  _plugins/_ism/policies/${policy_name}
+    Log  ${response.text}
+    Run Keyword And Return If  ${with_content}  Get Response Content  ${response}
+    [Return]  ${response}
+
+Get Policies
+    ${response}=  Get Request  opensearch  _plugins/_ism/policies
+    [Return]  ${response}
+
+Update Policy
+    [Arguments]  ${policy_name}  ${seq_no}  ${primary_term}  ${body}
+    ${response}=  Put Request  opensearch  _plugins/_ism/policies/${policy_name}?if_seq_no=${seq_no}&if_primary_term=${primary_term}  data=${body}  headers=${headers}
+    [Return]  ${response}
+
+Remove Policy
+    [Arguments]  ${policy_name}
+    ${response}=  Delete Request  opensearch  _plugins/_ism/policies/${policy_name}  headers=${headers}
+    [Return]  ${response}
+
+Add Policy To Index
+    [Arguments]  ${index_name}  ${policy_name}
+    ${response}=  Post Request  opensearch  _plugins/_ism/add/${index_name}  data={"policy_id": "${policy_name}"}  headers=${headers}
+    [Return]  ${response}
+
+Explain Index
+    [Arguments]  ${index_name}  ${with_content}=True
+    ${response}=  Get Request  opensearch  _plugins/_ism/explain/${index_name}
+    Log  ${response.text}
+    Run Keyword And Return If  ${with_content}  Get Response Content  ${response}
+    [Return]  ${response}
+
+Change Index Policy
+    [Arguments]  ${index_name}  ${data}
+    ${response}=  Post Request  opensearch  _plugins/_ism/change_policy/${index_name}  data=${data}  headers=${headers}
+    [Return]  ${response}
+
+Retry Failed Index
+    [Arguments]  ${index_name}  ${data}
+    ${response}=  Post Request  opensearch  _plugins/_ism/retry/${index_name}  data=${data}  headers=${headers}
+    [Return]  ${response}
+
+Remove Policy From Index
+    [Arguments]  ${index_name}
+    ${response}=  Post Request  opensearch  _plugins/_ism/remove/${index_name}  headers=${headers}
+    [Return]  ${response}
+
+Update Cluster Settings
+    [Arguments]  ${body}
+    ${response}=  Put Request  opensearch  _cluster/settings  data=${body}  headers=${headers}
+    [Return]  ${response}
+
+Get Response Content
+    [Arguments]  ${response}
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${content}=  Convert Json ${response.content} To Type
+    [Return]  ${content}

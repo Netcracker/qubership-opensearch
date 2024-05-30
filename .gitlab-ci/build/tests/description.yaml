@@ -14,7 +14,7 @@ deployment:
     resource: Deployment
     conditions: Successful
     interval: 30
-    max_tries: 90
+    max_tries: 120
     delay: 60
 
 publication:
