@@ -77,6 +77,8 @@ spec:
                 secretKeyRef:
                   key: password
                   name: {{ template "opensearch.fullname" . }}-secret
+            - name: ENHANCED_SECURITY_PLUGIN_ENABLED
+              value: "{{ template "opensearch.enhancedSecurityPluginEnabled" . }}"
             - name: LABELS_FILE_LOCATION_NAME
               value: "dbaas.physical_databases.registration.labels.json"
             - name: LABELS_FILE_LOCATION_DIR
