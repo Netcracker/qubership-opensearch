@@ -5,6 +5,9 @@ metadata:
   labels:
 {{ include "opensearch.labels.standard" . | indent 4 }}
     role: data
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    name: {{ template "opensearch.fullname" . }}-data-svc
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-data-svc
   name: {{ template "opensearch.fullname" . }}-data-svc
   namespace: {{ .Release.Namespace }}
 spec:

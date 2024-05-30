@@ -4,6 +4,8 @@ kind: Issuer
 metadata:
   name: {{ template "opensearch.fullname" . }}-tls-issuer
   namespace: {{ .Release.Namespace }}
+  label:
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   ca:
     secretName: {{ template "opensearch.fullname" . }}-ca-cert

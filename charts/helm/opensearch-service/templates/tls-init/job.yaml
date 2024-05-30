@@ -5,6 +5,11 @@ metadata:
   name: {{ template "opensearch.fullname" . }}-tls-init
   labels:
 {{ include "opensearch.labels.standard" . | indent 4 }}
+    name: {{ template "opensearch.fullname" . }}-tls-init
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-tls-init
+    app.kubernetes.io/instance: {{ cat (printf "%s-tls-init"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+    app.kubernetes.io/technology: python
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/hook-weight": "1"
@@ -15,6 +20,8 @@ spec:
       name: {{ template "opensearch.fullname" . }}-tls-init
       labels:
 {{ include "opensearch.labels.standard" . | indent 8 }}
+        name: {{ template "opensearch.fullname" . }}-tls-init
+        app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-tls-init
     spec:
       restartPolicy: Never
       serviceAccountName: {{ template "opensearch.fullname" . }}-tls-init
