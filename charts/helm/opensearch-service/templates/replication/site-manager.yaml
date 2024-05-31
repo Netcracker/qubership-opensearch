@@ -5,6 +5,7 @@ metadata:
   name: opensearch-{{ .Release.Namespace }}
   namespace: {{ .Release.Namespace }}
   labels:
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
     app: {{ template "opensearch.fullname" . }}
     release: {{ .Release.Name }}
 spec:

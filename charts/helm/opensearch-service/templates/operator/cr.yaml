@@ -9,6 +9,8 @@ kind: OpenSearchService
 metadata:
   name: {{ template "opensearch.fullname" . }}
   labels:
+    app.kubernetes.io/processed-by-operator: {{ template "opensearch.fullname" . }}-service-operator
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     name: {{ template "opensearch.fullname" . }}
     component: opensearch-service

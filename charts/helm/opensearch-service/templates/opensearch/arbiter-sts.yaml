@@ -5,6 +5,11 @@ kind: StatefulSet
 metadata:
   labels:
 {{ include "opensearch.labels.standard" . | indent 4 }}
+{{ include "opensearch-service.defaultLabels" . | indent 4 }}
+    name: {{ template "opensearch.fullname" . }}-arbiter
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-arbiter
+    app.kubernetes.io/instance: {{ cat (printf "%s-arbiter"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+    app.kubernetes.io/technology: java-others
     role: master
 {{- if (eq (include "pod-scheduler-enabled" .) "true") }}
     arbiter: arbiter
@@ -34,6 +39,11 @@ spec:
   {{- toYaml . | nindent 8 -}}
 {{- end }}
 {{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
+        name: {{ template "opensearch.fullname" . }}-arbiter
+        app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-arbiter
+        app.kubernetes.io/instance: {{ cat (printf "%s-arbiter"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+        app.kubernetes.io/technology: java-others
         role: master
 {{- if (eq (include "pod-scheduler-enabled" .) "true") }}
         arbiter: arbiter

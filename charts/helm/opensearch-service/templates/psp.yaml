@@ -4,6 +4,7 @@ kind: PodSecurityPolicy
 metadata:
   labels:
 {{ include "opensearch.labels.standard" . | indent 4 }}
+{{ include "opensearch-service.defaultLabels" . | indent 4 }}
   name: {{ template "opensearch.fullname" . }}-psp
 spec:
   privileged: true

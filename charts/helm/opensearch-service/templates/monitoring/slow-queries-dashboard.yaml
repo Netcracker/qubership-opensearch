@@ -4,6 +4,7 @@ kind: GrafanaDashboard
 metadata:
   name: {{ template "opensearch.fullname" . }}-slow-queries-grafana-dashboard
   labels:
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
     app: grafana
 spec:
   name: opensearch-slow-queries-dashboard.json

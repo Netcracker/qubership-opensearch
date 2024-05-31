@@ -7,6 +7,9 @@ metadata:
   labels:
 {{ include "opensearch.labels.standard" . | indent 4 }}
     role: client
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    name: {{ template "opensearch.fullname" . }}-internal
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-internal
   name: {{ template "opensearch.fullname" . }}-internal
   namespace: {{ .Release.Namespace }}
 spec:

@@ -5,6 +5,7 @@ metadata:
   name: {{ template "opensearch.fullname" . }}-monitoring-configuration
   labels:
 {{ include "opensearch.labels.standard" . | indent 4 }}
+{{ include "opensearch-service.defaultLabels" . | indent 4 }}
     name: {{ template "opensearch.fullname" . }}-monitoring
     component: opensearch-monitoring
 data:
