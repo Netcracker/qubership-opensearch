@@ -4,6 +4,7 @@ kind: ConfigMap
 metadata:
   name: {{ template "opensearch.fullname" . }}-replication-configuration
   labels:
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
     name: {{ template "opensearch.fullname" . }}-replication
     component: opensearch-replication
 data:

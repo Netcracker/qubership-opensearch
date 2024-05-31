@@ -4,6 +4,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ template "opensearch.fullname" . }}-service-monitor
   labels:
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
     app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-service-monitor
     app.kubernetes.io/component: monitoring
 spec:

@@ -7,6 +7,11 @@ metadata:
   labels:
 {{ include "opensearch.labels.standard" . | indent 4 }}
     role: dashboards
+    name: {{ template "opensearch.fullname" . }}-dashboards
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-dashboards
+    app.kubernetes.io/instance: {{ cat (printf "%s-dashboards"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+    app.kubernetes.io/technology: python
 spec:
   replicas: {{ .Values.dashboards.replicas }}
   strategy:
@@ -26,6 +31,8 @@ spec:
         {{- range $key, $value := .Values.dashboards.labels }}
         {{ $key }}: {{ $value | quote }}
         {{- end }}
+        name: {{ template "opensearch.fullname" . }}-dashboards
+        app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-dashboards
       annotations:
         {{- range $key, $value := .Values.dashboards.podAnnotations }}
         {{ $key }}: {{ $value | quote }}

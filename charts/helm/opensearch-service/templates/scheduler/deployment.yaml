@@ -3,6 +3,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
+    name: {{ template "opensearch.fullname" . }}-pod-scheduler
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-pod-scheduler
+    app.kubernetes.io/instance: {{ cat (printf "%s-pod-scheduler"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+    app.kubernetes.io/technology: python
     component: opensearch-pod-scheduler
   name: {{ template "opensearch.fullname" . }}-pod-scheduler
   namespace: {{ .Release.Namespace }}
@@ -25,6 +30,7 @@ spec:
 {{- end }}
         component: opensearch-pod-scheduler
         name: {{ template "opensearch.fullname" . }}-pod-scheduler
+        app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-pod-scheduler
     spec:
       containers:
         - name: pod-scheduler

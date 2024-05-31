@@ -3,6 +3,12 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: {{ template "opensearch.fullname" . }}-integration-tests
+  labels:
+    name: {{ template "opensearch.fullname" . }}-integration-tests
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-integration-tests
+    app.kubernetes.io/instance: {{ cat (printf "%s-integration-tests"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+    app.kubernetes.io/technology: python
 spec:
   selector:
     matchLabels:
@@ -20,6 +26,7 @@ spec:
   {{- toYaml . | nindent 8 -}}
 {{- end }}
         name: {{ template "opensearch.fullname" . }}-integration-tests
+        app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-integration-tests
     spec:
       serviceAccountName: {{ template "opensearch.fullname" . }}-integration-tests
       {{- if .Values.integrationTests.affinity }}

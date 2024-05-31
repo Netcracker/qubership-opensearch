@@ -11,6 +11,8 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: pvc-{{ $arbiter_fullname }}-{{ $index }}
+  labels:
+    {{- include "opensearch-service.defaultLabels" $ | nindent 4 }}
   annotations:
     "helm.sh/resource-policy": keep
 spec:
