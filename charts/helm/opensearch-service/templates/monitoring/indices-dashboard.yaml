@@ -4,6 +4,7 @@ kind: GrafanaDashboard
 metadata:
   name: {{ template "opensearch.fullname" . }}-indices-grafana-dashboard
   labels:
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
     app: grafana
 spec:
   name: opensearch-indices-dashboard.json

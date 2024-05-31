@@ -4,8 +4,12 @@ kind: Deployment
 metadata:
   labels:
 {{ include "opensearch.labels.standard" . | indent 4 }}
-    component: opensearch-monitoring
     name: {{ template "opensearch.fullname" . }}-monitoring
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-monitoring
+    app.kubernetes.io/instance: {{ cat (printf "%s-monitoring"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+    app.kubernetes.io/technology: python
+    component: opensearch-monitoring
   name: {{ template "opensearch.fullname" . }}-monitoring
 spec:
   replicas: 1
@@ -26,6 +30,7 @@ spec:
 {{ include "opensearch.labels.standard" . | indent 8 }}
         component: opensearch-monitoring
         name: {{ template "opensearch.fullname" . }}-monitoring
+        app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-monitoring
       annotations:
         {{/* This forces a restart if the secret or config has changed */}}
         checksum/config: {{ include (print .Template.BasePath "/monitoring/configuration.yaml") . | sha256sum | trunc 63 }}

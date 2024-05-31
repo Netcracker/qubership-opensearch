@@ -2,6 +2,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "opensearch.fullname" . }}-service-operator
+  labels: 
+    name: {{ template "opensearch.fullname" . }}-service-operator
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-service-operator
+    app.kubernetes.io/instance: {{ cat (printf "%s-service-operator"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+    app.kubernetes.io/technology: python
 spec:
   replicas: {{ default 1 .Values.operator.replicas }}
   selector:
@@ -18,6 +24,7 @@ spec:
   {{- toYaml . | nindent 8 -}}
 {{- end }}
         name: {{ template "opensearch.fullname" . }}-service-operator
+        app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-service-operator
         component: opensearch-service-operator
       {{- if and (not .Values.global.externalOpensearch.enabled) .Values.global.velero.preHookBackupEnabled }}
       annotations:

@@ -13,7 +13,8 @@ kind: Ingress
 metadata:
   name: {{ template "opensearch.fullname" . }}-dashboards
   labels:
-{{- include "opensearch.labels.standard" . | nindent 4 }}
+{{ include "opensearch.labels.standard" . | indent 4 }}
+{{ include "opensearch-service.defaultLabels" . | indent 4 }}
   annotations:
     {{- if and .Values.dashboards.ingress.className (not (.Capabilities.APIVersions.Has "networking.k8s.io/v1/Ingress")) }}
     kubernetes.io/ingress.class: {{ .Values.dashboards.ingress.className }}
