@@ -2,17 +2,29 @@ variables:
   DOCKER_REPOSITORY: "artifactorycn.netcracker.com:17023"
   CI_IMAGE: "artifactorycn.netcracker.com:17023/tools/monitoring-gitlab-ci:0.0.1"
   GO_LINTER_IMAGE: "artifactorycn.netcracker.com:17064/golangci/golangci-lint:v1.50.1"
+  HELM_LINTER_IMAGE: "artifactorycn.netcracker.com:17114/helmpack/chart-testing:v3.10.1"
+  DATABASE_CI_TOOLS_IMAGE: "artifactorycn.netcracker.com:17008/product/prod.platform.databases_ci-tools:master_latest"
   GO_PROXY: "https://artifactorycn.netcracker.com/pd.sandbox-staging.go.group"
   INTEGRATION_TESTS_POD_NAME: opensearch-integration-tests
   TAGS: NOTha
   # Name should be formed as follows: ci_master_openshift_sdntest_<namespace_name>_token
   CLOUD_TOKEN: ${ci_master_openshift_sdntest_opensearch_service_token}
+  OPENSEARCH_PROPERTIES_FILE: "opensearch.properties"
+  OPENSEARCH_TESTS_PROPERTIES_FILE: "opensearchtests.properties"
+  JENKINS_URL: "https://cisrvrecn.netcracker.com"
+  SNIPPET_ID: 3127
 
 stages:
   - linter
   - build
-  - build_manifest_and_deploy
-  - test
+  - manifest
+  - deploy
+  - cloudDeploy
+  - buildtests
+  - deploytests
+  - manifestValidation
+  - promoteManifest
+  - releaseNotes
 
 workflow:
   rules:
@@ -25,6 +37,28 @@ workflow:
     - controllers/*
     - opensearch-integration-tests/**/*
 
+MR Labels:
+  stage: linter
+  tags:
+    - NETCRACKER
+  image: ${DATABASE_CI_TOOLS_IMAGE}
+  script:
+    - python -u /scripts/mr_labels_linter.py
+  only:
+    - merge_request
+
+LinterHelm:
+  allow_failure: true
+  image: ${HELM_LINTER_IMAGE}
+  before_script:
+    - helm version
+    - ct version
+  script:
+    - ct lint --validate-maintainers=false --charts charts/helm/opensearch-service
+  stage: linter
+  tags:
+    - NETCRACKER
+
 LinterGo:
   allow_failure: true
   image: ${GO_LINTER_IMAGE}
@@ -34,55 +68,6 @@ LinterGo:
   stage: linter
   tags:
     - NETCRACKER
-
-BuildDockerImage:
-  image: artifactorycn.netcracker.com:17010/docker:1.12.6
-  services:
-    - artifactorycn.netcracker.com:17010/docker:1.12.6-dind
-  stage: build
-  tags:
-    - NETCRACKER
-  variables:
-    DOCKER_IMAGE_NAME: "search/opensearch-operator"
-    DOCKER_FILE: "Dockerfile"
-  allow_failure: true
-  script:
-    - ./.gitlab-ci/docker_build.sh
-    - ./.gitlab-ci/docker_push.sh
-
-.BuildOperatorTemplate:
-  stage: build
-  image: ${CI_IMAGE}
-  tags:
-    - NETCRACKER
-  artifacts:
-    when: always
-    paths:
-      - manifest.txt
-    expire_in: 1 week
-
-BuildOperator:
-  extends: .BuildOperatorTemplate
-  allow_failure: false
-  script:
-    - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator.yaml"
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
-    - if: $CI_COMMIT_TAG
-
-BuildOperatorManual:
-  extends: .BuildOperatorTemplate
-  script:
-    - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator.yaml"
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      <<: *code-changes
-      allow_failure: false
-    - if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
-      when: manual
-      allow_failure: true
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
-      allow_failure: false
 
 .BuildIntegrationTestsTemplate:
   stage: build
@@ -100,104 +85,334 @@ BuildIntegrationTests:
   allow_failure: false
   script:
     - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/integration-tests.yaml"
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
-    - if: $CI_COMMIT_TAG
 
-BuildIntegrationTestsManual:
-  extends: .BuildIntegrationTestsTemplate
-  script:
-    - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/integration-tests.yaml"
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      <<: *code-changes
-    - if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
-      when: manual
-      allow_failure: true
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
-
-.BuildChartsManifestAndDeployTemplate:
-  stage: build_manifest_and_deploy
+.BuildOperatorTemplate:
+  stage: build
   image: ${CI_IMAGE}
   tags:
     - NETCRACKER
-  variables:
-    PREFIX: charts
   artifacts:
     when: always
     paths:
       - manifest.txt
     expire_in: 1 week
 
-BuildChartsManifestAndDeploy:
-  extends: .BuildChartsManifestAndDeployTemplate
-  needs:
-    - BuildOperator
-    - BuildIntegrationTests
-  allow_failure: false
-  script:
-    - python3 /ci/orchestrate_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator-charts.yaml"
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
-
-BuildChartsManifestAndDeploy1.3.10:
-  extends: .BuildChartsManifestAndDeployTemplate
-  needs:
-    - BuildOperator
-    - BuildIntegrationTests
+BuildOpensearchServiceOperator:
+  extends: .BuildOperatorTemplate
   allow_failure: false
   variables:
-    PREFIX: delivery/1.3.10
+    PREFIX: ""
   script:
-    - python3 /ci/orchestrate_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator-charts.yaml"
-  rules:
-    - if: $CI_COMMIT_TAG
+    - python3 /ci/builder_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator.yaml"
 
-BuildChartsManifestAndDeployManual:
-  extends: .BuildChartsManifestAndDeployTemplate
+.manifest:
+  tags:
+    - NETCRACKER-MEDIUM
+  image: ${DATABASE_CI_TOOLS_IMAGE}
+  variables:
+    JOB_USER: ${JENKINS_USER}
+    JOB_TOKEN: ${JENKINS_PASSWORD}
+    JOB_NAME: "DP.Pub.Microservice_builder_v2"
+    ARTIFACTS_NUMBER: 1
+    JOB_ARTIFACT_FILENAME: "docker-repository/build_env.properties"
   script:
-    - python3 /ci/orchestrate_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator-charts.yaml"
+    - export PARAMETERS=$(echo $PARAMETERS | sed 's@location_to_replace@'"${CI_COMMIT_REF_NAME}"'@g')
+    - python -u /scripts/build.py
+    - python -u /scripts/get_manifest.py $PROPERTIES_FILENAME
+    - echo -e 'App Manifest'  '\033[0;32m'$(cat ./"$PROPERTIES_FILENAME" | grep CLOUD_DD_TIMESTAMP_VERSION)
+    - echo -e 'DP Manifest'  '\033[0;32m'$(cat ./"$PROPERTIES_FILENAME" | grep "URLS_APPLICATION-MANIFEST_TIMESTAMP")
+  artifacts:
+    expire_in: 7 days
+    paths:
+      - "$PROPERTIES_FILENAME"
+
+build tests manifest:
+  stage: buildtests
+  allow_failure: false
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      <<: *code-changes
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == "master"'
       allow_failure: false
     - if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
       when: manual
       allow_failure: true
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
       allow_failure: false
+  extends: .manifest
+  needs:
+    - BuildIntegrationTests
+  variables:
+    PREFIX: ".gitlab-ci/build/tests"
+    PROPERTIES_FILENAME: "${OPENSEARCH_TESTS_PROPERTIES_FILE}"
+    PARAMETERS: "{integration: [{type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, prefix: integration-tests, docker-image-id: timestamp, deploy-param: opensearchIntegrationTests}]}"
 
-.PerformIntegrationTestsTemplate:
-  stage: test
-  image: ${CI_IMAGE}
+build opensearch manifest:
+  stage: manifest
+  allow_failure: false
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == "master"'
+      allow_failure: false
+    - if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+      when: manual
+      allow_failure: true
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      allow_failure: false
+  extends: .manifest
+  needs:
+    - BuildIntegrationTests
+    - BuildOpensearchServiceOperator
+  variables:
+    PREFIX: ".gitlab-ci/build/opensearch"
+    PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
+    PARAMETERS: "{integration: [{type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, docker-image-id: timestamp, deploy-param: opensearchOperator}, {type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, prefix: integration-tests, docker-image-id: timestamp, deploy-param: opensearchIntegrationTests}, {type: scripts, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, alias: timestamp, zip-name: migration-artifacts.zip, name: migration-artifacts, pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh}]}"
+
+build opensearch manifest 1.3.10:
+  stage: manifest
+  extends: .manifest
+  allow_failure: false
+  variables:
+    PREFIX: "delivery/1.3.10"
+    PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
+    PARAMETERS: "{integration: [{type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, docker-image-id: timestamp, deploy-param: opensearchOperator}, {type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, prefix: integration-tests, docker-image-id: timestamp, deploy-param: opensearchIntegrationTests}, {type: scripts, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, alias: timestamp, zip-name: migration-artifacts.zip, name: migration-artifacts, pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh}]}"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$/'
+
+.dp_deploy: &dp_deploy
   tags:
     - NETCRACKER
-  artifacts:
-    when: always
-    paths:
-      - tests_result.log
-    expire_in: 1 week
-
-PerformIntegrationTests:
-  extends: .PerformIntegrationTestsTemplate
-  needs:
-    - BuildChartsManifestAndDeploy
-  allow_failure: false
+  image: artifactorycn.netcracker.com:17092/pati_autopromote:latest
   script:
-    - python3 /ci/smoke_tests_runner.py -f "./.gitlab-ci/jenkins/stages-params/integration-tests-charts.yaml" --log="tests_result.log" --cloud-token="${CLOUD_TOKEN}"
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - export DEPLOYMENT_PARAMETERS=$(cat /builds/PROD.Platform.ElasticStack/opensearch-service/.gitlab-ci/deploy/"$VALUES")
+    - export DESCRIPTOR_URL=$(cat ./"$PROPERTIES_FILENAME" | grep URLS_APPLICATION-MANIFEST_TIMESTAMP | awk -F = '{print $2}')
+    - python -u /DP_tools/jobs_run/helm_deployer.py --jenkins-user "$JENKINS_USER"
+      --jenkins-password
+      "$JENKINS_PASSWORD" --DESCRIPTOR_URL
+      "$DESCRIPTOR_URL" --CLOUD_URL "$CLOUD_URL" --CLOUD_NAMESPACE
+      "$CLOUD_NAMESPACE" --CLOUD_TOKEN "$CLOUD_TOKEN"
+      --DEPLOYMENT_PARAMETERS "$DEPLOYMENT_PARAMETERS"
+      --DEPLOYMENT_MODE "$DEPLOYMENT_MODE"
 
-PerformIntegrationTestsManual:
-  extends: .PerformIntegrationTestsTemplate
-  script:
-    - python3 /ci/smoke_tests_runner.py -f "./.gitlab-ci/jenkins/stages-params/integration-tests-charts.yaml" --log="tests_result.log" --cloud-token="${CLOUD_TOKEN}"
+ci-master DP opensearch deploy:
+  <<: *dp_deploy
+  stage: deploy
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      <<: *code-changes
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == "master"'
       allow_failure: false
     - if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
       when: manual
       allow_failure: true
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
       allow_failure: false
+  needs:
+    - job: build opensearch manifest
+      optional: true
+  variables:
+    PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
+    VALUES: ci-master.yaml
+    CLOUD_URL: "https://ci-master.openshift.sdntest.netcracker.com:6443"
+    CLOUD_NAMESPACE: "opensearch-service"
+    CLOUD_TOKEN: "${ci_master_openshift_sdntest_opensearch_service_token}"
+    DEPLOYMENT_MODE: "reinstall"
+
+ci-master tests DP deploy:
+  stage: deploytests
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == "master"'
+      allow_failure: true
+    - if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+      when: manual
+      allow_failure: true
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      allow_failure: true
+      when: manual
+  needs:
+    - job: build tests manifest
+      optional: true
+    - job: ci-master DP opensearch deploy
+      optional: true
+  <<: *dp_deploy
+  variables:
+    PROPERTIES_FILENAME: "${OPENSEARCH_TESTS_PROPERTIES_FILE}"
+    VALUES: tests-ci-master.yaml
+    CLOUD_URL: "https://ci-master.openshift.sdntest.netcracker.com:6443"
+    CLOUD_NAMESPACE: "opensearch-service"
+    CLOUD_TOKEN: "${ci_master_openshift_sdntest_opensearch_service_token}"
+    DEPLOYMENT_MODE: "reinstall"
+
+.app_deploy:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == "master"'
+      when: manual
+      allow_failure: true
+    - if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+      when: manual
+      allow_failure: true
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+      allow_failure: true
+  tags:
+    - NETCRACKER
+  image: ${DATABASE_CI_TOOLS_IMAGE}
+  variables:
+    JOB_USER: "arla1017"
+    JOB_TOKEN: "${cloud_deploy_token}"
+    JOB_NAME: "INFRA/job/groovy.deploy.v3"
+    JENKINS_URL: "https://cloud-deployer.netcracker.com"
+    DEPLOY_MODE: Clean Install
+  script:
+    - export APP_VERSION=$APPLICATION_NAME:$(cat ./"$PROPERTIES_FILENAME" | grep CLOUD_DD_TIMESTAMP_VERSION | awk -F = '{print $2}')
+    - python -u /scripts/deploy.py
+
+miniha APP opensearch deploy:
+  extends: .app_deploy
+  stage: cloudDeploy
+  variables:
+    DEPLOY_MODE: Rolling Update
+    APPLICATION_NAME: opensearch-service
+    PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
+    PROJECT: paasMinihaKubernetes-opensearch-service
+  needs:
+    - job: build opensearch manifest
+      optional: true
+
+k8s1 APP opensearch deploy:
+  extends: .app_deploy
+  stage: cloudDeploy
+  variables:
+    DEPLOY_MODE: Rolling Update
+    APPLICATION_NAME: opensearch-service
+    PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
+    PROJECT: k8s_1-opensearch-service
+  needs:
+    - job: build opensearch manifest
+      optional: true
+
+k8s2 APP opensearch deploy:
+  extends: .app_deploy
+  stage: cloudDeploy
+  variables:
+    DEPLOY_MODE: Rolling Update
+    APPLICATION_NAME: opensearch-service
+    PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
+    PROJECT: k8s_2-opensearch-service
+  needs:
+    - job: build opensearch manifest
+      optional: true
+
+.validation:
+  allow_failure: true
+  tags:
+    - NETCRACKER
+  image: artifactorycn.netcracker.com:17092/pati_autopromote:latest
+
+.vulnerability_report:
+  stage: manifestValidation
+  allow_failure: true
+  tags:
+    - NETCRACKER
+  image: ${DATABASE_CI_TOOLS_IMAGE}
+  variables:
+    JOB_USER: ${JENKINS_USER}
+    JOB_TOKEN: ${JENKINS_PASSWORD}
+    JOB_NAME: "DP.Pub.Sandbox_Vulnerability_Scanner_v2"
+    JENKINS_URL: "https://cisrvrecn.netcracker.com"
+  script:
+    - export APP_VERSION=$(cat ./"$PROPERTIES_FILENAME" | grep URLS_APPLICATION-MANIFEST_TIMESTAMP | awk -F = '{print $2}')
+    - python -u /scripts/vulnerabilities_report.py
+  artifacts:
+    paths:
+      - report.xlsx
+      - report.md
+
+.manifestValidation:
+  extends: .validation
+  stage: manifestValidation
+  script:
+    - export DESCRIPTOR_URL=$(cat ./"$PROPERTIES_FILENAME" | grep "UUID=" | awk -F = '{print $2}')
+    - python -u /DP_tools/jobs_run/validate.py --jenkins-user "$JENKINS_USER" --jenkins-password "$JENKINS_PASSWORD" --BUILD_PARAMETER "$DESCRIPTOR_URL"
+
+vulnerability opensearch report:
+  needs:
+    - job: build opensearch manifest
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == "master"'
+      allow_failure: true
+      when: manual
+    - if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+      when: manual
+      allow_failure: true
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+      allow_failure: true
+  extends: .vulnerability_report
+  variables:
+    PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
+
+manifest opensearch validation:
+  needs:
+    - job: build opensearch manifest
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == "master"'
+      allow_failure: true
+      when: manual
+    - if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_TAG == null'
+      when: manual
+      allow_failure: true
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+      allow_failure: true
+  extends: .manifestValidation
+  variables:
+    PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
+
+vulnerability report 1.3.10:
+  needs:
+    - job: build opensearch manifest 1.3.10
+  extends: .vulnerability_report
+  variables:
+    PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$/'
+
+manifest validation 1.3.10:
+  needs:
+    - job: build opensearch manifest 1.3.10
+  extends: .manifestValidation
+  variables:
+    PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$/'
+
+.promoteManifest:
+  stage: promoteManifest
+  tags:
+    - NETCRACKER
+  image: ${DATABASE_CI_TOOLS_IMAGE}
+  only:
+    - /^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$/
+  script:
+    - export UUID=$(cat ./"$PROPERTIES_FILENAME" | grep "UUID=" | awk -F = '{print $2}')
+    - python -u /scripts/promote_all.py
+
+opensearch 1.3.10 promoteManifest:
+  extends: .promoteManifest
+  variables:
+    PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
+
+ReleaseNotes:
+  stage: releaseNotes
+  tags:
+    - NETCRACKER
+  only:
+    - /^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$/
+  variables:
+    CI_PROJECT_NAMESPACE: PROD.Platform.ElasticStack
+    PREFIXES: "delivery/1.3.10"
+    TEMPLATE_SNIPPET_ID: 3277
+  image: ${DATABASE_CI_TOOLS_IMAGE}
+  needs:
+    - job: vulnerability report 1.3.10
+      artifacts: true
+    - job: opensearch 1.3.10 promoteManifest
+  script:
+    - python -u /scripts/release_notes.py
