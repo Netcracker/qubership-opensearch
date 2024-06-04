@@ -1,33 +1,13 @@
 *** Variables ***
-${DBAAS_ADAPTER_TYPE}                    %{DBAAS_ADAPTER_TYPE}
-${OPENSEARCH_DBAAS_ADAPTER_HOST}         %{OPENSEARCH_DBAAS_ADAPTER_HOST}
-${OPENSEARCH_DBAAS_ADAPTER_PORT}         %{OPENSEARCH_DBAAS_ADAPTER_PORT}
-${OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}     %{OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}
-${OPENSEARCH_DBAAS_ADAPTER_USERNAME}     %{OPENSEARCH_DBAAS_ADAPTER_USERNAME}
-${OPENSEARCH_DBAAS_ADAPTER_PASSWORD}     %{OPENSEARCH_DBAAS_ADAPTER_PASSWORD}
-${OPENSEARCH_HOST}                       %{OPENSEARCH_HOST}
-${OPENSEARCH_PORT}                       %{OPENSEARCH_PORT}
-${OPENSEARCH_PROTOCOL}                   %{OPENSEARCH_PROTOCOL}
 ${RETRY_TIME}                            60s
 ${RETRY_INTERVAL}                        5s
 ${SLEEP_TIME}                            5s
 
 *** Settings ***
-Resource  ../shared/keywords.robot
+Resource  ./keywords.robot
 Suite Setup  Prepare
 
 *** Keywords ***
-Prepare
-    Prepare OpenSearch
-    Prepare Dbaas Adapter
-
-Prepare Dbaas Adapter
-    ${auth}=  Create List  ${OPENSEARCH_DBAAS_ADAPTER_USERNAME}  ${OPENSEARCH_DBAAS_ADAPTER_PASSWORD}
-    ${root_ca_path}=  Set Variable  /certs/dbaas-adapter/ca.crt
-    ${root_ca_exists}=  File Exists  ${root_ca_path}
-    ${verify}=  Set Variable If  ${root_ca_exists}  ${root_ca_path}  ${True}
-    Create Session  dbaas_admin_session  ${OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}://${OPENSEARCH_DBAAS_ADAPTER_HOST}:${OPENSEARCH_DBAAS_ADAPTER_PORT}  auth=${auth}  verify=${verify}
-
 Run Users Recovery By Dbaas Agent
     [Arguments]  ${properties}
     ${data}=  Set Variable  {"settings": {}, "connectionProperties": ${properties}}
@@ -42,12 +22,6 @@ Get Users Recovery State By Dbaas Agent
 Check Users Recovery State
     ${state}=  Get Users Recovery State By Dbaas Agent
     Should Be Equal As Strings  ${state}  done
-
-Delete Database Resource Prefix Dbaas Agent
-    [Arguments]  ${prefix}
-    ${data}=  Set Variable  [{"kind":"resourcePrefix","name":"${prefix}"}]
-    ${response}=  Post Request  dbaas_admin_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/resources/bulk-drop  data=${data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
 
 *** Test Cases ***
 Recover Users In OpenSearch
