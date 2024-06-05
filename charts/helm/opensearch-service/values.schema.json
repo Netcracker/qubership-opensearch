@@ -2076,7 +2076,7 @@
                         },
                         "javaOpts": {
                             "type": "string",
-                            "default": "-Xms718m -Xmx718m",
+                            "default": "-Xms1024m -Xmx1024m",
                             "$id": "#/properties/opensearch/properties/arbiter/properties/javaOpts",
                             "title": "The opensearch.arbiter.javaOpts schema",
                             "description": "The Java options that are used for OpenSearch arbiter nodes",
@@ -2218,7 +2218,7 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "default": "500m",
+                                            "default": 1,
                                             "$id": "#/properties/opensearch/properties/arbiter/properties/resources/properties/limits/properties/cpu",
                                             "title": "The opensearch.arbiter.resources.limits.cpu schema",
                                             "description": "The maximum number of CPUs the OpenSearch arbiter node container should use",
@@ -2228,7 +2228,7 @@
                                         },
                                         "memory": {
                                             "type": "string",
-                                            "default": "1536Mi",
+                                            "default": "4Gi",
                                             "$id": "#/properties/opensearch/properties/arbiter/properties/resources/properties/limits/properties/memory",
                                             "title": "The opensearch.arbiter.resources.limits.memory schema",
                                             "description": "The maximum number of memory the OpenSearch arbiter node container should use",
@@ -2244,7 +2244,7 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "default": "200m",
+                                            "default": "250m",
                                             "$id": "#/properties/opensearch/properties/arbiter/properties/resources/properties/requests/properties/cpu",
                                             "title": "The opensearch.arbiter.resources.requests.cpu schema",
                                             "description": "The minimum number of CPUs the OpenSearch arbiter node container should use",
@@ -2254,7 +2254,7 @@
                                         },
                                         "memory": {
                                             "type": "string",
-                                            "default": "1536Mi",
+                                            "default": "2Gi",
                                             "$id": "#/properties/opensearch/properties/arbiter/properties/resources/properties/requests/properties/memory",
                                             "title": "The opensearch.arbiter.resources.requests.memory schema",
                                             "description": "The minimum number of memory the OpenSearch arbiter node container should use",
@@ -2751,7 +2751,7 @@
                         },
                         "javaOpts": {
                             "type": "string",
-                            "default": "-Xms718m -Xmx718m",
+                            "default": "-Xms1024m -Xmx1024m",
                             "$id": "#/properties/opensearch/properties/data/properties/javaOpts",
                             "title": "The opensearch.data.javaOpts schema",
                             "description": "The Java options that are used for OpenSearch data nodes",
@@ -2921,7 +2921,7 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "default": "500m",
+                                            "default": 1,
                                             "$id": "#/properties/opensearch/properties/data/properties/resources/properties/limits/properties/cpu",
                                             "title": "The opensearch.data.resources.limits.cpu schema",
                                             "description": "The maximum number of CPUs the OpenSearch data node container should use",
@@ -2931,7 +2931,7 @@
                                         },
                                         "memory": {
                                             "type": "string",
-                                            "default": "1536Mi",
+                                            "default": "4Gi",
                                             "$id": "#/properties/opensearch/properties/data/properties/resources/properties/limits/properties/memory",
                                             "title": "The opensearch.data.resources.limits.memory schema",
                                             "description": "The maximum number of memory the OpenSearch data node container should use",
@@ -2947,7 +2947,7 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "default": "200m",
+                                            "default": "250m",
                                             "$id": "#/properties/opensearch/properties/data/properties/resources/properties/requests/properties/cpu",
                                             "title": "The opensearch.data.resources.requests.cpu schema",
                                             "description": "The minimum number of CPUs the OpenSearch data node container should use",
@@ -2957,7 +2957,7 @@
                                         },
                                         "memory": {
                                             "type": "string",
-                                            "default": "1536Mi",
+                                            "default": "2Gi",
                                             "$id": "#/properties/opensearch/properties/data/properties/resources/properties/requests/properties/memory",
                                             "title": "The opensearch.data.resources.requests.memory schema",
                                             "description": "The minimum number of memory the OpenSearch data node container should use",
@@ -3192,7 +3192,7 @@
                         },
                         "javaOpts": {
                             "type": "string",
-                            "default": "-Xms718m -Xmx718m",
+                            "default": "-Xms1024m -Xmx1024m",
                             "$id": "#/properties/opensearch/properties/master/properties/javaOpts",
                             "title": "The opensearch.master.javaOpts schema",
                             "description": "The Java options that are used for OpenSearch master nodes",
@@ -3362,7 +3362,7 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "default": "500m",
+                                            "default": 1,
                                             "$id": "#/properties/opensearch/properties/master/properties/resources/properties/limits/properties/cpu",
                                             "title": "The opensearch.master.resources.limits.cpu schema",
                                             "description": "The maximum number of CPUs the OpenSearch master node container should use",
@@ -3372,7 +3372,7 @@
                                         },
                                         "memory": {
                                             "type": "string",
-                                            "default": "1536Mi",
+                                            "default": "4Gi",
                                             "$id": "#/properties/opensearch/properties/master/properties/resources/properties/limits/properties/memory",
                                             "title": "The opensearch.master.resources.limits.memory schema",
                                             "description": "The maximum number of memory the OpenSearch master node container should use",
@@ -3388,7 +3388,7 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "default": "200m",
+                                            "default": "250m",
                                             "$id": "#/properties/opensearch/properties/master/properties/resources/properties/requests/properties/cpu",
                                             "title": "The opensearch.master.resources.requests.cpu schema",
                                             "description": "The minimum number of CPUs the OpenSearch master node container should use",
@@ -3398,7 +3398,7 @@
                                         },
                                         "memory": {
                                             "type": "string",
-                                            "default": "1536Mi",
+                                            "default": "2Gi",
                                             "$id": "#/properties/opensearch/properties/master/properties/resources/properties/requests/properties/memory",
                                             "title": "The opensearch.master.resources.requests.memory schema",
                                             "description": "The minimum number of memory the OpenSearch master node container should use",
