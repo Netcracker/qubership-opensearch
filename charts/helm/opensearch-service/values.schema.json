@@ -2218,7 +2218,7 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "default": "1000m",
+                                            "default": 1,
                                             "$id": "#/properties/opensearch/properties/arbiter/properties/resources/properties/limits/properties/cpu",
                                             "title": "The opensearch.arbiter.resources.limits.cpu schema",
                                             "description": "The maximum number of CPUs the OpenSearch arbiter node container should use",
@@ -2921,7 +2921,7 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "default": "1000m",
+                                            "default": 1,
                                             "$id": "#/properties/opensearch/properties/data/properties/resources/properties/limits/properties/cpu",
                                             "title": "The opensearch.data.resources.limits.cpu schema",
                                             "description": "The maximum number of CPUs the OpenSearch data node container should use",
@@ -3362,7 +3362,7 @@
                                     "type": "object",
                                     "properties": {
                                         "cpu": {
-                                            "default": "1000m",
+                                            "default": 1,
                                             "$id": "#/properties/opensearch/properties/master/properties/resources/properties/limits/properties/cpu",
                                             "title": "The opensearch.master.resources.limits.cpu schema",
                                             "description": "The maximum number of CPUs the OpenSearch master node container should use",

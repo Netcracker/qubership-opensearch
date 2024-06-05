@@ -50,7 +50,7 @@ deployment:
           storageClass: "local-path"
         resources:
           limits:
-            cpu: 1000m
+            cpu: 1
             memory: 4Gi
           requests:
             cpu: 250m
