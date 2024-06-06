@@ -14,16 +14,18 @@ class OpenSearchUtils:
         self.separators = [' ', '_', '-']
 
     @staticmethod
-    def get_primary_shard_description_to_corrupt(index_information, master_node):
-        result = {}
+    def get_primary_shard_description_to_corrupt(index_information):
+        primary_shard = None
         for row in index_information:
-            if row['node'] == master_node and row['prirep'] == 'p':
-                result = row
-        shard = result['shard']
-        for row in index_information:
-            if row['shard'] == shard and row['prirep'] == 'r':
-                result['replica_service'] = row['node']
-        return result
+            if row['prirep'] == 'p':
+                primary_shard = row
+                break
+        if primary_shard:
+            shard = primary_shard['shard']
+            for row in index_information:
+                if row['shard'] == shard and row['prirep'] == 'r':
+                    primary_shard['replica_service'] = row['node']
+        return primary_shard
 
     @staticmethod
     def get_replica_shard_description_to_corrupt(index_information):
