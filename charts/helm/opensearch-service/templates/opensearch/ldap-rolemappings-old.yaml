@@ -11,8 +11,8 @@ metadata:
   name: {{ template "opensearch.fullname" . }}-ldap-rolemappings-old
   namespace: {{ .Release.Namespace }}
   labels:
-  {{ include "opensearch.labels.standard" . | indent 4 }}
-  {{ include "opensearch-service.defaultLabels" . | indent 4 }}
+{{ include "opensearch.labels.standard" . | indent 4 }}
+{{ include "opensearch-service.defaultLabels" . | indent 4 }}
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/resource-policy": keep

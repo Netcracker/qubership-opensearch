@@ -5,8 +5,8 @@ metadata:
   name: {{ template "opensearch.fullname" . }}-ldap-rolemappings
   namespace: {{ .Release.Namespace }}
   labels:
-  {{ include "opensearch.labels.standard" . | indent 4 }}
-  {{ include "opensearch-service.defaultLabels" . | indent 4 }}
+{{ include "opensearch.labels.standard" . | indent 4 }}
+{{ include "opensearch-service.defaultLabels" . | indent 4 }}
 type: Opaque
 stringData:
   rolemappings: |-
