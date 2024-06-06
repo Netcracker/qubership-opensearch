@@ -8,6 +8,7 @@ import (
 	"io"
 	v1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/utils/strings/slices"
 	"net/http"
 	"strconv"
 	"strings"
@@ -60,6 +61,11 @@ type OpenSearchReconciler struct {
 	cr         *opensearchservice.OpenSearchService
 	logger     logr.Logger
 	reconciler *OpenSearchServiceReconciler
+}
+
+type OpenSearchRoleMapping struct {
+	RoleName     string   `yaml:"RoleName"`
+	BackendRoles []string `yaml:"BackendRoles"`
 }
 
 func NewOpenSearchReconciler(r *OpenSearchServiceReconciler, cr *opensearchservice.OpenSearchService,
@@ -709,6 +715,118 @@ func (r OpenSearchReconciler) updateSecurityConfiguration(restClient *util.RestC
 		return nil
 	}
 	return r.updateSecurityConfig(configuration["config"], restClient)
+}
+
+func (r OpenSearchReconciler) updateLdapRolesmapping(restClient *util.RestClient) error {
+	newRoleMappings, err := r.getRoleMappingListFromSecret(fmt.Sprintf("%s-ldap-rolemappings", r.cr.Name))
+	if err != nil {
+		return err
+	}
+	if newRoleMappings == nil {
+		r.logger.Info("Role Mappings list is empty, so there is nothing to update")
+		return nil
+	}
+	oldRoleMappings, err := r.getRoleMappingListFromSecret(fmt.Sprintf("%s-ldap-rolemappings-old", r.cr.Name))
+	if err != nil {
+		return err
+	}
+	for _, mapping := range newRoleMappings {
+		role := mapping.RoleName
+		var oldBackendRoles []string
+		for i := range oldRoleMappings {
+			if oldRoleMappings[i].RoleName == mapping.RoleName {
+				oldBackendRoles = mapping.BackendRoles
+			}
+			break
+		}
+		err = r.updateRoleMappingBackendRoles(role, oldBackendRoles, mapping.BackendRoles, restClient)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r OpenSearchReconciler) getRoleMappingListFromSecret(secretName string) ([]OpenSearchRoleMapping, error) {
+	secret, err := r.reconciler.findSecret(secretName, r.cr.Namespace, r.logger)
+	if err != nil {
+		return nil, err
+	}
+	secretRoleMappings := secret.Data["rolemappings"]
+	var mappings []OpenSearchRoleMapping
+	if err = yaml.Unmarshal(secretRoleMappings, &mappings); err != nil {
+		return nil, err
+	}
+	return mappings, nil
+}
+
+func (r OpenSearchReconciler) mergeBackendRolesLists(oldSecretList []string, newSecretList []string, listFromOpensearch []string) []string {
+	var result []string
+	var exclude []string
+	for _, role := range oldSecretList {
+		if !slices.Contains(newSecretList, role) {
+			exclude = append(exclude, role)
+		}
+	}
+	for _, role := range listFromOpensearch {
+		if !slices.Contains(exclude, role) {
+			result = append(result, role)
+		}
+	}
+	for _, role := range newSecretList {
+		if !slices.Contains(result, role) {
+			result = append(result, role)
+		}
+	}
+	return result
+}
+
+func (r OpenSearchReconciler) getBackendRoles(role string, restClient *util.RestClient) ([]string, error) {
+	requestPath := fmt.Sprintf("_security/api/rolesmapping/%s", role)
+	statusCode, responseBody, err := restClient.SendRequest(http.MethodGet, requestPath, nil)
+	if err == nil {
+		if statusCode == http.StatusOK {
+			var result map[string]interface{}
+			if err = json.Unmarshal(responseBody, &result); err != nil {
+				r.logger.Error(err, "Error while unmarshalling flush result")
+				return nil, err
+			}
+			return result["backend_roles"].([]string), nil
+		}
+		return nil, fmt.Errorf("can not get rolemapping for role %s: [%d] %s", role, statusCode, responseBody)
+	}
+	return nil, err
+}
+
+func (r OpenSearchReconciler) updateRoleMappingBackendRoles(role string, oldList []string, newList []string, restClient *util.RestClient) error {
+	requestPath := fmt.Sprintf("_security/api/rolesmapping/%s", role)
+	statusCode, responseBody, err := restClient.SendRequest(http.MethodGet, requestPath, nil)
+	var body []byte
+	if err == nil {
+		if statusCode == http.StatusOK {
+			var result map[string]interface{}
+			if err = json.Unmarshal(responseBody, &result); err != nil {
+				r.logger.Error(err, "Error while unmarshalling rolemapping")
+				return err
+			}
+			var finalBackendRoles []string
+			finalBackendRoles = r.mergeBackendRolesLists(oldList, newList, result["backend_roles"].([]string))
+			result["backend_roles"] = finalBackendRoles
+			if body, err = json.Marshal(result); err != nil {
+				r.logger.Error(err, "Error while marshalling rolemapping")
+				return err
+			}
+		}
+		return fmt.Errorf("can not get rolemapping for role %s: [%d] %s", role, statusCode, responseBody)
+	}
+	statusCode, responseBody, err = restClient.SendRequest(http.MethodPut, requestPath, bytes.NewReader(body))
+	if err == nil {
+		if statusCode == http.StatusOK {
+			return nil
+		}
+		return fmt.Errorf("can not update rolemapping for role %s: [%d] %s", role, statusCode, responseBody)
+	}
+	return nil
 }
 
 func (r OpenSearchReconciler) updateSecurityConfig(configuration interface{}, restClient *util.RestClient) error {

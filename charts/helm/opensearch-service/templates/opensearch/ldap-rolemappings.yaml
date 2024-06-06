@@ -1,0 +1,17 @@
+{{- if .Values.opensearch.securityConfig.ldap.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "opensearch.fullname" . }}-ldap-rolemappings
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{ include "opensearch.labels.standard" . | indent 4 }}
+  {{ include "opensearch-service.defaultLabels" . | indent 4 }}
+type: Opaque
+stringData:
+  rolemappings: |-
+    {{- range .Values.opensearch.securityConfig.ldap.rolemappings }}
+    - role: {{ .role }}
+      backend_roles: {{ .backend_roles }}
+    {{- end }}
+{{- end }}
