@@ -20,17 +20,18 @@ import (
 )
 
 const (
-	opensearchConfigHashName   = "config.opensearch"
-	certificateFilePath        = "/certs/crt.pem"
-	healthCheckInterval        = 30 * time.Second
-	healthCheckTimeout         = 5 * time.Minute
-	podCheckInterval           = 1 * time.Minute
-	podCheckTimeout            = 6 * time.Minute
-	rollingUpdateDoneStatus    = "done"
-	rollingUpdateRunningStatus = "running"
-	flushPath                  = "_flush"
-	clusterHealthPath          = "_cluster/health"
-	clusterSettingsPath        = "_cluster/settings"
+	opensearchConfigHashName       = "config.opensearch"
+	opensearchRoleMappingsHashName = "rolemappings"
+	certificateFilePath            = "/certs/crt.pem"
+	healthCheckInterval            = 30 * time.Second
+	healthCheckTimeout             = 5 * time.Minute
+	podCheckInterval               = 1 * time.Minute
+	podCheckTimeout                = 6 * time.Minute
+	rollingUpdateDoneStatus        = "done"
+	rollingUpdateRunningStatus     = "running"
+	flushPath                      = "_flush"
+	clusterHealthPath              = "_cluster/health"
+	clusterSettingsPath            = "_cluster/settings"
 )
 
 type OpenSearchHealth struct {
@@ -576,9 +577,20 @@ func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
 			return restClient, err
 		}
 	}
-	err = r.updateLdapRolesmapping(restClient)
-	if err != nil {
-		return restClient, err
+	opensearchRoleMappingHash, err :=
+		r.reconciler.calculateSecretDataHash(fmt.Sprintf("%s-ldap-rolemappings", r.cr.Name), opensearchRoleMappingsHashName, r.cr, r.logger)
+	if err == nil {
+		if r.reconciler.ResourceHashes[opensearchRoleMappingsHashName] != "" && r.reconciler.ResourceHashes[opensearchRoleMappingsHashName] != opensearchConfigHash {
+			err := r.updateSecurityConfiguration(restClient)
+			if err != nil {
+				return restClient, err
+			}
+		}
+		err = r.updateLdapRolesmapping(restClient)
+		if err != nil {
+			return restClient, err
+		}
+		r.reconciler.ResourceHashes[opensearchRoleMappingsHashName] = opensearchRoleMappingHash
 	}
 	r.reconciler.ResourceHashes[opensearchConfigHashName] = opensearchConfigHash
 	return restClient, nil
