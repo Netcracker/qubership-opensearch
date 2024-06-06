@@ -576,6 +576,10 @@ func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
 			return restClient, err
 		}
 	}
+	err = r.updateLdapRolesmapping(restClient)
+	if err != nil {
+		return restClient, err
+	}
 	r.reconciler.ResourceHashes[opensearchConfigHashName] = opensearchConfigHash
 	return restClient, nil
 }
