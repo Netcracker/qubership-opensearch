@@ -797,27 +797,9 @@ func (r OpenSearchReconciler) mergeBackendRolesLists(oldSecretList []string, new
 	return result
 }
 
-func (r OpenSearchReconciler) getBackendRoles(role string, restClient *util.RestClient) ([]string, error) {
-	requestPath := fmt.Sprintf("_security/api/rolesmapping/%s", role)
-	statusCode, responseBody, err := restClient.SendRequest(http.MethodGet, requestPath, nil)
-	if err == nil {
-		if statusCode == http.StatusOK {
-			var result map[string]interface{}
-			if err = json.Unmarshal(responseBody, &result); err != nil {
-				r.logger.Error(err, "Error while unmarshalling flush result")
-				return nil, err
-			}
-			return result["backend_roles"].([]string), nil
-		}
-		return nil, fmt.Errorf("can not get rolemapping for role %s: [%d] %s", role, statusCode, responseBody)
-	}
-	return nil, err
-}
-
 func (r OpenSearchReconciler) updateRoleMappingBackendRoles(role string, oldList []string, newList []string, restClient *util.RestClient) error {
 	requestPath := fmt.Sprintf("_security/api/rolesmapping/%s", role)
 	statusCode, responseBody, err := restClient.SendRequest(http.MethodGet, requestPath, nil)
-	var body []byte
 	if err == nil {
 		if statusCode == http.StatusOK {
 			var result map[string]interface{}
@@ -825,24 +807,24 @@ func (r OpenSearchReconciler) updateRoleMappingBackendRoles(role string, oldList
 				r.logger.Error(err, "Error while unmarshalling rolemapping")
 				return err
 			}
-			var finalBackendRoles []string
-			finalBackendRoles = r.mergeBackendRolesLists(oldList, newList, result["backend_roles"].([]string))
+			finalBackendRoles := r.mergeBackendRolesLists(oldList, newList, result["backend_roles"].([]string))
 			result["backend_roles"] = finalBackendRoles
-			if body, err = json.Marshal(result); err != nil {
+			bytes_, err := json.Marshal(result)
+			if err != nil {
 				r.logger.Error(err, "Error while marshalling rolemapping")
 				return err
+			}
+			statusCode, responseBody, err = restClient.SendRequest(http.MethodPut, requestPath, strings.NewReader(string(bytes_)))
+			if err == nil {
+				if statusCode == http.StatusOK {
+					return nil
+				}
+				return fmt.Errorf("can not update rolemapping for role %s: [%d] %s", role, statusCode, responseBody)
 			}
 		}
 		return fmt.Errorf("can not get rolemapping for role %s: [%d] %s", role, statusCode, responseBody)
 	}
-	statusCode, responseBody, err = restClient.SendRequest(http.MethodPut, requestPath, bytes.NewReader(body))
-	if err == nil {
-		if statusCode == http.StatusOK {
-			return nil
-		}
-		return fmt.Errorf("can not update rolemapping for role %s: [%d] %s", role, statusCode, responseBody)
-	}
-	return nil
+	return err
 }
 
 func (r OpenSearchReconciler) updateSecurityConfig(configuration interface{}, restClient *util.RestClient) error {
