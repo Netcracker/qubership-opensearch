@@ -66,13 +66,13 @@ type OpenSearchReconciler struct {
 
 type OpenSearchRoleMapping struct {
 	RoleName        string   `yaml:"role_name,omitempty"`
-	Description     string   `yaml:"description,omitempty"`
-	BackendRoles    []string `yaml:"backend_roles,omitempty"`
-	AndBackendRoles []string `yaml:"and_backend_roles,omitempty"`
-	Hosts           []string `yaml:"hosts,omitempty"`
-	Users           []string `yaml:"users,omitempty"`
-	Reserved        bool     `yaml:"reserved,omitempty"`
-	Hidden          bool     `yaml:"hidden,omitempty"`
+	Description     string   `yaml:"description"`
+	BackendRoles    []string `yaml:"backend_roles"`
+	AndBackendRoles []string `yaml:"and_backend_roles"`
+	Hosts           []string `yaml:"hosts"`
+	Users           []string `yaml:"users"`
+	Reserved        bool     `yaml:"reserved"`
+	Hidden          bool     `yaml:"hidden"`
 }
 
 func NewOpenSearchReconciler(r *OpenSearchServiceReconciler, cr *opensearchservice.OpenSearchService,
@@ -816,7 +816,7 @@ func (r OpenSearchReconciler) updateRoleMappingBackendRoles(role string, oldList
 			roleMappingParameters := result[role]
 			finalBackendRoles := r.mergeBackendRolesLists(oldList, newList, roleMappingParameters.BackendRoles)
 			roleMappingParameters.BackendRoles = finalBackendRoles
-			bytes_, err := json.Marshal(roleMappingParameters)
+			bytes_, err := yaml.Marshal(roleMappingParameters)
 			if err != nil {
 				r.logger.Error(err, "Error while marshalling rolemapping")
 				return err
