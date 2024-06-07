@@ -4,7 +4,7 @@
 {{- if .Values.opensearch.securityConfig.ldap.enabled }}
 {{- $secretName := printf "%s-ldap-rolemappings" (include "opensearch.fullname" .) }}
 {{- if not (lookup "v1" "Secret" .Release.Namespace $secretName) }}
-{{- $secretObj := (lookup "v1" "Secret" .Release.Namespace (printf "%s-secret" (include "opensearch.fullname" .))) | default dict }}
+{{- $secretObj := (lookup "v1" "Secret" .Release.Namespace (printf "%s-ldap-rolemappings" (include "opensearch.fullname" .))) | default dict }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -24,7 +24,7 @@ data: {{ get $secretObj "data" | toYaml | nindent 2 }}
 stringData:
   rolemappings: |-
     {{- range .Values.opensearch.securityConfig.ldap.rolemappings }}
-    - role: {{ .role }}
+    - role_name: {{ .role_name }}
       backend_roles: {{ .backend_roles }}
     {{- end }}
 {{- end }}

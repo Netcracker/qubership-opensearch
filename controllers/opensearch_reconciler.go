@@ -65,8 +65,8 @@ type OpenSearchReconciler struct {
 }
 
 type OpenSearchRoleMapping struct {
-	RoleName     string   `yaml:"RoleName"`
-	BackendRoles []string `yaml:"BackendRoles"`
+	RoleName     string   `yaml:"role_name"`
+	BackendRoles []string `yaml:"backend_roles"`
 }
 
 func NewOpenSearchReconciler(r *OpenSearchServiceReconciler, cr *opensearchservice.OpenSearchService,
