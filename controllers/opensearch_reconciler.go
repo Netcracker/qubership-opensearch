@@ -807,7 +807,11 @@ func (r OpenSearchReconciler) updateRoleMappingBackendRoles(role string, oldList
 				r.logger.Error(err, "Error while unmarshalling rolemapping")
 				return err
 			}
-			finalBackendRoles := r.mergeBackendRolesLists(oldList, newList, result["backend_roles"].([]string))
+			var backendRolesFromOpensearch []string
+			if result["backend_roles"] != nil {
+				backendRolesFromOpensearch = result["backend_roles"].([]string)
+			}
+			finalBackendRoles := r.mergeBackendRolesLists(oldList, newList, backendRolesFromOpensearch)
 			result["backend_roles"] = finalBackendRoles
 			bytes_, err := json.Marshal(result)
 			if err != nil {
