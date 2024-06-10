@@ -817,6 +817,10 @@ func (r OpenSearchReconciler) updateRoleMappingBackendRoles(role string, oldList
 					return err
 				}
 				roleMappingParameters = result[role]
+			} else {
+				roleMappingParameters.Hosts = []string{}
+				roleMappingParameters.Users = []string{}
+				roleMappingParameters.AndBackendRoles = []string{}
 			}
 			finalBackendRoles := r.mergeBackendRolesLists(oldList, newList, roleMappingParameters.BackendRoles)
 			roleMappingParameters.Reserved = false
