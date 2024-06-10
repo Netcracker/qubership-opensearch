@@ -808,13 +808,16 @@ func (r OpenSearchReconciler) updateRoleMappingBackendRoles(role string, oldList
 	requestPath := fmt.Sprintf("_plugins/_security/api/rolesmapping/%s", role)
 	statusCode, responseBody, err := restClient.SendRequest(http.MethodGet, requestPath, nil)
 	if err == nil {
-		if statusCode == http.StatusOK {
-			var result map[string]OpenSearchRoleMapping
-			if err = json.Unmarshal(responseBody, &result); err != nil {
-				r.logger.Error(err, "Error while unmarshalling rolemapping")
-				return err
+		if (statusCode == http.StatusOK) || (statusCode == http.StatusNotFound) {
+			var roleMappingParameters OpenSearchRoleMapping
+			if statusCode == http.StatusOK {
+				var result map[string]OpenSearchRoleMapping
+				if err = json.Unmarshal(responseBody, &result); err != nil {
+					r.logger.Error(err, "Error while unmarshalling rolemapping")
+					return err
+				}
+				roleMappingParameters = result[role]
 			}
-			roleMappingParameters := result[role]
 			finalBackendRoles := r.mergeBackendRolesLists(oldList, newList, roleMappingParameters.BackendRoles)
 			roleMappingParameters.Reserved = false
 			roleMappingParameters.Hidden = false
