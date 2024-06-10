@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"io"
-	v1 "k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/utils/strings/slices"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"gopkg.in/yaml.v3"
+	v1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/utils/strings/slices"
 
 	opensearchservice "git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/api/v1"
 	"git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/util"
@@ -65,14 +66,14 @@ type OpenSearchReconciler struct {
 }
 
 type OpenSearchRoleMapping struct {
-	RoleName        string   `yaml:"role_name,omitempty"`
-	Description     string   `yaml:"description"`
-	BackendRoles    []string `yaml:"backend_roles"`
-	AndBackendRoles []string `yaml:"and_backend_roles"`
-	Hosts           []string `yaml:"hosts"`
-	Users           []string `yaml:"users"`
-	Reserved        bool     `yaml:"reserved"`
-	Hidden          bool     `yaml:"hidden"`
+	RoleName        string   `json:"role_name,omitempty"`
+	Description     string   `json:"description"`
+	BackendRoles    []string `json:"backend_roles"`
+	AndBackendRoles []string `json:"and_backend_roles"`
+	Hosts           []string `json:"hosts"`
+	Users           []string `json:"users"`
+	Reserved        bool     `json:"reserved,omitempty"`
+	Hidden          bool     `json:"hidden,omitempty"`
 }
 
 func NewOpenSearchReconciler(r *OpenSearchServiceReconciler, cr *opensearchservice.OpenSearchService,
@@ -776,7 +777,7 @@ func (r OpenSearchReconciler) getRoleMappingListFromSecret(secretName string) ([
 	}
 	secretRoleMappings := secret.Data["rolemappings"]
 	var mappings []OpenSearchRoleMapping
-	if err = yaml.Unmarshal(secretRoleMappings, &mappings); err != nil {
+	if err = json.Unmarshal(secretRoleMappings, &mappings); err != nil {
 		return nil, err
 	}
 	return mappings, nil
@@ -815,8 +816,10 @@ func (r OpenSearchReconciler) updateRoleMappingBackendRoles(role string, oldList
 			}
 			roleMappingParameters := result[role]
 			finalBackendRoles := r.mergeBackendRolesLists(oldList, newList, roleMappingParameters.BackendRoles)
+			roleMappingParameters.Reserved = false
+			roleMappingParameters.Hidden = false
 			roleMappingParameters.BackendRoles = finalBackendRoles
-			bytes_, err := yaml.Marshal(roleMappingParameters)
+			bytes_, err := json.Marshal(roleMappingParameters)
 			if err != nil {
 				r.logger.Error(err, "Error while marshalling rolemapping")
 				return err

@@ -10,8 +10,5 @@ metadata:
 type: Opaque
 stringData:
   rolemappings: |-
-    {{- range .Values.opensearch.securityConfig.ldap.rolemappings }}
-    - role_name: {{ .role_name }}
-      backend_roles: {{ .backend_roles }}
-    {{- end }}
+    {{ .Values.opensearch.securityConfig.ldap.rolemappings | toJson }}
 {{- end }}

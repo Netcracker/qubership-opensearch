@@ -23,10 +23,7 @@ data: {{ get $secretObj "data" | toYaml | nindent 2 }}
 {{- else }}
 stringData:
   rolemappings: |-
-    {{- range .Values.opensearch.securityConfig.ldap.rolemappings }}
-    - role_name: {{ .role_name }}
-      backend_roles: {{ .backend_roles }}
-    {{- end }}
+    {{ .Values.opensearch.securityConfig.ldap.rolemappings | toJson }}
 {{- end }}
 {{- end }}
 {{- end }}
