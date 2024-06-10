@@ -833,10 +833,10 @@ func (r OpenSearchReconciler) updateRoleMappingBackendRoles(role string, oldList
 			}
 			statusCode, responseBody, err = restClient.SendRequest(http.MethodPut, requestPath, strings.NewReader(string(bytes_)))
 			if err == nil {
-				if statusCode == http.StatusOK {
+				if (statusCode == http.StatusOK) || (statusCode == http.StatusCreated) {
 					return nil
 				}
-				return fmt.Errorf("can not update rolemapping for role %s: [%d] %s", role, statusCode, responseBody)
+				return fmt.Errorf("can not update or create rolemapping for role %s: [%d] %s", role, statusCode, responseBody)
 			}
 		}
 		return fmt.Errorf("can not get rolemapping for role %s: [%d] %s", role, statusCode, responseBody)
