@@ -584,22 +584,18 @@ func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
 			return restClient, err
 		}
 	}
+	r.reconciler.ResourceHashes[opensearchConfigHashName] = opensearchConfigHash
 	opensearchRoleMappingHash, err :=
 		r.reconciler.calculateSecretDataHash(fmt.Sprintf("%s-ldap-rolemappings", r.cr.Name), opensearchRoleMappingsHashName, r.cr, r.logger)
 	if err == nil {
-		if r.reconciler.ResourceHashes[opensearchRoleMappingsHashName] != "" && r.reconciler.ResourceHashes[opensearchRoleMappingsHashName] != opensearchConfigHash {
-			err := r.updateSecurityConfiguration(restClient)
+		if r.reconciler.ResourceHashes[opensearchRoleMappingsHashName] != "" && r.reconciler.ResourceHashes[opensearchRoleMappingsHashName] != opensearchRoleMappingHash {
+			err = r.updateLdapRolesmapping(restClient)
 			if err != nil {
 				return restClient, err
 			}
 		}
-		err = r.updateLdapRolesmapping(restClient)
-		if err != nil {
-			return restClient, err
-		}
 		r.reconciler.ResourceHashes[opensearchRoleMappingsHashName] = opensearchRoleMappingHash
 	}
-	r.reconciler.ResourceHashes[opensearchConfigHashName] = opensearchConfigHash
 	return restClient, nil
 }
 
