@@ -755,8 +755,8 @@ func (r OpenSearchReconciler) updateLdapRolesmapping(restClient *util.RestClient
 		for i := range oldRoleMappings {
 			if oldRoleMappings[i].RoleName == mapping.RoleName {
 				oldBackendRoles = oldRoleMappings[i].BackendRoles
+				break
 			}
-			break
 		}
 		err = r.updateRoleMappingBackendRoles(role, oldBackendRoles, mapping.BackendRoles, restClient)
 		if err != nil {
