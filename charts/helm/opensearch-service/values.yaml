@@ -391,7 +391,7 @@ opensearch:
         memory: 2Gi
       limits:
         cpu: 1
-        memory: 4Gi 
+        memory: 4Gi
     javaOpts: "-Xms1024m -Xmx1024m"
     podDisruptionBudget:
       enabled: false
@@ -478,7 +478,7 @@ opensearch:
         memory: 2Gi
       limits:
         cpu: 1
-        memory: 4Gi 
+        memory: 4Gi
     javaOpts: "-Xms1024m -Xmx1024m"
     readinessProbe: {}
     livenessProbe:
@@ -565,7 +565,7 @@ opensearch:
         memory: 2Gi
       limits:
         cpu: 1
-        memory: 4Gi 
+        memory: 4Gi
     javaOpts: "-Xms1024m -Xmx1024m"
     podDisruptionBudget:
       enabled: false

@@ -177,7 +177,7 @@ spec:
                 secretKeyRef:
                   name: {{ template "opensearch.fullname" . }}-s3-secret
                   key: s3-key-secret
-            {{- else -}}
+            {{ else }}
             - name: S3_ENABLED
               value: {{ .Values.opensearch.snapshots.s3.enabled | quote }}
             - name: S3_URL
