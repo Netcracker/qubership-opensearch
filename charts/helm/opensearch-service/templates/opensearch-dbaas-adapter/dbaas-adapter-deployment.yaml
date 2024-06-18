@@ -131,7 +131,11 @@ spec:
           name: {{ template "dbaas-adapter.name" . }}
           volumeMounts:
             - mountPath: "/app/config/"
+              subPath: "adapter-configs"
               name: dbaas-adapter-configs
+            - mountPath: "/app/config/"
+              subPath: "physical-databases-labels"
+              name: dbaas-physical-databases-labels
             {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - mountPath: /trusted-certs/root-ca.pem
               name: opensearch-certs
@@ -152,6 +156,9 @@ spec:
         - name: dbaas-adapter-configs
           configMap:
             name: {{ template "dbaas-adapter.name" . }}-configs
+        - name: dbaas-physical-databases-labels
+          configMap:
+            name: dbaas-physical-databases-labels
         {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
         - name: opensearch-certs
           secret:
