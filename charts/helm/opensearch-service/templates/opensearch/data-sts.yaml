@@ -190,6 +190,8 @@ spec:
               name: config
               subPath: log4j2.properties
         {{- end }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/trustcerts
+              name: trusted-certs
             - mountPath: {{ .Values.opensearch.configDirectory }}/logging.yml
               name: config
               subPath: logging.yml
@@ -235,6 +237,9 @@ spec:
         - name: transport-certs
           secret:
             secretName: {{ template "opensearch.transport-cert-secret-name" . }}
+        - name: trusted-certs
+          secret:
+            secretName: {{ template "opensearch.fullname" . }}-trusted-certs
         {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
         - name: rest-certs
           secret:

@@ -273,6 +273,7 @@ opensearch:
       enabled: true
     ldap:
       enabled: false
+      enableSsl: false
       search:
         roleSearchEnabled: false
 
@@ -762,6 +763,9 @@ opensearch:
     plugins.security.ssl.http.pemcert_filepath: rest-crt.pem
     plugins.security.ssl.http.pemkey_filepath: rest-key.pem
     plugins.security.ssl.http.pemtrustedcas_filepath: rest-root-ca.pem
+
+    # TLS Configuration Transport Layer truststore
+    plugins.security.ssl.transport.truststore_filepath: cacerts
 
   log4jConfig: {}
 

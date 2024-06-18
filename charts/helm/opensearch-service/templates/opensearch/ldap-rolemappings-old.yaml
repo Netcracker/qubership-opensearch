@@ -17,7 +17,6 @@ metadata:
     "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/resource-policy": keep
 type: Opaque
-type: Opaque
 {{- if $secretObj }}
 data: {{ get $secretObj "data" | toYaml | nindent 2 }}
 {{- else }}

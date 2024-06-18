@@ -58,6 +58,7 @@ stringData:
             authentication_backend:
               type: ldap
               config:
+                enable_ssl: {{ .Values.opensearch.securityConfig.ldap.enableSsl }}
                 hosts:
                   - {{ .Values.opensearch.securityConfig.ldap.host }}
                 bind_dn: {{ .Values.opensearch.securityConfig.ldap.managerDn }}
@@ -72,6 +73,7 @@ stringData:
             authorization_backend:
               type: ldap
               config:
+                enable_ssl: {{ .Values.opensearch.securityConfig.ldap.enableSsl }}
                 hosts:
                   - {{ .Values.opensearch.securityConfig.ldap.host }}
                 bind_dn: {{ .Values.opensearch.securityConfig.ldap.managerDn }}
