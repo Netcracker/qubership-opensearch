@@ -3679,7 +3679,7 @@
                                 },
                                 "trustedCerts": {
                                     "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/trustedCerts",
-                                    "type": "array",
+                                    "type": "object",
                                     "title": "The opensearch.securityConfig.ldap.trustedCerts schema",
                                     "description": "The list of LDAPS TLS certificates for OpenSearch as map in `key: value` format"
                                 },
@@ -3697,7 +3697,7 @@
                                 },
                                 "rolemappings": {
                                     "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/rolemappings",
-                                    "type": "object",
+                                    "type": "array",
                                     "title": "The opensearch.securityConfig.ldap.rolemappings schema",
                                     "description": "The list of LDAP rolemappings for OpenSearch in the `YAML` format"
                                 }
