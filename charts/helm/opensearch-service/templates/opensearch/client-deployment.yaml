@@ -34,6 +34,7 @@ spec:
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-client
       annotations:
         "opensearch/config-checksum": {{ include (print $.Template.BasePath "/opensearch/config-secret.yaml") . | sha256sum }}
+        "opensearch/trusted-certs-checksum": {{ include (print $.Template.BasePath "/opensearch/trusted-certs-secret.yaml") . | sha256sum }}
 {{- if .Values.opensearch.client.podAnnotations }}
 {{ toYaml .Values.opensearch.client.podAnnotations | indent 8 }}
 {{- end }}

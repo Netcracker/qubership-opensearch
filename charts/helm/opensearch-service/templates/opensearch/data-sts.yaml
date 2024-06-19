@@ -40,6 +40,7 @@ spec:
         role: data
       annotations:
         "opensearch/config-checksum": {{ include (print $.Template.BasePath "/opensearch/config-secret.yaml") . | sha256sum }}
+        "opensearch/trusted-certs-checksum": {{ include (print $.Template.BasePath "/opensearch/trusted-certs-secret.yaml") . | sha256sum }}
 {{- if .Values.opensearch.data.podAnnotations }}
 {{ toYaml .Values.opensearch.data.podAnnotations | indent 8 }}
 {{- end }}
