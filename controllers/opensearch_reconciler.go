@@ -801,9 +801,9 @@ func (r OpenSearchReconciler) mergeBackendRolesLists(oldSecretList []string, new
 }
 
 func (r OpenSearchReconciler) updateRoleMappingBackendRoles(role string, oldList []string, newList []string, restClient *util.RestClient) error {
-	requestPath := fmt.Sprintf("_plugins/_security/api/rolesmapping/%s", role)
-	statusCode, responseBody, err := restClient.SendRequest(http.MethodGet, requestPath, nil)
-	if err != nil {
+    requestPath := fmt.Sprintf("_plugins/_security/api/rolesmapping/%s", role)
+    statusCode, responseBody, err := restClient.SendRequest(http.MethodGet, requestPath, nil)
+    if err != nil {
         return err
     }
     if (statusCode != http.StatusOK) && (statusCode != http.StatusNotFound) {
