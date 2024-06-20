@@ -1,0 +1,29 @@
+# This secret is used for changing LDAP opensearch rolemappings. It is created by Helm, but all updates are performed by operator.
+# If `ldap-rolemappings` secret exists, data is taken from it, otherwise, from `.Values` parameters.
+{{- if not .Values.global.externalOpensearch.enabled }}
+{{- if .Values.opensearch.securityConfig.ldap.enabled }}
+{{- $secretName := printf "%s-ldap-rolemappings" (include "opensearch.fullname" .) }}
+{{- if not (lookup "v1" "Secret" .Release.Namespace $secretName) }}
+{{- $secretObj := (lookup "v1" "Secret" .Release.Namespace (printf "%s-ldap-rolemappings" (include "opensearch.fullname" .))) | default dict }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "opensearch.fullname" . }}-ldap-rolemappings-old
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+{{ include "opensearch-service.defaultLabels" . | indent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/resource-policy": keep
+type: Opaque
+{{- if $secretObj }}
+data: {{ get $secretObj "data" | toYaml | nindent 2 }}
+{{- else }}
+stringData:
+  rolemappings: |-
+    {{ .Values.opensearch.securityConfig.ldap.rolemappings | toJson }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
