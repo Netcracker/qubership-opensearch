@@ -1,8 +1,8 @@
 variables:
   DOCKER_REPOSITORY: "artifactorycn.netcracker.com:17023"
   CI_IMAGE: "artifactorycn.netcracker.com:17023/tools/monitoring-gitlab-ci:0.0.1"
-  GO_LINTER_IMAGE: "artifactorycn.netcracker.com:17064/golangci/golangci-lint:v1.50.1"
-  HELM_LINTER_IMAGE: "artifactorycn.netcracker.com:17114/helmpack/chart-testing:v3.10.1"
+  GO_LINTER_IMAGE: "artifactorycn.netcracker.com:17064/golangci/golangci-lint:latest"
+  HELM_LINTER_IMAGE: "artifactorycn.netcracker.com:17114/helmpack/chart-testing:latest"
   DATABASE_CI_TOOLS_IMAGE: "artifactorycn.netcracker.com:17008/product/prod.platform.databases_ci-tools:master_latest"
   GO_PROXY: "https://artifactorycn.netcracker.com/pd.sandbox-staging.go.group"
   INTEGRATION_TESTS_POD_NAME: opensearch-integration-tests
@@ -43,7 +43,7 @@ MR Labels:
     - NETCRACKER
   image: ${DATABASE_CI_TOOLS_IMAGE}
   script:
-    - python -u /scripts/mr_labels_linter.py
+    - python -u /scripts/mr_linter.py
   only:
     - merge_request
 
