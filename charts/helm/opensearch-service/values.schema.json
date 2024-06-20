@@ -2673,7 +2673,8 @@
                         "plugins.security.ssl.http.enabled": "${TLS_ENABLED}",
                         "plugins.security.ssl.http.pemcert_filepath": "rest-crt.pem",
                         "plugins.security.ssl.http.pemkey_filepath": "rest-key.pem",
-                        "plugins.security.ssl.http.pemtrustedcas_filepath": "rest-root-ca.pem"
+                        "plugins.security.ssl.http.pemtrustedcas_filepath": "rest-root-ca.pem",
+                        "plugins.security.ssl.transport.truststore_filepath": "cacerts"
                     },
                     "$id": "#/properties/opensearch/properties/config",
                     "title": "The opensearch.config schema",
@@ -3595,6 +3596,115 @@
                             "$id": "#/properties/opensearch/properties/securityConfig/properties/internalUsersSecret",
                             "title": "The opensearch.securityConfig.internalUsersSecret schema",
                             "description": "The name of the secret with [internal_users"
+                        },
+                        "ldap": {
+                            "type": "object",
+                            "properties": {
+                                "enableSsl": {
+                                    "type": "boolean",
+                                    "default": false,
+                                    "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/enableSsl",
+                                    "title": "The opensearch.securityConfig.ldap.enableSsl schema",
+                                    "description": "Whether to use LDAPS"
+                                },
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": false,
+                                    "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/enabled",
+                                    "title": "The opensearch.securityConfig.ldap.enabled schema",
+                                    "description": "Whether to enable LDAP integration for OpenSearch"
+                                },
+                                "search": {
+                                    "type": "object",
+                                    "properties": {
+                                        "roleSearchEnabled": {
+                                            "type": "boolean",
+                                            "default": false,
+                                            "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/search/properties/roleSearchEnabled",
+                                            "title": "The opensearch.securityConfig.ldap.search.roleSearchEnabled schema",
+                                            "description": "Whether to enable role search for LDAP integration"
+                                        },
+                                        "base": {
+                                            "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/search/properties/base",
+                                            "type": "string",
+                                            "title": "The opensearch.securityConfig.ldap.search.base schema",
+                                            "description": "LDAP search base, for example `\"DC=testad,DC=local\"`"
+                                        },
+                                        "filter": {
+                                            "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/search/properties/filter",
+                                            "type": "string",
+                                            "title": "The opensearch.securityConfig.ldap.search.filter schema",
+                                            "description": "LDAP search filter, for example `\"(&(objectClass=user)(cn={0}))\"`"
+                                        },
+                                        "usernameAttribute": {
+                                            "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/search/properties/usernameAttribute",
+                                            "type": "string",
+                                            "title": "The opensearch.securityConfig.ldap.search.usernameAttribute schema",
+                                            "description": "Name of the attribute used to look for the user name in the directory entry"
+                                        },
+                                        "userrolename": {
+                                            "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/search/properties/userrolename",
+                                            "type": "string",
+                                            "title": "The opensearch.securityConfig.ldap.search.userrolename schema",
+                                            "description": "If the roles/groups of a user are not stored in the groups subtree, but as an attribute of the user\u00e2\u20ac\u2122s directory entry, this parameter will be used as attribute to look for the role name"
+                                        },
+                                        "rolebase": {
+                                            "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/search/properties/rolebase",
+                                            "type": "string",
+                                            "title": "The opensearch.securityConfig.ldap.search.rolebase schema",
+                                            "description": "Specifies the subtree in the directory where role/group information is stored in LDAP"
+                                        },
+                                        "rolesearch": {
+                                            "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/search/properties/rolesearch",
+                                            "type": "string",
+                                            "title": "The opensearch.securityConfig.ldap.search.rolesearch schema",
+                                            "description": "The actual LDAP query that the Security plugin executes when trying to determine the roles of a user"
+                                        },
+                                        "rolename": {
+                                            "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/search/properties/rolename",
+                                            "type": "string",
+                                            "title": "The opensearch.securityConfig.ldap.search.rolename schema",
+                                            "description": "The attribute of the role entry that should be used as the role name"
+                                        }
+                                    },
+                                    "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/search",
+                                    "title": "The opensearch.securityConfig.ldap.search schema",
+                                    "description": "opensearch.securityConfig.ldap.search parameters"
+                                },
+                                "host": {
+                                    "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/host",
+                                    "type": "string",
+                                    "title": "The opensearch.securityConfig.ldap.host schema",
+                                    "description": "LPAD server host"
+                                },
+                                "trustedCerts": {
+                                    "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/trustedCerts",
+                                    "type": "object",
+                                    "title": "The opensearch.securityConfig.ldap.trustedCerts schema",
+                                    "description": "The list of LDAPS TLS certificates for OpenSearch as map in `key: value` format"
+                                },
+                                "managerDn": {
+                                    "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/managerDn",
+                                    "type": "string",
+                                    "title": "The opensearch.securityConfig.ldap.managerDn schema",
+                                    "description": "LPAD username"
+                                },
+                                "managerPassword": {
+                                    "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/managerPassword",
+                                    "type": "string",
+                                    "title": "The opensearch.securityConfig.ldap.managerPassword schema",
+                                    "description": "LPAD password"
+                                },
+                                "rolemappings": {
+                                    "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/rolemappings",
+                                    "type": "array",
+                                    "title": "The opensearch.securityConfig.ldap.rolemappings schema",
+                                    "description": "The list of LDAP rolemappings for OpenSearch in the `YAML` format"
+                                }
+                            },
+                            "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap",
+                            "title": "The opensearch.securityConfig.ldap schema",
+                            "description": "opensearch.securityConfig.ldap parameters"
                         },
                         "path": {
                             "type": "string",
