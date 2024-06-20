@@ -8,7 +8,7 @@ global:
       certProvider: cert-manager
       clusterIssuerName: qa-issuer-self
 operator:
-  \nreplicas: 1\n
+  replicas: 1
 dashboards:
   enabled: true
   ingress:
