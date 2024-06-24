@@ -8,6 +8,8 @@ dashboards:
           - path: /
 
 opensearch:
+  sysctl:
+    enabled: true
   securityConfig:
     enabled: true
     path: "/usr/share/opensearch/config/opensearch-security"
