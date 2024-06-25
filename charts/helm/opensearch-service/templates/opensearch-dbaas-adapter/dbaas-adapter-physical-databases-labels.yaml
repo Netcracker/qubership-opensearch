@@ -9,5 +9,5 @@ metadata:
     component: dbaas-opensearch-adapter
   name: dbaas-physical-databases-labels
 data:
-  dbaas.physical_databases.registration.labels.json: "{{ .Values.dbaasAdapter.physicalDatabasesLabels | toJson }}"
+  dbaas.physical_databases.registration.labels.json: '{{ .Values.dbaasAdapter.physicalDatabasesLabels | toJson }}'
 {{- end }}
