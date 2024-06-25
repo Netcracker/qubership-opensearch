@@ -857,6 +857,13 @@
                     "title": "The dbaasAdapter.opensearchRepoRoot schema",
                     "description": "The absolute path in OpenSearch file system where snapshot repositories for backups are created"
                 },
+                "physicalDatabasesLabels": {
+                    "type": "object",
+                    "default": {},
+                    "$id": "#/properties/dbaasAdapter/properties/physicalDatabasesLabels",
+                    "title": "The dbaasAdapter.physicalDatabasesLabels schema",
+                    "description": "The labels for physical database that should be added to `dbaas-physical-databases-labels` config map for the further physical database registration request"
+                },
                 "priorityClassName": {
                     "type": "string",
                     "default": "",
