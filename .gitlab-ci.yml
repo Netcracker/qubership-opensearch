@@ -140,14 +140,14 @@ BuildChartsManifestAndDeploy:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
 
-BuildChartsManifestAndDeploy1.3.10:
+BuildChartsManifestAndDeploy1.3.17:
   extends: .BuildChartsManifestAndDeployTemplate
   needs:
     - BuildOperator
     - BuildIntegrationTests
   allow_failure: false
   variables:
-    PREFIX: delivery/1.3.10
+    PREFIX: delivery/1.3.17
   script:
     - python3 /ci/orchestrate_runner.py -f "./.gitlab-ci/jenkins/stages-params/operator-charts.yaml"
   rules:
