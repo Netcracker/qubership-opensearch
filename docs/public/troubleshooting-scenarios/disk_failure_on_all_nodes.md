@@ -6,13 +6,13 @@ The cluster Nodes Stats API enables retrieving statistics of all nodes in the cl
 
 To retrieve statistics of all the nodes in the cluster, run the following command:
 
-```
+```sh
 curl -XGET http://localhost:9200/_nodes/stats
 ```
 
 Example response:
 
-```
+```json
     {
       "cluster_name" : "opensearch",
       "status" : "red",
@@ -38,7 +38,9 @@ The cluster status is `failed`, and all shards are in `unassigned` status.
 
 To retrieve the metric count of unassigned shards, run the following query:
 
-```SELECT last("unassigned_shards") FROM "opensearch_cluster_health" WHERE $timeFilter GROUP BY time($interval) fill(0)```
+```text
+SELECT last("unassigned_shards") FROM "opensearch_cluster_health" WHERE $timeFilter GROUP BY time($interval) fill(0)
+```
 
 On this chart, all shards are in unassigned status.
 

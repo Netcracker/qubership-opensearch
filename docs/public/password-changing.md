@@ -24,6 +24,7 @@ Where:
 **Note**: OpenSearch dashboards don't support password that contains only digits. Consider this when changing the password property.
 
 # OpenSearch Curator
+
 This section provides information on the password changing procedures in the OpenSearch Curator.
 
 ## OpenSearch Curator Secret

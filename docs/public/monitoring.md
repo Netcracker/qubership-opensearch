@@ -16,7 +16,7 @@ The dashboards provide the following parameters to configure at the top of the d
 * Interval time for metric display
 * Node name
 
-For all graph panels, the mean metric value is used in the given interval. For all singlestat panels, 
+For all graph panels, the mean metric value is used in the given interval. For all singlestat panels,
 the last metric value is used.
 
 # OpenSearch Monitoring
@@ -35,9 +35,9 @@ the last metric value is used.
 
    If the cluster status is `degraded`, at least one replica shard is unallocated or missing. The search
    results will still be complete, but if more shards are missing, you may lose data.
-   
+
    A `failed` cluster status indicates that:
-   
+
     * At least one primary shard is missing.
     * You are missing data.
     * The searches will return partial results.
@@ -89,20 +89,20 @@ the last metric value is used.
 ![Dashboard](/docs/public/images/opensearch-monitoring_jvm_heap_and_gc_metrics.png)
 
 * `JVM heap usage` - The usage of JVM heap memory by each OpenSearch node.
-* `JVM heap usage percent` - OpenSearch is set up to initiate garbage collections whenever JVM 
-  heap usage hits 75 percent. As shown in the preceding image, it may be useful to monitor which nodes exhibit high 
-  heap usage, and set up an alert to find out if any node is consistently using over 85 percent of 
-  heap memory; this percentage indicates that the rate of garbage collection is not keeping up with the rate of 
-  garbage creation. To address this problem, you can either increase your heap size (as long as it 
-  remains below the guidelines previously recommended), or scale out the cluster by adding more 
+* `JVM heap usage percent` - OpenSearch is set up to initiate garbage collections whenever JVM
+  heap usage hits 75 percent. As shown in the preceding image, it may be useful to monitor which nodes exhibit high
+  heap usage, and set up an alert to find out if any node is consistently using over 85 percent of
+  heap memory; this percentage indicates that the rate of garbage collection is not keeping up with the rate of
+  garbage creation. To address this problem, you can either increase your heap size (as long as it
+  remains below the guidelines previously recommended), or scale out the cluster by adding more
   nodes.
 * `JVM non heap usage` - The usage of memory outside the JVM heap by each OpenSearch node.
-* `GC time` - Because garbage collection uses resources (in order to free up additional resources), you should 
-  keep an eye on its frequency and duration to see if you need to adjust the heap size. Setting 
-  the heap too large can result in long garbage collection times, and these excessive pauses are 
-  dangerous because they can lead your cluster to mistakenly register your node as having dropped 
-  off the grid. (Because the master node checks the status of every other node every 30 seconds, if 
-  any node’s garbage collection time exceed 30 seconds, it will lead the master to believe that 
+* `GC time` - Because garbage collection uses resources (in order to free up additional resources), you should
+  keep an eye on its frequency and duration to see if you need to adjust the heap size. Setting
+  the heap too large can result in long garbage collection times, and these excessive pauses are
+  dangerous because they can lead your cluster to mistakenly register your node as having dropped
+  off the grid. (Because the master node checks the status of every other node every 30 seconds, if
+  any node’s garbage collection time exceed 30 seconds, it will lead the master to believe that
   the node has failed.)
 
 OpenSearch recommends allocating less than 50% of available RAM to JVM heap, and not more than 32 GB
@@ -119,10 +119,10 @@ The following is a list of scenarios related to JVM Heap:
    Frequent short pauses impact the end user experience by shifting the latency distribution and reducing
    the number of operations the application can handle. For OpenSearch, constant short pauses reduce
    the number of indexing operations and queries handled per second. A small heap also reduces the memory
-   available for indexing buffers, caches, and memory-hungry features like aggregations and suggesters. 
+   available for indexing buffers, caches, and memory-hungry features like aggregations and suggesters.
    The following image shows a heap that is too small. The garbage collections are barely able to free objects,
    leaving little heap space free after each collection.
-   
+
    ![Small Heap](/docs/public/images/small_heap.png)
 
 * Heap Size is Too Large
@@ -138,10 +138,10 @@ The following is a list of scenarios related to JVM Heap:
    the node from the cluster and reallocating the paused node's assigned shards. That increases network
    traffic and disk I/O across the cluster. Long garbage collection pauses are a major cause of cluster
    instability.
-   
+
    The following image shows a heap that is too large. The heap is almost exclusively junk before each
    collection, and this memory is likely better utilized by the filesystem cache.
-   
+
    ![Oversize Heap](/docs/public/images/oversized-heap.png)
 
 **Memory Metrics**
@@ -150,7 +150,7 @@ The following is a list of scenarios related to JVM Heap:
 
 * `OS memory usage` - The usage of memory by each OpenSearch node and its limit. These metric is
   useful to avoid reaching the memory limit on nodes.
-* `Off-heap memory usage` - The usage of memory excluding allocated JVM Heap memory by each OpenSearch node and its limit. 
+* `Off-heap memory usage` - The usage of memory excluding allocated JVM Heap memory by each OpenSearch node and its limit.
   This amount of memory is used by operating system and Apache Lucene.
 
 **Disk Metrics**
@@ -181,10 +181,10 @@ grouped by both the node name and the node host.
 
 ![Dashboard](/docs/public/images/opensearch-monitoring_indices_statistics.png)
 
-* `Indices total operations` - The number of operations performed by indices by the current moment 
+* `Indices total operations` - The number of operations performed by indices by the current moment
   grouped by operation type and OpenSearch node.
 * `Indices operations rate` - The number of operations performed by indices per second grouped by operation type and OpenSearch node.
-* `Indices time operations` - The average time to complete an operation in indices grouped by 
+* `Indices time operations` - The average time to complete an operation in indices grouped by
   operation type and OpenSearch node.
 * `Indices time operations rate` - The average time to complete an operation in indices per second grouped by operation type and OpenSearch node.
 * `Indices data size` - The size of data stored in indices grouped by OpenSearch nodes.
@@ -197,17 +197,17 @@ grouped by both the node name and the node host.
 
 * `Requests latency` - The information on the requests, indexing, flush, get-exists, search query,
   and fetch query. The fetch phase typically takes much less time than the query phase.
-  If you notice the indexing latency increasing, you may be trying to index too 
-  many documents at one time (OpenSearch's documentation recommends starting with a bulk indexing 
-  size of 5 to 15 megabytes and increasing slowly from there). If you are planning to index many 
-  documents, and you do not need the new information to be immediately available for search, you can 
-  optimize for indexing performance over search performance by decreasing the refresh frequency until 
+  If you notice the indexing latency increasing, you may be trying to index too
+  many documents at one time (OpenSearch's documentation recommends starting with a bulk indexing
+  size of 5 to 15 megabytes and increasing slowly from there). If you are planning to index many
+  documents, and you do not need the new information to be immediately available for search, you can
+  optimize for indexing performance over search performance by decreasing the refresh frequency until
   you are done indexing.
-* `Rejected requests` - The size of each thread pool's queue represents how many requests are 
-  waiting to be served while the node is currently at capacity. The queue allows the node to track 
-  and eventually serve these requests instead of discarding them. Thread pool rejections arise once 
+* `Rejected requests` - The size of each thread pool's queue represents how many requests are
+  waiting to be served while the node is currently at capacity. The queue allows the node to track
+  and eventually serve these requests instead of discarding them. Thread pool rejections arise once
   the thread pool's maximum queue size (which varies based on the type of thread pool) is reached.
-* `Thread pool queues` - The size of each thread pool's queue represents how many requests are 
+* `Thread pool queues` - The size of each thread pool's queue represents how many requests are
   waiting to be served while the node is currently at capacity. Large queues are not ideal because
   they use up resources and increase the risk of losing requests if a node goes down. If you see the
   number of queued and rejected threads increasing steadily, you might want to try slowing down the
@@ -217,7 +217,7 @@ grouped by both the node name and the node host.
 
 OpenSearch nodes use the thread pools to manage how threads consume memory and CPU. Since thread
 pool settings are automatically configured based on the number of processors, you need not change them.
-However, it is recommended to monitor the queues and rejections to find out if your nodes are not able 
+However, it is recommended to monitor the queues and rejections to find out if your nodes are not able
 to keep up.
 
 **Backup**
