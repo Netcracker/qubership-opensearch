@@ -3,6 +3,7 @@ variables:
   CI_IMAGE: "artifactorycn.netcracker.com:17023/tools/monitoring-gitlab-ci:0.0.1"
   GO_LINTER_IMAGE: "artifactorycn.netcracker.com:17064/golangci/golangci-lint:latest"
   HELM_LINTER_IMAGE: "artifactorycn.netcracker.com:17114/helmpack/chart-testing:latest"
+  MARKDOWN_LINT_IMAGE: "artifactorycn.netcracker.com:17114/igorshubovych/markdownlint-cli:v0.40.0"
   DATABASE_CI_TOOLS_IMAGE: "artifactorycn.netcracker.com:17008/product/prod.platform.databases_ci-tools:master_latest"
   GO_PROXY: "https://artifactorycn.netcracker.com/pd.sandbox-staging.go.group"
   INTEGRATION_TESTS_POD_NAME: opensearch-integration-tests
@@ -46,6 +47,21 @@ MR Labels:
     - python -u /scripts/mr_linter.py
   only:
     - merge_request
+
+LinterMarkdown:
+  stage: linter
+  image:
+    name: ${MARKDOWN_LINT_IMAGE}
+    entrypoint:
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  tags:
+    - NETCRACKER
+  before_script:
+    - markdownlint --version
+  script:
+    - markdownlint --config ./.markdownlint.yaml ./docs
+  allow_failure: true
 
 LinterHelm:
   allow_failure: true

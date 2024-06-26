@@ -8,9 +8,9 @@ The following topics are covered in this chapter:
 
 # Prerequisites
 
-* `kubectl` tool is installed: https://kubernetes.io/ru/docs/tasks/tools/install-kubectl/
+* `kubectl` tool is installed: [https://kubernetes.io/ru/docs/tasks/tools/install-kubectl/]
 * `tar` tool is installed
-* `mc` tool is installed: https://github.com/minio/mc/blob/master/README.md
+* `mc` tool is installed: [https://github.com/minio/mc/blob/master/README.md]
 
 # Transfer Data Schemes
 
@@ -203,6 +203,7 @@ To transfer data between NFS persistent volumes, follow the guide:
    ```
 
 Where:
+
 * `${CURATOR_POD_NAME_A}` is the name of OpenSearch curator pod from which data needs to be transferred. For example, `opensearch-curator-5bbb49f5d6-dtj6m`.
 * `${NAMESPACE_A}` is the namespace where `${CURATOR_POD_NAME_A}` OpenSearch curator pod is located.
 * `${CURATOR_POD_NAME_B}` is the name of OpenSearch curator pod to which data needs to be transferred. For example, `opensearch-curator-6b44fc6597-jw6z8`.
@@ -334,6 +335,7 @@ To transfer data from S3 to NFS persistent volume, follow the guide:
    ```
 
 Where:
+
 * `${BUCKET_NAME_A}` is the name of bucket on S3 from which data needs to be transferred. For example, `opensearch-env-a`.
 * `${ALIAS_A}` is the unique alias for S3 to use in `mc` tool. For example, `env-a`.
 * `${URL_A}` is the URL to S3 from which data needs to be transferred. For example, `https://minio-ingress-minio-service.env-a.openshift.sdntest.example.com`.

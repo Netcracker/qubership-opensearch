@@ -14,13 +14,13 @@ This section describes how to retrieve information about the shards.
 
 To retrieve the information about all indices in the cluster run the following command:
 
-```
+```sh
 curl -XGET http://localhost:9200/_cat/indices?v
 ```
 
 Possible output:
 
-```
+```text
 health status index                uuid                   pri rep docs.count docs.deleted store.size pri.store.size
 green  open   dbaas_metadata       RQluYUSAQmaMid5RFMU3GA   1   1          1            0        6kb            3kb
 green  open   .kibana_1            rCvMZI4ET8ichepIyUWNPg   1   1          0            0       416b           208b
@@ -33,13 +33,13 @@ If you have indices in red status, you should check the corresponding shards.
 
 To retrieve information about all shards in the cluster, run the following command:
 
-```
+```sh
 curl -X GET http://localhost:9200/_cat/shards?v
 ```
 
 Possible output:
 
-```
+```text
 index                shard prirep state   docs  store ip           node
 .kibana_1            0     r      STARTED    0   208b 10.128.7.6   opensearch-1
 .kibana_1            0     p      STARTED    0   208b 10.129.6.154 opensearch-0
@@ -49,7 +49,6 @@ index                shard prirep state   docs  store ip           node
 dbaas_metadata       0     p      STARTED    1    3kb 10.128.7.6   opensearch-1
 dbaas_metadata       0     r      STARTED    1    3kb 10.130.5.131 opensearch-2
 ```
-    
 
 If data files are corrupted on both primary and replica shards, in this example shards number 2 and 4, you should use the backups for recovering data.
 
@@ -68,7 +67,7 @@ Make sure that some indices have `red` status. Make sure all of unassigned shard
 
 Save the following as relocate_shards.sh script:
 
-```
+```sh
 #!/usr/bin/env bash
 
 
@@ -100,9 +99,12 @@ curl -k -u "$username:$password" ${url}"/_cat/shards/"${index} | grep UNASSIGNED
 
 IFS=${old_ifs}     
 ```
+
 Make sure the script file can be executed, do `chmod +x` on it:
 
-        chmod +x relocate_shards.sh
+```sh
+chmod +x relocate_shards.sh
+```
 
 Specify the OpenSearch server URL in the `url` parameter in the `relocate_shards.sh` script.
 
@@ -118,13 +120,13 @@ Perform request to the URL `OS_URL/_cat/shards` after the script `relocate_shard
 
 You can use your browser or use the following curl command:
 
-```
+```sh
 curl OS_URL/_cat/shards
 ```
 
 Expected output:
 
-```
+```text
         index                         shard   status      docs  memory    ip       node
 
         cats                              4 r STARTED      0     159b 10.1.6.185 data-third
@@ -138,6 +140,7 @@ Expected output:
         cats                              0 r STARTED      0     159b 10.1.5.47  data-first
         cats                              0 p STARTED      0     159b 10.1.10.27 data-second
 ```
+
 You need to make sure there is no "UNASSIGNED" status for any shard.
 
 Alternatively, you can run `/usr/share/opensearch/bin/relocate-shards.sh index` script from OpenSearch pod, where `index` is optional parameter.
