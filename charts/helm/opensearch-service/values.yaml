@@ -928,6 +928,7 @@ dbaasAdapter:
   dbaasAggregatorPhysicalDatabaseIdentifier: ""
   registrationAuthUsername: ""
   registrationAuthPassword: ""
+  physicalDatabasesLabels: {}
 
   opensearchHost: ""
   opensearchPort: 9200
