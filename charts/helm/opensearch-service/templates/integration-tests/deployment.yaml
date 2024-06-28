@@ -69,10 +69,10 @@ spec:
               {{- else }}
               value: "http"
               {{- end }}
-              {{ if .Values.global.externalOpensearch.enabled }}
+              {{- if .Values.global.externalOpensearch.enabled }}
             - name: EXTERNAL_OPENSEARCH
               value: "true"
-              {{ end }}
+              {{- end }}
             - name: OPENSEARCH_USERNAME
               valueFrom:
                 secretKeyRef:
