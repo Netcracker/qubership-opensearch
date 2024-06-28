@@ -35,7 +35,7 @@ The node does not have control over the placement. `Node affinity` is conceptual
 
 `Node affinity` rule looks like this:
 
-```
+```yaml
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -78,7 +78,7 @@ domain.
 
 `Pod affinity` rule looks like this:
 
-```
+```yaml
   affinity:
     podAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:

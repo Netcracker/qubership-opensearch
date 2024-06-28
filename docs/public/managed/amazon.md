@@ -20,7 +20,9 @@ OpenSearch service allows you to deploy OpenSearch side services (DBaaS Adapter,
 ## Global
 
 * External OpenSearch URL is available from the Kubernetes cluster where you are going to deploy the side services.
-* OpenSearch user credentials are provided. The provided user must be master with `all_access` and `security_manager` roles. For more information about master user, refer to Additional master users at [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html#fgac-more-masters](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html#fgac-more-masters).
+* OpenSearch user credentials are provided. The provided user must be master with `all_access` and `security_manager` roles.
+  For more information about master user, refer to Additional master users at
+  [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html#fgac-more-masters](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html#fgac-more-masters).
 * There is DP Helm Deploy, App Deployer, or local Helm configured to deploy to the necessary Kubernetes cluster.
 
 ## Preparations for Backup
@@ -96,7 +98,8 @@ Following are the prerequisites to collect snapshots manually (for example, by `
    * Navigate to **Services -> Security, Identity, & Compliance -> IAM** in AWS Console. Choose "Users" in the navigation pane.
    * Create a new user with `Access key - Programmatic access` enabled.
    * On the **Permissions** step, select "Attach existing policies directly", and click **Create policy**.
-   * Navigate to the **JSON** tab, paste the following configuration (Replace `Role ARN`, `Domain ARN`, and `s3-bucket-name` with the snapshot role ARN, OpenSearch Service domain ARN, and the created bucket name):
+   * Navigate to the **JSON** tab, paste the following configuration
+     (Replace `Role ARN`, `Domain ARN`, and `s3-bucket-name` with the snapshot role ARN, OpenSearch Service domain ARN, and the created bucket name):
 
      ```yaml
      {
@@ -133,7 +136,8 @@ Following are the prerequisites to collect snapshots manually (for example, by `
    * Proceed next to the **Review** step, specify the name for the policy and click **Create policy**.
    * Return to the **Set permissions** tab, update the policies' list, and select the created one.
    * Proceed next to the **Review** step and click **Create user**.
-   * On the result page, the created user with the generated credentials is displayed with `Access key ID` and `Secret access key`. Save these credentials for the following steps (`Access Key` can be found in the User security configuration, and `Secret key` is displayed only at the creation), and click **Close**.
+   * On the result page, the created user with the generated credentials is displayed with `Access key ID` and `Secret access key`.
+     Save these credentials for the following steps (`Access Key` can be found in the User security configuration, and `Secret key` is displayed only at the creation), and click **Close**.
    * `User ARN` of the created user is needed in the following steps.
 
 4. Snapshot Role mapping (if using fine-grained access control)
@@ -146,10 +150,13 @@ Following are the prerequisites to collect snapshots manually (for example, by `
 
 5. Manual Snapshot repository registration
 
-    The OpenSearch service requires AWS Authorization, so you cannot use `curl` to perform this operation. Instead, use Postman Desktop Agent or other method to send AWS signed request to register a snapshot.
+    The OpenSearch service requires AWS Authorization, so you cannot use `curl` to perform this operation.
+    Instead, use Postman Desktop Agent or other method to send AWS signed request to register a snapshot.
 
-   * Select `PUT` request and set the `domain-endpoint/_snapshot/my-snapshot-repo-name` URL, where `domain-endpoint` can be found in the OpenSearch domain **General information** field and `my-snapshot-repo-name` is the name of the repository.
-   * In the **Authorization** tab, select "AWS Signature" type. Enter **AccessKey** and **SecretKey** with keys generated during the user creation step. Enter the **Region** with the OpenSearch domain region and **Service** with "es".
+   * Select `PUT` request and set the `domain-endpoint/_snapshot/my-snapshot-repo-name` URL,
+     where `domain-endpoint` can be found in the OpenSearch domain **General information** field and `my-snapshot-repo-name` is the name of the repository.
+   * In the **Authorization** tab, select "AWS Signature" type. Enter **AccessKey** and **SecretKey** with keys generated during the user creation step.
+     Enter the **Region** with the OpenSearch domain region and **Service** with "es".
    * In the **Body** tab, select "raw" type and paste the following configuration (Replace `s3-bucket-name`, `region`, `Role ARN` with bucket name, region, and Snapshot Role ARN from the previous steps).
 
      ```yaml
@@ -171,15 +178,19 @@ Following are the prerequisites to collect snapshots manually (for example, by `
      }
      ```
 
-    If there are some errors in the response, check all the required prerequisites. For more information about repository registration, refer to [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html).
+    If there are some errors in the response, check all the required prerequisites.
+    For more information about repository registration, refer to [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html].
 
     After the manual snapshot repository is registered, you can perform snapshot and restore with `curl` as an OpenSearch user.
 
-   **Note**: OpenSearch also provides service indices that are not accessible for snapshot. To create a snapshot, either specify the indices list ("indices": ["index1", "index2"]) or exclude service indices ("indices": "-.kibana*,-.opendistro*").
+   **Note**: OpenSearch also provides service indices that are not accessible for snapshot.
+   To create a snapshot, either specify the indices list ("indices": ["index1", "index2"]) or exclude service indices ("indices": "-.kibana*,-.opendistro*").
 
-   To restore indices, make sure there are no naming conflicts between indices on the cluster and indices in the snapshot. Delete indices on the existing OpenSearch Service domain, rename indices in the snapshot, or restore the snapshot to a different OpenSearch Service domain.
+   To restore indices, make sure there are no naming conflicts between indices on the cluster and indices in the snapshot.
+6. Delete indices on the existing OpenSearch Service domain, rename indices in the snapshot, or restore the snapshot to a different OpenSearch Service domain.
 
-   For more information about restore, refer to Restoring snapshots at [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html#managedomains-snapshot-restore](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html#managedomains-snapshot-restore).
+   For more information about restore, refer to Restoring snapshots at
+   [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html#managedomains-snapshot-restore].
 
 # Example of Deploy Parameters
 
@@ -258,8 +269,10 @@ integrationTests:
 ## Snapshots
 
 Amazon OpenSearch does not support `fs` snapshot repositories, so you cannot create it by the operator during the installation. Only `s3` type is supported.
-Amazon OpenSearch has the configured `s3` snapshot repository (example, `cs-automated-enc`) with automatically making snapshot by schedule, but this repository cannot be used for making manual snapshots (including by DBaaS adapter or curator).
-If you want to manually manage the repository, refer to Creating index snapshots in Amazon OpenSearch Service in [https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-snapshots.html#es-managedomains-snapshot-registerdirectory](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-snapshots.html#es-managedomains-snapshot-registerdirectory).
+Amazon OpenSearch has the configured `s3` snapshot repository (example, `cs-automated-enc`) with automatically making snapshot by schedule,
+but this repository cannot be used for making manual snapshots (including by DBaaS adapter or curator).
+If you want to manually manage the repository, refer to Creating index snapshots in Amazon OpenSearch Service in
+[https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-snapshots.html#es-managedomains-snapshot-registerdirectory].
 Then specify this repository name in the corresponding DBaaS Adapter and Curator parameters during the deployment.
 
 **Note**: Only `s3` parameters are required in this Curator installation, not `backupStorage`.
@@ -272,8 +285,8 @@ To configure snapshots manually, refer to the [Preparations for Backup](#prepara
 
 This section describes how to do scaling procedures for Amazon OpenSearch.
 
-Based on the workload, you can scale up (scale vertically) or scale out (scale horizontally) a cluster. 
-To scale out an OpenSearch Service domain, add additional nodes (such as data nodes, master nodes, or UltraWarm nodes) to the cluster. 
+Based on the workload, you can scale up (scale vertically) or scale out (scale horizontally) a cluster.
+To scale out an OpenSearch Service domain, add additional nodes (such as data nodes, master nodes, or UltraWarm nodes) to the cluster.
 To resize or scale up the domain, increase the Amazon Elastic Block Store (Amazon EBS) volume size or add more memory and vCPUs with bigger node types.
 
 ## Limitations

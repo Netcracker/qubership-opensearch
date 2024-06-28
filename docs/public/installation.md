@@ -22,12 +22,16 @@ Before you start the installation and configuration of an OpenSearch cluster, en
 The following Custom Resource Definitions should be installed to the cloud before the installation of OpenSearch:
 
 * `OpenSearchService` - When you deploy with restricted rights or the CRDs' creation is disabled by the Deployer job. For more information, see [Automatic CRD Upgrade](#automatic-crd-upgrade).
-* `GrafanaDashboard`, `PrometheusRule`, and `ServiceMonitor` - They should be installed when you deploy OpenSearch monitoring with `monitoring.enabled=true` and `monitoring.monitoringType=prometheus`. You need to install the Monitoring Operator service before the OpenSearch installation.
-* `SiteManager` - It is installed when you deploy OpenSearch with Disaster Recovery support (`global.disasterRecovery.mode`). You have to install the SiteManager service before the OpenSearch installation.
+* `GrafanaDashboard`, `PrometheusRule`, and `ServiceMonitor` - They should be installed when you deploy OpenSearch monitoring with `monitoring.enabled=true` and `monitoring.monitoringType=prometheus`.
+   You need to install the Monitoring Operator service before the OpenSearch installation.
+* `SiteManager` - It is installed when you deploy OpenSearch with Disaster Recovery support (`global.disasterRecovery.mode`). You have to install the SiteManager service before the OpenSearch
+   installation.
 
-**Important**: To create CRDs, you must have cloud rights for `CustomResourceDefinitions`. If the deployment user does not have the necessary rights, you need to perform the steps described in the [Deployment Permissions](#deployment-permissions) section before the installation.
+**Important**: To create CRDs, you must have cloud rights for `CustomResourceDefinitions`.
+If the deployment user does not have the necessary rights, you need to perform the steps described in the [Deployment Permissions](#deployment-permissions) section before the installation.
 
-**Note**: If you deploy OpenSearch service to Kubernetes version less than 1.16, you have to manually install CRD from `config/crd/old/netcracker.com_opensearchservices.yaml` and disable automatic CRD creation by Helm in the following way:
+**Note**: If you deploy OpenSearch service to Kubernetes version less than 1.16, you have to manually install CRD from `config/crd/old/netcracker.com_opensearchservices.yaml`
+and disable automatic CRD creation by Helm in the following way:
 
 * Specify the `--skip-crds` in `ADDITIONAL_OPTIONS` parameter of DP Deployer Job.
 * Specify `DISABLE_CRD=true;` in the `CUSTOM_PARAMS` parameter of Groovy Deployer Job.
@@ -189,6 +193,7 @@ To avoid using `cluster-wide` rights during the deployment, the following condit
           - get
           - patch
     ```
+
     </details>
 
 The following rules require `cluster-wide` permissions. If it is not possible to provide them to the deployment user, you have to apply the resources manually.
@@ -225,12 +230,14 @@ The following rules require `cluster-wide` permissions. If it is not possible to
   The CRD for this version is stored in [crd.yaml](/charts/helm/opensearch-service/crds/crd.yaml) file and can be
   applied with the following command:
 
-    ```
+    ```sh
     kubectl replace -f crd.yaml
     ```
+
     <!-- #GFCFilterMarkerEnd# -->
 
-* To run `privileged` containers or actions on Kubernetes before 1.25 version, apply `PodSecurityPolicy` from [psp.yaml](/charts/helm/opensearch-service/templates/psp.yaml), create `ClusterRole` with its usage, and bind it to `ServiceAccount` with `$OPENSEARCH_FULLNAME` name using `ClusterRoleBinding`.
+* To run `privileged` containers or actions on Kubernetes before 1.25 version, apply `PodSecurityPolicy` from [psp.yaml](/charts/helm/opensearch-service/templates/psp.yaml),
+  create `ClusterRole` with its usage, and bind it to `ServiceAccount` with `$OPENSEARCH_FULLNAME` name using `ClusterRoleBinding`.
 
 * To run `privileged` containers or actions on Kubernetes 1.25+ version, provide the `privileged` policy to the OpenSearch namespace. It can be performed with the following command:
 
@@ -252,7 +259,8 @@ The following rules require `cluster-wide` permissions. If it is not possible to
 
 ### Multiple Availability Zone
 
-If Kubernetes cluster has several availability zones, it is more reliable to start OpenSearch pods in different availability zones. For more information, refer to [Multiple Availability Zone Deployment](#multiple-availability-zone-deployment).
+If Kubernetes cluster has several availability zones, it is more reliable to start OpenSearch pods in different availability zones.
+For more information, refer to [Multiple Availability Zone Deployment](#multiple-availability-zone-deployment).
 
 ### Storage Types
 
@@ -263,15 +271,18 @@ The following are a few approaches of storage management used in the OpenSearch 
 
 #### Dynamic Persistent Volume Provisioning
 
-OpenSearch Helm installation supports specifying storage class for master, arbiter, and data Persistent Volume Claims. If you are setting up the persistent volumes' resource in Kubernetes, map the OpenSearch pods to the volume using the `opensearch.master.persistence.storageClass`, `opensearch.arbiter.persistence.storageClass`, or `opensearch.data.persistence.storageClass` parameter.
+OpenSearch Helm installation supports specifying storage class for master, arbiter, and data Persistent Volume Claims.
+If you are setting up the persistent volumes' resource in Kubernetes, map the OpenSearch pods to the volume using
+the `opensearch.master.persistence.storageClass`, `opensearch.arbiter.persistence.storageClass`, or `opensearch.data.persistence.storageClass` parameter.
 
 #### Predefined Persistent Volumes
 
-If you have prepared Persistent Volumes without storage class and dynamic provisioning, you can specify Persistent Volumes names using the `opensearch.master.persistence.persistentVolumes`, `opensearch.arbiter.persistence.persistentVolumes`, or `opensearch.data.persistence.persistentVolumes` parameter.
+If you have prepared Persistent Volumes without storage class and dynamic provisioning, you can specify Persistent Volumes names using
+the `opensearch.master.persistence.persistentVolumes`, `opensearch.arbiter.persistence.persistentVolumes`, or `opensearch.data.persistence.persistentVolumes` parameter.
 
 For example:
 
-```
+```yaml
 opensearch:
   master:
     persistence:
@@ -285,11 +296,12 @@ Persistent Volumes should be created on the corresponding Kubernetes nodes and s
 
 Set the appropriate UID and GID on hostPath directories and rule for SELinux:
 
-```
+```sh
 chown -R 1000:1000 /mnt/data/<pv-name>
 ```
 
-You also need to specify node names through `opensearch.master.persistence.nodes`, `opensearch.arbiter.persistence.nodes`, or `opensearch.data.persistence.nodes` parameter in the same order in which the Persistent Volumes are specified so that OpenSearch pods are assigned to these nodes.
+You also need to specify node names through `opensearch.master.persistence.nodes`, `opensearch.arbiter.persistence.nodes`, or `opensearch.data.persistence.nodes` parameter in the same order
+in which the Persistent Volumes are specified so that OpenSearch pods are assigned to these nodes.
 
 According to the specified parameters, the `Pod Scheduler` distributes pods to the necessary Kubernetes nodes. For more information, refer to [Pod Scheduler](#pod-scheduler) section.
 
@@ -301,9 +313,11 @@ The OpenSearch `joint` installation mode implies that each node has `master`, `d
 
 #### Separate
 
-The OpenSearch `separate` installation mode implies that each node either has one of the `master`, `data`, and `client` roles or a combination of the two. For example, OpenSearch installation has 3 `master` nodes, 2 `data` nodes and 2 `client` nodes, or 3 nodes with `data` and `master` roles and 2 `client` nodes.
+The OpenSearch `separate` installation mode implies that each node either has one of the `master`, `data`, and `client` roles or a combination of the two.
+For example, OpenSearch installation has 3 `master` nodes, 2 `data` nodes and 2 `client` nodes, or 3 nodes with `data` and `master` roles and 2 `client` nodes.
 
-If `data` and `master` nodes are separated, it is important to specify persistent storages not only for `data` nodes but also for `master` nodes. The size of persistent storage for a `master` node should be small. For example, `1Gi`.
+If `data` and `master` nodes are separated, it is important to specify persistent storages not only for `data` nodes but also for `master` nodes.
+The size of persistent storage for a `master` node should be small. For example, `1Gi`.
 
 #### Deployment With Arbiter Node
 
@@ -321,7 +335,9 @@ OpenSearch `arbiter` nodes installed to Kubernetes nodes different from `master`
    sysctl -w vm.max_map_count=262144
    ```
 
-  If you deploy OpenSearch to manage Kubernetes cloud, add this command as a custom command of Kubernetes node initialization. For instance, custom user scripts for Amazon EKS are [EKS Launch Templates](https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html).
+  If you deploy OpenSearch to manage Kubernetes cloud, add this command as a custom command of Kubernetes node initialization.
+
+* For instance, custom user scripts for Amazon EKS are [EKS Launch Templates](https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html).
 
   This operation can be performed automatically during the installation if `opensearch.sysctl.enabled` is set to "true", but it requires the permission to run `privileged` containers for the cluster.
 
@@ -346,7 +362,7 @@ OpenSearch `arbiter` nodes installed to Kubernetes nodes different from `master`
   To run `privileged` containers, refer to the [Deployment Permissions](#deployment-permissions) section.
 * The following annotations should be specified for the project:
 
-  ```
+  ```sh
   oc annotate --overwrite ns ${OS_PROJECT} openshift.io/sa.scc.supplemental-groups="1000/1000"
   oc annotate --overwrite ns ${OS_PROJECT} openshift.io/sa.scc.uid-range="1000/1000"
   ```
@@ -356,7 +372,7 @@ OpenSearch `arbiter` nodes installed to Kubernetes nodes different from `master`
 
 ## Google Cloud
 
-1. Follow the guide at [https://www.elastic.co/guide/en/elasticsearch/reference/8.4/repository-gcs.html#repository-gcs-using-service-account](https://www.elastic.co/guide/en/elasticsearch/reference/8.4/repository-gcs.html#repository-gcs-using-service-account) to create a JSON service account file.
+1. Follow the guide at <https://www.elastic.co/guide/en/elasticsearch/reference/8.4/repository-gcs.html#repository-gcs-using-service-account> to create a JSON service account file.
 2. Create the secret with JSON in the `opensearch` namespace. For example:
 
     ```yaml
@@ -392,10 +408,11 @@ For more information, refer to the [Integration With Amazon OpenSearch](/docs/pu
 
 ### Automatic Index Creation
 
-It is recommended to disable automatic index creation for OpenSearch and create indices with corresponding request on applications side. 
-The automatic index creation may lead to unexpected index with default settings and shards which could lead to incorrect behaviour. 
+It is recommended to disable automatic index creation for OpenSearch and create indices with corresponding request on applications side.
+The automatic index creation may lead to unexpected index with default settings and shards which could lead to incorrect behaviour.
 
 To disable automatic index creation you need to specify the following deployment parameter for OpenSearch and perform upgrade operation:
+
 ```yaml
 opensearch:
   config:
@@ -407,9 +424,11 @@ To check is automatic index creation enabled or not in runtime you can execute t
 ```bash
 GET /_cluster/settings?include_defaults=true
 ```
+
 And check the property: `auto_create_index`.
 
 To disable automatic index creation in runtime you need to execute the following request:
+
 ```bash
 PUT /_cluster/settings
 {
@@ -418,11 +437,13 @@ PUT /_cluster/settings
    }
 }
 ```
+
 ## Index Configurations
 
 ### Number of Shards
 
-The overall goal of choosing a number of shards is to distribute an index evenly across all data nodes in the cluster. However, these shards should not be too large or too numerous. A general guideline is to try to keep shard size between:
+The overall goal of choosing a number of shards is to distribute an index evenly across all data nodes in the cluster. However, these shards should not be too large or too numerous.
+A general guideline is to try to keep shard size between:
 
 * 10–30 GiB for workloads that prioritize low search latency
 * 30–50 GiB for write-heavy workloads such as log analytics
@@ -436,17 +457,22 @@ The full recommendations you can find in [Size your shards](https://www.elastic.
 
 OpenSearch provides API for manage [Index Templates](https://opensearch.org/docs/latest/im-plugin/index-templates/), and it still provides API for [legacy elasticsearch templates](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates-v1.html).
 
-Both API, new composable index templates (`/_index_template`) and legacy templates (`/_template`) are avaialble now and can be used by applications, but composable index templates have more features and more priority than legacy.
+Both API, new composable index templates (`/_index_template`) and legacy templates (`/_template`) are avaialble now and can be used by applications,
+but composable index templates have more features and more priority than legacy.
 
-New OpenSearch index templates offer enhanced modularity, improved prioritization for layered configurations, and a more user-friendly API, ensuring better management and future-proofing for index configurations. The new index templates are in line with OpenSearch's evolving features and capabilities. Using them ensures compatibility with current and future versions of OpenSearch, along with support for the latest functionalities.
+New OpenSearch index templates offer enhanced modularity, improved prioritization for layered configurations, and a more user-friendly API, ensuring better management and future-proofing
+for index configurations. The new index templates are in line with OpenSearch's evolving features and capabilities.
+Using them ensures compatibility with current and future versions of OpenSearch, along with support for the latest functionalities.
 
-We strongly recommend to use only actual composable index templates (`/_index_template`) API and migrate current legacy templates. 
+We strongly recommend to use only actual composable index templates (`/_index_template`) API and migrate current legacy templates.
 
 ## HWE
 
-The provided values do not guarantee that these values are correct for all cases. It is a general recommendation. The resources should be calculated and estimated for each project case with a test load on the SVT stand, especially the HDD size.
+The provided values do not guarantee that these values are correct for all cases.
+It is a general recommendation. The resources should be calculated and estimated for each project case with a test load on the SVT stand, especially the HDD size.
 
-The Amazon guide suggests starting a configuration with 2 vCPU cores and 8 GiB of memory for every 100 GiB of storage requirement. For more information, refer to [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/sizing-domains.html](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/sizing-domains.html).
+The Amazon guide suggests starting a configuration with 2 vCPU cores and 8 GiB of memory for every 100 GiB of storage requirement.
+For more information, refer to [https://docs.aws.amazon.com/opensearch-service/latest/developerguide/sizing-domains.html].
 
 ### Small
 
@@ -1098,9 +1124,10 @@ Where:
 | `opensearch.master.priorityClassName`                  | string  | no        | ""                                                                                                          | The priority class to be used by the OpenSearch master nodes. You should create the priority class beforehand. For more information about this feature, refer to [https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/](https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/).                                                                                                                                                    |
 
 Where:
+
 * `<anti_affinity_rule>` is as follows:
 
-  ```
+  ```yaml
   podAntiAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       - topologyKey: "kubernetes.io/hostname"
@@ -1147,9 +1174,10 @@ Where:
 | `opensearch.arbiter.priorityClassName`                  | string  | no        | ""                                                                                                          | The priority class to be used by the OpenSearch arbiter nodes. You should create the priority class beforehand. For more information about this feature, refer to [https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/](https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/). |
 
 Where:
+
 * `<anti_affinity_rule>` is as follows:
 
-  ```
+  ```yaml
   podAntiAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       - topologyKey: "kubernetes.io/hostname"
@@ -1195,9 +1223,10 @@ Where:
 | `opensearch.data.priorityClassName`                  | string  | no        | ""                                                                                                          | The priority class to be used by the OpenSearch data nodes. You should create the priority class beforehand. For more information about this feature, refer to [https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/](https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/).                                                                                           |
 
 Where:
+
 * `<anti_affinity_rule>` is as follows:
 
-  ```
+  ```yaml
   podAntiAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
       - weight: 1
@@ -1244,9 +1273,10 @@ Where:
 | `opensearch.client.priorityClassName`                  | string  | no        | ""                                                                                                          | The priority class to be used by the OpenSearch client nodes. You should create the priority class beforehand. For more information about this feature, refer to [https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/](https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/). |
 
 Where:
+
 * `<anti_affinity_rule>` is as follows:
 
-  ```
+  ```yaml
   podAntiAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
       - weight: 1
@@ -1417,6 +1447,7 @@ Where:
 | `curator.priorityClassName`                                | string  | no        | ""                       | The priority class to be used by the OpenSearch Curator pods. You should create the priority class beforehand. For more information about this feature, refer to [https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/](https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/).                                                                                                                                                                                                                                                      |
 
 Where:
+
 * `<name>` is the value of the `fullnameOverride` parameter.
 
 ## Status Provisioner
@@ -1487,7 +1518,7 @@ This section contains information about integration test tags that can be used i
     * `Full Backup And Restore` and `Full Backup And Restore On S3 Storage` tests are performed when full_backup tag is specified explicitly.
     * `full_backup_s3` tag runs `Full Backup And Restore On S3 Storage` test.
     * `find_backup` tag runs `Find Backup By Timestamp` test.
-    * `granular_backup` tag runs all tests connected to the granular backup scenarios:   
+    * `granular_backup` tag runs all tests connected to the granular backup scenarios:
       * `granular_backup_s3` tag runs `Granular Backup` And `Restore On S3 Storage` test.
       * `backup_s3` tag runs `Granular Backup And Restore On S3 Storage` and `Full Backup And Restore On S3 Storage` test.
       * `restore` tag runs `Granular Backup And Restore` test.
@@ -1566,8 +1597,12 @@ This section contains information about integration test tags that can be used i
    **Important**: You should always specify `DEPLOY_W_HELM: true` and `ESCAPE_SEQUENCE: true` to correctly deploy the Helm release.
 3. Navigate to the Application Deployer or Groovy Deployer job and specify the following data for build:
    * `PROJECT` is your cloud name and namespace name in format of {cloud}-{namespace}.
-   * `ARTIFACT_DESCRIPTOR_VERSION` is the version of opensearch-service. It should be provided in the format, `opensearch-service:x.x.x_delivery_x.x.x_timestamp`. <!-- #GFCFilterMarkerStart# -->The all versions are available on [Release Page](https://git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/-/releases)<!-- #GFCFilterMarkerEnd# -->.
-   * `DEPLOY_MODE` is the mode of the deployment procedure. It can be `Rolling Update` or `Clean Install`. The `Clean Install` mode removes everything from the namespace before the deployment, including Persistent Volumes Claims. Never use it for upgrades on production.
+   * `ARTIFACT_DESCRIPTOR_VERSION` is the version of opensearch-service.
+     It should be provided in the format, `opensearch-service:x.x.x_delivery_x.x.x_timestamp`.
+     <!-- #GFCFilterMarkerStart# -->The all versions are available on [Release Page](https://git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/-/releases)<!-- #GFCFilterMarkerEnd# -->.
+   * `DEPLOY_MODE` is the mode of the deployment procedure.
+     It can be `Rolling Update` or `Clean Install`. The `Clean Install` mode removes everything from the namespace before the deployment, including Persistent Volumes Claims.
+     Never use it for upgrades on production.
 4. Run the installation.
 
 ### Ops Portal Preparation
@@ -1578,16 +1613,19 @@ Make sure all YAML values are escaped according to the Ops portal syntax.
 
 To deploy via Helm you need to prepare yaml file with custom deploy parameters and run the following
 command in [OpenSearch Chart](/charts/helm/opensearch-service):
+
 ```bash
 helm install [release-name] ./ -f [parameters-yaml] -n [namespace]
 ```
 
 If you need to use resource profile then you can use the following command:
+
 ```bash
 helm install [release-name] ./ -f ./resource-profiles/[profile-name-yaml] -f [parameters-yaml] -n [namespace]
 ```
 
 **Warning**: pure Helm deployment does not support the automatic CRD upgrade procedure, so you need to perform it manually.
+
 ```bash
 kubectl replace -f ./crds/crd.yaml
 ```
@@ -1772,18 +1810,23 @@ The same as [On-Prem Examples DR Scheme](#on-prem-examples).
 
 ## Common
 
-In the common way, the upgrade procedure is the same as the initial deployment. You need to follow `Release Notes` and `Breaking Changes` in the version you install to find details. If you upgrade to a version which has several major diff changes from the installed version (e.g. `0.2.8` over `0.0.3`), you need to check `Release Notes` and `Breaking Changes` sections for `0.1.0` and `0.2.0` versions.
+In the common way, the upgrade procedure is the same as the initial deployment. You need to follow `Release Notes` and `Breaking Changes` in the version you install to find details.
+If you upgrade to a version which has several major diff changes from the installed version (e.g. `0.2.8` over `0.0.3`),
+you need to check `Release Notes` and `Breaking Changes` sections for `0.1.0` and `0.2.0` versions.
 
 ## Scale-In Cluster
 
-OpenSearch does not support reducing the number of nodes without additional manipulations to move data replicas from nodes being removed, or understanding that there are enough data replicas on the remaining nodes, or data replicas can be moved to other nodes automatically without data loss.
+OpenSearch does not support reducing the number of nodes without additional manipulations to move data replicas from nodes being removed,
+or understanding that there are enough data replicas on the remaining nodes, or data replicas can be moved to other nodes automatically without data loss.
 
 ## Rolling Upgrade
 
 OpenSearch supports rolling upgrade feature with near-zero downtime.
 
 ### Operator rolling upgrade feature
-According to [Rolling Upgrade](https://opensearch.org/docs/latest/install-and-configure/upgrade-opensearch/rolling-upgrade/) article in the OpenSearch documentation the cluster should be prepared before performing the rolling upgrade procedure.
+
+According to [Rolling Upgrade](https://opensearch.org/docs/latest/install-and-configure/upgrade-opensearch/rolling-upgrade/) article in the OpenSearch documentation
+the cluster should be prepared before performing the rolling upgrade procedure.
 The operator can perform the rolling upgrade on its own following the recommendations.
 
 In order to enable that functionality set `opensearch.rollingUpdate` parameter to `true` and use default update strategies in master and data stateful sets.
@@ -1793,6 +1836,7 @@ If operator crashes or restarts while performing rolling upgrade procedure, upgr
 #### Algorithm description
 
 ##### Preparation
+
 1. Operator checks that OpenSearch stateful set has `OnDelete` update strategy. Which OpenSearch stateful set will be used depends on installation mode.
 2. Operator checks for at least one non-updated replica.
 3. Operator checks that OpenSearch is healthy.
@@ -1800,6 +1844,7 @@ If operator crashes or restarts while performing rolling upgrade procedure, upgr
 If all criteria are accepted then operator starts rolling upgrade procedure. Otherwise, the rolling upgrade procedure is skipped.
 
 ##### Rolling Upgrade procedure
+
 1. Operator disables OpenSearch shard replication.
 2. Operator sends request to OpenSearch to perform flush procedure.
 3. Operator deletes non-updated OpenSearch pods one by one waiting for OpenSearch to become ready.
@@ -1811,7 +1856,7 @@ Custom resource definition `OpenSearchService` should be upgraded before the ins
 <!-- #GFCFilterMarkerStart# -->
 The CRD for this version is stored in [crd.yaml](/charts/helm/opensearch-service/crds/crd.yaml) and can be applied with the following command:
 
-```
+```sh
 kubectl replace -f crd.yaml
 ```
 <!-- #GFCFilterMarkerEnd# -->
@@ -1819,7 +1864,8 @@ It can be done automatically during the upgrade with [Automatic CRD Upgrade](#au
 
 ### Automatic CRD Upgrade
 
-It is possible to upgrade CRD automatically on the environment to the latest one which is presented with the installing version. This feature is enabled by default if the `DISABLE_CRD` parameter is not `true`.
+It is possible to upgrade CRD automatically on the environment to the latest one which is presented with the installing version.
+This feature is enabled by default if the `DISABLE_CRD` parameter is not `true`.
 
 Automatic CRD upgrade requires the following cluster rights for the deployment user:
 
@@ -1835,23 +1881,30 @@ Automatic CRD upgrade requires the following cluster rights for the deployment u
 
 There are the following breaking changes:
 
-1. The `type` parameter has been removed from all OpenSearch API endpoints. Instead, indices can be categorized by document type. For more details, see [Remove mapping types](https://github.com/opensearch-project/opensearch/issues/1940) issue.
-2. The OpenSearch recommends TLS for REST layer if security is enabled. So, by default all layers (`transport`, `admin`, `rest`) are encrypted since 2.x version of OpenSearch. For more details, see [Security Admin](https://opensearch.org/docs/2.4/security/configuration/security-admin/#basic-usage) article in OpenSearch documentation and [Disabled TLS for REST is an unsupported configuration](https://github.com/opensearch-project/documentation-website/issues/913) issue.
+1. The `type` parameter has been removed from all OpenSearch API endpoints. Instead, indices can be categorized by document type.
+   For more details, see [Remove mapping types](https://github.com/opensearch-project/opensearch/issues/1940) issue.
+2. The OpenSearch recommends TLS for REST layer if security is enabled. So, by default all layers (`transport`, `admin`, `rest`) are encrypted since 2.x version of OpenSearch.
+   For more details, see [Security Admin](https://opensearch.org/docs/2.4/security/configuration/security-admin/#basic-usage) article in OpenSearch documentation and
+   [Disabled TLS for REST is an unsupported configuration](https://github.com/opensearch-project/documentation-website/issues/913) issue.
 
-**Important**: By default, TLS certificates for all layers (`transport`, `admin`, `rest`) are self-signed, so you will not be able to communicate with the OpenSearch without specifying corresponding certificate. For more details, refer to the [TLS Encryption](/docs/public/tls.md) section.
+**Important**: By default, TLS certificates for all layers (`transport`, `admin`, `rest`) are self-signed,
+so you will not be able to communicate with the OpenSearch without specifying corresponding certificate. For more details, refer to the [TLS Encryption](/docs/public/tls.md) section.
 
 If you need migrate to OpenSearch Service `1.x.x` (with OpenSearch 2.x) from previous version there are the following rules:
 
 **If TLS enabled:**
+
 * No additional steps required, upgrade as is from any OpenSearch Service version.
 
 **If TLS disabled:**
+
 * Disable OpenSearch TLS on REST layer with property (`opensearch.tls.enabled: false`).
 * Depending on the installed OpenSearch Service version:
   * if [0.2.4](https://git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/-/tags/0.2.4) (or newest) version installed just proceed with upgrade.
   * if version before `0.2.4` installed, you need previously upgrade to version `0.2.4` to migrate security configuration to new format and then install required `1.x.x` version.
 
-**Important**: OpenSearch Service `1.x.x` requires `DEPLOY_W_HELM: true` for installation. If your current deployment was installed without Helm please follow [How to Deploy With DEPLOY_W_HELM True Over False](#how-to-deploy-with-deploy_w_helm-true-over-false).
+**Important**: OpenSearch Service `1.x.x` requires `DEPLOY_W_HELM: true` for installation.
+If your current deployment was installed without Helm please follow [How to Deploy With DEPLOY_W_HELM True Over False](#how-to-deploy-with-deploy_w_helm-true-over-false).
 
 ### Migration From OpenDistro Elasticsearch
 
@@ -1867,7 +1920,7 @@ There are 3 ways for migration:
 
 OpenSearch also can be deployed with the same name as OpenDistro Elasticsearch installation:
 
-```
+```yaml
 nameOverride: "elasticsearch"
 fullnameOverride: "elasticsearch"
 ```
@@ -1878,7 +1931,9 @@ In this case no necessary to perform steps for the persistent volume migration b
 
 #### Automatic Migration With Deployer Job
 
-OpenSearch Deployer job can perform migration steps automatically if this feature is enabled in parameters. It is possible only for Helm-based installations (`DEPLOY_W_HELM` is `true` from previous and current deployments). To enable it you need to add the following properties to deployment params of your job (DP|App):
+OpenSearch Deployer job can perform migration steps automatically if this feature is enabled in parameters.
+It is possible only for Helm-based installations (`DEPLOY_W_HELM` is `true` from previous and current deployments).
+To enable it you need to add the following properties to deployment params of your job (DP|App):
 
 | Parameter                       | Description                                                                                           | Default           |
 |---------------------------------|-------------------------------------------------------------------------------------------------------|-------------------|
@@ -1908,7 +1963,8 @@ If you want to enable automatic migration, your user for deployment should have 
 
 Basically it is necessary to add only `ENABLE_MIGRATION: true` to deploy parameters to enable migration feature.
 
-You also need to specify your previous persistent volumes and storage class for parameters of OpenSearch `persistence` sections, and previous persistent volume claim for `snapshots` if you want to save previous data. For example:
+You also need to specify your previous persistent volumes and storage class for parameters of OpenSearch `persistence` sections, and previous persistent volume claim for `snapshots`
+if you want to save previous data. For example:
 
 ```yaml
 ENABLE_MIGRATION: true
@@ -1940,19 +1996,19 @@ The following steps should be performed from the host with installed `kubectl`, 
 
    For App Deployer installations:
 
-    ```
+    ```sh
     helm uninstall elasticsearch-service
     ```
 
    For DP Deployer installations:
 
-    ```
+    ```sh
     helm uninstall elasticsearch-service-{NAMESPACE}
     ```
 
    Or all resources if previous installation was not Helm-based:
 
-    ```
+    ```sh
     kubectl delete all --all -n {NAMESPACE}
     kubectl delete secret --all -n {NAMESPACE}
     kubectl delete configmap --all -n {NAMESPACE}
@@ -1960,20 +2016,20 @@ The following steps should be performed from the host with installed `kubectl`, 
 
 2. Patch existing persistent volumes of Elasticsearch data (not snapshot) to `Retain` policy:
 
-   ```
+   ```sh
    kubectl patch pv <your-pv-name> -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
    ```
 
    You can get the persistent volume names from the persistent volume claims via ```kubectl get pvc```.
 3. Delete existing persistent volume claims of Elasticsearch data (not snapshot):
 
-   ```
+   ```sh
    kubectl delete pvc <your-pvc-name>
    ```
 
 4. Patch existing persistent volumes of Elasticsearch data (not snapshot) to available status:
 
-   ```
+   ```sh
    kubectl patch pv <your-pv-name> -p '{"spec":{"claimRef": null}}'
    ```
 
@@ -2013,9 +2069,12 @@ With this approach snapshots collected on Elasticsearch side and restored on Ope
      With Elasticsearch `username:password` specified.
 
    * Check the snapshot status and indices from response.
-     <!-- #GFCFilterMarkerStart# -->Additional information about manual backup described in [Manual backup guide](https://git.netcracker.com/PROD.Platform.ElasticStack/elasticsearch-service/-/blob/master/documentation/maintenance-guide/backup/manual-backup-procedure.md)<!-- #GFCFilterMarkerEnd# -->
+     <!-- #GFCFilterMarkerStart# -->Additional information about manual backup described in
+     [Manual backup guide](https://git.netcracker.com/PROD.Platform.ElasticStack/elasticsearch-service/-/blob/master/documentation/maintenance-guide/backup/manual-backup-procedure.md)
+     <!-- #GFCFilterMarkerEnd# -->
 
 2. Copy `snapshots` directory from Elasticsearch side:
+
    * Use `kubectl` with config on Elasticsearch cluster:
 
      ```bash
@@ -2025,15 +2084,17 @@ With this approach snapshots collected on Elasticsearch side and restored on Ope
      With `elasticsearch-pod-name` and `elasticsearch-namespace`. Snapshots will be copied to local path `./snapshots`.
 
 3. Copy `snapshots` directory from local environment to OpenSearch cluster:
+
    * Use `kubectl` with config on OpenSearch cluster
 
-     ```
+     ```sh
      kubectl cp ./snapshots/ opensearch-pod-name:/usr/share/opensearch -n opensearch-namespace
      ```
 
      With `opensearch-pod-name` and `opensearch-namespace`. Snapshots will be copied from local path `./snapshots`.
 
 4. Perform manual restore on OpenSearch side:
+
    * From any OpenSearch pod run restore procedure
 
      ```bash
@@ -2042,8 +2103,11 @@ With this approach snapshots collected on Elasticsearch side and restored on Ope
 
      With OpenSearch `username:password` specified and `SNAPSHOT_NAME` the same, that was defined for backup on Elasticsearch side.
 
-   * Check that response is `"accepted":true`. Otherwise, some problem occurred and described in response, such as already existing open index in new cluster, but if OpenSearch cluster has clean installation, no conflicts expected. If such problem reproduced, close or delete indices that already exists or use renaming pattern.
-     <!-- #GFCFilterMarkerStart# -->Additional information about manual snapshot recovery described in [Manual recovery guide](https://git.netcracker.com/PROD.Platform.ElasticStack/elasticsearch-service/-/blob/master/documentation/maintenance-guide/recovery/manual-recovery-procedure.md)<!-- #GFCFilterMarkerEnd# -->
+   * Check that response is `"accepted":true`. Otherwise, some problem occurred and described in response, such as already existing open index in new cluster,
+     but if OpenSearch cluster has clean installation, no conflicts expected. If such problem reproduced, close or delete indices that already exists or use renaming pattern.
+     <!-- #GFCFilterMarkerStart# --> Additional information about manual snapshot recovery described in
+     [Manual recovery guide](https://git.netcracker.com/PROD.Platform.ElasticStack/elasticsearch-service/-/blob/master/documentation/maintenance-guide/recovery/manual-recovery-procedure.md)
+     <!-- #GFCFilterMarkerEnd# -->
 
 #### Migrate From Elasticsearch 6.8 Service
 
@@ -2052,12 +2116,12 @@ It is also possible to migrate from Elasticsearch 6.8 installations, but only wi
 ##### Migrate Elasticsearch 6.8 Persistent Volumes
 
 1. Folder rights
-   
+
    If previously Persistent Volumes `hostPath` folders were created with rights `100:101` it is necessary to change folders owner to `1000:1000`.
 
    If running as `root` user is allowed, you need to add the following deploy parameters:
 
-    ```
+    ```yaml
     opensearch:
       securityContextCustom:
         runAsUser: 1000
@@ -2070,7 +2134,7 @@ It is also possible to migrate from Elasticsearch 6.8 installations, but only wi
 
    If running as `root` user is not allowed, you need to change folders owner manually:
 
-    ```
+    ```yaml
     chown 1000:1000 -R /data/pv1
     ```
 
@@ -2082,7 +2146,7 @@ It is also possible to migrate from Elasticsearch 6.8 installations, but only wi
 
    If you use `hostPath` predefined persistent volumes, you need to specify `nodes` to assign pods:
 
-    ```
+    ```yaml
     opensearch:
       master:
         persistence:
@@ -2098,7 +2162,7 @@ It is also possible to migrate from Elasticsearch 6.8 installations, but only wi
 
    Creating new persistent volume claims for existing utilized persistent volumes requires you to unbind persistent volumes from previous claims. You can do it with the following command:
 
-    ```
+    ```sh
     kubectl patch pv pv1 -p '{"spec":{"claimRef": null}}'
     ```
 
@@ -2111,13 +2175,13 @@ It is also possible to migrate from Elasticsearch 6.8 installations, but only wi
 
    Delete previous Helm release. For example:
 
-    ```
+    ```sh
     helm uninstall elasticsearch-service -n elasticsearch-cluster
     ```
 
    Delete previous non-Helm resources. For example:
 
-    ```
+    ```sh
     kubectl delete secret --all -n elasticsearch-cluster
    
     kubectl delete configmap --all -n elasticsearch-cluster
@@ -2129,9 +2193,10 @@ It is also possible to migrate from Elasticsearch 6.8 installations, but only wi
 
 There is no migration between the Elasticsearch DBaaS adapter and the OpenSearch DBaaS adapter, because they use different approaches for managing resources and different microservice clients.
 
-If you want to upgrade OpenSearch service from `0.0.2` or lower version to `0.0.3` or higher version, you need to decide which DBaaS adapter you want to use. If you want to continue using the Elasticsearch DBaaS adapter, you have to update your installation parameters and replace the following part:
+If you want to upgrade OpenSearch service from `0.0.2` or lower version to `0.0.3` or higher version, you need to decide which DBaaS adapter you want to use.
+If you want to continue using the Elasticsearch DBaaS adapter, you have to update your installation parameters and replace the following part:
 
-```
+```yaml
 dbaasAdapter:
   enabled: true
   ...
@@ -2139,7 +2204,7 @@ dbaasAdapter:
 
 with the following:
 
-```
+```yaml
 elasticsearchDbaasAdapter:
   enabled: true
   ...
@@ -2151,13 +2216,13 @@ If you want to use the OpenSearch DBaaS adapter, you have to manually adapt serv
 
   * Find the record in the `physical_database` table that matches your `physical_database_identifier` with the following command:
 
-    ```
+    ```text
     select * from physical_database where physical_database_identifier='<physical_database_identifier>';
     ```
 
   * Change the type of the found physical database from `elasticsearch` to `opensearch` with the following command:
 
-    ```
+    ```text
     update physical_database set type = 'opensearch' where physical_database_identifier='<physical_database_identifier>';
     ```
 
@@ -2165,7 +2230,7 @@ If you want to use the OpenSearch DBaaS adapter, you have to manually adapt serv
 
 * Add or update `dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier` parameter in OpenSearch service parameters during its installation. For example,
 
-  ```
+  ```yaml
   dbaasAdapter:
     ...
     dbaasAggregatorPhysicalDatabaseIdentifier: "opensearch-dbaas-adapter"
@@ -2190,11 +2255,13 @@ When deploying to a cluster with several availability zones, it is important tha
 
 You can manage pods' distribution using `affinity` rules to prevent Kubernetes from running OpenSearch pods on nodes of the same availability zone.
 
-**Note**: This section describes deployment only for `storage class` persistent volumes (PV) type because with predefined PV, the OpenSearch pods are started on the nodes that are specified explicitly with persistent volumes. In that way, it is necessary to take care of creating PVs on nodes belonging to different availability zones in advance.
+**Note**: This section describes deployment only for `storage class` persistent volumes (PV) type because with predefined PV, the OpenSearch pods are started on the nodes
+that are specified explicitly with persistent volumes. In that way, it is necessary to take care of creating PVs on nodes belonging to different availability zones in advance.
 
 #### Replicas Fewer Than Availability Zones
 
-For cases when the number of OpenSearch pods (value of the `opensearch.master.replicas` parameter) is equal to or less than the number of availability zones, you need to restrict the start of pods to one pod per availability zone. You can also specify additional node affinity rule to start pods on allowed Kubernetes nodes.
+For cases when the number of OpenSearch pods (value of the `opensearch.master.replicas` parameter) is equal to or less than the number of availability zones,
+you need to restrict the start of pods to one pod per availability zone. You can also specify additional node affinity rule to start pods on allowed Kubernetes nodes.
 
 For this, you can use the following affinity rules:
 
@@ -2246,7 +2313,8 @@ Where:
 
 #### Replicas More Than Availability Zones
 
-For cases when the number of OpenSearch pods (value of the `opensearch.master.replicas` parameter) is greater than the number of availability zones, you need to restrict the start of pods to one pod per node and specify the preferred rule to start on different availability zones. You can also specify an additional node affinity rule to start the pods on allowed Kubernetes nodes.
+For cases when the number of OpenSearch pods (value of the `opensearch.master.replicas` parameter) is greater than the number of availability zones, you need to restrict the start of pods to
+one pod per node and specify the preferred rule to start on different availability zones. You can also specify an additional node affinity rule to start the pods on allowed Kubernetes nodes.
 
 For this, you can use the following affinity rules:
 
@@ -2384,7 +2452,7 @@ It can be an issue with timeouts or long start of OpenSearch pods. You need to g
 
 * Look through `opensearch-status-provisioner` pod logs:
 
-  ```
+  ```text
   Status Provisioner have started calculating the state of the cluster
   Processing [Deployment opensearch-service-operator] resource
   Processing [Deployment opensearch-dashboards] resource
@@ -2401,7 +2469,8 @@ It can be an issue with timeouts or long start of OpenSearch pods. You need to g
   kubect get job opensearch-status-provisioner -o yaml
   ```
 
-**Important**: By default, `opensearch-status-provisioner` job resource remains alive `600` seconds after its completion. You can increase this timeout by specifying `statusProvisioner.lifetimeAfterCompletion` parameter value.
+**Important**: By default, `opensearch-status-provisioner` job resource remains alive `600` seconds after its completion.
+You can increase this timeout by specifying `statusProvisioner.lifetimeAfterCompletion` parameter value.
 
 You can also increase the pod readiness timeout `statusProvisioner.podReadinessTimeout: 1000` and try to run the Deployer job again.
 
@@ -2417,19 +2486,20 @@ Make sure you performed the necessary [Prerequisites](#prerequisites). Fill the 
 
 The following error in Deployer job means that you have changed parameters that can't be updated in `StatefulSet`.
 
-```
+```text
 Error: UPGRADE FAILED: cannot patch "opensearch" with kind StatefulSet: StatefulSet.apps "opensearch" is invalid: spec: Forbidden: updates to statefulset spec for fields other than 'replicas', 'template', 'updateStrategy', 'persistentVolumeClaimRetentionPolicy' and 'minReadySeconds' are forbidden
 ```
 
 Most often it is associated with persistent volumes configuration. To determine the problem area, in OpenShift/Kubernetes find `StatefulSet` configuration using the following command:
 
-```
+```sh
 kubectl describe statefulset <fullnameOverride> -n <namespace_name>
 ```
 
-Pay attention to the `Volume Claims` section and compare its values to the persistence parameters (`opensearch.master.persistence.size`, `opensearch.master.persistence.storageClass`) specified in Deployer job.
+Pay attention to the `Volume Claims` section and compare its values to the persistence parameters (`opensearch.master.persistence.size`, `opensearch.master.persistence.storageClass`)
+specified in Deployer job.
 
-```
+```yaml
 Volume Claims:
   Name:          pvc
   StorageClass:  local-path
@@ -2444,7 +2514,7 @@ There are two ways to solve the problem:
 1. In Deployer job, use the same values specified in the `StatefulSet` configuration.
 2. Remove the `StatefulSet` resource without deleting the pods:
 
-   ```
+   ```sh
    kubectl delete sts <fullnameOverride> -n <namespace_name> --cascade=orphan
    ```
 

@@ -8,17 +8,18 @@ This section describes how to retrieve information about the shards.
 
 ## Without Replication
 
-The Shards Stats API allows retrieving information about all shards in the cluster. For more information, refer to the _Official OpenSearch Documentation_ [https://opensearch.org/docs/latest/opensearch/rest-api/cat/cat-shards](https://opensearch.org/docs/latest/opensearch/rest-api/cat/cat-shards).
+The Shards Stats API allows retrieving information about all shards in the cluster.
+For more information, refer to the _Official OpenSearch Documentation_ [https://opensearch.org/docs/latest/opensearch/rest-api/cat/cat-shards].
 
 To retrieve information about all shards in the cluster, run the following command:
 
-```
+```sh
 curl -XGET http://localhost:9200/_cat/shards/cats?v&h=index,shard,state,docs,store,node,unassigned.reason
 ```
 
 Possible output:
 
-```
+```text
     index shard state      node                  unassigned.reason unassigned.details
     cats  1     STARTED    opensearch-0
     cats  2     STARTED    opensearch-0
@@ -31,13 +32,13 @@ If data files of any shards were corrupted, the shard will be in an unassigned s
 
 To retrieve the information about all shards in the cluster, run the following command:
 
-```
+```sh
 curl -XGET http://localhost:9200/_cat/shards/cats?v&h=index,shard,state,docs,store,node,unassigned.reason
 ```
 
 Possible output:
 
-```
+```text
     index shard state   node                  unassigned.reason unassigned.details
     cats  1     STARTED opensearch-0
     cats  1     STARTED opensearch-0
@@ -47,7 +48,10 @@ Possible output:
     cats  0     STARTED opensearch-0
 ```
 
-If data files are corrupted on a primary shard of an index with replicas, there are no unassigned shards, and all data will be saved. Updates continue to work, but some of them fail with `read past EOF: MMapIndexInput(path=\"/usr/share/opensearch/data/nodes/0/indices/RncVMMtyQIeIMPz-0Dhjpw/0/index/_0.cfs\") [slice=_0.fdt]`, because OpenSearch does not detect problems with data files before read. After several requests, OpenSearch reassigns the shard with corrupted files, and processing of all requests should finish successfully.
+If data files are corrupted on a primary shard of an index with replicas, there are no unassigned shards, and all data will be saved. Updates continue to work,
+but some of them fail with `read past EOF: MMapIndexInput(path=\"/usr/share/opensearch/data/nodes/0/indices/RncVMMtyQIeIMPz-0Dhjpw/0/index/_0.cfs\") [slice=_0.fdt]`,
+because OpenSearch does not detect problems with data files before read. After several requests, OpenSearch reassigns the shard with corrupted files,
+and processing of all requests should finish successfully.
 
 # Troubleshooting Procedure
 
@@ -55,5 +59,7 @@ This section describes the troubleshooting procedures without replication of sha
 
 ## Without Replication
 
-If an OpenSearch cluster consists of one node, or an index has no replica shards, data will be lost after file corruption. Update queries fail with 504 HTTP-status. The cluster sets status to `failed`, because the corrupted primary shard was in an unassigned status. Reindexing can help to save remaining data and make index writable. For more
-information, refer to the _Official OpenSearch Documentation_ [https://opensearch.org/docs/latest/opensearch/reindex-data](https://opensearch.org/docs/latest/opensearch/reindex-data).
+If an OpenSearch cluster consists of one node, or an index has no replica shards, data will be lost after file corruption.
+Update queries fail with 504 HTTP-status. The cluster sets status to `failed`, because the corrupted primary shard was in an unassigned status.
+Reindexing can help to save remaining data and make index writable.
+For more information, refer to the _Official OpenSearch Documentation_ [https://opensearch.org/docs/latest/opensearch/reindex-data].
