@@ -21,7 +21,7 @@ it is compatible with.
 To make it easier to prepare Operator SDK environment, you can create `docker` image that extends
 `quay.io/operator-framework/operator-sdk:v1.16` image by installing `gcc` and `git` utilities:
 
-```
+```dockerfile
 FROM quay.io/operator-framework/operator-sdk:v1.16
 
 RUN microdnf install --nodocs \
@@ -34,7 +34,7 @@ ENTRYPOINT ["/bin/bash"]
 
 You can use this script to build the extended image:
 
-```
+```sh
 #!/usr/bin/env bash
 
 set -e
@@ -54,7 +54,7 @@ docker inspect ${IMAGE_NAME}
 
 To run the environment you can use the following command:
 
-```
+```sh
 docker run -it -v <path_to_operator>:/opensearch-service-operator operator-sdk-ext:v1.16
 ```
 
@@ -75,7 +75,7 @@ If API model has incompatible changes, new application version should be release
 
 1. Add a new API by running the following command in the `root` directory:
 
-    ```
+    ```sh
     operator-sdk create api --version <new_version> --kind OpenSearchService --resource
     ```
 
@@ -95,7 +95,7 @@ If API model has incompatible changes, new application version should be release
 
 6. Update generated code using the following commands:
 
-    ```
+    ```sh
     make generate
     make manifests
     ```
@@ -121,6 +121,7 @@ _operator-sdk_:
   You should run this command every time when you change `opensearchservice_types.go`.
 
 _minikube_:
+
 * `minikube start --kubernetes-version=v1.11.10` is the command to start minikube with specific Kubernetes version.
 * `minikube dashboard` is the command to run Kubernetes dashboard.
 
@@ -143,7 +144,7 @@ _kubectl_:
 
 To run `golangci-lint` linter locally, you need to install it on your computer with the following command:
 
-```
+```sh
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@<version>
 ```
 
@@ -151,7 +152,7 @@ where `<version>` is `golangci-lint` version. For example, `v1.50.1`.
 
 Make changes to the file with `golangci-lint` configuration (`.golangci.yml`) if it is necessary. Then run linter:
 
-```
+```sh
 golangci-lint run ./... -v
 ```
 
