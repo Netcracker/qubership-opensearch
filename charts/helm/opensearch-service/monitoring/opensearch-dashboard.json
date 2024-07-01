@@ -2840,19 +2840,6 @@
               "tags": []
             },
             {
-              "datasource": {
-                "0": "$",
-                "1": "d",
-                "2": "a",
-                "3": "t",
-                "4": "a",
-                "5": "s",
-                "6": "o",
-                "7": "u",
-                "8": "r",
-                "9": "c",
-                "10": "e"
-              },
               "expr": "sum(irate(opensearch_jvm_gc_collectors_young_collection_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[$__interval])) by (node_name)",
               "interval": "",
               "legendFormat": "young:{{node_name}}",
