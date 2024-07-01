@@ -445,7 +445,7 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 4,
+        "w": 3,
         "x": 12,
         "y": 1
       },
@@ -556,8 +556,8 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 4,
-        "x": 16,
+        "w": 3,
+        "x": 15,
         "y": 1
       },
       "id": 65142,
@@ -673,8 +673,8 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 4,
-        "x": 20,
+        "w": 3,
+        "x": 18,
         "y": 1
       },
       "id": 65926,
@@ -765,6 +765,105 @@
         }
       ],
       "valueName": "current"
+    },
+    {
+      "circleBackground": false,
+      "colorBackground": false,
+      "colorValue": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$datasource"
+      },
+      "defaultColor": "rgb(117, 117, 117)",
+      "description": "OpenSearch Version",
+      "format": "none",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 3,
+        "x": 21,
+        "y": 1
+      },
+      "id": 65927,
+      "interval": "$inter",
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "math": "",
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sortOrder": "asc",
+      "sortOrderOptions": [
+        {
+          "text": "Ascending",
+          "value": "asc"
+        },
+        {
+          "text": "Descending",
+          "value": "desc"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "editorMode": "code",
+          "expr": "group by (versions_0) (opensearch_clusterstats_nodes_count_cluster_manager{namespace=\"$namespace\", cluster=\"$cluster\"})",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "{{version}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "title": "OpenSearch Version",
+      "tooltip": {
+        "show": true
+      },
+      "type": "blackmirror1-singlestat-math-panel",
+      "valueFontSize": "80%",
+      "valueMappingColorBackground": "#767171",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "No data",
+          "value": "null"
+        }
+      ],
+      "valueName": "name"
     },
     {
       "backgroundColor": "rgba(128,128,128,0.1)",
@@ -1089,7 +1188,7 @@
             "h": 3,
             "w": 6,
             "x": 0,
-            "y": 14
+            "y": 22
           },
           "id": 65038,
           "interval": "",
@@ -1197,7 +1296,7 @@
             "h": 3,
             "w": 6,
             "x": 6,
-            "y": 14
+            "y": 22
           },
           "id": 65039,
           "interval": "",
@@ -1305,7 +1404,7 @@
             "h": 3,
             "w": 4,
             "x": 12,
-            "y": 14
+            "y": 22
           },
           "id": 65040,
           "links": [],
@@ -1412,7 +1511,7 @@
             "h": 3,
             "w": 4,
             "x": 16,
-            "y": 14
+            "y": 22
           },
           "id": 65041,
           "links": [],
@@ -1519,7 +1618,7 @@
             "h": 3,
             "w": 4,
             "x": 20,
-            "y": 14
+            "y": 22
           },
           "id": 65042,
           "links": [],
@@ -1623,8 +1722,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "yellow",
@@ -1644,7 +1742,7 @@
             "h": 6,
             "w": 6,
             "x": 0,
-            "y": 15
+            "y": 23
           },
           "id": 65922,
           "links": [],
@@ -1697,7 +1795,7 @@
             "h": 6,
             "w": 18,
             "x": 6,
-            "y": 15
+            "y": 23
           },
           "hiddenSeries": false,
           "id": 65923,
@@ -1803,7 +1901,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 16
+            "y": 24
           },
           "hiddenSeries": false,
           "id": 65074,
@@ -1928,7 +2026,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 16
+            "y": 24
           },
           "hiddenSeries": false,
           "id": 65049,
@@ -2057,7 +2155,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 23
+            "y": 31
           },
           "hiddenSeries": false,
           "id": 65048,
@@ -2252,7 +2350,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 17
+            "y": 25
           },
           "hiddenSeries": false,
           "id": 65069,
@@ -2394,7 +2492,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 17
+            "y": 25
           },
           "hiddenSeries": false,
           "id": 65046,
@@ -2532,7 +2630,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 24
+            "y": 32
           },
           "hiddenSeries": false,
           "id": 65076,
@@ -2664,7 +2762,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 24
+            "y": 32
           },
           "hiddenSeries": false,
           "id": 65062,
@@ -2742,6 +2840,19 @@
               "tags": []
             },
             {
+              "datasource": {
+                "0": "$",
+                "1": "d",
+                "2": "a",
+                "3": "t",
+                "4": "a",
+                "5": "s",
+                "6": "o",
+                "7": "u",
+                "8": "r",
+                "9": "c",
+                "10": "e"
+              },
               "expr": "sum(irate(opensearch_jvm_gc_collectors_young_collection_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[$__interval])) by (node_name)",
               "interval": "",
               "legendFormat": "young:{{node_name}}",
@@ -2811,7 +2922,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 6
+            "y": 14
           },
           "hiddenSeries": false,
           "id": 65067,
@@ -3072,18 +3183,11 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 39
+            "y": 47
           },
           "id": 65925,
           "options": {
-            "tooltip": {
-              "mode": "multi",
-              "sort": "none"
-            },
             "legend": {
-              "showLegend": true,
-              "displayMode": "table",
-              "placement": "right",
               "calcs": [
                 "max",
                 "last"
@@ -3151,7 +3255,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 19
+            "y": 27
           },
           "hiddenSeries": false,
           "id": 65047,
@@ -3286,7 +3390,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 19
+            "y": 27
           },
           "hiddenSeries": false,
           "id": 65068,
@@ -3465,7 +3569,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 26
+            "y": 34
           },
           "hiddenSeries": false,
           "id": 65070,
@@ -3598,7 +3702,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 26
+            "y": 34
           },
           "hiddenSeries": false,
           "id": 65071,
@@ -3734,7 +3838,7 @@
             "h": 6,
             "w": 12,
             "x": 0,
-            "y": 33
+            "y": 41
           },
           "hiddenSeries": false,
           "id": 65135,
@@ -3843,7 +3947,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 20
+            "y": 28
           },
           "hiddenSeries": false,
           "id": 65050,
@@ -3971,7 +4075,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 20
+            "y": 28
           },
           "hiddenSeries": false,
           "id": 65045,
@@ -4101,7 +4205,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 27
+            "y": 35
           },
           "hiddenSeries": false,
           "id": 65075,
@@ -4289,7 +4393,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 21
+            "y": 29
           },
           "hiddenSeries": false,
           "id": 65059,
@@ -4471,7 +4575,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 21
+            "y": 29
           },
           "hiddenSeries": false,
           "id": 65060,
@@ -4651,7 +4755,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 29
+            "y": 37
           },
           "hiddenSeries": false,
           "id": 65066,
@@ -4892,7 +4996,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 29
+            "y": 37
           },
           "hiddenSeries": false,
           "id": 65077,
@@ -5093,7 +5197,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 37
+            "y": 45
           },
           "hiddenSeries": false,
           "id": 65080,
@@ -5219,7 +5323,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 45
+            "y": 53
           },
           "hiddenSeries": false,
           "id": 65082,
@@ -5345,8 +5449,8 @@
           "gridPos": {
             "h": 8,
             "w": 12,
-            "x": 0,
-            "y": 45
+            "x": 12,
+            "y": 53
           },
           "hiddenSeries": false,
           "id": 65083,
@@ -5451,7 +5555,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 22
+            "y": 30
           },
           "hiddenSeries": false,
           "id": 65061,
@@ -5745,7 +5849,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 22
+            "y": 30
           },
           "hiddenSeries": false,
           "id": 65063,
@@ -5890,7 +5994,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 29
+            "y": 37
           },
           "hiddenSeries": false,
           "id": 65064,
@@ -6097,8 +6201,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "#fce2de",
-                    "value": null
+                    "color": "#fce2de"
                   },
                   {
                     "color": "#629e51",
@@ -6118,7 +6221,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 23
+            "y": 31
           },
           "id": 65144,
           "interval": "$inter",
@@ -6241,8 +6344,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "#fce2de",
-                    "value": null
+                    "color": "#fce2de"
                   },
                   {
                     "color": "#629e51",
@@ -6262,7 +6364,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 23
+            "y": 31
           },
           "id": 65101,
           "interval": "$inter",
@@ -6382,7 +6484,7 @@
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 23
+            "y": 31
           },
           "hideTimeOverride": false,
           "id": 65105,
@@ -6506,7 +6608,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 31
+            "y": 39
           },
           "highlightOnMouseover": true,
           "id": 65137,
@@ -6730,8 +6832,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -6747,7 +6848,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 31
+            "y": 39
           },
           "id": 65111,
           "links": [],
@@ -6862,7 +6963,7 @@
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 31
+            "y": 39
           },
           "id": 65099,
           "interval": "$inter",
@@ -6982,7 +7083,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 39
+            "y": 47
           },
           "id": 65107,
           "interval": "$inter",
@@ -7098,7 +7199,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 39
+            "y": 47
           },
           "id": 65109,
           "interval": "$inter",
@@ -7185,7 +7286,7 @@
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 39
+            "y": 47
           },
           "height": "295px",
           "hiddenSeries": false,
@@ -7367,7 +7468,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 47
+            "y": 55
           },
           "height": "300px",
           "hiddenSeries": false,
@@ -7497,7 +7598,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 47
+            "y": 55
           },
           "height": "300px",
           "hiddenSeries": false,
@@ -7623,7 +7724,7 @@
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 47
+            "y": 55
           },
           "height": "300px",
           "hiddenSeries": false,
@@ -7761,7 +7862,7 @@
             "h": 6,
             "w": 12,
             "x": 0,
-            "y": 24
+            "y": 32
           },
           "id": 65088,
           "interval": "$inter",
@@ -7934,7 +8035,7 @@
             "h": 6,
             "w": 12,
             "x": 12,
-            "y": 24
+            "y": 32
           },
           "id": 65091,
           "interval": "$inter",
@@ -8133,7 +8234,7 @@
             "h": 6,
             "w": 12,
             "x": 0,
-            "y": 30
+            "y": 38
           },
           "highlightOnMouseover": true,
           "id": 65139,
@@ -8303,7 +8404,7 @@
             "h": 6,
             "w": 12,
             "x": 12,
-            "y": 30
+            "y": 38
           },
           "highlightOnMouseover": true,
           "id": 65141,
