@@ -163,7 +163,7 @@ spec:
             {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - name: opensearch-certs
               mountPath: /usr/share/opensearch-dashboards/certs/opensearch-root-ca.pem
-              subPath: {{ template "opensearch.rest-root-ca-path" . }}
+              subPath: {{ template "opensearch.root-ca-path" . }}
             {{- end }}
             {{- if .Values.dashboards.extraVolumeMounts }}
 {{ toYaml .Values.dashboards.extraVolumeMounts | indent 10 }}
