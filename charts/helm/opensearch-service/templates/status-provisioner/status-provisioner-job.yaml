@@ -10,10 +10,11 @@ metadata:
     app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-status-provisioner
     app.kubernetes.io/instance: {{ cat (printf "%s-status-provisioner"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
     app.kubernetes.io/technology: python
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 spec:
-  {{- if or (gt .Capabilities.KubeVersion.Major "1") (ge .Capabilities.KubeVersion.Minor "12") }}
-  ttlSecondsAfterFinished: {{ .Values.statusProvisioner.lifetimeAfterCompletion | default 600 }}
-  {{- end }}
   template:
     metadata:
       name: {{ template "opensearch.fullname" . }}-status-provisioner
