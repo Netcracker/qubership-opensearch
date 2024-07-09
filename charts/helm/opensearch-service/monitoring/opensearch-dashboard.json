@@ -767,22 +767,30 @@
       "valueName": "current"
     },
     {
-      "circleBackground": false,
-      "colorBackground": false,
-      "colorValue": false,
       "datasource": {
         "type": "prometheus",
         "uid": "$datasource"
       },
-      "defaultColor": "rgb(117, 117, 117)",
       "description": "OpenSearch Version",
-      "format": "none",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 6,
@@ -792,78 +800,41 @@
       },
       "id": 65927,
       "interval": "$inter",
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "math": "",
       "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sortOrder": "asc",
-      "sortOrderOptions": [
-        {
-          "text": "Ascending",
-          "value": "asc"
+      "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
         },
-        {
-          "text": "Descending",
-          "value": "desc"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
+        "showPercentChange": false,
+        "textMode": "name",
+        "wideLayout": true
       },
-      "tableColumn": "",
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "datasource": {
             "uid": "$datasource"
           },
           "editorMode": "code",
+          "exemplar": false,
           "expr": "group by (versions_0) (opensearch_clusterstats_nodes_count_cluster_manager{namespace=\"$namespace\", cluster=\"$cluster\"})",
           "instant": true,
           "interval": "",
           "legendFormat": "{{version}}",
+          "range": false,
           "refId": "A"
         }
       ],
-      "thresholds": [],
       "title": "OpenSearch Version",
-      "tooltip": {
-        "show": true
-      },
-      "type": "blackmirror1-singlestat-math-panel",
-      "valueFontSize": "80%",
-      "valueMappingColorBackground": "#767171",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "No data",
-          "value": "null"
-        }
-      ],
-      "valueName": "name"
+      "type": "stat"
     },
     {
       "backgroundColor": "rgba(128,128,128,0.1)",
