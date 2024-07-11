@@ -70,7 +70,7 @@ InfluxDB dashboards for telegraf metrics
 | Name | Description | Thresholds | Repeat |
 | ---- | ----------- | ---------- | ------ |
 | JVM heap usage | The usage of JVM heap memory by each OpenSearch node |  |  |
-| JVM heap usage percent | OpenSearch is set up to initiate garbage collections whenever JVM heap usage hits 75 percent. As shown above, it may be useful to monitor which nodes exhibit high heap usage, and set up an alert to find out if any node is consistently using over 85 percent of heap memory; this indicates that the rate of garbage collection isn�t keeping up with the rate of garbage creation. To address this problem, you can either increase your heap size (as long as it remains below the recommended guidelines stated above), or scale out the cluster by adding more nodes. |  |  |
+| JVM heap usage percent | OpenSearch is set up to initiate garbage collections whenever JVM heap usage hits 75 percent. As shown above, it may be useful to monitor which nodes exhibit high heap usage, and set up an alert to find out if any node is consistently using over 85 percent of heap memory; this indicates that the rate of garbage collection isn't keeping up with the rate of garbage creation. To address this problem, you can either increase your heap size (as long as it remains below the recommended guidelines stated above), or scale out the cluster by adding more nodes. |  |  |
 | JVM non heap usage | The usage of memory outside the JVM heap by each OpenSearch node |  |  |
 | GC time | Time spent on major GCs that collect old generation objects and on minor GCs that collects young generation objects in JVM (time rate per sampling interval). |  |  |
 <!-- markdownlint-enable line-length -->
