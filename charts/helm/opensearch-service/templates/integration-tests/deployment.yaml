@@ -222,7 +222,7 @@ spec:
             {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - mountPath: /certs/opensearch/root-ca.pem
               name: opensearch-certs
-              subPath: {{ template "opensearch.rest-root-ca-path" . }}
+              subPath: {{ template "opensearch.root-ca-path" . }}
             {{- end }}
             {{- if eq (include "curator.tlsEnabled" .) "true" }}
             - mountPath: /certs/curator/root-ca.pem

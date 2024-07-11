@@ -2,6 +2,15 @@
 
 set -e
 
+log() {
+  echo ${1} >> log.txt
+}
+
+print_log() {
+  cat log.txt
+  sleep 1m
+}
+
 # Prepares necessary entities for certificates generation
 prepare() {
   token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
@@ -57,23 +66,24 @@ generate_certificates() {
 create_certificates() {
   local type=$1
   local secret_name=$2
-  local private_key_name=${type}-key.pem
-  local root_ca_name=${type}-root-ca.pem
-  local certificate_name=${type}-crt.pem
+  local private_key_name=tls.key
+  local root_ca_name=ca.crt
+  local certificate_name=tls.crt
   root_ca=${OPENSEARCH_CONFIGS}/root-ca.pem
-  private_key=${OPENSEARCH_CONFIGS}/${private_key_name}
-  certificate=${OPENSEARCH_CONFIGS}/${certificate_name}
+  private_key=${OPENSEARCH_CONFIGS}/${type}-${private_key_name}
+  certificate=${OPENSEARCH_CONFIGS}/${type}-${certificate_name}
 
   echo "Generating '${type}' certificates"
   generate_certificates
   echo "'${type}' certificates are generated"
   if [[ $(secret_exists $secret_name) == false ]]; then
     # Creates secret
+    local secret_type="kubernetes.io/tls"
     result=$(curl -sSk -X POST -H "Authorization: Bearer $token" \
       "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets" \
       -H "Content-Type: application/json" \
       -H "Accept: application/json" \
-      -d "{ \"kind\": \"Secret\", \"apiVersion\": \"v1\", \"metadata\": { \"name\": \"${secret_name}\", \"namespace\": \"${NAMESPACE}\" }, \"data\": { \"${certificate_name}\": \"$(cat ${certificate} | base64 | tr -d '\n')\", \"${private_key_name}\": \"$(cat ${private_key} | base64 | tr -d '\n')\", \"${root_ca_name}\": \"$(cat ${root_ca} | base64 | tr -d '\n')\" } }")
+      -d "{ \"kind\": \"Secret\", \"apiVersion\": \"v1\", \"metadata\": { \"name\": \"${secret_name}\", \"namespace\": \"${NAMESPACE}\" }, \"type\": \"${secret_type}\", \"data\": { \"${certificate_name}\": \"$(cat ${certificate} | base64 | tr -d '\n')\", \"${private_key_name}\": \"$(cat ${private_key} | base64 | tr -d '\n')\", \"${root_ca_name}\": \"$(cat ${root_ca} | base64 | tr -d '\n')\" } }")
   else
     # Updates secret
     result=$(curl -sSk -X PUT -H "Authorization: Bearer $token" \
@@ -88,6 +98,127 @@ create_certificates() {
     echo "Certificates cannot be generated because of error with '$code' code and '$message' message"
     exit 1
   fi
+}
+
+# Check the secret has legacy sub paths, where each path has "type" prefix.
+#
+# $1 - the type of generated certificates
+# $2 - the name of the secret for generated certificates
+certs_path_are_legacy() {
+  log "check legacy paths in $2"
+
+  local type=$1
+  local secret=$2
+  local secret_file="secret.json"
+  curl -sSk -X GET -H "Authorization: Bearer $token" "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets/${secret}" > ${secret_file}
+
+  if [[ $(jq -r '.type?' ${secret_file}) == "Opaque" ]]; then
+    log "Legacy type is used, need to migrate paths"
+    echo true
+    return
+  fi
+
+  local old_key_subpath
+  if [[ $(jq --arg subPath "$(echo "$type-key.pem")" -r '.data."$subPath"?' ${secret_file}) != "null" ]]; then
+    old_key_subpath=true
+  else
+    old_key_subpath=false
+  fi
+
+  local old_crt_subpath
+  if [[ $(jq --arg subPath "$(echo "$type-crt.pem")" -r '.data."$subPath"?' ${secret_file}) != "null" ]]; then
+    old_crt_subpath=true
+  else
+     old_crt_subpath=false
+  fi
+
+  local old_root_ca_subpath
+  if [[ $(jq --arg subPath "$(echo "$type-root-ca.pem")" -r '.data."$subPath"?' ${secret_file}) != "null" ]]; then
+    old_root_ca_subpath=true
+  else
+    old_root_ca_subpath=false
+  fi
+
+  if [[ "$old_key_subpath" == "true" && "$old_crt_subpath" == "true" && "$old_root_ca_subpath" == "true" ]]; then
+    log "All paths are legacy, need to migrate them"
+    echo true
+    return
+  fi
+
+  if [[ "$old_key_subpath" == "false" && "$old_crt_subpath" == "false" && "$old_root_ca_subpath" == "false" ]]; then
+    log "All paths are actual, no migration need"
+    echo false
+    return
+  fi
+
+  local log_message="Mixed subpath detected, Job can't process it. Please check the secret ${secret} & update it manually."
+  log "${log_message}"
+  echo 2>&1 "${log_message}"
+  exit 1
+}
+
+# Migrates the certificates and key from legacy secret paths to the new
+#
+# $1 - the type of generated certificates
+# $2 - the name of the secret for generated certificates
+migrate_paths() {
+  log "Running path migration..."
+
+  local type=$1
+  local secret_name=$2
+
+  local secret_file="secret.json"
+
+  local private_key_name=tls.key
+  local root_ca_name=ca.crt
+  local certificate_name=tls.crt
+
+  local tmp_tls_key=tmp-tls.key
+  local tmp_tls_crt=tmp-tls.crt
+  local tmp_ca_crt=tmp-ca.crt
+
+  local secret_type="kubernetes.io/tls"
+
+  jq --arg type "$(echo "$type-key.pem")" '.data[$type]' ${secret_file} | tr -d '"'     > ${tmp_tls_key}
+  jq --arg type "$(echo "$type-crt.pem")" '.data[$type]' ${secret_file} | tr -d '"'     > ${tmp_tls_crt}
+  jq --arg type "$(echo "$type-root-ca.pem")" '.data[$type]' ${secret_file} | tr -d '"' > ${tmp_ca_crt}
+
+  local secret_response
+  local code
+  local delay=3s
+
+  # Create TEMP-secret to save certs to avoid certs lost at all. It can be used for manual recovering
+  secret_response=$(curl -sSk -X POST -H "Authorization: Bearer $token" \
+    "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -d "{ \"kind\": \"Secret\", \"apiVersion\": \"v1\", \"metadata\": { \"name\": \"${secret_name}-tmp\", \"namespace\": \"${NAMESPACE}\" }, \"type\": \"${secret_type}\",\"data\": { \"${certificate_name}\": \"$(cat ${tmp_tls_crt})\", \"${private_key_name}\": \"$(cat ${tmp_tls_key})\", \"${root_ca_name}\": \"$(cat ${tmp_ca_crt})\" } }")
+  sleep ${delay}
+
+  # Removes real secret, because it might have type Opaque
+  secret_response=$(curl -sSk -X DELETE -H "Authorization: Bearer $token" \
+    "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets/${secret_name}")
+  sleep ${delay}
+
+  # Create secret again
+  secret_response=$(curl -sSk -X POST -H "Authorization: Bearer $token" \
+    "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -d "{ \"kind\": \"Secret\", \"apiVersion\": \"v1\", \"metadata\": { \"name\": \"${secret_name}\", \"namespace\": \"${NAMESPACE}\" }, \"type\": \"${secret_type}\",\"data\": { \"${certificate_name}\": \"$(cat ${tmp_tls_crt})\", \"${private_key_name}\": \"$(cat ${tmp_tls_key})\", \"${root_ca_name}\": \"$(cat ${tmp_ca_crt})\" } }")
+  sleep ${delay}
+
+  # Removes TEMP-secret
+  curl -sSk -X DELETE -H "Authorization: Bearer $token" \
+    "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets/${secret_name}-tmp"
+  sleep ${delay}
+
+  # Cleanup temp files
+  rm ${tmp_tls_key}
+  rm ${tmp_tls_crt}
+  rm ${tmp_ca_crt}
+
+  log "Path migration done"
 }
 
 # Checks secret with specified name exists
@@ -113,7 +244,11 @@ cert_expires() {
   local type=$1
   local secret=$2
   if [[ $(secret_exists ${secret}) == true ]]; then
-    curl -sSk -X GET -H "Authorization: Bearer $token" "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets/${secret}" | jq --arg type "$(echo "$type-crt.pem")" '.data[$type]' | tr -d '"' | base64 --decode > crt.pem
+    log "secret $2 exists"
+    if [[ $(certs_path_are_legacy ${type} ${secret}) == true ]]; then
+      migrate_paths ${type} ${secret}
+    fi
+    curl -sSk -X GET -H "Authorization: Bearer $token" "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets/${secret}" | jq --arg type "tls.crt" '.data[$type]' | tr -d '"' | base64 --decode > crt.pem
     if [[ $(($(openssl x509 -enddate -noout -in crt.pem | awk '{print $4}') - $(date | awk '{print $6}'))) -lt 10  && "${RENEW_CERTS}" == "true" ]]; then
       echo true
     else
@@ -121,6 +256,7 @@ cert_expires() {
     fi
     rm crt.pem
   else
+    log "secret $2 not exists"
     echo true
   fi
 }
@@ -137,7 +273,9 @@ delete_pods() {
   done
 }
 
+log "BEGIN"
 prepare
+log "AFTER PREPARE"
 if [[ $(cert_expires "transport" $TRANSPORT_CERTIFICATES_SECRET_NAME) == true || $(cert_expires "admin" $ADMIN_CERTIFICATES_SECRET_NAME) == true || -n "$REST_CERTIFICATES_SECRET_NAME" && $(cert_expires "rest" $REST_CERTIFICATES_SECRET_NAME) == true ]]; then
   # Creates secret with transport certificates
   use_extension="true"
@@ -157,3 +295,7 @@ if [[ $(cert_expires "transport" $TRANSPORT_CERTIFICATES_SECRET_NAME) == true ||
   fi
   delete_pods
 fi
+log "END"
+
+# Uncomment it to run sleep & log printing
+# print_log

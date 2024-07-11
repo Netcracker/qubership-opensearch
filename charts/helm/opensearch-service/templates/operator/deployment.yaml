@@ -46,7 +46,7 @@ spec:
           {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - mountPath: /certs/crt.pem
               name: opensearch-certs
-              subPath: {{ template "opensearch.rest-root-ca-path" . }}
+              subPath: {{ template "opensearch.root-ca-path" . }}
           {{- end }}
           {{ if and (eq (include "dbaas.enabled" .) "true") (eq (include "dbaas-adapter.tlsEnabled" .) "true") }}
             - mountPath: /certs/dbaas-adapter/crt.pem
