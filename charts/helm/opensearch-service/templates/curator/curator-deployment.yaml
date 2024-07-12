@@ -156,7 +156,7 @@ spec:
             {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - mountPath: /trusted-certs/root-ca.pem
               name: opensearch-certs
-              subPath: {{ template "opensearch.rest-root-ca-path" . }}
+              subPath: {{ template "opensearch.root-ca-path" . }}
             {{- end }}
             {{ if eq (include "curator.tlsEnabled" .) "true" }}
             - mountPath: /tls
@@ -226,7 +226,7 @@ spec:
             {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - mountPath: /trusted-certs/root-ca.pem
               name: opensearch-certs
-              subPath: {{ template "opensearch.rest-root-ca-path" . }}
+              subPath: {{ template "opensearch.root-ca-path" . }}
             {{- end }}
       volumes:
         {{- if or (not .Values.opensearch.snapshots.enabled) .Values.opensearch.snapshots.s3.enabled }}

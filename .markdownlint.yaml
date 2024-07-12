@@ -25,5 +25,7 @@ MD037: false
 MD004: false
 # MD007/ul-indent Unordered list indentation
 MD007: false
+# MD009/no-trailing-spaces Trailing spaces [Expected: 0 or 2; Actual: <?>]
+MD009: false
 # MD010/no-hard-tabs Hard tabs
 MD010: false

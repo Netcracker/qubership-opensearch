@@ -167,33 +167,33 @@ spec:
               subPath: jvm.options
             - mountPath: {{ .Values.opensearch.configDirectory }}/transport-crt.pem
               name: transport-certs
-              subPath: {{ template "opensearch.transport-cert-path" . }}
+              subPath: {{ template "opensearch.cert-path" . }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/transport-key.pem
               name: transport-certs
-              subPath: {{ template "opensearch.transport-key-path" . }}
+              subPath: {{ template "opensearch.key-path" . }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/transport-root-ca.pem
               name: transport-certs
-              subPath: {{ template "opensearch.transport-root-ca-path" . }}
+              subPath: {{ template "opensearch.root-ca-path" . }}
             {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/rest-crt.pem
               name: rest-certs
-              subPath: {{ template "opensearch.rest-cert-path" . }}
+              subPath: {{ template "opensearch.cert-path" . }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/rest-key.pem
               name: rest-certs
-              subPath: {{ template "opensearch.rest-key-path" . }}
+              subPath: {{ template "opensearch.key-path" . }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/rest-root-ca.pem
               name: rest-certs
-              subPath: {{ template "opensearch.rest-root-ca-path" . }}
+              subPath: {{ template "opensearch.root-ca-path" . }}
             {{- end }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/admin-crt.pem
               name: admin-certs
-              subPath: {{ template "opensearch.admin-cert-path" . }}
+              subPath: {{ template "opensearch.cert-path" . }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/admin-key.pem
               name: admin-certs
-              subPath: {{ template "opensearch.admin-key-path" . }}
+              subPath: {{ template "opensearch.key-path" . }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/admin-root-ca.pem
               name: admin-certs
-              subPath: {{ template "opensearch.admin-root-ca-path" . }}
+              subPath: {{ template "opensearch.root-ca-path" . }}
 {{- if .Values.opensearch.extraVolumeMounts }}
 {{ toYaml .Values.opensearch.extraVolumeMounts | indent 12 }}
 {{- end }}

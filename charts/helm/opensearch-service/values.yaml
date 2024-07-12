@@ -328,27 +328,18 @@ opensearch:
         key: ""
         ca: ""
       existingCertSecret: ""
-      existingCertSecretCertSubPath: tls.crt
-      existingCertSecretKeySubPath: tls.key
-      existingCertSecretRootCASubPath: ca.crt
     rest:
       certificates:
         crt: ""
         key: ""
         ca: ""
       existingCertSecret: ""
-      existingCertSecretCertSubPath: tls.crt
-      existingCertSecretKeySubPath: tls.key
-      existingCertSecretRootCASubPath: ca.crt
     admin:
       certificates:
         crt: ""
         key: ""
         ca: ""
       existingCertSecret: ""
-      existingCertSecretCertSubPath: tls.crt
-      existingCertSecretKeySubPath: tls.key
-      existingCertSecretRootCASubPath: ca.crt
 
   master:
     enabled: true
