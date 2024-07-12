@@ -17,12 +17,10 @@ metadata:
 {{ include "opensearch-service.defaultLabels" . | indent 4 }}
   annotations:
     {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
-    {{- if .Capabilities.APIVersions.Has "route.openshift.io/v1/Route" }}
-    route.openshift.io/termination: passthrough
-    {{- else }}
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-    nginx.ingress.kubernetes.io/ssl-passthrough: 'true'
-    {{- end }}
+    nginx.ingress.kubernetes.io/proxy-ssl-verify: 'on'
+    nginx.ingress.kubernetes.io/proxy-ssl-name: '{{ template "opensearch.fullname" . }}-internal.{{ .Release.Namespace }}'
+    nginx.ingress.kubernetes.io/proxy-ssl-secret: '{{ .Release.Namespace }}/{{ template "opensearch.rest-cert-secret-name" . }}'
     {{- end }}
     {{- if and .Values.opensearch.client.ingress.className (not (.Capabilities.APIVersions.Has "networking.k8s.io/v1/Ingress")) }}
     kubernetes.io/ingress.class: {{ .Values.opensearch.client.ingress.className }}
@@ -31,25 +29,6 @@ metadata:
     {{ toYaml . | nindent 4 }}
     {{- end }}
 spec:
-{{- if or .Values.opensearch.client.ingress.tls (eq (include "opensearch.tlsEnabled" .) "true") }}
-  {{- if (not (.Capabilities.APIVersions.Has "route.openshift.io/v1/Route")) }}
-  tls:
-    {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
-    - hosts:
-      {{- range (include "opensearch.ingressHost" . | fromYamlArray) }}
-      - {{ . | quote }}
-      {{- end }}
-      secretName: {{ template "opensearch.rest-cert-secret-name" . }}
-    {{- end }}
-  {{- range .Values.opensearch.client.ingress.tls }}
-    - hosts:
-      {{- range .hosts }}
-        - {{ . | quote }}
-      {{- end }}
-      secretName: {{ .secretName }}
-  {{- end }}
-  {{- end }}
-{{- end }}
   {{- if and .Values.opensearch.client.ingress.className (.Capabilities.APIVersions.Has "networking.k8s.io/v1/Ingress") }}
   ingressClassName: {{ .Values.opensearch.client.ingress.className }}
   {{- end }}

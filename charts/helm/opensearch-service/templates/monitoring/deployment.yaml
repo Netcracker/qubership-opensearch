@@ -107,7 +107,7 @@ spec:
             {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - mountPath: /trusted-certs/root-ca.pem
               name: opensearch-certs
-              subPath: {{ template "opensearch.rest-root-ca-path" . }}
+              subPath: {{ template "opensearch.root-ca-path" . }}
             {{- end }}
           ports:
             - protocol: TCP

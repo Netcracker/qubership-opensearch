@@ -22,7 +22,7 @@ secret:
 tls:
   opensearch:
     secretName: "opensearch-rest-certs"
-    secretCaKey: "rest-root-ca.pem"
+    secretCaKey: "ca.crt"
 
 integrationTests:
   tags: "NOTha"

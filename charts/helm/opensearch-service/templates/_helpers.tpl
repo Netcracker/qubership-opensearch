@@ -233,6 +233,30 @@ IP addresses used to generate TLS certificate with "Subject Alternative Name" fi
 {{- end -}}
 
 {{/*
+Define the path to the certificate in secret.
+*/}}
+{{- define "opensearch.cert-path" -}}
+{{- template "opensearch.verifyExistingCertSecretCertSubPath" . -}}
+{{- "tls.crt" -}}
+{{- end -}}
+
+{{/*
+Define the path to the private key in secret.
+*/}}
+{{- define "opensearch.key-path" -}}
+{{- template "opensearch.verifyExistingCertSecretKeySubPath" . -}}
+{{- "tls.key" -}}
+{{- end -}}
+
+{{/*
+Define the path to the root CA in secret.
+*/}}
+{{- define "opensearch.root-ca-path" -}}
+{{- template "opensearch.verifyExistingCertSecretRootCASubPath" . -}}
+{{- "ca.crt" -}}
+{{- end -}}
+
+{{/*
 Whether transport certificates are Specified
 */}}
 {{- define "opensearch.transportCertificatesSpecified" -}}
@@ -260,38 +284,6 @@ Define the name of the transport certificates secret.
 {{- end -}}
 {{- end -}}
 
-{{/*
-Define the path to the transport certificate in secret.
-*/}}
-{{- define "opensearch.transport-cert-path" -}}
-{{- if .Values.global.tls.generateCerts.enabled }}
-  {{- eq (include "certProvider" .) "cert-manager" | ternary "tls.crt" "transport-crt.pem" }}
-{{- else }}
-  {{- .Values.opensearch.tls.transport.existingCertSecretCertSubPath -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Define the path to the transport private key in secret.
-*/}}
-{{- define "opensearch.transport-key-path" -}}
-{{- if .Values.global.tls.generateCerts.enabled }}
-  {{- eq (include "certProvider" .) "cert-manager" | ternary "tls.key" "transport-key.pem" }}
-{{- else }}
-  {{- .Values.opensearch.tls.transport.existingCertSecretKeySubPath -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Define the path to the transport root CA in secret.
-*/}}
-{{- define "opensearch.transport-root-ca-path" -}}
-{{- if .Values.global.tls.generateCerts.enabled }}
-  {{- eq (include "certProvider" .) "cert-manager" | ternary "ca.crt" "transport-root-ca.pem" }}
-{{- else -}}
-  {{- .Values.opensearch.tls.transport.existingCertSecretRootCASubPath -}}
-{{- end -}}
-{{- end -}}
 
 {{/*
 Whether admin certificates are Specified
@@ -318,39 +310,6 @@ Define the name of the admin certificates secret.
   {{- else -}}
     {{- template "opensearch.fullname" . -}}-admin-certs
   {{- end }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Define the path to the admin certificate in secret.
-*/}}
-{{- define "opensearch.admin-cert-path" -}}
-{{- if .Values.global.tls.generateCerts.enabled }}
-  {{- eq (include "certProvider" .) "cert-manager" | ternary "tls.crt" "admin-crt.pem" }}
-{{- else -}}
-  {{- .Values.opensearch.tls.admin.existingCertSecretCertSubPath -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Define the path to the admin private key in secret.
-*/}}
-{{- define "opensearch.admin-key-path" -}}
-{{- if .Values.global.tls.generateCerts.enabled }}
-  {{- eq (include "certProvider" .) "cert-manager" | ternary "tls.key" "admin-key.pem" }}
-{{- else -}}
-  {{- .Values.opensearch.tls.admin.existingCertSecretKeySubPath -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Define the path to the admin root CA in secret.
-*/}}
-{{- define "opensearch.admin-root-ca-path" -}}
-{{- if .Values.global.tls.generateCerts.enabled }}
-  {{- eq (include "certProvider" .) "cert-manager" | ternary "ca.crt" "admin-root-ca.pem" }}
-{{- else -}}
-  {{- .Values.opensearch.tls.admin.existingCertSecretRootCASubPath -}}
 {{- end -}}
 {{- end -}}
 
@@ -383,39 +342,6 @@ Define the name of the REST certificates secret.
       {{- template "opensearch.fullname" . -}}-rest-certs
     {{- end }}
   {{- end -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Define the path to the REST certificate in secret.
-*/}}
-{{- define "opensearch.rest-cert-path" -}}
-{{- if .Values.global.tls.generateCerts.enabled }}
-  {{- eq (include "certProvider" .) "cert-manager" | ternary "tls.crt" "rest-crt.pem" }}
-{{- else -}}
-  {{- .Values.opensearch.tls.rest.existingCertSecretCertSubPath -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Define the path to the REST private key in secret.
-*/}}
-{{- define "opensearch.rest-key-path" -}}
-{{- if .Values.global.tls.generateCerts.enabled }}
-  {{- eq (include "certProvider" .) "cert-manager" | ternary "tls.key" "rest-key.pem" }}
-{{- else -}}
-  {{- .Values.opensearch.tls.rest.existingCertSecretKeySubPath -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Define the path to the REST root CA in secret.
-*/}}
-{{- define "opensearch.rest-root-ca-path" -}}
-{{- if .Values.global.tls.generateCerts.enabled }}
-  {{- eq (include "certProvider" .) "cert-manager" | ternary "ca.crt" "rest-root-ca.pem" }}
-{{- else -}}
-  {{- .Values.opensearch.tls.rest.existingCertSecretRootCASubPath -}}
 {{- end -}}
 {{- end -}}
 
@@ -1527,5 +1453,44 @@ Ingress host for OpenSearch
     {{- gt (int .Values.monitoring.thresholds.lagAlert) -1 }}
   {{- else -}}
     {{- "false" }}
+  {{- end -}}
+{{- end -}}
+
+{{- define "opensearch.verifyExistingCertSecretCertSubPath" -}}
+  {{- $correctPath := "tls.crt" -}}
+  {{- $transport := (.Values.opensearch.tls.transport.existingCertSecretCertSubPath | toString) -}}
+  {{- $rest :=      (.Values.opensearch.tls.rest.existingCertSecretCertSubPath      | toString) -}}
+  {{- $admin :=     (.Values.opensearch.tls.admin.existingCertSecretCertSubPath     | toString) -}}
+  {{- $transportCorrect :=  or (eq $transport "") (eq ($transport | toString) "<nil>") (eq $transport $correctPath) -}}
+  {{- $restCorrect :=       or (eq $rest "")      (eq ($rest | toString) "<nil>")      (eq $rest $correctPath) -}}
+  {{- $adminCorrect :=      or (eq $admin "")     (eq ($admin | toString) "<nil>")     (eq $admin $correctPath) -}}
+  {{- if not (and $transportCorrect $restCorrect $adminCorrect) }}
+    {{- fail "Overriden opensearch.tls.*.existingCertSecretCertSubPath parameters are not supported" -}}
+  {{- end -}}
+{{- end -}}
+
+{{- define "opensearch.verifyExistingCertSecretKeySubPath" -}}
+  {{- $correctPath := "tls.key" -}}
+  {{- $transport := (.Values.opensearch.tls.transport.existingCertSecretKeySubPath | toString) -}}
+  {{- $rest :=      (.Values.opensearch.tls.rest.existingCertSecretKeySubPath      | toString) -}}
+  {{- $admin :=     (.Values.opensearch.tls.admin.existingCertSecretKeySubPath     | toString) -}}
+  {{- $transportCorrect :=  or (eq $transport "") (eq $transport "<nil>") (eq $transport $correctPath) -}}
+  {{- $restCorrect :=       or (eq $rest "")      (eq $rest "<nil>")      (eq $rest $correctPath) -}}
+  {{- $adminCorrect :=      or (eq $admin "")     (eq $admin "<nil>")     (eq $admin $correctPath) -}}
+  {{- if not (and $transportCorrect $restCorrect $adminCorrect) }}
+    {{- fail "Overriden opensearch.tls.*.existingCertSecretKeySubPath parameters are not supported" -}}
+  {{- end -}}
+{{- end -}}
+
+{{- define "opensearch.verifyExistingCertSecretRootCASubPath" -}}
+  {{- $correctPath := "ca.crt" -}}
+  {{- $transport := (.Values.opensearch.tls.transport.existingCertSecretRootCASubPath | toString) -}}
+  {{- $rest :=      (.Values.opensearch.tls.rest.existingCertSecretRootCASubPath      | toString) -}}
+  {{- $admin :=     (.Values.opensearch.tls.admin.existingCertSecretRootCASubPath     | toString) -}}
+  {{- $transportCorrect :=  or (eq $transport "") (eq $transport "<nil>") (eq $transport $correctPath) -}}
+  {{- $restCorrect :=       or (eq $rest "")      (eq $rest "<nil>")      (eq $rest $correctPath) -}}
+  {{- $adminCorrect :=      or (eq $admin "")     (eq $admin "<nil>")     (eq $admin $correctPath) -}}
+  {{- if not (and $transportCorrect $restCorrect $adminCorrect) }}
+    {{- fail "Overriden opensearch.tls.*.existingCertSecretRootCASubPath parameters are not supported" -}}
   {{- end -}}
 {{- end -}}
