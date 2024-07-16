@@ -13,7 +13,7 @@ metadata:
   annotations:
     "argocd.argoproj.io/hook": PostSync
     "argocd.argoproj.io/sync-wave": "1"
-    "argocd.argoproj.io/hook-delete-policy": hook-succeeded,before-hook-creation
+    "argocd.argoproj.io/hook-delete-policy": HookSucceeded,BeforeHookCreation
 spec:
   {{- if or (gt .Capabilities.KubeVersion.Major "1") (ge .Capabilities.KubeVersion.Minor "12") }}
   ttlSecondsAfterFinished: {{ .Values.statusProvisioner.lifetimeAfterCompletion | default 600 }}
