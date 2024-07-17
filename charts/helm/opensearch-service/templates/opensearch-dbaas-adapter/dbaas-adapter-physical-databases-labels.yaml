@@ -4,7 +4,6 @@ kind: ConfigMap
 metadata:
   labels:
 {{ include "opensearch.labels.standard" . | indent 4 }}
-{{ include "opensearch-service.defaultLabels" . | indent 4 }}
     name: {{ template "dbaas-adapter.name" . }}
     component: dbaas-opensearch-adapter
   name: dbaas-physical-databases-labels
