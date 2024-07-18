@@ -1,0 +1,10 @@
+serviceName: "opensearch-service"
+
+leveling: true
+skipTypeMismatch: true
+offArrayListMismatchLog: true
+
+documentation: docs/public/installation.md
+values: charts/helm/opensearch-service/values.yaml
+schema: charts/helm/opensearch-service/values.schema.json
+rules: charts/helm/opensearch-service/values.rules.json
