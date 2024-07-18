@@ -39,7 +39,7 @@ workflow:
     - controllers/*
     - opensearch-integration-tests/**/*
 
-LinterSchemaJSON:
+LinterValuesSchemaJSON:
   allow_failure: false
   image: ${JSON_SCHEMA_LINT_IMAGE}
   script:
