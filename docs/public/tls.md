@@ -219,7 +219,7 @@ Automatic re-encrypt Route creation is not supported out of box, need to perform
      tls:
        termination: reencrypt
        destinationCACertificate: <place-CA-certificate-here-from-OpenSearch-REST-secret>
-     insecureEdgeTerminationPolicy: Redirect
+       insecureEdgeTerminationPolicy: Redirect
    ```
 
 **NOTE**: If you can't access the OpenSearch host after Route creation because of "too many redirects" error, then one of the possible root
