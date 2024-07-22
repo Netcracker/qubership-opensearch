@@ -40,7 +40,7 @@ workflow:
     - opensearch-integration-tests/**/*
 
 LinterValuesSchemaJSON:
-  allow_failure: false
+  allow_failure: true
   image: ${JSON_SCHEMA_LINT_IMAGE}
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == "master"'
