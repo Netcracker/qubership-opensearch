@@ -63,23 +63,31 @@ MR Labels:
     - merge_request
 
 LinterMarkdown:
+  allow_failure: true
   stage: linter
   image:
     name: ${MARKDOWN_LINT_IMAGE}
     entrypoint:
       - "/usr/bin/env"
       - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == "master"'
+      allow_failure: false
+    - when: always
   tags:
     - NETCRACKER
   before_script:
     - markdownlint --version
   script:
     - markdownlint --config ./.markdownlint.yaml ./docs
-  allow_failure: true
 
 LinterHelm:
   allow_failure: true
   image: ${HELM_LINTER_IMAGE}
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == "master"'
+      allow_failure: false
+    - when: always
   before_script:
     - helm version
     - ct version
@@ -92,6 +100,10 @@ LinterHelm:
 LinterGo:
   allow_failure: true
   image: ${GO_LINTER_IMAGE}
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_NAME == "master"'
+      allow_failure: false
+    - when: always
   script:
     - go env -w GOPROXY=${GO_PROXY}
     - golangci-lint run ./... -v
