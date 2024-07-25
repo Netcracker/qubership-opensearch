@@ -1,4 +1,4 @@
-FROM artifactorycn.netcracker.com:17064/alpine:3.19.1
+FROM artifactorycn.netcracker.com:17064/alpine:3.20.2
 
 USER 0
 
