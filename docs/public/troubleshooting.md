@@ -745,6 +745,63 @@ This error means the OpenSearch hasn't been properly initialized or configured.
 
 Restart OpenSearch pods if the error persists for more than 5 minutes after running all pods. This error is normal during the OpenSearch cluster initialization phase.
 
+### OpenSearch Starts Failing With TLS Certificate Error
+
+At a certain point, OpenSearch stops working with a white screen `Not yet initialized` and an error in logs:
+
+```text
+[2024-02-12T14:23:07,448][WARN ][o.o.t.OutboundHandler    ] [opensearch-data-0] send message failed [channel: Netty4TcpChannel{localAddress=/10.129.21.8:57368, remoteAddress=10.129.133.71/10.129.133.71:9300}]
+javax.net.ssl.SSLHandshakeException: PKIX path validation failed: java.security.cert.CertPathValidatorException: validity check failed
+	at sun.security.ssl.Alert.createSSLException(Alert.java:131) ~[?:?]
+     ... 30 more
+...
+Caused by: sun.security.validator.ValidatorException: PKIX path validation failed: java.security.cert.CertPathValidatorException: validity check failed
+	at sun.security.validator.PKIXValidator.doValidate(PKIXValidator.java:369) ~[?:?]
+    ... 30 more
+Caused by: java.security.cert.CertPathValidatorException: validity check failed
+	at sun.security.provider.certpath.PKIXMasterCertPathValidator.validate(PKIXMasterCertPathValidator.java:135) ~[?:?]
+	... 30 more
+Caused by: java.security.cert.CertificateExpiredException: NotAfter: Thu Jan 18 12:41:27 GMT 2024
+	at sun.security.x509.CertificateValidity.valid(CertificateValidity.java:277) ~[?:?]
+	at sun.security.x509.X509CertImpl.checkValidity(X509CertImpl.java:675) ~[?:?]
+...
+	at sun.security.ssl.CertificateMessage$T13CertificateConsumer.checkServerCerts(CertificateMessage.java:1335) ~[?:?]
+```
+
+**Problem**:
+
+OpenSearch uses internal TLS certificates for node-to-node communications. For that connection OpenSearch uses self-signed certificates as they are not shared anywhere.
+In the several versions of OpenSearch that certificate was generated with only one year duration, after that it starts failing.
+
+This problem can be beforehand diagnosed with executing the following command that displays expiration time of current certificate:
+
+```text
+openssl x509 -enddate -noout -in /usr/share/opensearch/config/transport-crt.pem
+```
+
+Pay attention, this problem and provided solutions below are applicable only for disabled TLS deployment (`global.tls.enabled: false`), when only internal connections are under TLS. 
+Otherwise, you have to regenerate TLS certificates with specified way (`CertManager` or manual certificates).
+
+**Solution**:
+The solution is to re-generate internal TLS certificates with long-lived duration.
+
+The most right solution is to upgrade OpenSearch to one of the following stable versions to generate them automatically:
+
+* [0.2.13](https://git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/-/tags/0.2.13)
+* [0.3.7](https://git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/-/tags/0.3.7)
+* [1.3.2](https://git.netcracker.com/PROD.Platform.ElasticStack/opensearch-service/-/tags/1.3.2)
+
+If upgrade is not possible and manual fix is required, please follow steps:
+
+1. Manually remove secrets "opensearch-admin-certs" and "opensearch-transport-certs" 
+(and "opensearch-rest-certs" if presented) from the OpenSearch namespace.
+2. Edit the template of [opensearch-tls-reinit.yaml](/docs/data/opensearch-tls-reinit.yaml) resources and specify corresponding 
+namespace and OpenSearch docker image (you can take it from working pods) if required.
+3. Apply result template with command `kubectl apply -f opensearch-tls-reinit.yaml` to the namespace with OpenSearch.
+4. Wait until Job execution. There should be `'admin' certificates are generated` output inside.
+5. Restart OpenSearch pods.
+6. Remove created Job with the command `kubectl delete -f opensearch-tls-reinit.yaml` from the namespace with OpenSearch.
+
 ## DBaaS Adapter Health
 
 OpenSearch monitoring has `DBaaS Adapter Status` indicator of DBaaS Adapter health.
