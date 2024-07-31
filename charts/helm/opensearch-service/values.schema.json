@@ -1306,7 +1306,7 @@
                                     "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/host",
                                     "type": "string",
                                     "title": "The opensearch.securityConfig.ldap.host schema",
-                                    "description": "LPAD server host"
+                                    "description": "LDAP server host"
                                 },
                                 "trustedCerts": {
                                     "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/trustedCerts",
@@ -1318,13 +1318,13 @@
                                     "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/managerDn",
                                     "type": "string",
                                     "title": "The opensearch.securityConfig.ldap.managerDn schema",
-                                    "description": "LPAD username"
+                                    "description": "LDAP username"
                                 },
                                 "managerPassword": {
                                     "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/managerPassword",
                                     "type": "string",
                                     "title": "The opensearch.securityConfig.ldap.managerPassword schema",
-                                    "description": "LPAD password"
+                                    "description": "LDAP password"
                                 },
                                 "rolemappings": {
                                     "$id": "#/properties/opensearch/properties/securityConfig/properties/ldap/properties/rolemappings",
