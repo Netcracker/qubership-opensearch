@@ -125,17 +125,17 @@ cloud:
 integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: fix/CPDEV-104173
     docker-image-id: timestamp
     deploy-param: opensearchOperator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/disaster-recovery-daemon
-    location: master
+    location: fix/CPDEV-104173
     docker-image-id: timestamp
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: fix/CPDEV-104173
     prefix: integration-tests
     docker-image-id: timestamp
     deploy-param: opensearchIntegrationTests
@@ -146,28 +146,28 @@ integration:
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
+    location: fix/CPDEV-104173
     prefix: tls-init
     docker-image-id: timestamp
     deploy-param: opensearchTlsInit
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/elasticsearch-telegraf
-    location: master
+    location: fix/CPDEV-104173
     docker-image-id: timestamp
     deploy-param: opensearchMonitoring
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/dbaas-opensearch-adapter
-    location: master
+    location: fix/CPDEV-104173
     docker-image-id: timestamp
     deploy-param: opensearchDbaasAdapter
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: master
+    location: fix/CPDEV-104173
     docker-image-id: timestamp
     deploy-param: opensearchCurator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: master
+    location: fix/CPDEV-104173
     prefix: elasticsearch_indices_cleaner
     docker-image-id: timestamp
     deploy-param: opensearchIndicesCleaner
