@@ -125,17 +125,17 @@ cloud:
 integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: fix01/CPDEV-104173
+    location: master
     docker-image-id: timestamp
     deploy-param: opensearchOperator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/disaster-recovery-daemon
-    location: fix/CPDEV-104173
+    location: master
     docker-image-id: timestamp
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: fix01/CPDEV-104173
+    location: master
     prefix: integration-tests
     docker-image-id: timestamp
     deploy-param: opensearchIntegrationTests
@@ -146,28 +146,28 @@ integration:
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: fix01/CPDEV-104173
+    location: master
     prefix: tls-init
     docker-image-id: timestamp
     deploy-param: opensearchTlsInit
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/elasticsearch-telegraf
-    location: fix/CPDEV-104173
+    location: master
     docker-image-id: timestamp
     deploy-param: opensearchMonitoring
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/dbaas-opensearch-adapter
-    location: fix/CPDEV-104173
+    location: master
     docker-image-id: timestamp
     deploy-param: opensearchDbaasAdapter
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: fix/CPDEV-104173
+    location: master
     docker-image-id: timestamp
     deploy-param: opensearchCurator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: fix/CPDEV-104173
+    location: master
     prefix: elasticsearch_indices_cleaner
     docker-image-id: timestamp
     deploy-param: opensearchIndicesCleaner
