@@ -42,7 +42,7 @@ MR Labels:
   stage: linter
   tags:
     - NETCRACKER
-  image: ${DATABASE_CI_TOOLS_IMAGE}
+  image: "artifactorycn.netcracker.com:17008/product/prod.platform.databases_ci-tools:improvement_mr-linter-check-commits_latest"
   script:
     - python -u /scripts/mr_linter.py
   only:
