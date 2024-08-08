@@ -239,6 +239,11 @@ Get OpenSearch Task By ID
     ${response}=  Get Request  opensearch  /_tasks/${task_id}
     [Return]  ${response}
 
+Get OpenSearch Index Exists
+    [Arguments]  ${index_name}
+    ${response}=  Head Request  opensearch  /${index_name}
+    [Return]  ${response}
+
 Get OpenSearch User
     [Arguments]  ${username}
     ${response}=  Get Request  opensearch  /_plugins/_security/api/internalusers/${username}
