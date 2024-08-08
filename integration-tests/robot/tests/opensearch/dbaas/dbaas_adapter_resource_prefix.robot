@@ -235,6 +235,10 @@ Create Database Resource Prefix for Multiple Users
     Should Be Equal As Strings  ${document['age']}  26
     ${response}=  Get OpenSearch Task By ID  SZcaJdObTeu2srh12Uwv0Q:1
     Should Be Equal As Strings  ${response.status_code}  403
+    ${response}=  Get OpenSearch Index Exists  ${resourcePrefix}-test
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Get OpenSearch Index Exists  test
+    Should Be Equal As Strings  ${response.status_code}  403
 
     Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
     Sleep  ${SLEEP_TIME}
