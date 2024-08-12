@@ -809,10 +809,12 @@ DBaaS created users cannot login to OpenSearch and fails with authentication err
 ```text
 Request action failed: Unexpected response status for RequestActionHandler.RequestDescription(method=POST, protocol=null, targetService=lead-management-core-service-v1, url=/salesManagement/v1/salesLead/start-reindex, headers=null, expectedResponseStatuses=[200], useUserToken=false, doNotAddCloudCoreTenantHeader=false, traceLogEnabled=false) request. Status:'500', but expected:'[200]'. Response = RestClientResponseEntity(responseBody={errors=[\{status=500, code=LMS-0001, reason=Authorization to Opensearch has been failed. Check credentials, message=Unexpected business error, extra={requestId=1721036300000.0.3662180000000}}]}, httpStatus=500, headers={})
 ```
+
 **Problem**:
 
 DBaaS user was not correctly created on the OpenSearch side while DBaaS thought it was. 
-To check the real state of OpenSearch users you can reach the endpoint `{opensearch_host}/_plugins/_security/api/internalusers/` with OpenSearch admin credentials and check the necessary DBaaS service user there.
+To check the real state of OpenSearch users you can reach the endpoint `{opensearch_host}/_plugins/_security/api/internalusers/` 
+with OpenSearch admin credentials and check the necessary DBaaS service user there.
 
 There can be a lot of causes of that desynchronization and you need to contact support with your case and provide logs from DBaaS Adapter.
 
