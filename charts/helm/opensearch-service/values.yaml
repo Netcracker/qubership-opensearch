@@ -121,12 +121,7 @@ dashboards:
 
   podSecurityContext: {}
 
-  securityContext:
-    capabilities:
-      drop:
-        - ALL
-#    readOnlyRootFilesystem: true
-    runAsNonRoot: true
+  securityContext: {}
 
 global:
   clusterName: opensearch

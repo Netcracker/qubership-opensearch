@@ -95,6 +95,9 @@ spec:
         - name: {{ template "opensearch.fullname" . }}-dashboards
           securityContext:
             {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
+          {{- with .Values.dashboards.securityContext }}
+{{ toYaml . | indent 12 }}
+          {{- end }}
           image: "{{ template "dashboards.image" . }}"
           imagePullPolicy: "{{ .Values.dashboards.imagePullPolicy | default "Always" }}"
           env:
