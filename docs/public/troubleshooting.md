@@ -802,6 +802,35 @@ namespace and OpenSearch docker image (you can take it from working pods) if req
 5. Restart OpenSearch pods.
 6. Remove created Job with the command `kubectl delete -f opensearch-tls-reinit.yaml` from the namespace with OpenSearch.
 
+### OpenSearch Clients Fail with Authentication Error
+
+DBaaS created users cannot login to OpenSearch and fails with authentication error. For example:
+
+```text
+Request action failed: Unexpected response status for RequestActionHandler.RequestDescription(method=POST, protocol=null, targetService=lead-management-core-service-v1, url=/salesManagement/v1/salesLead/start-reindex, headers=null, expectedResponseStatuses=[200], useUserToken=false, doNotAddCloudCoreTenantHeader=false, traceLogEnabled=false) request. Status:'500', but expected:'[200]'. Response = RestClientResponseEntity(responseBody={errors=[\{status=500, code=LMS-0001, reason=Authorization to Opensearch has been failed. Check credentials, message=Unexpected business error, extra={requestId=1721036300000.0.3662180000000}}]}, httpStatus=500, headers={})
+```
+**Problem**:
+
+DBaaS user was not correctly created on the OpenSearch side while DBaaS thought it was. 
+To check the real state of OpenSearch users you can reach the endpoint `{opensearch_host}/_plugins/_security/api/internalusers/` with OpenSearch admin credentials and check the necessary DBaaS service user there.
+
+There can be a lot of causes of that desynchronization and you need to contact support with your case and provide logs from DBaaS Adapter.
+
+**Solution**:
+
+To resolve desynchronization of DBaaS database and OpenSearch users storage you can use the rollowing DBaaS restore api:
+
+```bash
+curl -u cluster-dba:{dbaas_password} -XPOST -H "Accept:application/json" -H  "Content-Type:application/json" http://dbaas-aggregator.dbaas:8080/api/v3/dbaas/internal/physical_databases/users/restore-password -d '
+{
+    "physicalDbId": "{OPENSEARCH-NAMESPACE}",
+    "type": "opensearch",
+    "settings": {}
+}'
+```
+
+Then wait some time until users being synchronized.
+
 ## DBaaS Adapter Health
 
 OpenSearch monitoring has `DBaaS Adapter Status` indicator of DBaaS Adapter health.
