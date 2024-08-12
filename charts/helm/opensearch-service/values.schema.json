@@ -423,15 +423,7 @@
                 },
                 "securityContext": {
                     "type": "object",
-                    "properties": {},
-                    "default": {
-                        "capabilities": {
-                            "drop": [
-                                "ALL"
-                            ]
-                        },
-                        "runAsNonRoot": true
-                    },
+                    "default": {},
                     "$id": "#/properties/dashboards/properties/securityContext",
                     "title": "The dashboards.securityContext schema",
                     "description": "The container-level security attributes and common container settings for the dashboards' container"
