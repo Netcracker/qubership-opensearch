@@ -25,7 +25,6 @@ spec:
       - Opensearch
     localities:
       - Opensearch
-  isCA: false
   issuerRef:
   {{- if .Values.global.tls.generateCerts.clusterIssuerName }}
     name: {{ .Values.global.tls.generateCerts.clusterIssuerName }}
