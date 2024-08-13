@@ -27,7 +27,6 @@ spec:
       - Opensearch
   dnsNames: {{ include "opensearch.certDnsNames" . | nindent 4 }}
   ipAddresses: {{ include "opensearch.certIpAddresses" . | nindent 4 }}
-  isCA: false
   usages:
     - digital signature
     - key encipherment
