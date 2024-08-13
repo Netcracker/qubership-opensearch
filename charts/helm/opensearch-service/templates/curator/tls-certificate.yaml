@@ -18,7 +18,6 @@ spec:
     size: 2048
   dnsNames: {{ include "curator.certDnsNames" . | nindent 4 }}
   ipAddresses: {{ include "curator.certIpAddresses" . | nindent 4 }}
-  isCA: false
   issuerRef:
   {{- if .Values.global.tls.generateCerts.clusterIssuerName }}
     name: {{ .Values.global.tls.generateCerts.clusterIssuerName }}
