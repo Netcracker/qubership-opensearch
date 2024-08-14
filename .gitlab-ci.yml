@@ -166,12 +166,12 @@ build opensearch manifest:
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
     PARAMETERS: "{integration: [{type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, docker-image-id: timestamp, deploy-param: opensearchOperator}, {type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, prefix: integration-tests, docker-image-id: timestamp, deploy-param: opensearchIntegrationTests}, {type: scripts, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, alias: timestamp, zip-name: migration-artifacts.zip, name: migration-artifacts, pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh}]}"
 
-build opensearch manifest 1.3.10:
+build opensearch manifest 1.3.17:
   stage: manifest
   extends: .manifest
   allow_failure: false
   variables:
-    PREFIX: "delivery/1.3.10"
+    PREFIX: "delivery/1.3.17"
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
     PARAMETERS: "{integration: [{type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, docker-image-id: timestamp, deploy-param: opensearchOperator}, {type: find-latest-deployment-descriptor, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, prefix: integration-tests, docker-image-id: timestamp, deploy-param: opensearchIntegrationTests}, {type: scripts, repo: PROD.Platform.ElasticStack/opensearch-service, location: location_to_replace, alias: timestamp, zip-name: migration-artifacts.zip, name: migration-artifacts, pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh}]}"
   rules:
@@ -365,18 +365,18 @@ manifest opensearch validation:
   variables:
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
 
-vulnerability report 1.3.10:
+vulnerability report 1.3.17:
   needs:
-    - job: build opensearch manifest 1.3.10
+    - job: build opensearch manifest 1.3.17
   extends: .vulnerability_report
   variables:
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
   rules:
     - if: '$CI_COMMIT_REF_NAME =~ /^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$/'
 
-manifest validation 1.3.10:
+manifest validation 1.3.17:
   needs:
-    - job: build opensearch manifest 1.3.10
+    - job: build opensearch manifest 1.3.17
   extends: .manifestValidation
   variables:
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
@@ -394,7 +394,7 @@ manifest validation 1.3.10:
     - export UUID=$(cat ./"$PROPERTIES_FILENAME" | grep "UUID=" | awk -F = '{print $2}')
     - python -u /scripts/promote_all.py
 
-opensearch 1.3.10 promoteManifest:
+opensearch 1.3.17 promoteManifest:
   extends: .promoteManifest
   variables:
     PROPERTIES_FILENAME: "${OPENSEARCH_PROPERTIES_FILE}"
@@ -407,12 +407,12 @@ ReleaseNotes:
     - /^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$/
   variables:
     CI_PROJECT_NAMESPACE: PROD.Platform.ElasticStack
-    PREFIXES: "delivery/1.3.10"
+    PREFIXES: "delivery/1.3.17"
     TEMPLATE_SNIPPET_ID: 3277
   image: ${DATABASE_CI_TOOLS_IMAGE}
   needs:
-    - job: vulnerability report 1.3.10
+    - job: vulnerability report 1.3.17
       artifacts: true
-    - job: opensearch 1.3.10 promoteManifest
+    - job: opensearch 1.3.17 promoteManifest
   script:
     - python -u /scripts/release_notes.py
