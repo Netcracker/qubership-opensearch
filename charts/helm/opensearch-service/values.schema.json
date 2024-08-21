@@ -3646,7 +3646,7 @@
                         },
                         "clusterStateScrapeTimeout": {
                             "type": "string",
-                            "default": "10s",
+                            "default": "30s",
                             "$id": "#/properties/monitoring/properties/serviceMonitor/properties/clusterStateScrapeTimeout",
                             "title": "The monitoring.serviceMonitor.clusterStateScrapeTimeout schema",
                             "description": "The timeout of scrape metrics from the state metrics of the OpenSearch cluster endpoint"

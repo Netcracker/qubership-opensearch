@@ -899,7 +899,7 @@ monitoring:
 
   serviceMonitor:
     clusterStateScrapeInterval: 60s
-    clusterStateScrapeTimeout: 10s
+    clusterStateScrapeTimeout: 30s
 
 # DBaaS adapter based on OpenSearch client
 dbaasAdapter:
