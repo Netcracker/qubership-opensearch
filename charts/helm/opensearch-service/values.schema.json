@@ -3633,6 +3633,28 @@
                     "$id": "#/properties/monitoring/properties/customLabels",
                     "title": "The monitoring.customLabels schema",
                     "description": "The custom labels for the OpenSearch monitoring pod"
+                },
+                "serviceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "clusterStateScrapeInterval": {
+                            "type": "string",
+                            "default": "60s",
+                            "$id": "#/properties/monitoring/properties/serviceMonitor/properties/clusterStateScrapeInterval",
+                            "title": "The monitoring.serviceMonitor.clusterStateScrapeInterval schema",
+                            "description": "The interval between scrape metrics from the state metrics of the OpenSearch cluster endpoint"
+                        },
+                        "clusterStateScrapeTimeout": {
+                            "type": "string",
+                            "default": "10s",
+                            "$id": "#/properties/monitoring/properties/serviceMonitor/properties/clusterStateScrapeTimeout",
+                            "title": "The monitoring.serviceMonitor.clusterStateScrapeTimeout schema",
+                            "description": "The timeout of scrape metrics from the state metrics of the OpenSearch cluster endpoint"
+                        }
+                    },
+                    "$id": "#/properties/monitoring/properties/serviceMonitor",
+                    "title": "The monitoring.serviceMonitor schema",
+                    "description": "monitoring.serviceMonitor parameters"
                 }
             },
             "$id": "#/properties/monitoring",

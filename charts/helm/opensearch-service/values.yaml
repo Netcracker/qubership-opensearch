@@ -897,6 +897,10 @@ monitoring:
   monitoringCoreosGroup: false
   customLabels: {}
 
+  serviceMonitor:
+    clusterStateScrapeInterval: 60s
+    clusterStateScrapeTimeout: 10s
+
 # DBaaS adapter based on OpenSearch client
 dbaasAdapter:
   enabled: false
