@@ -9,7 +9,7 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   secretName: {{ template "dbaas-adapter.tlsSecretName" . }}
-  duration: {{ default 365 .Values.global.tls.generateCerts.durationDays | mul 24 }}h0m0s
+  duration: {{ default 365 .Values.global.tls.generateCerts.durationDays | mul 24 }}h
   commonName: opensearch-dbaas-adapter-ca
   isCA: false
   privateKey:
