@@ -11,6 +11,7 @@ spec:
   secretName: {{ template "dbaas-adapter.tlsSecretName" . }}
   duration: {{ default 365 .Values.global.tls.generateCerts.durationDays | mul 24 }}h0m0s
   commonName: opensearch-dbaas-adapter-ca
+  isCA: false
   privateKey:
     rotationPolicy: Always
     algorithm: RSA
@@ -18,7 +19,6 @@ spec:
     size: 2048
   dnsNames: {{ include "dbaas-adapter.certDnsNames" . | nindent 4 }}
   ipAddresses: {{ include "dbaas-adapter.certIpAddresses" . | nindent 4 }}
-  isCA: false
   issuerRef:
   {{- if .Values.global.tls.generateCerts.clusterIssuerName }}
     name: {{ .Values.global.tls.generateCerts.clusterIssuerName }}
