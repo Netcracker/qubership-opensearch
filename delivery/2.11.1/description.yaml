@@ -166,9 +166,23 @@ integration:
     docker-image: artifactorycn.netcracker.com:17014/product/prod.platform.streaming_docker-kubectl:0.0.2_20230324-083045
     deploy-param: kubectl
   - type: scripts
+    repo: PROD.Platform.ElasticStack/opensearch-service
+    location: master
+    alias: timestamp
+    zip-name: migration-artifacts.zip
+    name: migration-artifacts
+    pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh
+  - type: scripts
     repo: PROD.Platform.ElasticStack/deployment-utils
     location: 0.1.1
     alias: timestamp
     zip-name: devops-scripts.zip
     name: crd-upgrade
     pre-deploy-entry-point: crd-upgrade.sh
+  - type: scripts
+    repo: PROD.Platform.ElasticStack/deployment-utils
+    location: 0.1.1
+    alias: latest
+    zip-name: devops-scripts.zip
+    name: privileged-pss
+    pre-deploy-entry-point: privileged-pss.sh
