@@ -5,7 +5,7 @@ This chapter describes the argoCD configuration procedures of OpenSearch.
 Once you fetch your application in argocd then click on Sync button and then Synchronize, your application sync will start.
 
 * If you face Sync Failed issue like : 
-" one or more objects failed to apply, reason: error when patching "/dev/shm/3125978744": GrafanaDashboard.integreatly.org "opensearch-grafana-dashboard" is invalid: metadata.annotations: Too long: must have at most 262144 bytes "
+" one or more objects failed to apply, GrafanaDashboard.integreatly.org "opensearch-grafana-dashboard" is invalid: metadata.annotations: Too long: must have at most 262144 bytes "
 
     Then you can see 'Server-Side Apply' while click on sync button, check it and sync it again.
 
