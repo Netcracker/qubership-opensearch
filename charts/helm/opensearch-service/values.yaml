@@ -823,6 +823,10 @@ monitoring:
   opensearchDbaasAdapterHost:
   opensearchDbaasAdapterPort: 8080
 
+  serviceMonitor:
+    clusterStateScrapeInterval: 60s
+    clusterStateScrapeTimeout: 30s
+
   resources:
     requests:
       memory: 256Mi
