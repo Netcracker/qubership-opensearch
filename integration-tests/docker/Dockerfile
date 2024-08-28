@@ -1,4 +1,4 @@
-FROM artifactorycn.netcracker.com:17008/product/prod.platform.streaming_docker-integration-tests:bugfix_fix_primary_shard_test_20240827-102452
+FROM artifactorycn.netcracker.com:17014/product/prod.platform.streaming_docker-integration-tests:0.1.14_20240802-014533
 
 ENV ROBOT_OUTPUT=/opt/robot/output \
     SERVICE_CHECKER_SCRIPT=${ROBOT_HOME}/opensearch_pods_checker.py \
@@ -6,7 +6,8 @@ ENV ROBOT_OUTPUT=/opt/robot/output \
     STATUS_CUSTOM_RESOURCE_VERSION=v1 \
     STATUS_CUSTOM_RESOURCE_PLURAL=deployments
 
-RUN mkdir -p ${ROBOT_OUTPUT}
+RUN mkdir -p ${ROBOT_HOME} \
+    && mkdir -p ${ROBOT_OUTPUT}
 
 COPY docker/pip.conf /etc/pip.conf
 COPY docker/requirements.txt ${ROBOT_HOME}/requirements.txt
@@ -16,9 +17,6 @@ COPY robot ${ROBOT_HOME}
 RUN set -x \
     && pip3 install -r ${ROBOT_HOME}/requirements.txt \
     && rm -rf /var/cache/apk/*
-
-RUN set -x \
-    && chmod -R 777 ${ROBOT_HOME}
 
 USER 1000:0
 
