@@ -17,6 +17,9 @@ RUN set -x \
     && pip3 install -r ${ROBOT_HOME}/requirements.txt \
     && rm -rf /var/cache/apk/*
 
+RUN set -x \
+    && chmod -R 777 ${ROBOT_HOME}
+
 USER 1000:0
 
 EXPOSE 8080
