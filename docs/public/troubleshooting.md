@@ -1,456 +1,26 @@
-The following topics are covered in this chapter:
-
 [[_TOC_]]
 
-This section provides detailed troubleshooting procedures for the OpenSearch cluster.
-
-# Prometheus Alerts
-
-## OpenSearchCPULoadAlert
+## Cluster Health
 
 ### Description
-
-One of OpenSearch pods uses 95% of the CPU limit.
-
-For more information, refer to [CPU Overload](troubleshooting-scenarios/cpu_overload.md).
-
-### Possible Causes
-
-- Insufficient CPU resources allocated to OpenSearch pods.
-- Heavy search request.
-- Indexing workload.
-
-### Impact
-
-- Increased response time and potential slowdown of OpenSearch requests.
-- Degraded performance of services used the OpenSearch.
-
-### Actions for Investigation
-
-1. Get the statistics of cluster nodes using the following command:
-
-   ```sh
-   curl -X GET 'http://localhost:9200/_nodes/stats/'
-   ```
-
-2. Monitor the CPU usage trends in OpenSearch monitoring dashboard.
-3. Review OpenSearch logs for any performance related issues.
-
-### Recommended Actions to Resolve Issue
-
-1. Check the required resources and increase the CPU limit if it is still within recommended limits.
-2. Add additional data nodes to redistribute the load.
-
-## OpenSearchDiskUsageAbove75%Alert
-
-### Description
-
-One of OpenSearch pods uses 75% of the disk.
-
-For more information, refer to [Data Nodes are Out of Space](#data-nodes-are-out-of-space).
-
-### Possible Causes
-
-- Low space on the disk.
-- Failed disks.
-- Insufficient disk resources allocated to OpenSearch pods.
-
-### Impact
-
-- Prospective problems with shards allocation and the impossibility to write to the OpenSearch.
-
-### Actions for Investigation
-
-1. Retrieve the statistics of all the nodes in the cluster, using the following command:
-
-   ```sh
-   curl -X GET 'http://localhost:9200/_nodes/stats/'
-   ```
-
-2. Monitor the disk usage trends in OpenSearch monitoring dashboard.
-
-### Recommended Actions to Resolve Issue
-
-1. Increase disk space for OpenSearch if it's possible.
-2. If all the data nodes are running low on disk space or some disks are failed, you need to add more data nodes to the cluster.
-
-## OpenSearchDiskUsageAbove85%Alert
-
-### Description
-
-One of OpenSearch pods uses 85% of the disk.
-
-For more information, refer to [Data Nodes are Out of Space](#data-nodes-are-out-of-space).
-
-### Possible Causes
-
-- Low space on the disk.
-- Failed disks.
-- Insufficient disk resources allocated to OpenSearch pods.
-
-### Impact
-
-- Increased response time and potential slowdown of OpenSearch requests.
-- Inability to allocate shards to nodes with exceeded 85% disk limit.
-
-### Actions for Investigation
-
-1. Retrieve the statistics of all the nodes in the cluster, using the following command:
-
-   ```sh
-   curl -X GET 'http://localhost:9200/_nodes/stats/'
-   ```
-
-2. Monitor the disk usage trends in OpenSearch monitoring dashboard.
-
-### Recommended Actions to Resolve Issue
-
-1. Increase disk space for OpenSearch if it's possible.
-2. If all the data nodes are running low on disk space or some disks are failed, you need to add more data nodes to the cluster.
-
-## OpenSearchDiskUsageAbove95%Alert
-
-### Description
-
-One of OpenSearch pods uses 95% of the disk.
-
-For more information, refer to [Data Nodes are Out of Space](#data-nodes-are-out-of-space).
-
-### Possible Causes
-
-- Low space on the disk.
-- Failed disks.
-- Insufficient disk resources allocated to OpenSearch pods.
-
-### Impact
-
-- Inability to write to OpenSearch indices that has one or more shards allocated on the problem node, and that has at least one disk exceeding the flood stage.
-
-### Actions for Investigation
-
-1. Retrieve the statistics of all the nodes in the cluster, using the following command:
-
-   ```sh
-   curl -X GET 'http://localhost:9200/_nodes/stats/'
-   ```
-
-2. Monitor the disk usage trends in OpenSearch monitoring dashboard.
-
-### Recommended Actions to Resolve Issue
-
-1. Increase disk space for OpenSearch if it's possible.
-2. If all the data nodes are running low on disk space or some disks are failed, add more data nodes to the cluster.
-
-## OpenSearchHeapMemoryUsageAlert
-
-### Description
-
-Heap memory usage by one of the pods in the OpenSearch cluster came close to the specified limit.
-
-For more information, refer to [Memory Limit](troubleshooting-scenarios/memory_limit.md).
-
-### Possible Causes
-
-- Insufficient memory resources allocated to OpenSearch pods.
-- Heavy workload during execution.
-
-### Impact
-
-- Potentially lead to the increase of response times or crashes.
-- Degraded performance of services used the OpenSearch.
-
-### Actions for Investigation
-
-1. Get the statistics of the cluster nodes using the following command:
-
-   ```sh
-   curl -X GET 'http://localhost:9200/_nodes/stats/'
-   ```
-
-2. Monitor the heap memory usage trends in OpenSearch monitoring dashboard.
-3. Review OpenSearch logs for memory related errors.
-
-### Recommended Actions to Resolve Issue
-
-1. Try to increase heap size for OpenSearch.
-2. Add data nodes to redistribute the load.
-
-## OpenSearchIsDegradedAlert
-
-### Description
-
-OpenSearch cluster is degraded, that is, at least one of the nodes have failed, but cluster is able to work.
-
-For more information, refer to [Cluster Status is Failed or Degraded](#cluster-status-is-failed-or-degraded).
-
-### Possible Causes
-
-- One or more replica shards unassigned.
-- OpenSearch pod failures or unavailability.
-- Resource constraints impacting OpenSearch pod performance.
-
-### Impact
-
-- Reduced or disrupted functionality of the OpenSearch cluster.
-- Potential impact on services and processes relying on the OpenSearch.
-
-### Actions for Investigation
-
-1. Check the status of OpenSearch pods.
-2. Check the health of the cluster, using the following API:
-
-   ```sh
-   curl -X GET 'http://localhost:9200/_cluster/health?pretty'
-   ```
-
-3. Review logs of OpenSearch pods for any errors or issues.
-4. Verify resource utilization of OpenSearch pods (CPU, memory).
-
-### Recommended Actions to Resolve Issue
-
-1. Investigate issues with unassigned shards.
-2. Restart or redeploy OpenSearch pods if they are in a failed state.
-3. Investigate and address any resource constraints affecting the OpenSearch pod performance.
-
-## OpenSearchIsDownAlert
-
-### Description
-
-OpenSearch cluster is down, and there are no available pods.
-
-For more information, refer to [Cluster Status is N/A](#cluster-status-is-na) and [Cluster Status is Failed or Degraded](#cluster-status-is-failed-or-degraded).
-
-### Possible Causes
-
-- Network issues affecting the OpenSearch pod communication.
-- OpenSearch's storage is corrupted.
-- Lack of memory or CPU.
-- Long garbage collection time.
-- One or more primary shards are not allocated in the cluster.
-
-### Impact
-
-- Complete unavailability of the OpenSearch cluster.
-- Services and processes relying on the OpenSearch will fail.
-
-### Actions for Investigation
-
-1. Check the status of OpenSearch pods.
-2. Check the health of the cluster, using the following API:
-
-   ```sh
-   curl -X GET 'http://localhost:9200/_cluster/health?pretty'
-   ```
-
-3. Review logs of OpenSearch pods for any errors or issues.
-4. Verify resource utilization of OpenSearch pods (CPU, memory).
-
-### Recommended Actions to Resolve Issue
-
-1. Check the network connectivity to the OpenSearch pods.
-2. Check the OpenSearch storage for free space or data corruption.
-3. Restart or redeploy all OpenSearch pods at once.
-
-## OpenSearchDBaaSIsDownAlert
-
-### Description
-
-OpenSearch DBaaS adapter is not working.
-
-### Possible Causes
-
-- Incorrect configuration parameters, i.e. credentials.
-- OpenSearch is down.
-
-### Impact
-
-- Complete unavailability of the OpenSearch DBaaS adapter.
-- Services and processes relying on the OpenSearch DBaaS adapter will fail.
-
-### Actions for Investigation
-
-1. Monitor the DBaaS adapter status in OpenSearch monitoring dashboard.
-2. Review logs of DBaaS adapter pod for any errors or issues.
-
-### Recommended Actions to Resolve Issue
-
-1. Correct the OpenSearch DBaaS adapter configuration parameters.
-2. Investigate problems with the OpenSearch.
-
-## OpenSearchLastBackupHasFailedAlert
-
-### Description
-
-The last OpenSearch backup has finished with `Failed` status.
-
-For more information, refer to [Last Backup Has Failed](#last-backup-has-failed).
-
-### Possible Causes
-
-- Unavailable or broken backup storage (`Persistent Volume` or `S3`).
-- Network issues affecting the OpenSearch and curator pod communication.
-
-### Impact
-
-- Unavailable backup for OpenSearch and inability to restore it in case of disaster.
-
-### Actions for Investigation
-
-1. Monitor the curator state on Backup Daemon Monitoring dashboard.
-2. Review OpenSearch curator logs for investigation of cases the issue.
-3. Check backup storage.
-
-### Recommended Actions to Resolve Issue
-
-1. Fix issues with backup storage if necessary.
-2. Follow [Last Backup Has Failed](#last-backup-has-failed) for additional steps.
-
-## OpenSearchQueryIsTooSlowAlert
-
-### Description
-
-Execution time of one of index queries in the OpenSearch exceeds the specified threshold.
-
-This threshold can be overridden with parameter `monitoring.thresholds.slowQuerySecondsAlert` described in [OpenSearch monitoring](/docs/public/installation.md#monitoring) parameters.
-
-### Possible Causes
-
-- Insufficient resources allocated to OpenSearch pods.
-
-### Impact
-
-- The query takes too long.
-
-### Actions for Investigation
-
-1. Monitor queries in `OpenSearch Slow Queries` monitoring dashboard.
-2. Review OpenSearch logs for investigation of cases the issue.
-
-### Recommended Actions to Resolve Issue
-
-1. Try to increase resources requests and limits and heap size for OpenSearch.
-
-## OpenSearchReplicationDegradedAlert
-
-### Description
-
-Replication between two OpenSearch clusters in Disaster Recovery mode has `degraded` status.
-
-For more information, refer to [OpenSearch Disaster Recovery Health](#opensearch-disaster-recovery-health).
-
-### Possible Causes
-
-- Replication for some indices does not work correctly.
-- Replication status for some indices is `failed`.
-- Some indices in OpenSearch have `red` status.
-
-### Impact
-
-- Some required indices are not replicated from `active` to `standby` side.
-
-### Actions for Investigation
-
-1. Monitor replication in `OpenSearch Replication` monitoring dashboard.
-2. Review operator and OpenSearch logs for investigation of cases the issue.
-
-### Recommended Actions to Resolve Issue
-
-1. Check solutions described in [OpenSearch Disaster Recovery Health](#opensearch-disaster-recovery-health) section.
-
-## OpenSearchReplicationFailedAlert
-
-### Description
-
-Replication between two OpenSearch clusters in Disaster Recovery mode has `failed` status.
-
-For more information, refer to [OpenSearch Disaster Recovery Health](#opensearch-disaster-recovery-health).
-
-### Possible Causes
-
-- Replication for all indices does not work correctly.
-- Replication rule does not exist.
-- Some error during replication check occurs.
-
-### Impact
-
-- All required indices are not replicated from `active` to `standby` side.
-
-### Actions for Investigation
-
-1. Monitor replication in `OpenSearch Replication` monitoring dashboard.
-2. Review operator and OpenSearch logs for investigation of cases the issue.
-
-### Recommended Actions to Resolve Issue
-
-1. Check solutions described in [OpenSearch Disaster Recovery Health](#opensearch-disaster-recovery-health) section.
-
-## OpenSearchReplicationLeaderConnectionLostAlert
-
-### Description
-
-`follower` OpenSearch cluster has lost connection with `leader` OpenSearch cluster in Disaster Recovery mode.
-
-### Possible Causes
-
-- Network issues affecting the OpenSearch clusters communication.
-- Dead `leader` OpenSearch cluster.
-
-### Impact
-
-- Replication from `active` to `standby` side doesn't work.
-
-### Actions for Investigation
-
-1. Monitor replication in `OpenSearch Replication` monitoring dashboard.
-2. Check connectivity between Kubernetes clusters.
-3. Review operator and OpenSearch logs in both OpenSearch clusters.
-
-### Recommended Actions to Resolve Issue
-
-1. Fix network issues between Kubernetes.
-2. Restart or redeploy `leader` OpenSearch cluster.
-
-## OpenSearchReplicationTooHighLagAlert
-
-### Description
-
-The documents lag of replication between two OpenSearch clusters comes close to the specified limit.
-
-This limit can be overridden with parameter `monitoring.thresholds.lagAlert` described in [OpenSearch monitoring](/docs/public/installation.md#monitoring) parameters.
-
-### Possible Causes
-
-- Insufficient resources allocated to OpenSearch pods.
-- Network issues affecting the OpenSearch clusters communication.
-
-### Impact
-
-- Some data may be lost if the `active` Kubernetes cluster fails.
-
-### Actions for Investigation
-
-1. Monitor resources usage trends in OpenSearch monitoring dashboard.
-2. Monitor replication in `OpenSearch Replication` monitoring dashboard.
-3. Review operator and OpenSearch logs in both OpenSearch clusters.
-
-### Recommended Actions to Resolve Issue
-
-1. Try to increase resources requests and limits and heap size for OpenSearch.
-
-# Troubleshooting Scenarios
-
-## Cluster State
-
-OpenSearch monitoring has the following two types of cluster states:
-
-* Cluster Health
-* Cluster Status
-
-### Cluster Health
 
 OpenSearch provides a default metric that indicates cluster state. It is called **cluster health**. To check the health of the cluster, the cluster health API can be used.
 
 For more information on the cluster health API, refer to the official OpenSearch documentation, _Cluster Health_ [https://opensearch.org/docs/latest/opensearch/rest-api/cluster-health](https://opensearch.org/docs/latest/opensearch/rest-api/cluster-health).
+
+### Alerts
+
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+
+### Stack trace
+
+Not applicable
+
+### How to solve
+
+Not applicable
+
+### Recommendations
 
 To check the health of the cluster, the following API can be used:
 
@@ -458,7 +28,9 @@ To check the health of the cluster, the following API can be used:
 curl -XGET http://localhost:9200/_cluster/health
 ```
 
-### Cluster Status
+## Cluster Status
+
+### Description
 
 Cluster status is a custom metric that can be found on the **Cluster status** panel in Grafana. Possible values for cluster status are:
 
@@ -466,11 +38,26 @@ Cluster status is a custom metric that can be found on the **Cluster status** pa
 * `DEGRADED` - Cluster has YELLOW health status or one node is failed.
 * `FAILED` - Cluster has RED health status.
 
-## Common Problems
+### Alerts
 
-The following information describes the common problems you may encounter.
+* [OpenSearchIsDegradedAlert](./alerts.md#opensearchisdegradedalert)
 
-### Cluster Status is N/A
+### Stack trace
+
+Not applicable
+
+### How to solve
+
+Not applicable
+
+### Recommendations
+
+Not applicable
+
+
+## Common Problems.Cluster Status is N/A
+
+### Description
 
 **N/A** status while monitoring indicates that the OpenSearch cluster is unreachable.
 
@@ -480,10 +67,25 @@ The main cause is any of the following:
 * The monitoring agent is not deployed.
 * The monitoring agent is down.
 
+### Alerts
+
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+
+### Stack trace
+
+Not applicable
+
+### How to solve
+
 To resolve the issue, navigate to the OpenShift console and check the service state.
+
+### Recommendations
+
 In the simplest scenario, starting the service solves the issue. In the event of a permanent failure, try to redeploy the cluster or recover it from the backup.
 
-### Cluster Status is Failed or Degraded
+### Common Problems.Cluster Status is Failed or Degraded
+
+### Description
 
 `Failed` status indicates that one or more primary shards is not allocated in the cluster. `Degraded` status means that one or more replica shards is missing.
 
@@ -495,7 +97,16 @@ To check the health of the cluster, use the following API:
 curl -XGET http://localhost:9200/_cluster/health
 ```
 
-For more information on OpenSearch clusters, refer to the official OpenSearch documentation [https://opensearch.org/docs/latest/opensearch/rest-api/cluster-health].
+### Alerts
+
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchIsDegradedAlert](./alerts.md#opensearchisdegradedalert)
+
+### Stack trace
+
+Not applicable
+
+### How to solve
 
 To identify the reason for the node failure, check the monitoring dashboard for any unusual changes that may have occurred around the same time the node failed.
 When the problem is localized, go to the appropriate problem description and follow the relevant troubleshooting procedure to fix it.
@@ -507,18 +118,34 @@ In many cases, a brief status change to `degraded` or `failed` may not require a
 If it is a permanent failure, and the node cannot be recovered, new nodes can be added, after which OpenSearch recovers data from any available replica shards.
 Replica shards can be promoted to primary shards and redistributed on the new nodes.
 
+### Recommendations
+
+For more information on OpenSearch clusters, refer to the official OpenSearch documentation [https://opensearch.org/docs/latest/opensearch/rest-api/cluster-health].
+
 The following scenarios are examples of permanent failures:
 
-* [Disk failure on one node](troubleshooting-scenarios/disk_failure_on_one_node.md)
-* [Disk failure on all nodes](troubleshooting-scenarios/disk_failure_on_all_nodes.md)
+* [Disk failure on one node](scenarios/disk_failure_on_one_node.md)
+* [Disk failure on all nodes](scenarios/disk_failure_on_all_nodes.md)
 
 If both the primary and replica copy of a shard are lost, data can be recovered from backup.
 
-### Last Backup Has Failed
+## Common Problems.Last Backup Has Failed
+
+### Description
 
 The last OpenSearch backup has finished with `Failed` status.
 
-**Solution**
+### Alerts
+
+* [OpenSearchLastBackupHasFailedAlert](./alerts.md#opensearchlastbackuphasfailedalert)
+
+### Stack trace
+
+```text
+2024-05-09T08:47:56+0000 ERROR [Backup] [140038667422520] - Execution of '['python3', '/opt/elasticsearch-curator/restore.py', '/backup-storage/granular/20240509T084319', '-d', '["backup-test-opmabwrtuddiscy"]', '-clean', 'false']' was finished with non zero exit code: 1
+```
+
+### How to solve
 
 Check that OpenSearch curator pod exists and is up. If OpenSearch curator is down, restart appropriate deployment. If curator pod is up, check its state by the following command from pod's terminal:
 
@@ -526,36 +153,75 @@ Check that OpenSearch curator pod exists and is up. If OpenSearch curator is dow
 curl -XGET http://localhost:8080/health
 ```
 
-### Data Nodes are Out of Space
+### Recommendations
+
+Not applicable
+
+### Common Problems.Data Nodes are Out of Space
+
+### Description
+
+The disk being filled on all nodes
+
+### Alerts
+
+* [OpenSearchDiskUsageAbove75%Alert](./alerts.md#opensearchdiskusageabove75alert)
+* [OpenSearchDiskUsageAbove85%Alert](./alerts.md#opensearchdiskusageabove85alert)
+* [OpenSearchDiskUsageAbove95%Alert](./alerts.md#opensearchdiskusageabove95alert)
+
+### Stack trace
+
+```text
+org.opensearch.OpenSearchStatusException: OpenSearch exception [type=cluster_block_exception, reason=index [bss-mig1-install-base-service-index-v6] blocked by: [TOO_MANY_REQUESTS/12/disk usage exceeded flood-stage watermark, index has read-only-allow-delete block];]
+```
+
+### How to solve
 
 If all data nodes are running low on disk space, more data nodes should be added to the cluster.
+
+### Recommendations
+
 Be sure that all indices have enough primary shards to be able to balance their data across all those nodes.
 However, if only some nodes are running out of disk space, this is usually a sign that an index was initialized with too few shards.
 If an index is composed of a few very large shards, it is hard for OpenSearch to distribute these shards across nodes in a balanced manner.
 
-For more information, refer to [Disk Filled on All Nodes](troubleshooting-scenarios/disk_filled_on_all_nodes.md).
+For more information, refer to [Disk Filled on All Nodes](scenarios/disk_filled_on_all_nodes.md).
 
-### Lack of Resources
+### Common Problems.Lack of Resources
+
+### Description
 
 Some problems with the OpenSearch cluster can occur due to a lack of CPU, memory, and disk resources.
-For more information, refer to [Memory Limit](/docs/public/troubleshooting-scenarios/memory_limit.md), [CPU Overload](/docs/public/troubleshooting-scenarios/cpu_overload.md)
-and [I/O Limit](/docs/public/troubleshooting-scenarios/io_limit.md).
 
-### OpenSearch Fails Down with CircuitBreakingException
+### Alerts
 
-OpenSearch produces the following exception:
+* [OpenSearchDiskUsageAbove75%Alert](./alerts.md#opensearchdiskusageabove75alert)
+* [OpenSearchDiskUsageAbove85%Alert](./alerts.md#opensearchdiskusageabove85alert)
+* [OpenSearchDiskUsageAbove95%Alert](./alerts.md#opensearchdiskusageabove95alert)
 
-```text
-org.elasticsearch.common.breaker.CircuitBreakingException: [parent] Data too large, data for [<http_request>] would be larger than limit of [1453142835/1.3gb]
-```
+### Stack trace
 
-Both `GET` and `PUT` requests are failed.
+Not applicable
+
+### How to solve
+
+Increase OpenSearch resources.
+
+### Recommendations
+
+For more information, refer to [Memory Limit](/docs/public/scenarios/memory_limit.md), [CPU Overload](/docs/public/scenarios/cpu_overload.md)
+and [I/O Limit](/docs/public/scenarios/io_limit.md).
+
+### Common Problems.OpenSearch Fails Down with CircuitBreakingException
+
+### Description
 
 OpenSearch includes a special circuit breaker that is intended to prevent `OutOfMemoryException`.
 The circuit breaker estimates the memory requirements of a query by inspecting the fields involved.
 It then checks to see whether loading the field data required would push the total field data size over the configured percentage of the heap.
 If the estimated query size is larger than the limit, then the circuit breaker is tripped, and the query will be aborted and return an exception.
-For more information on OpenSearch, refer to the official OpenSearch documentation: [https://aws.amazon.com/premiumsupport/knowledge-center/opensearch-circuit-breaker-exception].
+
+Both `GET` and `PUT` requests are failed.
 
 The main reasons for this failure are as follows:
 
@@ -563,61 +229,345 @@ The main reasons for this failure are as follows:
 * Index is bigger than available heap.
 * Continuous shard relocation due to the data nodes being out of space.
 
-For more information, refer to [Memory Limit](troubleshooting-scenarios/memory_limit.md) and [Disk Filled on All Nodes](troubleshooting-scenarios/disk_filled_on_all_nodes.md).
+### Alerts
 
-### Data Files are Corrupted
+Not applicable
 
-This section describes the troubleshooting to be done if the data files are corrupted.
+### Stack trace
 
-#### Data Files are Corrupted On Primary Shard
+```text
+org.elasticsearch.common.breaker.CircuitBreakingException: [parent] Data too large, data for [<http_request>] would be larger than limit of [1453142835/1.3gb]
+```
 
+### How to solve
+
+For more information, refer to [Memory Limit](scenarios/memory_limit.md) and [Disk Filled on All Nodes](scenarios/disk_filled_on_all_nodes.md).
+
+### Recommendations
+
+For more information on OpenSearch, refer to the official OpenSearch documentation: [https://aws.amazon.com/premiumsupport/knowledge-center/opensearch-circuit-breaker-exception].
+
+### Common Problems.Data Files are Corrupted On Primary Shard
+
+### Description
+
+The data files are corrupted on primary shard.
 Index has no replica shards, get queries return incomplete data, update queries fail, and some primary shards are in unassigned status with `CorruptIndexException`.
-For more details and troubleshooting procedures, refer to [Data Files Corrupted on Primary Shard](troubleshooting-scenarios/data_files_corrupted_on_primary_shard.md).
 
-#### Data Files are Corrupted On Replica Shard
+### Alerts
 
-OpenSearch withstands all cases with corrupted replica shards and repairs itself without any data loss. For more information, refer to [Data Files Corrupted on Replica Shard](troubleshooting-scenarios/data_files_corrupted_on_replica_shard.md).
+Not applicable
 
-#### Data Files are Corrupted On Entire Index
+### Stack trace
 
-If all data files of the index were corrupted, there is no way to get data from this index.
+```sh
+curl -XGET http://localhost:9200/_cat/shards/cats?v&h=index,shard,state,docs,store,node,unassigned.reason
+```
+
+Possible output:
+
+```text
+    index shard state      node                  unassigned.reason unassigned.details
+    cats  1     STARTED    opensearch-0
+    cats  2     STARTED    opensearch-0
+    cats  0     UNASSIGNED                       ALLOCATION_FAILED shard failure, reason [search execution corruption failure], failure FetchPhaseExecutionException[Fetch Failed [Failed to fetch doc id [7]]]; nested: CorruptIndexException[Corrupted: docID=7, docBase=0, chunkDocs=0, numDocs=8 (resource=MMapIndexInput(path="/usr/share/opensearch/data/nodes/0/indices/KLrt-04kTQWB_ZUUyCK9Hg/0/index/_0.cfs") [slice=_0.fdt])];
+```
+
+### How to solve
+
+Reindexing can help to save remaining data and make index writable.
+For more information, refer to the _Official OpenSearch Documentation_ [https://opensearch.org/docs/latest/opensearch/reindex-data].
+
+### Recommendations
+
+For more details and troubleshooting procedures, refer to [Data Files Corrupted on Primary Shard](scenarios/data_files_corrupted_on_primary_shard.md).
+
+### Common Problems.Data Files are Corrupted On Replica Shard
+
+### Description
+
+The data files are corrupted on one or more replica shards corrupted, data files aren’t lost
+
+### Alerts
+
+Not applicable
+
+### Stack trace
+
+Not applicable
+
+### How to solve
+
+OpenSearch withstands all cases with corrupted replica shards and repairs itself without any data loss.
+
+### Recommendations
+
+Refer to [Data Files Corrupted on Replica Shard](scenarios/data_files_corrupted_on_replica_shard.md).
+
+### Common Problems.Data Files are Corrupted On Entire Index
+
+### Description
+
+All data files of the index were corrupted, there is no way to get data from this index.
+
+### Alerts
+
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+
+### Stack trace
+
+Not applicable
+
+### How to solve
+
 The only solution is to restore this index from a backup, provided one exists.
-For more details and troubleshooting procedures,refer to [Entire Index Corrupted](troubleshooting-scenarios/entire_index_corrupted.md).
 
-### Translog Corrupted
+### Recommendations
+
+For more details and troubleshooting procedures,refer to [Entire Index Corrupted](scenarios/entire_index_corrupted.md).
+
+### Common Problems.Translog Corrupted
+
+### Description
 
 To prevent data loss, each shard has a transaction log, or translog, associated with it. If a shard is failed, the most recent transactions can be replayed from the transaction log when the shard recovers.
-
 In some cases (such as a bad drive or user error), the translog can become corrupted.
 When this corruption is detected by OpenSearch due to mismatching checksums, OpenSearch will fail the shard and refuse to allocate that copy of the data to the node,
 recovering from a replica if available.
 
 If a translog was corrupted, the shards with a corrupted translog will have `TranslogCorruptedException` in `unassigned.details`.
 
-For more details and troubleshooting procedures, refer to [Translog Is Corrupted](troubleshooting-scenarios/translog_is_corrupted.md).
+### Alerts
 
-### Other Problems
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
-Other problem descriptions and troubleshooting procedures can be found in the following chapters:
+### Stack trace
 
-* [New Master Cannot Be Elected](troubleshooting-scenarios/new_master_can_not_be_elected.md)
-* [Elected Master Is Crashed](troubleshooting-scenarios/elected_master_is_crashed.md)
-* [Problem During Replication](troubleshooting-scenarios/problem_during_replication.md)
-* [Primary Shard Is Down During User Request](troubleshooting-scenarios/primary_shard_is_down_during_user_request.md)
-* [Network Connection Is Lost and Restored](troubleshooting-scenarios/network_connection_failure.md)
-* [Availability Zone Outage](troubleshooting-scenarios/availability_zone_outage.md)
-* [Availability Zone Shutdown and Startup](troubleshooting-scenarios/availability_zone_shutdown.md)
+```sh
+curl -XGET http://localhost:9200/_cat/shards?v&h=index,shard,prirep,state,docs,store,ip,node,unassigned.reason,unassigned.details
+```
 
-## OpenSearch node does not start
+Example response:
 
-There are situations when the starting of the OpenSearch service fails with error after few unsuccessful attempts.
+```text
+    index      shard prirep state      docs  store ip        node            unassigned.reason unassigned.details
+    cats       0     p      STARTED       0   130b 10.1.3.3  opensearch-1
+    cats       0     r      STARTED       1   130b 10.1.12.6 opensearch-0
+    cats       0     r      UNASSIGNED                                       ALLOCATION_FAILED failed recovery, failure RecoveryFailedException[[cats][0]: Recovery failed from {opensearch-1}{8QnQuADIS0yvpPk74UAvig}{z4GpsVEWQCypHyzr0eNfhw}{10.1.3.3}{10.1.3.3:9300} into {opensearch-2}{du6xA4LESROG2KfnAh9OiQ}{HimMm6A3S-mblfr5PDFdeA}{10.1.13.5}{10.1.13.5:9300}]; nested: RemoteTransportException[[opensearch-1][10.1.3.3:9300][internal:index/shard/recovery/start_recovery]]; nested: RecoveryEngineException[Phase[2] phase2 failed]; nested: TranslogCorruptedException[operation size must be at least 4 but was: 0];
+```
 
-These errors can be found in `Pod` - `Events` tab of the OpenSearch deployment.
+### How to solve
 
-### Readiness Probe Failed
+If `index.translog.durability` is set to `async`, fsync and commit in the background every sync\_interval.
+In the event of a hardware failure, all acknowledged writes since the last automatic commit will be discarded.
+
+When this corruption is detected by OpenSearch due to mismatching checksums, OpenSearch will fail the shard and refuse to allocate that copy of the data to the node,
+recovering from a replica if available.
+
+If there is no copy of the data from which OpenSearch can recover successfully, you may want to recover the data that is part of the shard at the cost of losing the data that is currently
+contained in the translog. OpenSearch provides a command-line tool for this: `opensearch-translog`.
+
+### Recommendations
+
+Not applicable
+
+
+## Common Problems.New Master Cannot Be Elected
+
+### Description
+
+The situation when a new master cannot be elected
+
+### Alerts
+
+Not applicable
+
+### Stack trace
+
+```text
+2022-02-10T10:41:12,348][WARN ][o.e.c.c.ClusterFormationFailureHelper] [es-node-1] master not discovered or elected yet, an election requires at least 2 nodes with ids from [ti0MftEaQk2lV0VMglBfTA, RampKFimRgqlgb09m-ZapA, k0-c9tKzRIeKWgxBioADnA], have only discovered non-quorum [{es-node-1}{RampKFimRgqlgb09m-ZapA}{ok6IkBWXScOUofCKJKkMpw}{10.128.162.21}{10.128.162.21:9300}{cdfhilmrstw}]; discovery will continue using [172.28.162.22:9300, 172.28.162.23:9300] from hosts providers and [{es-node-1}{RampKFimRgqlgb09m-ZapA}{ok6IkBWXScOUofCKJKkMpw}{10.128.162.21}{10.128.162.21:9300}{cdfhilmrstw}] from last-known cluster state; node term 52, last-accepted version 12542592 in term 45
+```
+
+### How to solve
+
+If you see that the count of master-eligible nodes is reduced to zero (i.e., all master-eligible nodes are shut down), you need to run failed master-eligible nodes,
+so that OpenSearch can elect a new master.
+
+### Recommendations
+
+For more details and troubleshooting procedures,refer to [New Master Cannot Be Elected](scenarios/new_master_can_not_be_elected.md).
+
+## Common Problems.Elected Master Is Crashed
+
+### Description
+
+The elected master is crashed.
+
+### Alerts
+
+Not applicable
+
+### Stack trace
+
+Not applicable
+
+### How to solve
+
+A troubleshooting procedure is not needed in cases when the leader node has crashed and all other nodes are still capable of communicating, because OpenSearch will handle this automatically.
+The remaining nodes will detect the failure of the leader and initiate leader election.
+
+### Recommendations
+
+For more details and troubleshooting procedures,refer to [Elected Master Is Crashed](scenarios/elected_master_is_crashed.md).
+
+## Common Problems.Problem During Replication
+
+### Description
+
+Data replication in OpenSearch is based on the primary-backup model. This model assumes a single authoritative copy of the data, called the primary.
+All indexing operations first go to the primary, which is then in charge of replicating changes to active backup copies, called replica shards.
+OpenSearch uses replica shards to provide failover capabilities, as well as to scale out reads.
+
+### Alerts
+
+* [OpenSearchReplicationDegradedAlert](./alerts.md#opensearchreplicationdegradedalert)
+* [OpenSearchReplicationFailedAlert](./alerts.md#opensearchreplicationfailedalert)
+* [OpenSearchReplicationTooHighLagAlert](./alerts.md#opensearchreplicationtoohighlagalert)
+* [OpenSearchReplicationLeaderConnectionLostAlert](./alerts.md#opensearchreplicationleaderconnectionlostalert)
+
+### Stack trace
+
+```text
+/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.10.0/pkg/internal/controller/controller.go:227
+2022-08-17T10:54:48.543Z        ERROR   controller.opensearchservice    Reconciler error        {"reconciler group": "netcracker.com", "reconciler kind": "OpenSearchService", "name": "opensearch", "namespace": "platform-opensearch", "error": "some replication indicies are failed"}
+```
+
+### How to solve
+
+When a major disaster strikes, there may be situations where only stale shard copies are available in the cluster.
+OpenSearch will not automatically allocate such shard copies as primary shards, and the cluster will stay red.
+In a case where all in-sync shard copies are gone for good, however, there is still a possibility for the cluster to revert to using stale copies,
+but this requires manual intervention from the cluster administrator.
+
+### Recommendations
+
+For more details and troubleshooting procedures,refer to [Problem During Replication](scenarios/problem_during_replication.md).
+
+## Common Problems.Primary Shard Is Down During User Request
+
+### Description
+
+Data can be lost if OpenSearch node is down during user request.
+However, OpenSearch provides tools to prevent data loss, including a translog, or transaction log, which records every operation in OpenSearch as it happens.
+
+### Alerts
+
+Not applicable
+
+### Stack trace
+
+Not applicable
+
+### How to solve
+
+OpenSearch provides the capability to subdivide your index into multiple pieces called shards. When you create an index, you can simply define the number of shards that you want.
+Each shard is in itself a fully-functional and independent "index" that can be hosted on any node in the cluster.
+
+In a network or cloud environment where failures can be expected anytime, it is very useful and highly recommended having a failover mechanism in case a shard or node somehow goes offline or
+disappears for whatever reason. Therefore, OpenSearch enables you to make one or more copies of your index’s shards into what are called replica shards, replicas for short.
+
+
+### Recommendations
+
+For more details and troubleshooting procedures,refer to [Primary Shard Is Down During User Request](scenarios/primary_shard_is_down_during_user_request.md).
+
+## Common Problems.Network Connection Is Lost and Restored
+
+### Description
+
+The network connection after it was lost and restored.
+
+### Alerts
+
+Not applicable
+
+### Stack trace
+
+Not applicable
+
+### How to solve
+
+A troubleshooting procedure is not needed in cases when the network connection is temporarily disrupted between OpenSearch nodes, because such cases are handled by fault detection processes in
+OpenSearch.
+
+### Recommendations
+
+For more details and troubleshooting procedures,refer to [Network Connection Is Lost and Restored](scenarios/network_connection_failure.md).
+
+## Common Problems.Availability Zone Outage
+
+### Description
+
+The unexpected availability zone shutdown for any reason, which means the shutdown of several OpenSearch nodes.
+
+### Alerts
+
+Not applicable
+
+### Stack 
+
+Not applicable
+
+### How to solve
+
+If free resources are available on other availability zones, then OpenSearch should be scaled up.
+
+### Recommendations
+
+For more details and troubleshooting procedures,refer to [Availability Zone Outage](scenarios/availability_zone_outage.md).
+
+## Common Problems.Availability Zone Shutdown and Startup
+
+### Description
+
+This scenario is very similar to `Availability Zone Outage` with the exception if the case when shutdown and start are planned.
+
+### Alerts
+
+Not applicable
+
+### Stack trace
+
+Not applicable
+
+### How to solve
+
+1. If free resources are available on other availability zones, OpenSearch should be scaled up.
+2. After restarting the availability zone, check that OpenSearch has the green status.
+
+### Recommendations
+
+For more details and troubleshooting procedures,refer to [Availability Zone Shutdown and Startup](scenarios/availability_zone_shutdown.md).
+
+## OpenSearch Node.Readiness Probe Failed
+
+### Description
 
 This error means the OpenSearch service did not have time to start for a given timeout. This may indicate a lack of resources
 or problem with environment where OpenSearch has been deployed.
+
+### Alerts
+
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+
+### Stack trace
+
+```text
+Readiness probe failed:
+Back-off restarting failed container
+```
+
+### How to solve
 
 This error can be solved by increasing the initial delay to check readiness of the service.
 
@@ -629,10 +579,29 @@ Try to increase this value twice.
 
 Retry this action for all OpenSearch resources which pods have this error.
 
-### Liveness Probe Failed
+### Recommendations
+
+Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](./installation.md#hwe)
+
+## OpenSearch Node.Liveness Probe Failed
+
+### Description
 
 This error means the OpenSearch service did not have time to ready for work for a given timeout. This may indicate a lack of resources
 or problem with environment where OpenSearch has been deployed.
+
+### Alerts
+
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+
+### Stack trace
+
+```text
+Liveness probe failed:
+Back-off restarting failed container
+```
+
+### How to solve
 
 This error can be solved by increasing the initial delay to check liveness of the service.
 
@@ -644,14 +613,28 @@ Try to increase this value twice.
 
 Retry this action for all OpenSearch resources which pods have this error.
 
-### Max Virtual Memory Is Too Low
+### Recommendations
+
+Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](./installation.md#hwe)
+
+## OpenSearch Node.Max Virtual Memory Is Too Low
+
+### Description
+
+This error means the OpenSearch does not have enough virtual memory to start.
+
+### Alerts
+
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+
+### Stack trace
 
 ```text
 ERROR: [1] bootstrap checks failed
 [1]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
 ```
 
-This error means the OpenSearch does not have enough virtual memory to start.
+### How to solve
 
 To resolve it you need execute the following command on all Kubernetes/OpenShift nodes, where OpenSearch is running:
 
@@ -659,47 +642,69 @@ To resolve it you need execute the following command on all Kubernetes/OpenShift
 sysctl -w vm.max_map_count=262144
 ```
 
-### Container Failed with Error: container has runAsNonRoot and image will run as root
+### Recommendations
 
-The Operator is deployed successfully and operator logs do not contain errors, but OpenSearch Monitoring, OpenSearch Curator and/or DBaaS OpenSearch adapter pods fail with the following error:
+Not applicable
 
-```text
-Error: container has runAsNonRoot and image will run as root
-```
+## OpenSearch Node.Container Failed with Error: container has runAsNonRoot and image will run as root
 
-**Problem**: OpenSearch Monitoring, OpenSearch Curator and DBaaS OpenSearch adapter do not have special user to run processes, so default (`root`) user is used.
+### Description
+
+The Operator is deployed successfully and operator logs do not contain errors, but OpenSearch Monitoring, OpenSearch Curator and/or DBaaS OpenSearch adapter pods fail.
+
+OpenSearch Monitoring, OpenSearch Curator and DBaaS OpenSearch adapter do not have special user to run processes, so default (`root`) user is used.
 If you miss the `securityContext` parameter in the pod configuration and `Pod Security Policy` is enabled, the default `securityContext` for pod is taken from `Pod Security Policy`.
 
 If the `Pod Security Policy` is configured as follows then the error mentioned above occurs:
 
 ```yaml
 runAsUser:
-  # Require the container to run without root privileges.
-  rule: 'MustRunAsNonRoot'
+   # Require the container to run without root privileges.
+   rule: 'MustRunAsNonRoot'
 ```
 
-**Solution**:
+### Alerts
+
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+
+### Stack trace
+
+```text
+Error: container has runAsNonRoot and image will run as root
+```
+
+### How to solve
 
 Specify the correct `securityContext` in the configuration of the appropriate pod during installation.
 For example, for OpenSearch Monitoring, OpenSearch Curator and DBaaS OpenSearch adapter you should specify the following parameter:
 
 ```yaml
 securityContext:
-    runAsUser: 1000
+   runAsUser: 1000
 ```
 
-### CRD Creation Failed on OpenShift 3.11
+### Recommendations
 
-If Helm deployment or manual application of CRD failed with the following error, it depicts that the Kubernetes version is 1.11 (or less) and it is not compatible with the new format of CRD:
+Use appropriate security configurations.
+
+## OpenSearch Node.CRD Creation Failed on OpenShift 3.11
+
+### Description
+
+If Helm deployment or manual application of CRD failed with the CustomResourceDefinition is invalid error, it depicts that the Kubernetes version is 1.11 (or less) and it is not compatible with the new format of CRD.
+
+### Alerts
+
+Not applicable
+
+### Stack trace
 
 ```text
 The CustomResourceDefinition "opensearchservices.netcracker.com" is invalid: spec.validation.openAPIV3Schema: Invalid value:....
 : must only have "properties", "required" or "description" at the root if the status subresource is enabled
 ```
 
-For more information, refer to [https://github.com/jetstack/cert-manager/issues/2200](https://github.com/jetstack/cert-manager/issues/2200).
-
-**Solution**:
+### How to solve
 
 To fix the issue, you need to find the following section in the CRD (`config/crd/old/netcracker.com_opensearchservices.yaml`):
 
@@ -710,11 +715,28 @@ type: object
 
 Comment or delete row `type: object`, and then apply the CRD manually.
 
+### Recommendations
+
+For more information, refer to [https://github.com/jetstack/cert-manager/issues/2200](https://github.com/jetstack/cert-manager/issues/2200).
+
 **Note**: You need to disable CRD creation during installation in case of such errors.
 
-### Operator Fails with Unauthorized Code on OpenSearch Readiness Check
 
-After change of OpenSearch credentials in operator logs you see the following error:
+
+## OpenSearch Node.Operator Fails with Unauthorized Code on OpenSearch Readiness Check
+
+### Description
+
+After change of OpenSearch credentials in operator logs you see the unauthorized error.
+
+During OpenSearch credentials change there was a problem to update the `opensearch-secret-old` secret in Kubernetes.
+It means that credentials are updated in OpenSearch, but secret used by operator is not actual.
+
+### Alerts
+
+Not applicable
+
+### Stack trace
 
 ```text
 29T11:14:36.569Z ERROR controller.opensearchservice Reconciler error {"reconciler group": "netcracker.com", "reconciler kind": "OpenSearchService", "name": "opensearch", "namespace": "opensearch-security", "error": "OpenSearch is not ready yet! Status code - [401]."}
@@ -722,32 +744,51 @@ sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).Start.func2
  /go/pkg/mod/sigs.k8s.io/controller-runtime@v0.10.0/pkg/internal/controller/controller.go:227
 ```
 
-**Problem**:
-
-During OpenSearch credentials change there was a problem to update the `opensearch-secret-old` secret in Kubernetes.
-It means that credentials are updated in OpenSearch, but secret used by operator is not actual.
-
-**Solution**:
+### How to solve
 
 Actualize the `opensearch-secret-old` secret manually by specifying the credentials from the `opensearch-secret` secret.
 
-### OpenSearch Does Not Start with "Not yet initialized" Error
+### Recommendations
+
+Not applicable
+
+## OpenSearch Node.OpenSearch Does Not Start with "Not yet initialized" Error
+
+### Description
+
+This error means the OpenSearch hasn't been properly initialized or configured.
+
+### Alerts
+
+Not applicable
+
+### Stack trace
 
 ```text
 [ERROR][o.o.s.a.BackendRegistry  ] [opensearch-2] Not yet initialized (you may need to run securityadmin)
 ```
 
-**Problem**:
-
-This error means the OpenSearch hasn't been properly initialized or configured.
-
-**Solution**:
+### How to solve
 
 Restart OpenSearch pods if the error persists for more than 5 minutes after running all pods. This error is normal during the OpenSearch cluster initialization phase.
 
-### OpenSearch Starts Failing With TLS Certificate Error
+### Recommendations
 
-At a certain point, OpenSearch stops working with a white screen `Not yet initialized` and an error in logs:
+Not applicable
+
+## OpenSearch Node.OpenSearch Starts Failing With TLS Certificate Error
+
+### Description
+
+At a certain point, OpenSearch stops working with a white screen `Not yet initialized`.
+OpenSearch uses internal TLS certificates for node-to-node communications. For that connection OpenSearch uses self-signed certificates as they are not shared anywhere.
+In the several versions of OpenSearch that certificate was generated with only one year duration, after that it starts failing.
+
+### Alerts
+
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+
+### Stack trace
 
 ```text
 [2024-02-12T14:23:07,448][WARN ][o.o.t.OutboundHandler    ] [opensearch-data-0] send message failed [channel: Netty4TcpChannel{localAddress=/10.129.21.8:57368, remoteAddress=10.129.133.71/10.129.133.71:9300}]
@@ -768,21 +809,8 @@ Caused by: java.security.cert.CertificateExpiredException: NotAfter: Thu Jan 18 
 	at sun.security.ssl.CertificateMessage$T13CertificateConsumer.checkServerCerts(CertificateMessage.java:1335) ~[?:?]
 ```
 
-**Problem**:
+### How to solve
 
-OpenSearch uses internal TLS certificates for node-to-node communications. For that connection OpenSearch uses self-signed certificates as they are not shared anywhere.
-In the several versions of OpenSearch that certificate was generated with only one year duration, after that it starts failing.
-
-This problem can be beforehand diagnosed with executing the following command that displays expiration time of current certificate:
-
-```text
-openssl x509 -enddate -noout -in /usr/share/opensearch/config/transport-crt.pem
-```
-
-Pay attention, this problem and provided solutions below are applicable only for disabled TLS deployment (`global.tls.enabled: false`), when only internal connections are under TLS. 
-Otherwise, you have to regenerate TLS certificates with specified way (`CertManager` or manual certificates).
-
-**Solution**:
 The solution is to re-generate internal TLS certificates with long-lived duration.
 
 The most right solution is to upgrade OpenSearch to one of the following stable versions to generate them automatically:
@@ -793,34 +821,52 @@ The most right solution is to upgrade OpenSearch to one of the following stable 
 
 If upgrade is not possible and manual fix is required, please follow steps:
 
-1. Manually remove secrets "opensearch-admin-certs" and "opensearch-transport-certs" 
-(and "opensearch-rest-certs" if presented) from the OpenSearch namespace.
-2. Edit the template of [opensearch-tls-reinit.yaml](/docs/data/opensearch-tls-reinit.yaml) resources and specify corresponding 
-namespace and OpenSearch docker image (you can take it from working pods) if required.
+1. Manually remove secrets "opensearch-admin-certs" and "opensearch-transport-certs"
+   (and "opensearch-rest-certs" if presented) from the OpenSearch namespace.
+2. Edit the template of [opensearch-tls-reinit.yaml](/docs/data/opensearch-tls-reinit.yaml) resources and specify corresponding
+   namespace and OpenSearch docker image (you can take it from working pods) if required.
 3. Apply result template with command `kubectl apply -f opensearch-tls-reinit.yaml` to the namespace with OpenSearch.
 4. Wait until Job execution. There should be `'admin' certificates are generated` output inside.
 5. Restart OpenSearch pods.
 6. Remove created Job with the command `kubectl delete -f opensearch-tls-reinit.yaml` from the namespace with OpenSearch.
+   **Solution**:
 
-### OpenSearch Clients Fail with Authentication Error
+### Recommendations
 
-DBaaS created users cannot login to OpenSearch and fails with authentication error. For example:
+This problem can be beforehand diagnosed with executing the following command that displays expiration time of current certificate:
+
+```text
+openssl x509 -enddate -noout -in /usr/share/opensearch/config/transport-crt.pem
+```
+
+Pay attention, this problem and provided solutions below are applicable only for disabled TLS deployment (`global.tls.enabled: false`), when only internal connections are under TLS. 
+Otherwise, you have to regenerate TLS certificates with specified way (`CertManager` or manual certificates).
+
+
+
+## OpenSearch Node.OpenSearch Clients Fail with Authentication Error
+
+### Description
+
+DBaaS created users cannot login to OpenSearch and fails with authentication error.
+
+DBaaS user was not correctly created on the OpenSearch side while DBaaS thought it was.
+To check the real state of OpenSearch users you can reach the endpoint `{opensearch_host}/_plugins/_security/api/internalusers/`
+with OpenSearch admin credentials and check the necessary DBaaS service user there.
+
+### Alerts
+
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+
+### Stack trace
 
 ```text
 Request action failed: Unexpected response status for RequestActionHandler.RequestDescription(method=POST, protocol=null, targetService=lead-management-core-service-v1, url=/salesManagement/v1/salesLead/start-reindex, headers=null, expectedResponseStatuses=[200], useUserToken=false, doNotAddCloudCoreTenantHeader=false, traceLogEnabled=false) request. Status:'500', but expected:'[200]'. Response = RestClientResponseEntity(responseBody={errors=[\{status=500, code=LMS-0001, reason=Authorization to Opensearch has been failed. Check credentials, message=Unexpected business error, extra={requestId=1721036300000.0.3662180000000}}]}, httpStatus=500, headers={})
 ```
 
-**Problem**:
+### How to solve
 
-DBaaS user was not correctly created on the OpenSearch side while DBaaS thought it was. 
-To check the real state of OpenSearch users you can reach the endpoint `{opensearch_host}/_plugins/_security/api/internalusers/` 
-with OpenSearch admin credentials and check the necessary DBaaS service user there.
-
-There can be a lot of causes of that desynchronization and you need to contact support with your case and provide logs from DBaaS Adapter.
-
-**Solution**:
-
-To resolve desynchronization of DBaaS database and OpenSearch users storage you can use the rollowing DBaaS restore api:
+  To resolve desynchronization of DBaaS database and OpenSearch users storage you can use the rollowing DBaaS restore api:
 
 ```bash
 curl -u cluster-dba:{dbaas_password} -XPOST -H "Accept:application/json" -H  "Content-Type:application/json" http://dbaas-aggregator.dbaas:8080/api/v3/dbaas/internal/physical_databases/users/restore-password -d '
@@ -831,32 +877,52 @@ curl -u cluster-dba:{dbaas_password} -XPOST -H "Accept:application/json" -H  "Co
 }'
 ```
 
-Then wait some time until users being synchronized.
+  Then wait some time until users being synchronized.
 
-## DBaaS Adapter Health
+### Recommendations
 
-OpenSearch monitoring has `DBaaS Adapter Status` indicator of DBaaS Adapter health.
+There can be a lot of causes of that desynchronization and you need to contact support with your case and provide logs from DBaaS Adapter.
 
-### Common Problems
 
-The following information describes the common problems you may encounter.
 
-#### DBaaS Adapter Status Is Down
+## DBaaS Adapter.DBaaS Adapter Status Is Down/Warning
 
-The `Down` state means one of the following problems:
+### Description
 
-* DBaaS Adapter is not alive. See [DBaaS Is Down Alert](#opensearchdbaasisdownalert).
-* OpenSearch has `red` state. See [OpenSearch is Down Alert](#opensearchisdownalert).
+DBaaS Adapter is not alive.
 
-#### DBaaS Adapter Status Is Warning
+### Alerts
 
-The `Warning` state means the following problem:
+* [OpenSearchDBaaS](./alerts.md#opensearchdbaasisdownalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
-* OpenSearch has `yellow` state. See [OpenSearch is Degraded Alert](#opensearchisdegradedalert).
+### Stack trace
 
-#### DBaaS Adapter Status Is Problem
+Not applicable
 
-The `Problem` state means one of the following problems:
+### How to solve
+
+Make that Opensearch is in `Green` state and works correctly.
+
+### Recommendations
+
+Not applicable
+
+## DBaaS Adapter.DBaaS Adapter Status Is Problem
+
+### Description
+
+DBaaS adapter is in `problem` state.
+
+### Alerts
+
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+
+### Stack trace
+
+Not applicable
+
+### How to solve
 
 * DBaaS Adapter cannot be registered in DBaaS Aggregator.
 
@@ -879,28 +945,43 @@ The following output indicates that there is a problem with access to OpenSearch
 {"status":"PROBLEM","elasticCluster":{"status":"PROBLEM"},"physicalDatabaseRegistration":{"status":"UP"}}
 ```
 
+### Recommendations
+
 You need to check that OpenSearch is alive and correct address and credentials are specified in DBaaS Adapter configuration to connect to OpenSearch.
 Check DBaaS Adapter logs for more information about the problem with OpenSearch.
 
-## OpenSearch Disaster Recovery Health
 
-### OpenSearch Disaster Recovery Health Has Status "DEGRADED"
+## OpenSearch Disaster Recovery Health Has Status "DEGRADED"
+
+
+## DBaaS Adapter.DBaaS Adapter Status Is Down
+
+### Description
 
 | Problem                                    | Severity | Possible Reason                                                                                                                                              |
 |--------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | OpenSearch DR health has `DEGRADED` status | Average  | Replication between `active` and `standby` sides has unhealthy indices or failed replications. The possible root cause is a locked index on the active side. |
 
-**Solution**:
+
+### Alerts
+
+* [OpenSearchDBaaS](./alerts.md#opensearchdbaasisdownalert)
+
+### Stack trace
+
+  Not applicable
+
+### How to solve
 
 1. Navigate to the OpenSearch console on `standby` side and run the following command:
 
    ```bash
-   curl -u <username>:<password> -XGET http://opensearch.<opensearch_namespace>:9200/_cat/indices?h=index,health&v
+  curl -u <username>:<password> -XGET http://opensearch.<opensearch_namespace>:9200/_cat/indices?h=index,health&v
    ```
 
    where:
-      * `<username>:<password>` are the credentials to OpenSearch.
-      * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
+   * `<username>:<password>` are the credentials to OpenSearch.
+   * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
 
    The result can be as follows:
 
@@ -917,7 +998,7 @@ Check DBaaS Adapter logs for more information about the problem with OpenSearch.
    green  open   test_index             tkKQhOZET6q0Fu4kMReO1Q   5   1        200            0      1.3mb          698kb
    ```
 
-   Make sure that all indices required for replication have `green` health status.
+  Make sure that all indices required for replication have `green` health status.
 
 2. Navigate to the OpenSearch console on `standby` side and execute the following:
 
@@ -959,9 +1040,9 @@ Check DBaaS Adapter logs for more information about the problem with OpenSearch.
       ```
 
       where:
-         * `<username>:<password>` are the credentials to OpenSearch.
-         * `opensearch.<opensearch_namespace>` are service name and namespace for OpenSearch on the active side.
-         * `<index_name>` is the name of failed index. For example, `test_topic`.
+      * `<username>:<password>` are the credentials to OpenSearch.
+      * `opensearch.<opensearch_namespace>` are service name and namespace for OpenSearch on the active side.
+      * `<index_name>` is the name of failed index. For example, `test_topic`.
 
       This is an asynchronous operation and expected response is the following:
 
@@ -983,9 +1064,9 @@ Check DBaaS Adapter logs for more information about the problem with OpenSearch.
       ```
 
       Where:
-         * `<username>:<password>` are the credentials to OpenSearch.
-         * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
-         * `<index_name>` is the name of failed index. For example, `test_topic`.
+      * `<username>:<password>` are the credentials to OpenSearch.
+      * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
+      * `<index_name>` is the name of failed index. For example, `test_topic`.
 
    3. If `status` of index replication on `standby` side is `FAILED`, you have to stop corresponding replication with the following command:
 
@@ -994,21 +1075,32 @@ Check DBaaS Adapter logs for more information about the problem with OpenSearch.
       ```
 
       Where:
-         * `<username>:<password>` are the credentials to OpenSearch.
-         * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
-         * `<index_name>` is the name of failed index. For example, `test_topic`.
+      * `<username>:<password>` are the credentials to OpenSearch.
+      * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
+      * `<index_name>` is the name of failed index. For example, `test_topic`.
 
 4. For `standby` side switch OpenSearch cluster to the `active` side and return to the `standby` one. This action should restart replication properly.
 
-#### ResourceAlreadyExistsException: task with id {replication:index:test_index} already exist
+### Recommendations
+
+Not applicable
+
+## ResourceAlreadyExistsException: task with id {replication:index:test_index} already exist
+
+### Description
+
 
 | Problem                                           | Severity | Possible Reason                                                                                     |
 |---------------------------------------------------|----------|-----------------------------------------------------------------------------------------------------|
 | Indices are not replicated to the `standby` side. | Average  | OpenSearch data is corrupted: previous replication tasks for indices were cached in metadata files. |
 
-**Description**:
+OpenSearch disaster recovery health has `DEGRADED` status and indices are not replicated.
 
-OpenSearch disaster recovery health has `DEGRADED` status and indices are not replicated. The OpenSearch logs contain the following error:
+### Alerts
+
+Not applicable
+
+### Stack trace
 
 ```text
 [2023-05-18T12:03:27,684][WARN ][o.o.r.t.a.AutoFollowTask ] [opensearch-0][leader-cluster] Failed to start replication for leader-cluster:test_index -> test_index.
@@ -1030,7 +1122,7 @@ org.opensearch.ResourceAlreadyExistsException: task with id {replication:index:t
 	at java.lang.Thread.run(Thread.java:829) [?:?]
 ```
 
-**Solution**:
+### How to solve
 
 1. Scale down all pods related to OpenSearch (`master`, `data`, `ingest`, `arbiter`) on the `standby` side.
 2. Clear the OpenSearch data on the `standby` side in one of the following ways:
@@ -1042,13 +1134,27 @@ org.opensearch.ResourceAlreadyExistsException: task with id {replication:index:t
 
 For more information about this issue, refer to [https://github.com/opensearch-project/cross-cluster-replication/issues/840](https://github.com/opensearch-project/cross-cluster-replication/issues/840).
 
-### Index Is Not Replicated To Standby Side Without Any Errors
+### Recommendations
+
+Not applicable
+
+## Index Is Not Replicated To Standby Side Without Any Errors
+
+### Description
 
 | Problem                                           | Severity | Possible Reason                                                                                                                      |
 |---------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------|
 | Index changes stopped replicating to standby side | Average  | Problem index was removed and created again on active side during replication and standby OpenSearch marked replication as `paused`. |
 
-**Solution**:
+### Alerts
+
+* [OpenSearchReplicationFailedAlert](./alerts.md#opensearchreplicationfailedalert)
+
+### Stack trace
+
+Not applicable
+
+### How to solve
 
 1. Navigate to the OpenSearch console on `standby` side and run the following command:
 
@@ -1080,4 +1186,6 @@ For more information about this issue, refer to [https://github.com/opensearch-p
 
    Then wait some time for `autofollow` process run replication again.
 
-**Note**: This option cleans all index data presented on the standby side. Make sure to remove this and check whether OpenSearch on the active side has correct changes.
+### Recommendations
+
+This option cleans all index data presented on the standby side. Make sure to remove this and check whether OpenSearch on the active side has correct changes.
