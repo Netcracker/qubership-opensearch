@@ -1,5 +1,72 @@
 The document describes security hardening recommendations for OpenSearch.
 
+## Exposed Ports
+
+List of ports used by OpenSearch and other Services. 
+
+| Port | Service                  | Description                                                                                                                       |
+|------|--------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| 9200 | OpenSearch               | The port of OpenSearch.                                                                                                           |
+| 9300 | OpenSearch               | Port used for transport communication.                                                                                            |
+| 9600 | OpenSearch               | Port used for metrics collection.                                                                                                 |
+| 9650 | OpenSearch               | Port used for RCA.                                                                                                                |
+| 8080 | OpenSearch DBaaS adapter | The port of monitored OpenSearch DBaaS adapter.                                                                                   |
+| 8443 | OpenSearch DBaaS adapter | port is used if TLS for Opensearch DBaaS Adapter is enabled.                                                                      |
+| 8443 | OpenSearch Curator       | Port used for OpenSearch Curator when TLS is enabled.                                                                             |
+| 8080 | OpenSearch Curator       | Port used for OpenSearch Curator when TLS is not enabled.                                                                         |
+| 5601 | OpenSearch Dashboard     | Port used for the dashboard's service.                                                                                            |
+| 9200 | OpenSearch Data svc      | The port used for HTTP communication.                                                                                             |
+| 9300 | OpenSearch Data svc      | Port used for transport communication.                                                                                            |
+| 9600 | OpenSearch Data svc      | Port used for metrics collection.                                                                                                 |
+| 9650 | OpenSearch Data svc      | Port used for RCA.                                                                                                                |
+| 9300 | OpenSearch Discovery     | Port used for discovery processes within an OpenSearch cluster.                                                                   |
+| 9200 | Opensearch Internal      | Port used for internal communication within the OpenSearch cluster.                                                               |
+| 8125 | opensearch Monitoring    | Port used for StatsD monitoring in OpenSearch.                                                                                    |
+| 8094 | opensearch Monitoring    | Port used for TCP monitoring in OpenSearch.                                                                                       |
+| 8092 | opensearch Monitoring    | Port used for UDP monitoring in OpenSearch.                                                                                       |
+| 8096 | opensearch Monitoring    | port used for monitoring if `monitoring.monitoringType` is not `influxdb`.                                                        |
+| 8443 | DRD                      | If TLS for Disaster Recovery is enabled the HTTPS protocol and port 8443 is used for API requests to ensure secure communication. |
+| 8080 | DRD                      | Port used for SiteManager endpoints.                                                                                              |
+| 8080 | Integration-tests        | Exposes the container's port to the network. It allows access to the application running in the container.                        |
+
+## User Accounts
+
+List of user accounts used for OpenSearch.
+
+| Service    | OOB accounts | Deployment parameter                           | Is Break Glass account | Can be blocked | Can be deleted | Comment                                                                                            |
+|------------|--------------|------------------------------------------------|------------------------|----------------|----------------|----------------------------------------------------------------------------------------------------|
+| OpenSearch | admin        | opensearch.securityConfig.authc.basic.username | yes                    | no             | no             | The default admin user. There is no default value, the name must be specified during deploy.       |
+| OpenSearch | client       | global.externalOpensearch.username             | no                     | yes            | yes            | The external OpenSearch user. There is no default value, the name must be specified during deploy. |
+
+## Disabling User Accounts
+
+OpenSearch does not support disabling user accounts.
+
+## Password Policies
+
+* Passwords must be at least 8 characters long. This ensures a basic level of complexity and security.
+* The passwords can contain only the following symbols:
+    * Alphabets: a-zA-Z
+    * Numerals: 0-9
+    * Punctuation marks: ., ;, !, ?
+    * Mathematical symbols: -, +, *, /, %
+    * Brackets: (, ), {, }, <, >
+    * Additional symbols: _, |, &, @, $, ^, #, ~
+
+**Note**: To ensure that passwords are sufficiently complex, it is recommended to include:
+
+* A minimum length of 8 characters
+* At least one uppercase letter (A-Z)
+* At least one lowercase letter (a-z)
+* At least one numeral (0-9)
+* At least one special character from the allowed symbols list
+
+## Changing password guide
+
+Password changing procedures for OpenSearch cluster is described in respective guide:
+
+* [Password changing guide](/docs/public/password-changing.md)
+
 # General Consideration
 
 OpenSearch has its own security plugin for authentication and access control. The plugin provides numerous features to help you secure your cluster.
