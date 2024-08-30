@@ -11,7 +11,7 @@ List of ports used by OpenSearch and other Services.
 | 9600 | OpenSearch               | Port used for metrics collection.                                                                                                 |
 | 9650 | OpenSearch               | Port used for RCA.                                                                                                                |
 | 8080 | OpenSearch DBaaS adapter | The port of monitored OpenSearch DBaaS adapter.                                                                                   |
-| 8443 | OpenSearch DBaaS adapter | port is used if TLS for Opensearch DBaaS Adapter is enabled.                                                                      |
+| 8443 | OpenSearch DBaaS adapter | Port is used if TLS for Opensearch DBaaS Adapter is enabled.                                                                      |
 | 8443 | OpenSearch Curator       | Port used for OpenSearch Curator when TLS is enabled.                                                                             |
 | 8080 | OpenSearch Curator       | Port used for OpenSearch Curator when TLS is not enabled.                                                                         |
 | 5601 | OpenSearch Dashboard     | Port used for the dashboard's service.                                                                                            |
