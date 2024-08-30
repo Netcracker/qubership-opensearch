@@ -54,7 +54,7 @@ Not applicable
 
 Not applicable
 
-## Common Problems.Cluster Status is N/A
+## Cluster Status is N/A
 
 ### Description
 
@@ -82,7 +82,7 @@ To resolve the issue, navigate to the OpenShift console and check the service st
 
 In the simplest scenario, starting the service solves the issue. In the event of a permanent failure, try to redeploy the cluster or recover it from the backup.
 
-## Common Problems.Cluster Status is Failed or Degraded
+## Cluster Status is Failed or Degraded
 
 ### Description
 
@@ -128,7 +128,7 @@ The following scenarios are examples of permanent failures:
 
 If both the primary and replica copy of a shard are lost, data can be recovered from backup.
 
-## Common Problems.Last Backup Has Failed
+## Last Backup Has Failed
 
 ### Description
 
@@ -156,7 +156,7 @@ curl -XGET http://localhost:8080/health
 
 Not applicable
 
-## Common Problems.Data Nodes are Out of Space
+## Data Nodes are Out of Space
 
 ### Description
 
@@ -186,7 +186,7 @@ If an index is composed of a few very large shards, it is hard for OpenSearch to
 
 For more information, refer to [Disk Filled on All Nodes](scenarios/disk_filled_on_all_nodes.md).
 
-## Common Problems.Lack of Resources
+## Lack of Resources
 
 ### Description
 
@@ -211,7 +211,7 @@ Increase OpenSearch resources.
 For more information, refer to [Memory Limit](/docs/public/scenarios/memory_limit.md), [CPU Overload](/docs/public/scenarios/cpu_overload.md)
 and [I/O Limit](/docs/public/scenarios/io_limit.md).
 
-## Common Problems.OpenSearch Fails Down with CircuitBreakingException
+## OpenSearch Fails Down with CircuitBreakingException
 
 ### Description
 
@@ -246,7 +246,7 @@ For more information, refer to [Memory Limit](scenarios/memory_limit.md) and [Di
 
 For more information on OpenSearch, refer to the official OpenSearch documentation: [https://aws.amazon.com/premiumsupport/knowledge-center/opensearch-circuit-breaker-exception].
 
-## Common Problems.Data Files are Corrupted On Primary Shard
+## Data Files are Corrupted On Primary Shard
 
 ### Description
 
@@ -281,7 +281,7 @@ For more information, refer to the _Official OpenSearch Documentation_ [https://
 
 For more details and troubleshooting procedures, refer to [Data Files Corrupted on Primary Shard](scenarios/data_files_corrupted_on_primary_shard.md).
 
-## Common Problems.Data Files are Corrupted On Replica Shard
+## Data Files are Corrupted On Replica Shard
 
 ### Description
 
@@ -303,7 +303,7 @@ OpenSearch withstands all cases with corrupted replica shards and repairs itself
 
 Refer to [Data Files Corrupted on Replica Shard](scenarios/data_files_corrupted_on_replica_shard.md).
 
-## Common Problems.Data Files are Corrupted On Entire Index
+## Data Files are Corrupted On Entire Index
 
 ### Description
 
@@ -325,7 +325,7 @@ The only solution is to restore this index from a backup, provided one exists.
 
 For more details and troubleshooting procedures,refer to [Entire Index Corrupted](scenarios/entire_index_corrupted.md).
 
-## Common Problems.Translog Corrupted
+## Translog Corrupted
 
 ### Description
 
