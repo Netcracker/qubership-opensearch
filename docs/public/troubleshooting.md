@@ -950,7 +950,6 @@ Check DBaaS Adapter logs for more information about the problem with OpenSearch.
 |--------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | OpenSearch DR health has `DEGRADED` status | Average  | Replication between `active` and `standby` sides has unhealthy indices or failed replications. The possible root cause is a locked index on the active side. |
 
-
 ### Alerts
 
 * [OpenSearchDBaaS](./alerts.md#opensearchdbaasisdownalert)
@@ -961,10 +960,10 @@ Not applicable
 
 ### How to solve
 
-1. Navigate to the OpenSearch console on `standby` side and run the following command:
+Navigate to the OpenSearch console on `standby` side and run the following command:
 
    ```bash
-  curl -u <username>:<password> -XGET http://opensearch.<opensearch_namespace>:9200/_cat/indices?h=index,health&v
+   curl -u <username>:<password> -XGET http://opensearch.<opensearch_namespace>:9200/_cat/indices?h=index,health&v
    ```
 
    where:
@@ -988,7 +987,7 @@ Not applicable
 
   Make sure that all indices required for replication have `green` health status.
 
-2. Navigate to the OpenSearch console on `standby` side and execute the following:
+Navigate to the OpenSearch console on `standby` side and execute the following:
 
    ```bash
    curl -u username:password http://opensearch.<opensearch_namespace>:9200/_plugins/_replication/autofollow_stats
@@ -1019,7 +1018,7 @@ Not applicable
 
    Recognize the list of `failed_indices`.
 
-3. For each index from the previous step do the following:
+For each index from the previous step do the following:
 
    1. Navigate to the OpenSearch console on the `active` side and try to stop replication for the index:
 
@@ -1067,7 +1066,7 @@ Not applicable
       * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
       * `<index_name>` is the name of failed index. For example, `test_topic`.
 
-4. For `standby` side switch OpenSearch cluster to the `active` side and return to the `standby` one. This action should restart replication properly.
+For `standby` side switch OpenSearch cluster to the `active` side and return to the `standby` one. This action should restart replication properly.
 
 ### Recommendations
 
