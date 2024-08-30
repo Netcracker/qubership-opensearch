@@ -894,7 +894,7 @@ Not applicable
 
 ### How to solve
 
-Make that Opensearch is in `Green` state and works correctly.
+Make sure that Opensearch is in `Green` state and works correctly.
 
 ### Recommendations
 
