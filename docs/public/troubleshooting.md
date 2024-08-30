@@ -54,7 +54,6 @@ Not applicable
 
 Not applicable
 
-
 ## Common Problems.Cluster Status is N/A
 
 ### Description
@@ -371,7 +370,6 @@ contained in the translog. OpenSearch provides a command-line tool for this: `op
 
 Not applicable
 
-
 ## Common Problems.New Master Cannot Be Elected
 
 ### Description
@@ -475,7 +473,6 @@ Each shard is in itself a fully-functional and independent "index" that can be h
 
 In a network or cloud environment where failures can be expected anytime, it is very useful and highly recommended having a failover mechanism in case a shard or node somehow goes offline or
 disappears for whatever reason. Therefore, OpenSearch enables you to make one or more copies of your index’s shards into what are called replica shards, replicas for short.
-
 
 ### Recommendations
 
@@ -691,7 +688,8 @@ Use appropriate security configurations.
 
 ### Description
 
-If Helm deployment or manual application of CRD failed with the CustomResourceDefinition is invalid error, it depicts that the Kubernetes version is 1.11 (or less) and it is not compatible with the new format of CRD.
+If Helm deployment or manual application of CRD failed with the CustomResourceDefinition is invalid error.
+It depicts that the Kubernetes version is 1.11 (or less) and it is not compatible with the new format of CRD.
 
 ### Alerts
 
@@ -720,8 +718,6 @@ Comment or delete row `type: object`, and then apply the CRD manually.
 For more information, refer to [https://github.com/jetstack/cert-manager/issues/2200](https://github.com/jetstack/cert-manager/issues/2200).
 
 **Note**: You need to disable CRD creation during installation in case of such errors.
-
-
 
 ## OpenSearch Node.Operator Fails with Unauthorized Code on OpenSearch Readiness Check
 
@@ -842,8 +838,6 @@ openssl x509 -enddate -noout -in /usr/share/opensearch/config/transport-crt.pem
 Pay attention, this problem and provided solutions below are applicable only for disabled TLS deployment (`global.tls.enabled: false`), when only internal connections are under TLS. 
 Otherwise, you have to regenerate TLS certificates with specified way (`CertManager` or manual certificates).
 
-
-
 ## OpenSearch Node.OpenSearch Clients Fail with Authentication Error
 
 ### Description
@@ -877,13 +871,11 @@ curl -u cluster-dba:{dbaas_password} -XPOST -H "Accept:application/json" -H  "Co
 }'
 ```
 
-  Then wait some time until users being synchronized.
+Then wait some time until users being synchronized.
 
 ### Recommendations
 
 There can be a lot of causes of that desynchronization and you need to contact support with your case and provide logs from DBaaS Adapter.
-
-
 
 ## DBaaS Adapter.DBaaS Adapter Status Is Down/Warning
 
@@ -965,7 +957,7 @@ Check DBaaS Adapter logs for more information about the problem with OpenSearch.
 
 ### Stack trace
 
-  Not applicable
+Not applicable
 
 ### How to solve
 
@@ -1084,7 +1076,6 @@ Not applicable
 ## ResourceAlreadyExistsException: task with id {replication:index:test_index} already exist
 
 ### Description
-
 
 | Problem                                           | Severity | Possible Reason                                                                                     |
 |---------------------------------------------------|----------|-----------------------------------------------------------------------------------------------------|
