@@ -370,7 +370,7 @@ contained in the translog. OpenSearch provides a command-line tool for this: `op
 
 Not applicable
 
-## Common Problems.New Master Cannot Be Elected
+## New Master Cannot Be Elected
 
 ### Description
 
@@ -395,7 +395,7 @@ so that OpenSearch can elect a new master.
 
 For more details and troubleshooting procedures,refer to [New Master Cannot Be Elected](scenarios/new_master_can_not_be_elected.md).
 
-## Common Problems.Elected Master Is Crashed
+## Elected Master Is Crashed
 
 ### Description
 
@@ -418,7 +418,7 @@ The remaining nodes will detect the failure of the leader and initiate leader el
 
 For more details and troubleshooting procedures,refer to [Elected Master Is Crashed](scenarios/elected_master_is_crashed.md).
 
-## Common Problems.Problem During Replication
+## Problem During Replication
 
 ### Description
 
@@ -451,7 +451,7 @@ but this requires manual intervention from the cluster administrator.
 
 For more details and troubleshooting procedures,refer to [Problem During Replication](scenarios/problem_during_replication.md).
 
-## Common Problems.Primary Shard Is Down During User Request
+## Primary Shard Is Down During User Request
 
 ### Description
 
@@ -478,7 +478,7 @@ disappears for whatever reason. Therefore, OpenSearch enables you to make one or
 
 For more details and troubleshooting procedures,refer to [Primary Shard Is Down During User Request](scenarios/primary_shard_is_down_during_user_request.md).
 
-## Common Problems.Network Connection Is Lost and Restored
+## Network Connection Is Lost and Restored
 
 ### Description
 
@@ -501,7 +501,7 @@ OpenSearch.
 
 For more details and troubleshooting procedures,refer to [Network Connection Is Lost and Restored](scenarios/network_connection_failure.md).
 
-## Common Problems.Availability Zone Outage
+## Availability Zone Outage
 
 ### Description
 
@@ -523,7 +523,7 @@ If free resources are available on other availability zones, then OpenSearch sho
 
 For more details and troubleshooting procedures,refer to [Availability Zone Outage](scenarios/availability_zone_outage.md).
 
-## Common Problems.Availability Zone Shutdown and Startup
+## Availability Zone Shutdown and Startup
 
 ### Description
 
