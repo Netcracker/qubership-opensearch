@@ -282,7 +282,7 @@ For more information, refer to the _Official OpenSearch Documentation_ [https://
 
 For more details and troubleshooting procedures, refer to [Data Files Corrupted on Primary Shard](scenarios/data_files_corrupted_on_primary_shard.md).
 
-### Common Problems.Data Files are Corrupted On Replica Shard
+## Common Problems.Data Files are Corrupted On Replica Shard
 
 ### Description
 
