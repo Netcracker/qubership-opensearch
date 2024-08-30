@@ -546,7 +546,7 @@ Not applicable
 
 For more details and troubleshooting procedures,refer to [Availability Zone Shutdown and Startup](scenarios/availability_zone_shutdown.md).
 
-## OpenSearch Node.Readiness Probe Failed
+## Readiness Probe Failed
 
 ### Description
 
@@ -580,7 +580,7 @@ Retry this action for all OpenSearch resources which pods have this error.
 
 Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](./installation.md#hwe)
 
-## OpenSearch Node.Liveness Probe Failed
+## Liveness Probe Failed
 
 ### Description
 
@@ -614,7 +614,7 @@ Retry this action for all OpenSearch resources which pods have this error.
 
 Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](./installation.md#hwe)
 
-## OpenSearch Node.Max Virtual Memory Is Too Low
+## Max Virtual Memory Is Too Low
 
 ### Description
 
@@ -643,7 +643,7 @@ sysctl -w vm.max_map_count=262144
 
 Not applicable
 
-## OpenSearch Node.Container Failed with Error: container has runAsNonRoot and image will run as root
+## Container Failed with Error: container has runAsNonRoot and image will run as root
 
 ### Description
 
@@ -684,7 +684,7 @@ securityContext:
 
 Use appropriate security configurations.
 
-## OpenSearch Node.CRD Creation Failed on OpenShift 3.11
+## CRD Creation Failed on OpenShift 3.11
 
 ### Description
 
@@ -719,7 +719,7 @@ For more information, refer to [https://github.com/jetstack/cert-manager/issues/
 
 **Note**: You need to disable CRD creation during installation in case of such errors.
 
-## OpenSearch Node.Operator Fails with Unauthorized Code on OpenSearch Readiness Check
+## Operator Fails with Unauthorized Code on OpenSearch Readiness Check
 
 ### Description
 
@@ -748,7 +748,7 @@ Actualize the `opensearch-secret-old` secret manually by specifying the credenti
 
 Not applicable
 
-## OpenSearch Node.OpenSearch Does Not Start with "Not yet initialized" Error
+## OpenSearch Does Not Start with "Not yet initialized" Error
 
 ### Description
 
@@ -772,7 +772,7 @@ Restart OpenSearch pods if the error persists for more than 5 minutes after runn
 
 Not applicable
 
-## OpenSearch Node.OpenSearch Starts Failing With TLS Certificate Error
+## OpenSearch Starts Failing With TLS Certificate Error
 
 ### Description
 
@@ -838,7 +838,7 @@ openssl x509 -enddate -noout -in /usr/share/opensearch/config/transport-crt.pem
 Pay attention, this problem and provided solutions below are applicable only for disabled TLS deployment (`global.tls.enabled: false`), when only internal connections are under TLS. 
 Otherwise, you have to regenerate TLS certificates with specified way (`CertManager` or manual certificates).
 
-## OpenSearch Node.OpenSearch Clients Fail with Authentication Error
+## OpenSearch Clients Fail with Authentication Error
 
 ### Description
 
