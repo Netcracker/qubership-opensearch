@@ -967,6 +967,7 @@ Navigate to the OpenSearch console on `standby` side and run the following comma
    ```
 
    where:
+
    * `<username>:<password>` are the credentials to OpenSearch.
    * `<opensearch_namespace>` is the namespace where `standby` side of OpenSearch is located. For example, `opensearch-service`.
 
