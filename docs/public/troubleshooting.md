@@ -83,7 +83,7 @@ To resolve the issue, navigate to the OpenShift console and check the service st
 
 In the simplest scenario, starting the service solves the issue. In the event of a permanent failure, try to redeploy the cluster or recover it from the backup.
 
-### Common Problems.Cluster Status is Failed or Degraded
+## Common Problems.Cluster Status is Failed or Degraded
 
 ### Description
 
@@ -157,7 +157,7 @@ curl -XGET http://localhost:8080/health
 
 Not applicable
 
-### Common Problems.Data Nodes are Out of Space
+## Common Problems.Data Nodes are Out of Space
 
 ### Description
 
@@ -187,7 +187,7 @@ If an index is composed of a few very large shards, it is hard for OpenSearch to
 
 For more information, refer to [Disk Filled on All Nodes](scenarios/disk_filled_on_all_nodes.md).
 
-### Common Problems.Lack of Resources
+## Common Problems.Lack of Resources
 
 ### Description
 
@@ -212,7 +212,7 @@ Increase OpenSearch resources.
 For more information, refer to [Memory Limit](/docs/public/scenarios/memory_limit.md), [CPU Overload](/docs/public/scenarios/cpu_overload.md)
 and [I/O Limit](/docs/public/scenarios/io_limit.md).
 
-### Common Problems.OpenSearch Fails Down with CircuitBreakingException
+## Common Problems.OpenSearch Fails Down with CircuitBreakingException
 
 ### Description
 
@@ -247,7 +247,7 @@ For more information, refer to [Memory Limit](scenarios/memory_limit.md) and [Di
 
 For more information on OpenSearch, refer to the official OpenSearch documentation: [https://aws.amazon.com/premiumsupport/knowledge-center/opensearch-circuit-breaker-exception].
 
-### Common Problems.Data Files are Corrupted On Primary Shard
+## Common Problems.Data Files are Corrupted On Primary Shard
 
 ### Description
 
@@ -304,7 +304,7 @@ OpenSearch withstands all cases with corrupted replica shards and repairs itself
 
 Refer to [Data Files Corrupted on Replica Shard](scenarios/data_files_corrupted_on_replica_shard.md).
 
-### Common Problems.Data Files are Corrupted On Entire Index
+## Common Problems.Data Files are Corrupted On Entire Index
 
 ### Description
 
@@ -326,7 +326,7 @@ The only solution is to restore this index from a backup, provided one exists.
 
 For more details and troubleshooting procedures,refer to [Entire Index Corrupted](scenarios/entire_index_corrupted.md).
 
-### Common Problems.Translog Corrupted
+## Common Problems.Translog Corrupted
 
 ### Description
 
@@ -950,11 +950,7 @@ The following output indicates that there is a problem with access to OpenSearch
 You need to check that OpenSearch is alive and correct address and credentials are specified in DBaaS Adapter configuration to connect to OpenSearch.
 Check DBaaS Adapter logs for more information about the problem with OpenSearch.
 
-
 ## OpenSearch Disaster Recovery Health Has Status "DEGRADED"
-
-
-## DBaaS Adapter.DBaaS Adapter Status Is Down
 
 ### Description
 
