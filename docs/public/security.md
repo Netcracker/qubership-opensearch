@@ -33,10 +33,11 @@ List of ports used by OpenSearch and other Services.
 
 List of user accounts used for OpenSearch.
 
-| Service    | OOB accounts | Deployment parameter                           | Is Break Glass account | Can be blocked | Can be deleted | Comment                                                                                            |
-|------------|--------------|------------------------------------------------|------------------------|----------------|----------------|----------------------------------------------------------------------------------------------------|
-| OpenSearch | admin        | opensearch.securityConfig.authc.basic.username | yes                    | no             | no             | The default admin user. There is no default value, the name must be specified during deploy.       |
-| OpenSearch | client       | global.externalOpensearch.username             | no                     | yes            | yes            | The external OpenSearch user. There is no default value, the name must be specified during deploy. |
+| Service                  | OOB accounts | Deployment parameter                           | Is Break Glass account | Can be blocked | Can be deleted | Comment                                                                                                             |
+|--------------------------|--------------|------------------------------------------------|------------------------|----------------|----------------|---------------------------------------------------------------------------------------------------------------------|
+| OpenSearch               | admin        | opensearch.securityConfig.authc.basic.username | yes                    | no             | no             | The default admin user. There is no default value, the name must be specified during deploy.                        |
+| OpenSearch DBaaS adapter | client       | dbaasAdapter.dbaasUsername                     | no                     | yes            | yes            | The name of the OpenSearch DBaaS adapter user. There is no default value, the name must be specified during deploy. |
+| OpenSearch Curator       | client       | curator.username                               | no                     | yes            | yes            | The name of the OpenSearch Curator API user. There is no default value, the name must be specified during deploy.   |
 
 ## Disabling User Accounts
 
