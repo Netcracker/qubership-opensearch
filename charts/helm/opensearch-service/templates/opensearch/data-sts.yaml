@@ -182,7 +182,7 @@ spec:
             - mountPath: /usr/share/opensearch/snapshots
               name: snapshots-repository
         {{- if .Values.opensearch.audit }}
-            - mountPath: {{ .Values.opensearch.configDirectory }}/audit.yml
+            - mountPath: {{ .Values.opensearch.configDirectory }}/opensearch-security/audit.yml
               name: config
               subPath: audit.yml
         {{- end }}
