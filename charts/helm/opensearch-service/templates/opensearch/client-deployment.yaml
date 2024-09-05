@@ -147,11 +147,6 @@ spec:
 {{ toYaml . | indent 12 }}
     {{- end }}
           volumeMounts:
-        {{- if .Values.opensearch.audit }}
-            - mountPath: {{ .Values.opensearch.configDirectory }}/opensearch-security/audit.yml
-              name: config
-              subPath: audit.yml
-        {{- end }}
         {{- if .Values.opensearch.config }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/opensearch.yml
               name: config

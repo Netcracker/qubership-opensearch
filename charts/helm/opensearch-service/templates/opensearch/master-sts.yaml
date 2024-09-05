@@ -217,11 +217,6 @@ spec:
               subPath: {{ .Values.opensearch.master.persistence.subPath }}
             - mountPath: /usr/share/opensearch/snapshots
               name: snapshots-repository
-        {{- if .Values.opensearch.audit }}
-            - mountPath: {{ .Values.opensearch.configDirectory }}/opensearch-security/audit.yml
-              name: config
-              subPath: audit.yml
-        {{- end }}
         {{- if .Values.opensearch.config }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/opensearch.yml
               name: config
