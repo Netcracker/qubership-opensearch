@@ -13,17 +13,17 @@ You can find more detailed information about audit logs and their configuration 
 
 # Configuration
 
-To enable OpenSearch audit logs need to add `plugins.security.audit.config.disabled_rest_categories: NONE` config into
-the `opensearch.audit` parameter:
+To enable all OpenSearch audit logs need to set `disabledRestCategories` config empty into the 
+`opensearch.audit.disabledRestCategories` parameter:
 
 ```yaml
 opensearch:
   audit:
-    plugins.security.audit.config.disabled_rest_categories: NONE
+    disabledRestCategories: []
 ```
 
-By default, `plugins.security.audit.config.disabled_rest_categories: AUTHENTICATED, GRANTED_PRIVILEGES` specified so 
-successfully authenticated events and successful request events are ignored.
+By default, `disabledRestCategories: ["AUTHENTICATED", "GRANTED_PRIVILEGES"]` specified so successfully authenticated 
+events and successful request events are ignored.
 
 ## Example of Events
 
