@@ -302,4 +302,4 @@ fi
 log "END"
 
 # Uncomment it to run sleep & log printing
-# print_log
+print_log
