@@ -46,3 +46,4 @@ RUN addgroup ${GROUP_NAME} && adduser -D -G ${GROUP_NAME} -u ${USER_UID} ${USER_
 USER ${USER_UID}
 
 ENTRYPOINT ["/manager"]
+
