@@ -14,7 +14,7 @@ You can find more detailed information about audit logs and their configuration 
 # Configuration
 
 To enable all OpenSearch audit logs need to set `disabledRestCategories` config empty into the 
-`opensearch.audit.disabledRestCategories` parameter:
+`opensearch.audit` parameter or specify necessary set of categories. For more information, see [Tracked Events](https://opensearch.org/docs/latest/security/audit-logs/index/#tracked-events).
 
 ```yaml
 opensearch:
@@ -22,8 +22,8 @@ opensearch:
     disabledRestCategories: []
 ```
 
-By default, `disabledRestCategories: ["AUTHENTICATED", "GRANTED_PRIVILEGES"]` specified so successfully authenticated 
-events and successful request events are ignored.
+By default, `opensearch.audit` parameter is empty so default `["AUTHENTICATED", "GRANTED_PRIVILEGES"]` applied. 
+In this case successfully authenticated events and successful request events are ignored.
 
 ## Example of Events
 
