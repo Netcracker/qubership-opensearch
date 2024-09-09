@@ -686,6 +686,7 @@ opensearch:
         secretName: ""
         secretKey: ""
 
+  audit: {}
   config:
     ## Example Config
     plugins.security.allow_unsafe_democertificates: true

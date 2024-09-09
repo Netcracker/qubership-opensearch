@@ -77,8 +77,8 @@ Corresponding REST API or Dashboards should be used for this purpose.
 
 # Logging
 
-Security events and critical operations should be logged for audit purposes. You can find more detailed information
-about audit logs and their configuration in official documentation [OpenSearch Audit Logs](https://opensearch.org/docs/latest/security-plugin/audit-logs/index/).
+Security events and critical operations should be logged for audit purposes. You can find more details about enabling 
+audit logging in [Audit Guide](/docs/public/audit.md).
 
 Samples of audit logs:
 
