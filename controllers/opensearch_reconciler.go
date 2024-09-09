@@ -59,6 +59,14 @@ type OpenSearchSettings struct {
 	} `json:"persistent"`
 }
 
+type OpenSearchAuditConfig struct {
+	Config struct {
+		Enabled    bool                   `json:"enabled"`
+		Audit      map[string]interface{} `json:"audit"`
+		Compliance map[string]interface{} `json:"compliance"`
+	} `json:"config"`
+}
+
 type OpenSearchReconciler struct {
 	cr         *opensearchservice.OpenSearchService
 	logger     logr.Logger
@@ -572,6 +580,12 @@ func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
 		}
 		return restClient, err
 	}
+	if r.cr.Spec.OpenSearch.DisabledRestCategories != nil {
+		err := r.updateAuditConfiguration(restClient)
+		if err != nil {
+			return restClient, err
+		}
+	}
 
 	opensearchConfigHash, err :=
 		r.reconciler.calculateSecretDataHash(r.cr.Spec.OpenSearch.SecurityConfigurationName, opensearchConfigHashName, r.cr, r.logger)
@@ -714,6 +728,38 @@ func (r OpenSearchReconciler) removeUser(username string, restClient *util.RestC
 	return err
 }
 
+// updateAuditConfiguration updates security configuration for audit logging in OpenSearch
+func (r OpenSearchReconciler) updateAuditConfiguration(restClient *util.RestClient) error {
+	requestPath := "_plugins/_security/api/audit"
+	_, responseBody, err := restClient.SendRequest(http.MethodGet, requestPath, nil)
+	if err != nil {
+		log.Error(err, "An error occurred during audit config request")
+		return err
+	}
+	var auditConfig OpenSearchAuditConfig
+	err = json.Unmarshal(responseBody, &auditConfig)
+	if err != nil {
+		log.Error(err, "An error occurred during unmarshalling audit config")
+		return err
+	}
+	auditConfig.Config.Audit["disabled_rest_categories"] = r.cr.Spec.OpenSearch.DisabledRestCategories
+	body, _ := json.Marshal(auditConfig.Config)
+	if err != nil {
+		log.Error(err, "An error occurred during marshalling audit config")
+		return err
+	}
+	requestPath = "_plugins/_security/api/audit/config"
+	statusCode, responseBody, err := restClient.SendRequest(http.MethodPut, requestPath, bytes.NewReader(body))
+	if err == nil {
+		if statusCode == http.StatusOK {
+			r.logger.Info("The audit config successfully updated")
+			return nil
+		}
+		return fmt.Errorf("audit config update went wrong: [%d] %s", statusCode, responseBody)
+	}
+	return err
+}
+
 // updateSecurityConfiguration updates security configuration in OpenSearch
 func (r OpenSearchReconciler) updateSecurityConfiguration(restClient *util.RestClient) error {
 	secret, err := r.reconciler.findSecret(r.cr.Spec.OpenSearch.SecurityConfigurationName, r.cr.Namespace, r.logger)
@@ -801,44 +847,44 @@ func (r OpenSearchReconciler) mergeBackendRolesLists(oldSecretList []string, new
 }
 
 func (r OpenSearchReconciler) updateRoleMappingBackendRoles(role string, oldList []string, newList []string, restClient *util.RestClient) error {
-    requestPath := fmt.Sprintf("_plugins/_security/api/rolesmapping/%s", role)
-    statusCode, responseBody, err := restClient.SendRequest(http.MethodGet, requestPath, nil)
-    if err != nil {
-        return err
-    }
-    if (statusCode != http.StatusOK) && (statusCode != http.StatusNotFound) {
-        return fmt.Errorf("can not get rolemapping for role %s: [%d] %s", role, statusCode, responseBody)
-    }
-    var roleMappingParameters OpenSearchRoleMapping
-    if statusCode == http.StatusOK {
-        var result map[string]OpenSearchRoleMapping
-        if err = json.Unmarshal(responseBody, &result); err != nil {
-            r.logger.Error(err, "Error while unmarshalling rolemapping")
-            return err
-        }
-        roleMappingParameters = result[role]
-    } else {
-        roleMappingParameters.Hosts = []string{}
-        roleMappingParameters.Users = []string{}
-        roleMappingParameters.AndBackendRoles = []string{}
-    }
-    finalBackendRoles := r.mergeBackendRolesLists(oldList, newList, roleMappingParameters.BackendRoles)
-    roleMappingParameters.Reserved = false
-    roleMappingParameters.Hidden = false
-    roleMappingParameters.BackendRoles = finalBackendRoles
-    bytes_, err := json.Marshal(roleMappingParameters)
-    if err != nil {
-        r.logger.Error(err, "Error while marshalling rolemapping")
-        return err
-    }
-    statusCode, responseBody, err = restClient.SendRequest(http.MethodPut, requestPath, strings.NewReader(string(bytes_)))
-    if err == nil {
-        if (statusCode == http.StatusOK) || (statusCode == http.StatusCreated) {
-            return nil
-        }
-        return fmt.Errorf("can not update or create rolemapping for role %s: [%d] %s", role, statusCode, responseBody)
-    }
-    return err
+	requestPath := fmt.Sprintf("_plugins/_security/api/rolesmapping/%s", role)
+	statusCode, responseBody, err := restClient.SendRequest(http.MethodGet, requestPath, nil)
+	if err != nil {
+		return err
+	}
+	if (statusCode != http.StatusOK) && (statusCode != http.StatusNotFound) {
+		return fmt.Errorf("can not get rolemapping for role %s: [%d] %s", role, statusCode, responseBody)
+	}
+	var roleMappingParameters OpenSearchRoleMapping
+	if statusCode == http.StatusOK {
+		var result map[string]OpenSearchRoleMapping
+		if err = json.Unmarshal(responseBody, &result); err != nil {
+			r.logger.Error(err, "Error while unmarshalling rolemapping")
+			return err
+		}
+		roleMappingParameters = result[role]
+	} else {
+		roleMappingParameters.Hosts = []string{}
+		roleMappingParameters.Users = []string{}
+		roleMappingParameters.AndBackendRoles = []string{}
+	}
+	finalBackendRoles := r.mergeBackendRolesLists(oldList, newList, roleMappingParameters.BackendRoles)
+	roleMappingParameters.Reserved = false
+	roleMappingParameters.Hidden = false
+	roleMappingParameters.BackendRoles = finalBackendRoles
+	bytes_, err := json.Marshal(roleMappingParameters)
+	if err != nil {
+		r.logger.Error(err, "Error while marshalling rolemapping")
+		return err
+	}
+	statusCode, responseBody, err = restClient.SendRequest(http.MethodPut, requestPath, strings.NewReader(string(bytes_)))
+	if err == nil {
+		if (statusCode == http.StatusOK) || (statusCode == http.StatusCreated) {
+			return nil
+		}
+		return fmt.Errorf("can not update or create rolemapping for role %s: [%d] %s", role, statusCode, responseBody)
+	}
+	return err
 }
 
 func (r OpenSearchReconciler) updateSecurityConfig(configuration interface{}, restClient *util.RestClient) error {
