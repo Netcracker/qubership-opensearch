@@ -84,13 +84,16 @@ create_certificates() {
       -H "Content-Type: application/json" \
       -H "Accept: application/json" \
       -d "{ \"kind\": \"Secret\", \"apiVersion\": \"v1\", \"metadata\": { \"name\": \"${secret_name}\", \"namespace\": \"${NAMESPACE}\" }, \"type\": \"${secret_type}\", \"data\": { \"${certificate_name}\": \"$(cat ${certificate} | base64 | tr -d '\n')\", \"${private_key_name}\": \"$(cat ${private_key} | base64 | tr -d '\n')\", \"${root_ca_name}\": \"$(cat ${root_ca} | base64 | tr -d '\n')\" } }")
+    log "This is the end of POST"
   else
+
     # Updates secret
     result=$(curl -sSk -X PUT -H "Authorization: Bearer $token" \
       "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets/${secret_name}" \
       -H "Content-Type: application/json" \
       -H "Accept: application/json" \
       -d "{ \"kind\": \"Secret\", \"apiVersion\": \"v1\", \"metadata\": { \"name\": \"${secret_name}\", \"namespace\": \"${NAMESPACE}\" }, \"type\": \"${secret_type}\",  \"data\": { \"${certificate_name}\": \"$(cat ${certificate} | base64 | tr -d '\n')\", \"${private_key_name}\": \"$(cat ${private_key} | base64 | tr -d '\n')\", \"${root_ca_name}\": \"$(cat ${root_ca} | base64 | tr -d '\n')\" } }")
+    log "This is the end of PUT"
   fi
   local code=$(echo "${result}" | jq -r ".code")
   local message=$(echo "${result}" | jq -r ".message")
