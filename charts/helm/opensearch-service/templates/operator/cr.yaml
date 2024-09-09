@@ -19,6 +19,9 @@ spec:
   opensearch:
     dedicatedClientPod: {{ .Values.opensearch.client.dedicatedPod.enabled }}
     dedicatedDataPod: {{ and .Values.opensearch.data.dedicatedPod.enabled .Values.opensearch.data.enabled }}
+    {{- if (ne (.Values.opensearch.audit.disabledRestCategories | toString) "<nil>") }}
+    disabledRestCategories: {{ .Values.opensearch.audit.disabledRestCategories  }}
+    {{- end }}
     compatibilityModeEnabled: {{ .Values.opensearch.compatibilityModeEnabled }}
     rollingUpdate: {{ .Values.opensearch.rollingUpdate }}
     readinessTimeout: {{ .Values.opensearch.readinessTimeout | default "800s" }}
