@@ -88,7 +88,7 @@ create_certificates() {
   else
     log "This is the start of PUT"
     # Updates secret
-    result=$(curl -sSk -X PUT -H "Authorization: Bearer $token" \
+    result=$(curl -sSk -X PATCH -H "Authorization: Bearer $token" \
       "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets/${secret_name}" \
       -H "Content-Type: application/json" \
       -H "Accept: application/json" \
