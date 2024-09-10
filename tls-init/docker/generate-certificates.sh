@@ -98,6 +98,7 @@ create_certificates() {
   local code=$(echo "${result}" | jq -r ".code")
   local message=$(echo "${result}" | jq -r ".message")
   if [[ "$code" -ne "null" ]]; then
+    print_log
     echo "Certificates cannot be generated because of error with '$code' code and '$message' message"
     exit 1
   fi
