@@ -86,20 +86,16 @@ create_certificates() {
       -d "{ \"kind\": \"Secret\", \"apiVersion\": \"v1\", \"metadata\": { \"name\": \"${secret_name}\", \"namespace\": \"${NAMESPACE}\" }, \"type\": \"${secret_type}\", \"data\": { \"${certificate_name}\": \"$(cat ${certificate} | base64 | tr -d '\n')\", \"${private_key_name}\": \"$(cat ${private_key} | base64 | tr -d '\n')\", \"${root_ca_name}\": \"$(cat ${root_ca} | base64 | tr -d '\n')\" } }")
     log "This is the end of POST"
   else
-    log "This is the start of PUT"
     # Updates secret
     result=$(curl -sSk -X PATCH -H "Authorization: Bearer $token" \
       "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets/${secret_name}" \
       -H "Content-Type: application/json-patch+json" \
       -H "Accept: application/json" \
       -d "[ { \"op\": \"replace\", \"path\": \"/data/${certificate_name}\", \"value\": \"$(cat ${certificate} | base64 | tr -d '\n')\" }, { \"op\": \"replace\", \"path\": \"/data/${private_key_name}\", \"value\": \"$(cat ${private_key} | base64 | tr -d '\n')\" }, { \"op\": \"replace\", \"path\": \"/data/${root_ca_name}\", \"value\": \"$(cat ${root_ca} | base64 | tr -d '\n')\" } ]")
-    # { \"kind\": \"Secret\", \"apiVersion\": \"v1\", \"metadata\": { \"name\": \"${secret_name}\", \"namespace\": \"${NAMESPACE}\" }, \"type\": \"${secret_type}\",  \"data\": { \"${certificate_name}\": \"$(cat ${certificate} | base64 | tr -d '\n')\", \"${private_key_name}\": \"$(cat ${private_key} | base64 | tr -d '\n')\", \"${root_ca_name}\": \"$(cat ${root_ca} | base64 | tr -d '\n')\" } }")
-    log "This is the end of PUT"
   fi
   local code=$(echo "${result}" | jq -r ".code")
   local message=$(echo "${result}" | jq -r ".message")
   if [[ "$code" -ne "null" ]]; then
-    print_log
     echo "Certificates cannot be generated because of error with '$code' code and '$message' message"
     exit 1
   fi
@@ -304,5 +300,4 @@ fi
 log "END"
 
 # Uncomment it to run sleep & log printing
-print_log
-sleep 300
+# print_log
