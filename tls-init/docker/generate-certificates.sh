@@ -304,3 +304,4 @@ log "END"
 
 # Uncomment it to run sleep & log printing
 print_log
+sleep 300
