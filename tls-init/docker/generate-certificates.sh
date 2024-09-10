@@ -295,9 +295,14 @@ if [[ $(cert_expires "transport" $TRANSPORT_CERTIFICATES_SECRET_NAME) == true ||
     subject="/CN=opensearch${subject_common}"
     create_certificates "rest" "$REST_CERTIFICATES_SECRET_NAME"
   fi
-  delete_pods
+  string="transport-root"
+  output=$(curl -sSk -X GET -H "Authorization: Bearer $token" "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/statefulsets/opensearch")
+  if ! [[ $output =~ $string ]] ; then
+        log "TEST: Certs are with new type"
+        delete_pods
+  fi
 fi
 log "END"
 
 # Uncomment it to run sleep & log printing
-# print_log
+ print_log
