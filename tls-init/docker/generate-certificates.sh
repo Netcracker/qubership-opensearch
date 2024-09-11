@@ -11,6 +11,11 @@ print_log() {
   sleep 1m
 }
 
+exit_with_log() {
+  print_log
+  exit $1
+}
+
 # Prepares necessary entities for certificates generation
 prepare() {
   token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
@@ -97,7 +102,7 @@ create_certificates() {
   local message=$(echo "${result}" | jq -r ".message")
   if [[ "$code" -ne "null" ]]; then
     echo "Certificates cannot be generated because of error with '$code' code and '$message' message"
-    exit 1
+    exit_with_log 1
   fi
 }
 
@@ -155,7 +160,7 @@ certs_path_are_legacy() {
   local log_message="Mixed subpath detected, Job can't process it. Please check the secret ${secret} & update it manually."
   log "${log_message}"
   echo 2>&1 "${log_message}"
-  exit 1
+  exit_with_log 1
 }
 
 # Migrates the certificates and key from legacy secret paths to the new
@@ -237,7 +242,7 @@ secret_exists() {
     echo false
   else
     echo 2>&1 "Secret cannot be obtained because of error with '$code' code and '$message' message"
-    exit 1
+    exit_with_log 1
   fi
 }
 
