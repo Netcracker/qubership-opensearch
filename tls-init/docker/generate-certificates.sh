@@ -253,6 +253,7 @@ cert_expires() {
     if [[ $(certs_path_are_legacy ${type} ${secret}) == true ]]; then
       migrate_paths ${type} ${secret}
     fi
+    echo true
     curl -sSk -X GET -H "Authorization: Bearer $token" "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets/${secret}" | jq --arg type "tls.crt" '.data[$type]' | tr -d '"' | base64 --decode > crt.pem
     if [[ $(($(openssl x509 -enddate -noout -in crt.pem | awk '{print $4}') - $(date | awk '{print $6}'))) -lt 10  && "${RENEW_CERTS}" == "true" ]]; then
       log "cert with type $1 was expired"
