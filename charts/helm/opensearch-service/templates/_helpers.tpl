@@ -34,13 +34,21 @@ heritage: "{{ .Release.Service }}"
 {{- end -}}
 
 {{/*
-Common opensearch operator chart related resources labels
+The most common OpenSearch resources labels
 */}}
-{{- define "opensearch-service.defaultLabels" -}}
+{{- define "opensearch-service.coreLabels" -}}
 app.kubernetes.io/version: '{{ .Values.ARTIFACT_DESCRIPTOR_VERSION | trunc 63 | trimAll "-_." }}'
-app.kubernetes.io/component: 'backend'
 app.kubernetes.io/part-of: '{{ .Values.PART_OF }}'
 {{- end -}}
+
+{{/*
+Core OpenSearch resources labels with backend component label
+*/}}
+{{- define "opensearch-service.defaultLabels" -}}
+{{ include "opensearch-service.coreLabels" . }}
+app.kubernetes.io/component: 'backend'
+{{- end -}}
+
 
 {{/*
 Define labels for Deployment/StatefulSet selectors.
