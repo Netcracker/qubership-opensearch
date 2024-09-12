@@ -300,7 +300,7 @@ if [[ $(cert_expires "transport" $TRANSPORT_CERTIFICATES_SECRET_NAME) == true ||
     create_certificates "rest" "$REST_CERTIFICATES_SECRET_NAME"
   fi
   string="transport-root"
-  output=$(curl -sSk -X GET -H "Authorization: Bearer $token" "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/statefulsets")
+  output=$(curl -sSk -X GET -H "Authorization: Bearer $token" "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/statefulset/${MASTER_STATEFULSET_NAME}" | jq '.spec.template.spec.containers[0].volumeMounts')
   if ! [[ $output =~ $string ]] ; then
         log "secrets type is kubernetes.io/tls. Deleting pods..."
         delete_pods
@@ -309,4 +309,4 @@ fi
 log "END"
 
 # Uncomment it to run sleep & log printing
-# print_log
+ print_log
