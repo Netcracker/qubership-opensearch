@@ -5,7 +5,7 @@
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= 0.0.1
 
-CRD_VERSION=1.7.0
+CRD_VERSION=1.11.0
 
 LOCALBIN ?= $(shell pwd)/bin
 $(LOCALBIN):
