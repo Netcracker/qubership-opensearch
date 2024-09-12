@@ -49,7 +49,6 @@ Core OpenSearch resources labels with backend component label
 app.kubernetes.io/component: 'backend'
 {{- end -}}
 
-
 {{/*
 Define labels for Deployment/StatefulSet selectors.
 We cannot have the chart label here as it will prevent upgrades.
