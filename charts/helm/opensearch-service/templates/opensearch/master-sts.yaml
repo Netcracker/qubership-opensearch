@@ -18,6 +18,7 @@ metadata:
     app.kubernetes.io/instance: {{ cat (printf "%s"  (include "master-nodes" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
     app.kubernetes.io/technology: java-others
     role: master
+    clone-mode-type: data
   name: {{ template "master-nodes" . }}
   namespace: {{ .Release.Namespace }}
 spec:

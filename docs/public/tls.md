@@ -18,6 +18,9 @@ and `dbaasAdapter.dbaasAggregatorRegistrationAddress` contains `https` address.
 
 **Important:** By default OpenSearch is deployed with self-signed certificates for development purposes. To integration with Cert Manager please follow the example sections below.
 
+**Note:** Full namespace backup and restore procedures are not supported with enabled TLS mode due to usage of namespaces
+in generated certificates. Copying of TLS certificates in a separate namespace as-is is unavailable.
+
 # SSL Configuration using CertManager
 
 ## Minimal example
