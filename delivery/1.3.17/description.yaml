@@ -122,17 +122,17 @@ cloud:
 integration:
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: 0.3.11
+    location: 0.3.14
     docker-image-id: timestamp
     deploy-param: opensearchOperator
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/disaster-recovery-daemon
-    location: 0.3.5
+    location: 0.3.10
     docker-image-id: timestamp
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: 0.3.11
+    location: 0.3.14
     prefix: integration-tests
     docker-image-id: timestamp
     deploy-param: opensearchIntegrationTests
@@ -143,12 +143,12 @@ integration:
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/elasticsearch-telegraf
-    location: 0.1.24
+    location: 0.1.29
     docker-image-id: timestamp
     deploy-param: opensearchMonitoring
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/dbaas-opensearch-adapter
-    location: 0.1.13
+    location: 0.1.14
     docker-image-id: timestamp
     deploy-param: opensearchDbaasAdapter
   - type: find-latest-deployment-descriptor
@@ -169,7 +169,7 @@ integration:
     deploy-param: opensearchIndicesCleaner
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.Streaming/deployment-status-provisioner
-    location: 0.0.18
+    location: 0.0.23
     docker-image-id: timestamp
     deploy-param: deploymentStatusProvisioner
   - type: image
@@ -179,25 +179,25 @@ integration:
     docker-image: artifactorycn.netcracker.com:17064/library/busybox:1.35.0
     deploy-param: busybox
   - type: image
-    docker-image: artifactorycn.netcracker.com:17014/product/prod.platform.streaming_docker-kubectl:0.0.2_20230324-083045
+    docker-image: artifactorycn.netcracker.com:17014/product/prod.platform.streaming_docker-kubectl:0.0.3_20240802-015529
     deploy-param: kubectl
   - type: scripts
     repo: PROD.Platform.ElasticStack/opensearch-service
-    location: 0.3.11
+    location: 0.3.13
     alias: timestamp
     zip-name: migration-artifacts.zip
     name: migration-artifacts
     pre-deploy-entry-point: migration-artifacts/migration-artifacts.sh
   - type: scripts
     repo: PROD.Platform.ElasticStack/deployment-utils
-    location: 0.1.8
+    location: 0.1.13
     alias: timestamp
     zip-name: devops-scripts.zip
     name: crd-upgrade
     pre-deploy-entry-point: crd-upgrade.sh
   - type: scripts
     repo: PROD.Platform.ElasticStack/deployment-utils
-    location: 0.1.8
+    location: 0.1.13
     alias: latest
     zip-name: devops-scripts.zip
     name: privileged-pss
