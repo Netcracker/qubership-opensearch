@@ -9,9 +9,8 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}  
 spec:
   secretName: {{ template "curator.certSecretName" . }}
-  duration: {{ default 365 .Values.global.tls.generateCerts.durationDays | mul 24 }}h
+  duration: {{ (default 365 .Values.global.tls.generateCerts.durationDays | mul 24) }}h0m0s
   commonName: opensearch-curator-ca
-  isCA: false
   privateKey:
     rotationPolicy: Always
     algorithm: RSA
