@@ -10,6 +10,7 @@ metadata:
     app.kubernetes.io/instance: {{ cat (printf "%s-data"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
     app.kubernetes.io/technology: java-others
     role: data
+    clone-mode-type: data
   name: {{ template "opensearch.fullname" . }}-data
   namespace: {{ .Release.Namespace }}
 spec:
