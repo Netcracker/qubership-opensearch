@@ -48,6 +48,8 @@ spec:
               value: {{ template "opensearch.transport-cert-secret-name" . }}
             - name: ADMIN_CERTIFICATES_SECRET_NAME
               value: {{ template "opensearch.admin-cert-secret-name" . }}
+            - name: MASTER_STATEFULSET_NAME
+              value: {{ template "master-nodes" . }}
             {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - name: REST_CERTIFICATES_SECRET_NAME
               value: {{ template "opensearch.rest-cert-secret-name" . }}
