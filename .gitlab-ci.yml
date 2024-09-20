@@ -14,7 +14,7 @@ variables:
   OPENSEARCH_PROPERTIES_FILE: "opensearch.properties"
   OPENSEARCH_TESTS_PROPERTIES_FILE: "opensearchtests.properties"
   JENKINS_URL: "https://cisrvrecn.netcracker.com"
-  SNIPPET_ID: 3126
+  SNIPPET_ID: 3332
 
 stages:
   - linter
