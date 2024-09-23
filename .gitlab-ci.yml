@@ -52,7 +52,7 @@ LinterValuesSchemaJSON:
   tags:
     - NETCRACKER
 
-MR Labels:
+MR Linter:
   stage: linter
   tags:
     - NETCRACKER
