@@ -6,7 +6,7 @@ ENV ROBOT_OUTPUT=/opt/robot/output \
     STATUS_CUSTOM_RESOURCE_VERSION=v1 \
     STATUS_CUSTOM_RESOURCE_PLURAL=deployments
 
-RUN mkdir -p ${ROBOT_HOME} \
+RUN mkdir -m 775 -p ${ROBOT_HOME} \
     && mkdir -m 775 -p ${ROBOT_OUTPUT}
 
 COPY docker/pip.conf /etc/pip.conf
