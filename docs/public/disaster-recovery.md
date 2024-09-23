@@ -484,7 +484,7 @@ The OpenSearch disaster recovery REST server provides three methods of interacti
         * `running` - The switchover is in progress.
         * `done` - The switchover is successful.
         * `failed` - Something went wrong during the switchover.
-    * `comment` is the message that contains a detailed description of the problem and is only filled out if the `status` value is "failed".
+    * `message` is the message that contains a detailed description of the problem and is only filled out if the `status` value is "failed".
 
 * The `POST` `sitemanager` method allows switching mode for the current side of an OpenSearch cluster. You can run this method from within any OpenSearch pod as follows:
 
@@ -523,7 +523,7 @@ The OpenSearch disaster recovery REST server provides three methods of interacti
 
     * `mode` is the mode that is applied to the OpenSearch cluster side. The possible values are "active", "standby" and "disabled".
     * `status` is the state of the request on the REST server. The only possible value is "failed", when something goes wrong while processing the request.
-    * `comment` is the message which contains a detailed description of the problem and is only filled out if the `status` value is "failed".
+    * `message` is the message which contains a detailed description of the problem and is only filled out if the `status` value is "failed".
 
 **Note**: If TLS for Disaster Recovery is enabled (`global.tls.enabled` and `global.disasterRecovery.tls.enabled` parameters are set to `true`), use `https` protocol and `8443` port in API requests
 rather than `http` protocol and `8080` port.
