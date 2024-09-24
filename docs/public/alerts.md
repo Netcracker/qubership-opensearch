@@ -41,7 +41,7 @@ For more information, refer to [CPU Overload](scenarios/cpu_overload.md).
 
 One of OpenSearch pods uses 75% of the disk.
 
-For more information, refer to [Data Nodes are Out of Space](./troubleshooting.md#common-problemsdata-nodes-are-out-of-space).
+For more information, refer to [Data Nodes are Out of Space](./troubleshooting.md#data-nodes-are-out-of-space).
 
 ### Possible Causes
 
@@ -74,7 +74,7 @@ For more information, refer to [Data Nodes are Out of Space](./troubleshooting.m
 
 One of OpenSearch pods uses 85% of the disk.
 
-For more information, refer to [Data Nodes are Out of Space](./troubleshooting.md#common-problemsdata-nodes-are-out-of-space).
+For more information, refer to [Data Nodes are Out of Space](./troubleshooting.md#data-nodes-are-out-of-space).
 
 ### Possible Causes
 
@@ -108,7 +108,7 @@ For more information, refer to [Data Nodes are Out of Space](./troubleshooting.m
 
 One of OpenSearch pods uses 95% of the disk.
 
-For more information, refer to [Data Nodes are Out of Space](./troubleshooting.md#common-problemsdata-nodes-are-out-of-space).
+For more information, refer to [Data Nodes are Out of Space](./troubleshooting.md#data-nodes-are-out-of-space).
 
 ### Possible Causes
 
@@ -175,7 +175,7 @@ For more information, refer to [Memory Limit](scenarios/memory_limit.md).
 
 OpenSearch cluster is degraded, that is, at least one of the nodes have failed, but cluster is able to work.
 
-For more information, refer to [Cluster Status is Failed or Degraded](./troubleshooting.md#common-problemscluster-status-is-failed-or-degraded).
+For more information, refer to [Cluster Status is Failed or Degraded](./troubleshooting.md#cluster-status-is-failed-or-degraded).
 
 ### Possible Causes
 
@@ -212,7 +212,7 @@ For more information, refer to [Cluster Status is Failed or Degraded](./troubles
 
 OpenSearch cluster is down, and there are no available pods.
 
-For more information, refer to [Cluster Status is N/A](./troubleshooting.md#common-problemscluster-status-is-na) and [Cluster Status is Failed or Degraded](./troubleshooting.md#common-problemscluster-status-is-failed-or-degraded).
+For more information, refer to [Cluster Status is N/A](./troubleshooting.md#cluster-status-is-na) and [Cluster Status is Failed or Degraded](./troubleshooting.md#cluster-status-is-failed-or-degraded).
 
 ### Possible Causes
 
@@ -277,7 +277,7 @@ OpenSearch DBaaS adapter is not working.
 
 The last OpenSearch backup has finished with `Failed` status.
 
-For more information, refer to [Last Backup Has Failed](./troubleshooting.md#common-problemslast-backup-has-failed).
+For more information, refer to [Last Backup Has Failed](./troubleshooting.md#last-backup-has-failed).
 
 ### Possible Causes
 
@@ -297,7 +297,7 @@ For more information, refer to [Last Backup Has Failed](./troubleshooting.md#com
 ### Recommended Actions to Resolve Issue
 
 1. Fix issues with backup storage if necessary.
-2. Follow [Last Backup Has Failed](./troubleshooting.md#common-problemslast-backup-has-failed) for additional steps.
+2. Follow [Last Backup Has Failed](./troubleshooting.md#problemslast-backup-has-failed) for additional steps.
 
 ## OpenSearchQueryIsTooSlowAlert
 
