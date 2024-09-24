@@ -274,7 +274,7 @@ Whether transport certificates are Specified
     {{- end -}}
   {{- end -}}
   {{- if and $filled .Values.global.tls.generateCerts.enabled -}}
-    {{- fail "Incorrect deployment parameters configuration: REST TLS certificates are defined in the parameters and global.tls.generateCerts.enabled is true. Please choose one of the TLS deploying configurations." -}}
+    {{- fail "Incorrect deployment parameters configuration: Transport TLS certificates are defined in the parameters and global.tls.generateCerts.enabled is true. Please choose one of the TLS deploying configurations." -}}
   {{- end -}}
   {{- $filled -}}
 {{- end -}}
@@ -306,7 +306,7 @@ Whether admin certificates are Specified
     {{- end -}}
   {{- end -}}
   {{- if and $filled .Values.global.tls.generateCerts.enabled -}}
-    {{- fail "Incorrect deployment parameters configuration: REST TLS certificates are defined in the parameters and global.tls.generateCerts.enabled is true. Please choose one of the TLS deploying configurations." -}}
+    {{- fail "Incorrect deployment parameters configuration: Admin TLS certificates are defined in the parameters and global.tls.generateCerts.enabled is true. Please choose one of the TLS deploying configurations." -}}
   {{- end -}}
   {{- $filled -}}
 {{- end -}}
