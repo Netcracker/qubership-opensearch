@@ -1,0 +1,138 @@
+DEPLOY_W_HELM: "true"
+global:
+  cloudIntegrationEnabled: false
+  tls:
+    enabled: true
+    generateCerts:
+      enabled: true
+      certProvider: helm
+      clusterIssuerName: ""
+  disasterRecovery:
+    tls:
+      enabled: true
+      certificates:
+        crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUR1...
+        key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQp...
+        ca: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURKR...
+      secretName: "opensearch-drd-tls-secret"
+    mode: active
+    remoteCluster: opensearch.opensearch.svc.cluster-2.local:9300
+    indicesPattern: "*"
+    httpAuth:
+      enabled: true
+      smNamespace: site-manager
+      smServiceAccountName: sm-auth-sa
+      restrictedEnvironment: false
+opensearch:
+  tls:
+    enabled: true
+    transport:
+      certificates:
+        crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVkakNDQTE2Z0F3...
+        key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2QUlCQURBTk...
+        ca: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUREVENDQWZXZ0F3S...
+    rest:
+      certificates:
+        crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVjVENDQTFtZ0F...
+        key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJ...
+        ca: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUREVENDQWZXZ0F3...
+    admin:
+      certificates:
+        crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURCVENDQWUwQ0Z...
+        key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJ...
+        ca: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUREVENDQWZXZ0F3...
+  securityConfig:
+    authc:
+      basic:
+        username: admin
+        password: admin
+  securityContextCustom:
+    runAsUser: 1000
+    fsGroup: 1000
+  master:
+    persistence:
+      storageClass: csi-cinder-sc-delete
+      size: 2Gi
+    resources:
+      requests:
+        cpu: 400m
+        memory: 2Gi
+      limits:
+        cpu: 700m
+        memory: 2Gi
+  snapshots:
+    enabled: true
+    s3:
+      enabled: true
+      pathStyleAccess: true
+      url: http://test-minio-gateway-nas.qa-kubernetes.openshift.sdntest.netcracker.com/
+      bucket: opensearch-qa-k8s
+      keyId: Z4nz2bxWnWM36lf3K21y
+      keySecret: oqtAdywaB7c7OJWHQ9rLVuJcKjpUR8iSJfXMPCLr
+  client:
+    ingress:
+      enabled: true
+      hosts:
+        - opensearch-opensearch-service.qa-kubernetes.openshift.sdntest.netcracker.com
+dbaasAdapter:
+  enabled: true
+  tls:
+    enabled: true
+    certificates:
+      crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURyekNDQXBlZ0F...
+      key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcEFJQkF...
+      ca: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURPRENDQWlDZ0F3...
+    secretName: "dbaas-opensearch-adapter-tls-secret"
+  dbaasAdapterAddress: https://dbaas-opensearch-adapter.opensearch:8443
+  dbaasAggregatorRegistrationAddress: https://dbaas-aggregator.dbaasv1:8443
+  opensearchProtocol: https
+  dbaasAggregatorPhysicalDatabaseIdentifier: opensearch
+  opensearchRepo: snapshots
+  opensearchRepoRoot: /usr/share/opensearch/
+  opensearchPort: 9200
+  dbaasUsername: dbaas-adapter
+  dbaasPassword: dbaas-adapter
+  registrationAuthUsername: cluster-dba
+  registrationAuthPassword: Bnmq5567_PO
+  securityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+monitoring:
+  enabled: true
+  includeIndices: true
+  slowQueries:
+    enabled: true
+dashboards:
+  enabled: true
+  ingress:
+    enabled: true
+    hosts:
+      - host: dashboards-opensearch-service.qa-kubernetes.openshift.sdntest.netcracker.com
+        paths:
+          - path: /
+curator:
+  enabled: true
+  tls:
+    enabled: true
+    certificates:
+      crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURrVENDQW5tZ0F...
+      key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3dJQkF...
+      ca: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURMRENDQWhTZ0F3...
+    secretName: "opensearch-curator-tls-secret"
+  backupSchedule: 0 * * * *
+  evictionPolicy: 0/1d,7d/delete
+  username: backup
+  password: backup
+  securityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+integrationTests:
+  enabled: true
+  tags: smoke
+  opensearchDbaasAdapterPort: 8443
+  opensearchCuratorPort: 8443
+statusProvisioner:
+  lifetimeAfterCompletion: 60
+  integrationTestsTimeout: 900
+  podReadinessTimeout: 900
+ESCAPE_SEQUENCE: "true" 
