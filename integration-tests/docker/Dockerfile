@@ -1,4 +1,4 @@
-FROM artifactorycn.netcracker.com:17008/product/prod.platform.streaming_docker-integration-tests:bugfix_pre_create_robot_home_dir_20240925-063050
+FROM artifactorycn.netcracker.com:17008/product/prod.platform.streaming_docker-integration-tests:bugfix_pre_create_robot_home_dir_20240925-064353
 ENV ROBOT_OUTPUT=/opt/robot/output \
     SERVICE_CHECKER_SCRIPT=${ROBOT_HOME}/opensearch_pods_checker.py \
     STATUS_CUSTOM_RESOURCE_GROUP=apps \
