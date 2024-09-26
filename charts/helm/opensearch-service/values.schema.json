@@ -2990,6 +2990,13 @@
                     "title": "The opensearch.snapshots schema",
                     "description": "opensearch.snapshots parameters"
                 },
+                "audit": {
+                    "type": "object",
+                    "default": {},
+                    "$id": "#/properties/opensearch/properties/audit",
+                    "title": "The opensearch.audit schema",
+                    "description": "The configuration of audit properties for OpenSearch"
+                },
                 "config": {
                     "type": "object",
                     "properties": {},

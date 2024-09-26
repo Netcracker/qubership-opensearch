@@ -11,6 +11,11 @@ print_log() {
   sleep 1m
 }
 
+exit_with_log() {
+  print_log
+  exit $1
+}
+
 # Prepares necessary entities for certificates generation
 prepare() {
   token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
@@ -86,17 +91,17 @@ create_certificates() {
       -d "{ \"kind\": \"Secret\", \"apiVersion\": \"v1\", \"metadata\": { \"name\": \"${secret_name}\", \"namespace\": \"${NAMESPACE}\" }, \"type\": \"${secret_type}\", \"data\": { \"${certificate_name}\": \"$(cat ${certificate} | base64 | tr -d '\n')\", \"${private_key_name}\": \"$(cat ${private_key} | base64 | tr -d '\n')\", \"${root_ca_name}\": \"$(cat ${root_ca} | base64 | tr -d '\n')\" } }")
   else
     # Updates secret
-    result=$(curl -sSk -X PUT -H "Authorization: Bearer $token" \
+    result=$(curl -sSk -X PATCH -H "Authorization: Bearer $token" \
       "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets/${secret_name}" \
-      -H "Content-Type: application/json" \
+      -H "Content-Type: application/json-patch+json" \
       -H "Accept: application/json" \
-      -d "{ \"kind\": \"Secret\", \"apiVersion\": \"v1\", \"metadata\": { \"name\": \"${secret_name}\", \"namespace\": \"${NAMESPACE}\" }, \"data\": { \"${certificate_name}\": \"$(cat ${certificate} | base64 | tr -d '\n')\", \"${private_key_name}\": \"$(cat ${private_key} | base64 | tr -d '\n')\", \"${root_ca_name}\": \"$(cat ${root_ca} | base64 | tr -d '\n')\" } }")
+      -d "[ { \"op\": \"replace\", \"path\": \"/data/${certificate_name}\", \"value\": \"$(cat ${certificate} | base64 | tr -d '\n')\" }, { \"op\": \"replace\", \"path\": \"/data/${private_key_name}\", \"value\": \"$(cat ${private_key} | base64 | tr -d '\n')\" }, { \"op\": \"replace\", \"path\": \"/data/${root_ca_name}\", \"value\": \"$(cat ${root_ca} | base64 | tr -d '\n')\" } ]")
   fi
   local code=$(echo "${result}" | jq -r ".code")
   local message=$(echo "${result}" | jq -r ".message")
   if [[ "$code" -ne "null" ]]; then
     echo "Certificates cannot be generated because of error with '$code' code and '$message' message"
-    exit 1
+    exit_with_log 1
   fi
 }
 
@@ -154,7 +159,7 @@ certs_path_are_legacy() {
   local log_message="Mixed subpath detected, Job can't process it. Please check the secret ${secret} & update it manually."
   log "${log_message}"
   echo 2>&1 "${log_message}"
-  exit 1
+  exit_with_log 1
 }
 
 # Migrates the certificates and key from legacy secret paths to the new
@@ -236,7 +241,7 @@ secret_exists() {
     echo false
   else
     echo 2>&1 "Secret cannot be obtained because of error with '$code' code and '$message' message"
-    exit 1
+    exit_with_log 1
   fi
 }
 
@@ -250,6 +255,7 @@ cert_expires() {
     fi
     curl -sSk -X GET -H "Authorization: Bearer $token" "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets/${secret}" | jq --arg type "tls.crt" '.data[$type]' | tr -d '"' | base64 --decode > crt.pem
     if [[ $(($(openssl x509 -enddate -noout -in crt.pem | awk '{print $4}') - $(date | awk '{print $6}'))) -lt 10  && "${RENEW_CERTS}" == "true" ]]; then
+      log "cert with type $1 was expired"
       echo true
     else
       echo false
@@ -293,7 +299,12 @@ if [[ $(cert_expires "transport" $TRANSPORT_CERTIFICATES_SECRET_NAME) == true ||
     subject="/CN=opensearch${subject_common}"
     create_certificates "rest" "$REST_CERTIFICATES_SECRET_NAME"
   fi
-  delete_pods
+  legacy_path="transport-root"
+  statefulset_mounts=$(curl -sSk -X GET -H "Authorization: Bearer $token" "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/statefulset/${MASTER_STATEFULSET_NAME}" | jq '.spec.template.spec.containers[0].volumeMounts')
+  if ! [[ $statefulset_mounts =~ $legacy_path ]] ; then
+        log "secrets type is kubernetes.io/tls. Deleting pods..."
+        delete_pods
+  fi
 fi
 log "END"
 

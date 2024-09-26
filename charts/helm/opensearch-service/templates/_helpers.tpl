@@ -34,12 +34,19 @@ heritage: "{{ .Release.Service }}"
 {{- end -}}
 
 {{/*
-Common opensearch operator chart related resources labels
+The most common OpenSearch resources labels
+*/}}
+{{- define "opensearch-service.coreLabels" -}}
+app.kubernetes.io/version: '{{ .Values.ARTIFACT_DESCRIPTOR_VERSION | trunc 63 | trimAll "-_." }}'
+app.kubernetes.io/part-of: '{{ .Values.PART_OF }}'
+{{- end -}}
+
+{{/*
+Core OpenSearch resources labels with backend component label
 */}}
 {{- define "opensearch-service.defaultLabels" -}}
-app.kubernetes.io/version: '{{ .Values.ARTIFACT_DESCRIPTOR_VERSION | trunc 63 | trimAll "-_." }}'
+{{ include "opensearch-service.coreLabels" . }}
 app.kubernetes.io/component: 'backend'
-app.kubernetes.io/part-of: '{{ .Values.PART_OF }}'
 {{- end -}}
 
 {{/*
@@ -266,6 +273,9 @@ Whether transport certificates are Specified
         {{- $filled = true -}}
     {{- end -}}
   {{- end -}}
+  {{- if and $filled .Values.global.tls.generateCerts.enabled -}}
+    {{- fail "Incorrect deployment parameters configuration: Transport TLS certificates are defined in the parameters and global.tls.generateCerts.enabled is true. Please choose one of the TLS deploying configurations." -}}
+  {{- end -}}
   {{- $filled -}}
 {{- end -}}
 
@@ -295,6 +305,9 @@ Whether admin certificates are Specified
         {{- $filled = true -}}
     {{- end -}}
   {{- end -}}
+  {{- if and $filled .Values.global.tls.generateCerts.enabled -}}
+    {{- fail "Incorrect deployment parameters configuration: Admin TLS certificates are defined in the parameters and global.tls.generateCerts.enabled is true. Please choose one of the TLS deploying configurations." -}}
+  {{- end -}}
   {{- $filled -}}
 {{- end -}}
 
@@ -322,6 +335,9 @@ Whether rest certificates are Specified
     {{- if $value -}}
         {{- $filled = true -}}
     {{- end -}}
+  {{- end -}}
+  {{- if and $filled .Values.global.tls.generateCerts.enabled -}}
+    {{- fail "Incorrect deployment parameters configuration: REST TLS certificates are defined in the parameters and global.tls.generateCerts.enabled is true. Please choose one of the TLS deploying configurations." -}}
   {{- end -}}
   {{- $filled -}}
 {{- end -}}

@@ -16,6 +16,7 @@ type OpenSearch struct {
 	RollingUpdate             bool       `json:"rollingUpdate,omitempty"`
 	StatefulSetNames          string     `json:"statefulSetNames,omitempty"`
 	ReadinessTimeout          string     `json:"readinessTimeout,omitempty"`
+	DisabledRestCategories    []string   `json:"disabledRestCategories,omitempty"`
 }
 
 type Snapshots struct {

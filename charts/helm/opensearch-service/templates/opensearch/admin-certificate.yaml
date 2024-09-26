@@ -9,9 +9,8 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   secretName: {{ template "opensearch.admin-cert-secret-name" . }}
-  duration: {{ default 365 .Values.global.tls.generateCerts.durationDays | mul 24 }}h
+  duration: {{ default 365 .Values.global.tls.generateCerts.durationDays | mul 24 }}h0m0s
   commonName: opensearch-admin
-  isCA: false
   privateKey:
     rotationPolicy: Always
     algorithm: RSA
