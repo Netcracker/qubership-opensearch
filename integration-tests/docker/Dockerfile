@@ -13,6 +13,8 @@ COPY docker/requirements.txt ${ROBOT_HOME}/requirements.txt
 COPY docker/opensearch_pods_checker.py ${ROBOT_HOME}/opensearch_pods_checker.py
 COPY robot ${ROBOT_HOME}
 
+RUN chmod -R 775 ${ROBOT_HOME}tests/opensearch/ha/test-data-resources/*
+
 RUN set -x \
     && pip3 install -r ${ROBOT_HOME}/requirements.txt \
     && rm -rf /var/cache/apk/*
