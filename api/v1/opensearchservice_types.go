@@ -98,7 +98,8 @@ type OpenSearchServiceSpec struct {
 type DisasterRecoveryStatus struct {
 	Mode               string `json:"mode"`
 	Status             string `json:"status"`
-	Comment            string `json:"comment,omitempty"`
+	Comment            string `json:"comment,omitempty"` // deprecated
+	Message            string `json:"message,omitempty"`
 	UsersRecoveryState string `json:"usersRecoveryState,omitempty"`
 }
 
