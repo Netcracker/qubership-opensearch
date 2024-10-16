@@ -18,6 +18,9 @@ and `dbaasAdapter.dbaasAggregatorRegistrationAddress` contains `https` address.
 
 **Important:** By default OpenSearch is deployed with self-signed certificates for development purposes. To integration with Cert Manager please follow the example sections below.
 
+**Note:** Full namespace backup and restore procedures are not supported with enabled TLS mode due to usage of namespaces
+in generated certificates. Copying of TLS certificates in a separate namespace as-is is unavailable.
+
 # SSL Configuration using CertManager
 
 ## Minimal example
@@ -86,9 +89,76 @@ dbaasAdapter:
 
 # SSL Configuration using parameters with manually generated Certificates
 
-You can automatically generate TLS-based secrets using Helm by specifying certificates in deployment parameters. For example, to generate `opensearch-drd-tls-secret` :
+Generate CSR and Private Key
 
-1. Following certificates should be generated in BASE64 format:
+Follow these instructions to generate the CSR (Certificate Signing Request) files and private keys:
+
+1. OpenSearch should have three CSR certificates with the following Common Names (CN):
+   
+   CN=`<fullname>-admin`
+
+   CN=`<fullname>-node`
+
+   CN=`<fullname>-rest`
+   
+   Where `<fullname>` is the full name of your OpenSearch instance.
+
+   example: 
+
+   ```bash
+   CN=`opensearch-admin`
+   ```
+
+2. Create a .cnf file to generate CSRs for the certificates with the following content:
+ 
+   ```bash
+   echo "
+   [ req ]
+   default_md      = sha256
+   distinguished_name = req_distinguished_name
+   req_extensions     = v3_req
+
+   [ req_distinguished_name ]
+   countryName                 = US
+   localityName                = Waltham
+   organizationName            = NetCracker
+
+   [ v3_req ]
+   basicConstraints = critical, CA:FALSE
+   keyUsage = critical, digitalSignature, keyEncipherment
+   extendedKeyUsage = clientAuth, serverAuth
+   subjectAltName = @alt_names
+
+   [alt_names]
+   DNS.1 = opensearch
+   DNS.2 = *.opensearch
+   DNS.3 = localhost
+   DNS.4 = opensearch
+   DNS.5 = opensearch.{NAMESPACE}
+   DNS.6 = opensearch.{NAMESPACE}.svc
+   DNS.7 = opensearch-internal
+   DNS.8 = opensearch-internal.{NAMESPACE}
+   DNS.9 = opensearch-internal.{NAMESPACE}.svc
+   IP.13 = 127.0.0.1
+   " > "${CN}".cnf
+   ```
+
+3. To generate CSR, use the OpenSSL commands outlined in the documentation [Generate CSR](https://bass.netcracker.com/pages/viewpage.action?pageId=1014197889").
+
+4. Specify the Distinguished Name (DN) in deployment parameters:
+
+   ```yaml
+   opensearch:
+     config:
+       plugins.security.authcz.admin_dn:
+         - CN=opensearch-admin,OU=IT,O=NetCracker,L=Waltham,C=US
+       plugins.security.nodes_dn:
+         - CN=opensearch-node,OU=IT,O=NetCracker,L=Waltham,C=US 
+   ```
+
+5. You can automatically generate TLS-based secrets using Helm by specifying certificates in deployment parameters. For example, to generate `opensearch-drd-tls-secret` :
+
+   Following certificates should be generated in    BASE64 format:
 
    ```yaml
     ca.crt: ${ROOT_CA_CERTIFICATE}
@@ -101,7 +171,7 @@ You can automatically generate TLS-based secrets using Helm by specifying certif
    * `${CERTIFICATE}` is the certificate in BASE64 format.
    * `${PRIVATE_KEY}` is the private key in BASE64 format.
 
-2. Specify the certificates and other deployment parameters:
+6. Specify the certificates and other deployment parameters:
 
    ```yaml
     global:
@@ -171,8 +241,8 @@ You can automatically generate TLS-based secrets using Helm by specifying certif
    ```
 
 **Pay attention**, when you upgrade OpenSearch from non TLS installation to TLS with manually specified
-certificates you need to delete `<fullname>-admin-certs`, `<fullname>-admin-certs` and `<fullname>-admin-certs`
-secrets manually before upgrade, where `<fullname>` is the OpenSearch full name.
+certificates you need to delete `<fullname>-admin-certs`, `<fullname>-transport-certs` and `<fullname>-rest-certs`
+secrets manually before upgrade.
 
 # Certificate Renewal
 

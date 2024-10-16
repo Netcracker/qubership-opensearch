@@ -3,7 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   labels:
-    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    {{- include "opensearch-service.coreLabels" . | nindent 4 }}
     app.kubernetes.io/component: monitoring
     prometheus: OpenSearch-rules
     role: alert-rules

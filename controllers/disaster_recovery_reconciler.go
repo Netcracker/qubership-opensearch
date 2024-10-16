@@ -80,16 +80,16 @@ func (r DisasterRecoveryReconciler) Configure() error {
 	}
 	drConfigHashChanged := r.reconciler.ResourceHashes[drConfigHashName] != "" && r.reconciler.ResourceHashes[drConfigHashName] != drConfigHash
 
-	comment := ""
+	message := ""
 	usersRecoveryState := usersRecoveryDoneState
 
 	defer func() {
 		status := "done"
 		if err != nil {
 			status = "failed"
-			comment = fmt.Sprintf("Error occurred during OpenSearch switching: %v", err)
+			message = fmt.Sprintf("Error occurred during OpenSearch switching: %v", err)
 		}
-		_ = r.updateDisasterRecoveryStatus(status, comment, usersRecoveryState)
+		_ = r.updateDisasterRecoveryStatus(status, message, usersRecoveryState)
 		if r.cr.Spec.DisasterRecovery.Mode == "active" {
 			_ = r.enableClientServices()
 		}
@@ -119,7 +119,7 @@ func (r DisasterRecoveryReconciler) Configure() error {
 
 		replicationManager := r.getReplicationManager()
 		if r.cr.Spec.DisasterRecovery.Mode == "standby" {
-			comment = "The replication has started successfully"
+			message = "The replication has started successfully"
 			if r.cr.Status.DisasterRecoveryStatus.Mode != "active" {
 				r.logger.Info("Removing previous replication rule")
 				err = r.removePreviousReplication(replicationManager)
@@ -139,7 +139,7 @@ func (r DisasterRecoveryReconciler) Configure() error {
 		}
 
 		if r.cr.Spec.DisasterRecovery.Mode == "active" || r.cr.Spec.DisasterRecovery.Mode == "disable" {
-			comment = "The replication has stopped successfully"
+			message = "The replication has stopped successfully"
 			err = r.replicationWatcher.checkReplication(r, true, r.logger)
 			if err == nil && checkNeeded {
 				var indexNames []string
@@ -152,7 +152,7 @@ func (r DisasterRecoveryReconciler) Configure() error {
 					r.logger.Error(err, "Replication check is failed.")
 				}
 			} else {
-				comment = "Switchover mode has been changed without replication check"
+				message = "Switchover mode has been changed without replication check"
 			}
 			if err == nil {
 				err = r.stopReplication(replicationManager)
@@ -215,13 +215,13 @@ func (r DisasterRecoveryReconciler) disableClientServices() error {
 }
 
 // updateDisasterRecoveryStatus updates state of Disaster Recovery switchover
-func (r DisasterRecoveryReconciler) updateDisasterRecoveryStatus(status string, comment string, usersRecoveryState string) error {
+func (r DisasterRecoveryReconciler) updateDisasterRecoveryStatus(status string, message string, usersRecoveryState string) error {
 	statusUpdater := util.NewStatusUpdater(r.reconciler.Client, r.cr)
 	return statusUpdater.UpdateStatusWithRetry(func(instance *opensearchservice.OpenSearchService) {
 		instance.Status.DisasterRecoveryStatus.Mode = r.cr.Spec.DisasterRecovery.Mode
 		instance.Status.DisasterRecoveryStatus.Status = status
-		if comment != "" {
-			instance.Status.DisasterRecoveryStatus.Comment = comment
+		if message != "" {
+			instance.Status.DisasterRecoveryStatus.Message = message
 		}
 		if r.cr.Spec.DbaasAdapter != nil {
 			instance.Status.DisasterRecoveryStatus.UsersRecoveryState = usersRecoveryState

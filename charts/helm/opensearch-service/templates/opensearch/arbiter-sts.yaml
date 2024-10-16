@@ -14,6 +14,7 @@ metadata:
 {{- if (eq (include "pod-scheduler-enabled" .) "true") }}
     arbiter: arbiter
 {{- end }}
+    clone-mode-type: data
   name: {{ template "opensearch.fullname" . }}-arbiter
   namespace: {{ .Release.Namespace }}
 spec:
