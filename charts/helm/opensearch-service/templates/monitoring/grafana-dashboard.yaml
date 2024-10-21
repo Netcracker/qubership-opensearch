@@ -7,8 +7,7 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
     app: grafana
 spec:
-
+  name: opensearch-dashboard.json
   json: >
 {{ .Files.Get "monitoring/opensearch-dashboard.json" | indent 4 | replace "opensearch_name_and_namespace" (printf "%s_%s" (include "opensearch.fullname" .) .Release.Namespace) }}
-  name: opensearch-dashboard.json
 {{- end }}
