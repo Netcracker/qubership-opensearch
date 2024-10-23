@@ -17,6 +17,7 @@ variables:
   SNIPPET_ID: 3126
 
 stages:
+  - yearBackReleaseNotes
   - linter
   - build
   - manifest
@@ -38,6 +39,18 @@ workflow:
     - charts/**/*
     - controllers/*
     - opensearch-integration-tests/**/*
+
+GenerateYearBackRNs:
+  stage: yearBackReleaseNotes
+  image: ${DATABASE_CI_TOOLS_IMAGE}
+  allow_failure: false
+  variables:
+    DEV_MODE: "true"
+  tags:
+    - NETCRACKER
+  script:
+    - python -u /scripts/year_back_rns_aggregator.py
+
 
 LinterValuesSchemaJSON:
   allow_failure: true
