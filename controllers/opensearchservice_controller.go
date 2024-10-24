@@ -180,6 +180,9 @@ func (r *OpenSearchServiceReconciler) buildReconcilers(cr *opensearchservice.Ope
 	if cr.Spec.Curator != nil {
 		reconcilers = append(reconcilers, NewCuratorReconciler(r, cr, logger))
 	}
+	if cr.Spec.ExternalOpenSearch != nil {
+		reconcilers = append(reconcilers, NewExternalOpenSearchReconciler(r, cr, logger))
+	}
 	return reconcilers
 }
 

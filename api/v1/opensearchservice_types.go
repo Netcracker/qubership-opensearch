@@ -19,6 +19,11 @@ type OpenSearch struct {
 	DisabledRestCategories    []string   `json:"disabledRestCategories,omitempty"`
 }
 
+type ExternalOpenSearch struct {
+	Config map[string]string `json:"config"`
+	Url    string            `json:"url"`
+}
+
 type Snapshots struct {
 	RepositoryName string `json:"repositoryName"`
 	S3             *S3    `json:"s3,omitempty"`
@@ -87,6 +92,7 @@ type DisasterRecovery struct {
 type OpenSearchServiceSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 	OpenSearch                *OpenSearch                `json:"opensearch,omitempty"`
+	ExternalOpenSearch        *ExternalOpenSearch        `json:"externalOpenSearch,omitempty"`
 	Dashboards                *Dashboards                `json:"dashboards,omitempty"`
 	Monitoring                *Monitoring                `json:"monitoring,omitempty"`
 	DbaasAdapter              *DbaasAdapter              `json:"dbaasAdapter,omitempty"`

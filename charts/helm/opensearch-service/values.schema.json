@@ -501,6 +501,24 @@
                             "$id": "#/properties/global/properties/externalOpensearch/properties/tlsSecretName",
                             "title": "The global.externalOpensearch.tlsSecretName schema",
                             "description": "The secret which contains REST TLS certificates"
+                        },
+                        "applyConfig": {
+                            "type": "boolean",
+                            "default": false,
+                            "$id": "#/properties/global/properties/externalOpensearch/properties/applyConfig",
+                            "title": "The global.externalOpensearch.applyConfig schema",
+                            "description": "Whether to apply configurations from parameter `global"
+                        },
+                        "config": {
+                            "type": "object",
+                            "properties": {},
+                            "default": {
+                                "action.auto_create_index": "false",
+                                "compatibility.override_main_response_version": "false"
+                            },
+                            "$id": "#/properties/global/properties/externalOpensearch/properties/config",
+                            "title": "The global.externalOpensearch.config schema",
+                            "description": "The configuration of common properties for external OpenSearch"
                         }
                     },
                     "$id": "#/properties/global/properties/externalOpensearch",
@@ -1032,7 +1050,7 @@
                 },
                 "compatibilityModeEnabled": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "$id": "#/properties/opensearch/properties/compatibilityModeEnabled",
                     "title": "The opensearch.compatibilityModeEnabled schema",
                     "description": "Whether the compatibility mode is to be enabled"
@@ -3001,6 +3019,7 @@
                     "type": "object",
                     "properties": {},
                     "default": {
+                        "action.auto_create_index": false,
                         "plugins.security.allow_unsafe_democertificates": true,
                         "plugins.security.allow_default_init_securityindex": "${ALLOW_SECURITY_INITIALIZATION}",
                         "plugins.security.audit.type": "log4j",
