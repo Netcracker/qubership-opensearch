@@ -136,6 +136,10 @@ global:
     nodesCount: 3
     dataNodesCount: 3
     tlsSecretName: ""
+    applyConfig: false
+    config:
+      action.auto_create_index: "false"
+      compatibility.override_main_response_version: "false"
 
   tls:
     enabled: false
@@ -232,7 +236,7 @@ opensearch:
   ## Used when deploying hot/warm architecture. Allows second aliased deployment to find cluster.
   ## Default {{ template opensearch.fullname }}-discovery.
   discoveryOverride: ""
-  compatibilityModeEnabled: true
+  compatibilityModeEnabled: false
   gcLoggingEnabled: false
   performanceAnalyzerEnabled: true
   rollingUpdate: false
@@ -688,6 +692,7 @@ opensearch:
 
   audit: {}
   config:
+    action.auto_create_index: false
     ## Example Config
     plugins.security.allow_unsafe_democertificates: true
     plugins.security.allow_default_init_securityindex: ${ALLOW_SECURITY_INITIALIZATION}
