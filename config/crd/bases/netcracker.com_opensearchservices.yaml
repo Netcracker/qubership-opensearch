@@ -89,6 +89,18 @@ spec:
                 required:
                 - name
                 type: object
+              externalOpenSearch:
+                properties:
+                  config:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  url:
+                    type: string
+                required:
+                - config
+                - url
+                type: object
               monitoring:
                 properties:
                   name:
