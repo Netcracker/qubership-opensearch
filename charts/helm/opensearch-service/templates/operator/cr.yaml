@@ -15,7 +15,15 @@ metadata:
     name: {{ template "opensearch.fullname" . }}
     component: opensearch-service
 spec:
-  {{ if not .Values.global.externalOpensearch.enabled }}
+  {{- if and .Values.global.externalOpensearch.enabled .Values.global.externalOpensearch.applyConfig }}
+  externalOpenSearch:
+    url: "{{ .Values.global.externalOpensearch.url }}"
+    config:
+    {{- with .Values.global.externalOpensearch.config }}
+      {{- toYaml . | nindent 6 -}}
+    {{- end }}
+  {{- end }}
+  {{- if not .Values.global.externalOpensearch.enabled }}
   opensearch:
     dedicatedClientPod: {{ .Values.opensearch.client.dedicatedPod.enabled }}
     dedicatedDataPod: {{ and .Values.opensearch.data.dedicatedPod.enabled .Values.opensearch.data.enabled }}
