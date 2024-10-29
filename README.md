@@ -52,7 +52,7 @@
 
 #### Manifest
 
-1. Actualize locations in `integration` section in `/charts/helm/description.yaml` file.
+1. Actualize locations in `integration` section in `/charts/description.yaml` file.
    If one of the integrations should be taken not from master, then need to specify related branch in `location`.
    For example, if you made changes in operator code, commited them and build new Docker image, then you need to
    specify branch with your operator changes:
