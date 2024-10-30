@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch operator",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "console": "integratedTerminal",
+      "program": "${workspaceFolder}\\main.go",
+      "env": {
+          "HOME":"${userHome}",
+          "WATCH_NAMESPACE":"opensearch-service",
+          "OPENSEARCH_NAME":"opensearch",
+          "OPENSEARCH_USERNAME":"<OPENSEARCH_USERNAME",
+          "OPENSEARCH_PASSWORD":"<OPENSEARCH_PASSWORD>",
+          "OPENSEARCH_HOST":"<OPENSEARCH_INGRESS_HOST>",
+          "RECONCILE_PERIOD":"60"
+      }
+    }
+  ]
+}
