@@ -172,9 +172,11 @@ global:
         additionalIpAddresses: []
     httpAuth:
       enabled: false
+      smSecureAuth: false
       smNamespace: "site-manager"
-      smServiceAccountName: "sm-auth-sa"
+      smServiceAccountName: ""
       restrictedEnvironment: false
+      customAudience: "sm-services"
     mode: ""
     indicesPattern: "*"
     remoteCluster: ""

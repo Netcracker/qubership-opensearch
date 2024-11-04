@@ -140,7 +140,11 @@ spec:
             - name: SITE_MANAGER_NAMESPACE
               value: {{ .Values.global.disasterRecovery.httpAuth.smNamespace | quote }}
             - name: SITE_MANAGER_SERVICE_ACCOUNT_NAME
-              value: {{ .Values.global.disasterRecovery.httpAuth.smServiceAccountName | quote }}
+              value: {{ include "disasterRecovery.siteManagerServiceAccount" . }}
+            {{- if .Values.global.disasterRecovery.httpAuth.smSecureAuth }}
+            - name: SITE_MANAGER_CUSTOM_AUDIENCE
+              value: {{ .Values.global.disasterRecovery.httpAuth.customAudience }}
+            {{- end }}
             {{- end }}
           resources:
             limits:

@@ -548,6 +548,21 @@ Protocol for DRD
 {{- end -}}
 
 {{/*
+Service Account for Site Manager depending on smSecureAuth
+*/}}
+{{- define "disasterRecovery.siteManagerServiceAccount" -}}
+  {{- if .Values.global.disasterRecovery.httpAuth.smServiceAccountName -}}
+    {{- .Values.global.disasterRecovery.httpAuth.smServiceAccountName -}}
+  {{- else -}}
+    {{- if .Values.global.disasterRecovery.httpAuth.smSecureAuth -}}
+      {{- "site-manager-sa" -}}
+    {{- else -}}
+      {{- "sm-auth-sa" -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
 DRD Port
 */}}
 {{- define "disasterRecovery.port" -}}
