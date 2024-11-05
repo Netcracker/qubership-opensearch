@@ -9925,9 +9925,6 @@
         "justifyMode": "auto",
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
-        "text": {
-          "valueSize": 70
-        },
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
