@@ -505,7 +505,7 @@
                 "value": null
               },
               {
-                "color": "semi-dark-green",
+                "color": "semi-dark-red",
                 "value": 90
               },
               {
@@ -584,7 +584,7 @@
                 "value": null
               },
               {
-                "color": "semi-dark-green",
+                "color": "semi-dark-red",
                 "value": 90
               },
               {
@@ -664,7 +664,7 @@
                 "value": null
               },
               {
-                "color": "semi-dark-green",
+                "color": "semi-dark-red",
                 "value": 90
               },
               {
@@ -8045,6 +8045,9 @@
         "justifyMode": "auto",
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
+        "text": {
+          "valueSize": 70
+        },
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -8203,6 +8206,9 @@
         "justifyMode": "auto",
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
+        "text": {
+          "valueSize": 70
+        },
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -8339,6 +8345,9 @@
         "justifyMode": "auto",
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
+        "text": {
+          "valueSize": 70
+        },
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -8663,6 +8672,9 @@
         "justifyMode": "auto",
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
+        "text": {
+          "valueSize": 70
+        },
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -8929,6 +8941,9 @@
         "justifyMode": "auto",
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
+        "text": {
+          "valueSize": 70
+        },
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -9910,6 +9925,9 @@
         "justifyMode": "auto",
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
+        "text": {
+          "valueSize": 70
+        },
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
