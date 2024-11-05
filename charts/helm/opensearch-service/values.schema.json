@@ -706,6 +706,13 @@
                                     "title": "The global.disasterRecovery.httpAuth.enabled schema",
                                     "description": "Whether site manager authentication is to be enabled"
                                 },
+                                "smSecureAuth": {
+                                    "type": "boolean",
+                                    "default": false,
+                                    "$id": "#/properties/global/properties/disasterRecovery/properties/httpAuth/properties/smSecureAuth",
+                                    "title": "The global.disasterRecovery.httpAuth.smSecureAuth schema",
+                                    "description": "Whether the `smSecureAuth` mode is enabled for Site Manager or not"
+                                },
                                 "smNamespace": {
                                     "type": "string",
                                     "default": "site-manager",
@@ -715,7 +722,7 @@
                                 },
                                 "smServiceAccountName": {
                                     "type": "string",
-                                    "default": "sm-auth-sa",
+                                    "default": "",
                                     "$id": "#/properties/global/properties/disasterRecovery/properties/httpAuth/properties/smServiceAccountName",
                                     "title": "The global.disasterRecovery.httpAuth.smServiceAccountName schema",
                                     "description": "The name of the Kubernetes service account where the site manager is used"
@@ -726,6 +733,13 @@
                                     "$id": "#/properties/global/properties/disasterRecovery/properties/httpAuth/properties/restrictedEnvironment",
                                     "title": "The global.disasterRecovery.httpAuth.restrictedEnvironment schema",
                                     "description": "Whether the `system:auth-delegator` cluster role is to be bound to the OpenSearch operator service account"
+                                },
+                                "customAudience": {
+                                    "type": "string",
+                                    "default": "sm-services",
+                                    "$id": "#/properties/global/properties/disasterRecovery/properties/httpAuth/properties/customAudience",
+                                    "title": "The global.disasterRecovery.httpAuth.customAudience schema",
+                                    "description": "The name of custom audience for rest api token, that is used to connect with services"
                                 }
                             },
                             "$id": "#/properties/global/properties/disasterRecovery/properties/httpAuth",
