@@ -15,7 +15,7 @@
                 },
                 "dockerImage": {
                     "type": "string",
-                    "default": "artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.11.1",
+                    "default": "artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.17.1",
                     "$id": "#/properties/dashboards/properties/dockerImage",
                     "title": "The dashboards.dockerImage schema",
                     "description": "The docker image of dashboards"

@@ -31,7 +31,7 @@ integration:
     deploy-param: disasterRecoveryImage
   - type: find-latest-deployment-descriptor
     repo: PROD.Platform.ElasticStack/docker-opensearch
-    location: master
+    location: Feature/upgrade_to_2.17.1
     docker-image-id: timestamp
     deploy-param: dockerOpensearch
   - type: find-latest-deployment-descriptor
@@ -61,7 +61,7 @@ integration:
     docker-image-id: timestamp
     deploy-param: deploymentStatusProvisioner
   - type: image
-    docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.11.1
+    docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.17.1
     deploy-param: dockerDashboards
   - type: image
     docker-image: artifactorycn.netcracker.com:17064/library/busybox:1.35.0
