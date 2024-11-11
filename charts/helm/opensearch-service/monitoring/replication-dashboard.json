@@ -133,7 +133,7 @@
       "maxDataPoints": 100,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
+        "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
@@ -648,7 +648,11 @@
       "type": "stat"
     },
     {
-      "datasource": "$datasource",
+      "datasource": {
+          "default": false,
+          "type": "prometheus",
+          "uid": "$datasource"
+      },
       "description": "Transitions of OpenSearch replication status",
       "fieldConfig": {
         "defaults": {
@@ -754,7 +758,7 @@
           "exemplar": true,
           "expr": "max(opensearch_replication_metric_status{namespace=\"$namespace\",cluster=\"$cluster\",status=\"\"})",
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "Replication status",
           "range": true,
           "refId": "A"
         }
@@ -1019,7 +1023,7 @@
         {
           "datasource": "$datasource",
           "editorMode": "code",
-          "exemplar": false,
+          "exemplar": true,
           "expr": "max(opensearch_replication_metric_index_status{namespace=\"$namespace\", index=~\"$index\", cluster=\"$cluster\"}) by (index)",
           "format": "time_series",
           "instant": false,
@@ -1307,18 +1311,13 @@
   "tags": [
     "prometheus",
     "opensearch",
-    "opensearch_opensearch-saja",
+    "opensearch_name_and_namespace",
     "replication"
   ],
   "templating": {
     "list": [
       {
         "allFormat": "glob",
-        "current": {
-          "selected": false,
-          "text": "Platform Monitoring Prometheus",
-          "value": "PC3E95692D54ABCC0"
-        },
         "datasource": "$datasource",
         "hide": 0,
         "includeAll": false,
@@ -1334,12 +1333,6 @@
         "type": "datasource"
       },
       {
-        "current": {
-          "isNone": true,
-          "selected": false,
-          "text": "None",
-          "value": ""
-        },
         "datasource": {
           "uid": "$datasource"
         },
@@ -1361,11 +1354,6 @@
         "type": "query"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "opensearch-service",
-          "value": "opensearch-service"
-        },
         "datasource": {
           "uid": "$datasource"
         },
