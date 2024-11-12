@@ -23,7 +23,7 @@
   "fiscalYearStartMonth": 0,
   "gnetId": 61,
   "graphTooltip": 0,
-  "id": 146,
+  "id": 1498,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -48,19 +48,79 @@
       "type": "row"
     },
     {
-      "circleBackground": false,
-      "colorBackground": false,
-      "colorValue": true,
       "datasource": "$datasource",
-      "defaultColor": "rgb(117, 117, 117)",
       "description": "Status of OpenSearch cross-cluster replication.\n\nIf the cluster status is `Degraded`, at least one replicated indices is in `Failed` state. \n   \nA `Failed` replication status indicates that all indices are in `Failed` state.\n\nA `Not in progress` status means that replication from remote cluster disabled.",
-      "format": "none",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "1": {
+                  "color": "semi-dark-green",
+                  "index": 2,
+                  "text": "RUNNING"
+                },
+                "2": {
+                  "color": "semi-dark-yellow",
+                  "index": 3,
+                  "text": "DEGRADED"
+                },
+                "3": {
+                  "color": "text",
+                  "index": 4,
+                  "text": "NOT IN PROGRESS"
+                },
+                "4": {
+                  "color": "semi-dark-red",
+                  "index": 5,
+                  "text": "FAILED"
+                },
+                "-1": {
+                  "color": "#808080",
+                  "index": 6,
+                  "text": "LEADER CONNECTION LOST"
+                },
+                "-2": {
+                  "color": "text",
+                  "index": 1,
+                  "text": "OPENSEARCH IS UNAVAILABLE"
+                },
+                "null": {
+                  "color": "text",
+                  "index": 0,
+                  "text": "N/A"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "semi-dark-green",
+                "value": 1
+              },
+              {
+                "color": "#EAB839",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 4
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 7,
@@ -70,52 +130,25 @@
       },
       "id": 65072,
       "interval": "$inter",
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "$$hashKey": "object:274",
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "$$hashKey": "object:275",
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "math": "",
       "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sortOrder": "asc",
-      "sortOrderOptions": [
-        {
-          "text": "Ascending",
-          "value": "asc"
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
         },
-        {
-          "text": "Descending",
-          "value": "desc"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "tableColumn": "",
+      "pluginVersion": "11.2.1",
       "targets": [
         {
           "datasource": "$datasource",
@@ -163,90 +196,8 @@
           "tags": []
         }
       ],
-      "thresholds": [
-        {
-          "$$hashKey": "object:2720",
-          "color": "#ccccdc",
-          "value": -2
-        },
-        {
-          "$$hashKey": "object:662",
-          "color": "rgb(117, 117, 117)",
-          "value": -1
-        },
-        {
-          "$$hashKey": "object:1348",
-          "color": "#37872D",
-          "value": 0
-        },
-        {
-          "$$hashKey": "object:1349",
-          "color": "#E0B400",
-          "value": 2
-        },
-        {
-          "$$hashKey": "object:1350",
-          "color": "#757575",
-          "value": 3
-        },
-        {
-          "$$hashKey": "object:2717",
-          "color": "#C4162A",
-          "value": 4
-        }
-      ],
       "title": "Replication status",
-      "tooltip": {
-        "show": true
-      },
-      "type": "blackmirror1-singlestat-math-panel",
-      "valueFontSize": "80%",
-      "valueMappingColorBackground": "#767171",
-      "valueMaps": [
-        {
-          "$$hashKey": "object:277",
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        },
-        {
-          "$$hashKey": "object:278",
-          "op": "=",
-          "text": "OPENSEARCH IS UNAVAILABLE",
-          "value": "-2"
-        },
-        {
-          "$$hashKey": "object:279",
-          "op": "=",
-          "text": "RUNNING",
-          "value": "1"
-        },
-        {
-          "$$hashKey": "object:280",
-          "op": "=",
-          "text": "DEGRADED",
-          "value": "2"
-        },
-        {
-          "$$hashKey": "object:285",
-          "op": "=",
-          "text": "NOT IN PROGRESS",
-          "value": "3"
-        },
-        {
-          "$$hashKey": "object:287",
-          "op": "=",
-          "text": "FAILED",
-          "value": "4"
-        },
-        {
-          "$$hashKey": "object:665",
-          "op": "=",
-          "text": "LEADER CONNECTION LOST",
-          "value": "-1"
-        }
-      ],
-      "valueName": "current"
+      "type": "stat"
     },
     {
       "datasource": "$datasource",
@@ -292,13 +243,13 @@
         "y": 1
       },
       "id": 65040,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -306,9 +257,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.3.1",
+      "pluginVersion": "11.2.1",
       "targets": [
         {
           "datasource": "$datasource",
@@ -402,13 +355,13 @@
         "y": 1
       },
       "id": 65924,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -416,9 +369,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.3.1",
+      "pluginVersion": "11.2.1",
       "targets": [
         {
           "datasource": "$datasource",
@@ -512,13 +467,13 @@
         "y": 1
       },
       "id": 65925,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -526,9 +481,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.3.1",
+      "pluginVersion": "11.2.1",
       "targets": [
         {
           "datasource": "$datasource",
@@ -622,13 +579,13 @@
         "y": 1
       },
       "id": 65926,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -636,9 +593,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.3.1",
+      "pluginVersion": "11.2.1",
       "targets": [
         {
           "datasource": "$datasource",
@@ -689,70 +648,109 @@
       "type": "stat"
     },
     {
-      "backgroundColor": "rgba(128,128,128,0.1)",
-      "colorMaps": [
-        {
-          "$$hashKey": "object:397",
-          "color": "#CCC",
-          "text": "N/A"
-        },
-        {
-          "$$hashKey": "object:400",
-          "color": "#37872D",
-          "text": "RUNNING"
-        },
-        {
-          "$$hashKey": "object:403",
-          "color": "#FF780A",
-          "text": "DEGRADED"
-        },
-        {
-          "$$hashKey": "object:406",
-          "color": "#C4162A",
-          "text": "FAILED"
-        },
-        {
-          "$$hashKey": "object:2183",
-          "color": "#ccccdc",
-          "text": "NOT IN PROGRESS"
-        },
-        {
-          "$$hashKey": "object:776",
-          "color": "#C4162A",
-          "text": "LEADER CONNECTION LOST"
-        }
-      ],
-      "crosshairColor": "#8F070C",
-      "datasource": "$datasource",
+      "datasource": {
+          "default": false,
+          "type": "prometheus",
+          "uid": "$datasource"
+      },
       "description": "Transitions of OpenSearch replication status",
-      "display": "timeline",
-      "expandFromQueryS": 0,
-      "extendLastValue": true,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "fillOpacity": 70,
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineWidth": 0,
+            "spanNulls": false
+          },
+          "mappings": [
+            {
+              "options": {
+                "1": {
+                  "index": 7,
+                  "text": "RUNNING"
+                },
+                "2": {
+                  "index": 6,
+                  "text": "DEGRADED"
+                },
+                "3": {
+                  "index": 5,
+                  "text": "NOT IN PROGRESS"
+                },
+                "4": {
+                  "index": 4,
+                  "text": "FAILED"
+                },
+                "-1": {
+                  "index": 1,
+                  "text": "LEADER CONNECTION LOST"
+                },
+                "-2": {
+                  "index": 2,
+                  "text": "OPENSEARCH IS UNAVAILABLE"
+                },
+                "null": {
+                  "index": 3,
+                  "text": "N/A"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "from": null,
+                "result": {
+                  "index": 0,
+                  "text": "N/A"
+                },
+                "to": null
+              },
+              "type": "range"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 4,
         "w": 16,
         "x": 8,
         "y": 4
       },
-      "highlightOnMouseover": true,
       "id": 65131,
-      "legendSortBy": "-ms",
-      "lineColor": "rgba(0,0,0,0.1)",
-      "metricNameColor": "#000000",
-      "rangeMaps": [
-        {
-          "$$hashKey": "object:276",
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
+      "options": {
+        "alignValue": "center",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "mergeValues": true,
+        "rowHeight": 0.9,
+        "showValue": "never",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
         }
-      ],
-      "rowHeight": 50,
-      "showLegend": false,
-      "showLegendNames": true,
-      "showLegendPercent": true,
-      "showLegendValues": true,
-      "showTimeAxis": true,
+      },
       "targets": [
         {
           "datasource": "$datasource",
@@ -760,105 +758,13 @@
           "exemplar": true,
           "expr": "max(opensearch_replication_metric_status{namespace=\"$namespace\",cluster=\"$cluster\",status=\"\"})",
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "Replication status",
           "range": true,
           "refId": "A"
         }
       ],
-      "textSize": 24,
-      "textSizeTime": 12,
-      "timeOptions": [
-        {
-          "name": "Years",
-          "value": "years"
-        },
-        {
-          "name": "Months",
-          "value": "months"
-        },
-        {
-          "name": "Weeks",
-          "value": "weeks"
-        },
-        {
-          "name": "Days",
-          "value": "days"
-        },
-        {
-          "name": "Hours",
-          "value": "hours"
-        },
-        {
-          "name": "Minutes",
-          "value": "minutes"
-        },
-        {
-          "name": "Seconds",
-          "value": "seconds"
-        },
-        {
-          "name": "Milliseconds",
-          "value": "milliseconds"
-        }
-      ],
-      "timePrecision": {
-        "name": "Minutes",
-        "value": "minutes"
-      },
-      "timeTextColor": "#d8d9da",
       "title": "Replication status transitions",
-      "type": "natel-discrete-panel",
-      "units": "short",
-      "use12HourClock": false,
-      "useTimePrecision": false,
-      "valueMaps": [
-        {
-          "$$hashKey": "object:274",
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        },
-        {
-          "$$hashKey": "object:322",
-          "op": "=",
-          "text": "OPENSEARCH IS UNAVAILABLE",
-          "value": "-2"
-        },
-        {
-          "$$hashKey": "object:324",
-          "op": "=",
-          "text": "RUNNING",
-          "value": "1"
-        },
-        {
-          "$$hashKey": "object:326",
-          "op": "=",
-          "text": "DEGRADED",
-          "value": "2"
-        },
-        {
-          "$$hashKey": "object:384",
-          "op": "=",
-          "text": "NOT IN PROGRESS",
-          "value": "3"
-        },
-        {
-          "$$hashKey": "object:386",
-          "op": "=",
-          "text": "FAILED",
-          "value": "4"
-        },
-        {
-          "$$hashKey": "object:774",
-          "op": "=",
-          "text": "LEADER CONNECTION LOST",
-          "value": "-1"
-        }
-      ],
-      "valueTextColor": "#000000",
-      "writeAllValues": false,
-      "writeLastValue": false,
-      "writeMetricNames": false
+      "type": "state-timeline"
     },
     {
       "datasource": "$datasource",
@@ -870,7 +776,9 @@
           },
           "custom": {
             "align": "center",
-            "displayMode": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
             "filterable": true,
             "inspect": false
           },
@@ -926,9 +834,10 @@
       },
       "id": 65073,
       "interval": "$inter",
-      "links": [],
       "options": {
+        "cellHeight": "sm",
         "footer": {
+          "countRows": false,
           "fields": "",
           "reducer": [
             "sum"
@@ -939,7 +848,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "9.3.1",
+      "pluginVersion": "11.2.1",
       "targets": [
         {
           "alias": "UP",
@@ -1008,75 +917,113 @@
       "type": "table"
     },
     {
-      "backgroundColor": "rgba(128,128,128,0.1)",
-      "colorMaps": [
-        {
-          "$$hashKey": "object:468",
-          "color": "#CCC",
-          "text": "N/A"
-        },
-        {
-          "$$hashKey": "object:513",
-          "color": "#37872D",
-          "text": "SYNCING"
-        },
-        {
-          "$$hashKey": "object:516",
-          "color": "#FADE2A",
-          "text": "BOOTSTRAPPING"
-        },
-        {
-          "$$hashKey": "object:693",
-          "color": "#ccccdc",
-          "text": "PAUSED"
-        },
-        {
-          "$$hashKey": "object:696",
-          "color": "#C4162A",
-          "text": "FAILED"
-        },
-        {
-          "$$hashKey": "object:1418",
-          "color": "#ccccdc",
-          "text": "NO DATA FETCHED"
-        }
-      ],
-      "crosshairColor": "#8F070C",
       "datasource": "$datasource",
       "description": "Transitions of status for OpenSearch replicated indices",
-      "display": "timeline",
-      "expandFromQueryS": 0,
-      "extendLastValue": true,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "fillOpacity": 70,
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineWidth": 0,
+            "spanNulls": false
+          },
+          "mappings": [
+            {
+              "options": {
+                "1": {
+                  "color": "semi-dark-green",
+                  "index": 6,
+                  "text": "SYNCING"
+                },
+                "2": {
+                  "color": "semi-dark-yellow",
+                  "index": 5,
+                  "text": "BOOTSTRAPPING"
+                },
+                "3": {
+                  "color": "text",
+                  "index": 4,
+                  "text": "PAUSED"
+                },
+                "4": {
+                  "color": "semi-dark-red",
+                  "index": 3,
+                  "text": "FAILED"
+                },
+                "-1": {
+                  "color": "text",
+                  "index": 1,
+                  "text": "NO DATA FETCHED"
+                },
+                "null": {
+                  "color": "text",
+                  "index": 2,
+                  "text": "N/A"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "from": null,
+                "result": {
+                  "color": "text",
+                  "index": 0,
+                  "text": "N/A"
+                },
+                "to": null
+              },
+              "type": "range"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 6,
         "w": 12,
         "x": 12,
         "y": 8
       },
-      "highlightOnMouseover": true,
       "id": 65129,
-      "legendSortBy": "-ms",
-      "lineColor": "rgba(0,0,0,0.1)",
-      "metricNameColor": "#000000",
-      "rangeMaps": [
-        {
-          "$$hashKey": "object:380",
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
+      "options": {
+        "alignValue": "center",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "mergeValues": true,
+        "rowHeight": 0.9,
+        "showValue": "never",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
         }
-      ],
-      "rowHeight": 50,
-      "showLegend": false,
-      "showLegendNames": true,
-      "showLegendPercent": true,
-      "showLegendValues": true,
-      "showTimeAxis": true,
+      },
       "targets": [
         {
           "datasource": "$datasource",
           "editorMode": "code",
-          "exemplar": false,
+          "exemplar": true,
           "expr": "max(opensearch_replication_metric_index_status{namespace=\"$namespace\", index=~\"$index\", cluster=\"$cluster\"}) by (index)",
           "format": "time_series",
           "instant": false,
@@ -1086,94 +1033,8 @@
           "refId": "A"
         }
       ],
-      "textSize": 24,
-      "textSizeTime": 12,
-      "timeOptions": [
-        {
-          "name": "Years",
-          "value": "years"
-        },
-        {
-          "name": "Months",
-          "value": "months"
-        },
-        {
-          "name": "Weeks",
-          "value": "weeks"
-        },
-        {
-          "name": "Days",
-          "value": "days"
-        },
-        {
-          "name": "Hours",
-          "value": "hours"
-        },
-        {
-          "name": "Minutes",
-          "value": "minutes"
-        },
-        {
-          "name": "Seconds",
-          "value": "seconds"
-        },
-        {
-          "name": "Milliseconds",
-          "value": "milliseconds"
-        }
-      ],
-      "timePrecision": {
-        "name": "Minutes",
-        "value": "minutes"
-      },
-      "timeTextColor": "#d8d9da",
       "title": "Indices status transitions",
-      "type": "natel-discrete-panel",
-      "units": "short",
-      "use12HourClock": false,
-      "useTimePrecision": false,
-      "valueMaps": [
-        {
-          "$$hashKey": "object:378",
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        },
-        {
-          "$$hashKey": "object:519",
-          "op": "=",
-          "text": "SYNCING",
-          "value": "1"
-        },
-        {
-          "$$hashKey": "object:521",
-          "op": "=",
-          "text": "BOOTSTRAPPING",
-          "value": "2"
-        },
-        {
-          "$$hashKey": "object:699",
-          "op": "=",
-          "text": "PAUSED",
-          "value": "3"
-        },
-        {
-          "$$hashKey": "object:701",
-          "op": "=",
-          "text": "FAILED",
-          "value": "4"
-        },
-        {
-          "$$hashKey": "object:1416",
-          "op": "=",
-          "text": "NO DATA FETCHED",
-          "value": "-1"
-        }
-      ],
-      "valueTextColor": "#000000",
-      "writeAllValues": false,
-      "writeLastValue": false,
-      "writeMetricNames": true
+      "type": "state-timeline"
     },
     {
       "datasource": "$datasource",
@@ -1184,11 +1045,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
@@ -1197,6 +1060,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -1240,7 +1104,6 @@
       },
       "id": 65074,
       "interval": "$inter",
-      "links": [],
       "options": {
         "legend": {
           "calcs": [
@@ -1316,11 +1179,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
@@ -1329,6 +1194,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -1372,7 +1238,6 @@
       },
       "id": 65049,
       "interval": "$inter",
-      "links": [],
       "options": {
         "legend": {
           "calcs": [
@@ -1442,8 +1307,7 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 37,
-  "style": "dark",
+  "schemaVersion": 39,
   "tags": [
     "prometheus",
     "opensearch",
@@ -1469,7 +1333,9 @@
         "type": "datasource"
       },
       {
-        "datasource": "$datasource",
+        "datasource": {
+          "uid": "$datasource"
+        },
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -1488,7 +1354,9 @@
         "type": "query"
       },
       {
-        "datasource": "$datasource",
+        "datasource": {
+          "uid": "$datasource"
+        },
         "definition": "label_values(opensearch_cluster_health_status_code{cluster=\"$cluster\"}, namespace)",
         "hide": 0,
         "includeAll": false,
@@ -1519,7 +1387,9 @@
             "$__all"
           ]
         },
-        "datasource": "$datasource",
+        "datasource": {
+          "uid": "$datasource"
+        },
         "definition": "label_values(opensearch_replication_metric_index_status{namespace=\"$namespace\",index=~\"$indices_regex\",cluster=\"$cluster\"}, index)",
         "hide": 0,
         "includeAll": true,
@@ -1637,7 +1507,9 @@
         "type": "interval"
       },
       {
-        "datasource": "$datasource",
+        "datasource": {
+          "uid": "$datasource"
+        },
         "filters": [],
         "hide": 0,
         "name": "Filters",
@@ -1647,7 +1519,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
@@ -1675,5 +1547,6 @@
     ]
   },
   "timezone": "browser",
-  "title": "OpenSearch Replication"
+  "title": "OpenSearch Replication",
+  "version": 6
 }
