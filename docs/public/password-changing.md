@@ -1,4 +1,4 @@
-This section provides information on the password changing procedures in OpenSearch cluster.
+This section provides information on the manual password changing procedures in OpenSearch cluster.
 
 ## OpenSearch Secret
 
