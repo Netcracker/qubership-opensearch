@@ -64,7 +64,11 @@ OpenSearch does not support disabling user accounts.
 
 ## Changing password guide
 
-Password changing procedures for OpenSearch cluster is described in respective guide:
+OpenSearch Service supports the automatic password change procedure.
+Any credential in the `opensearch.securityConfig.authc.basic` section can be changed and run with upgrade procedure.
+Operator performs necessary logic to apply new credentials to OpenSearch pods.
+
+The manual password changing procedures for OpenSearch Service is described in respective guide:
 
 * [Password changing guide](/docs/public/password-changing.md)
 
