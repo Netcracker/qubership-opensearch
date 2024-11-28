@@ -10,9 +10,6 @@ publication:
   files:
     INFRASTRUCTURE1.0:
       - target/*.zip
-    STANDALONE_ZIP1.0:
-      - mask: scripts/*.zip
-        latest: true
 deploy:
   dmp:
     service: opensearch-service

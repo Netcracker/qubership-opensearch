@@ -1,3 +1,0 @@
-robotframework-requests==0.5.0
-python-dateutil==2.7.5
-jsonpath==0.82

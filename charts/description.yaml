@@ -127,55 +127,43 @@ integration:
     repo: PROD.Platform.ElasticStack/opensearch-service
     location: master
     docker-image-id: timestamp
-    deploy-param: opensearchOperator
-  - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.Streaming/disaster-recovery-daemon
-    location: master
-    docker-image-id: timestamp
+    deploy-param: opensearchTransferCharts
+  - type: image
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/disaster-recovery-daemon:main
     deploy-param: disasterRecoveryImage
-  - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
-    prefix: integration-tests
-    docker-image-id: timestamp
+    service-name: disaster-recovery-daemon
+  - type: image
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/opensearch-integration-tests:main
     deploy-param: opensearchIntegrationTests
-  - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.ElasticStack/docker-opensearch
-    location: master
-    docker-image-id: timestamp
+    service-name: opensearch-integration-tests
+  - type: image
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/docker-opensearch:main
     deploy-param: dockerOpensearch
-  - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.ElasticStack/opensearch-service
-    location: master
-    prefix: tls-init
-    docker-image-id: timestamp
+    service-name: docker-opensearch
+  - type: image
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/opensearch-tls-init:main
     deploy-param: opensearchTlsInit
-  - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.ElasticStack/elasticsearch-telegraf
-    location: master
-    docker-image-id: timestamp
+    service-name: opensearch-tls-init
+  - type: image
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/elasticsearch-telegraf:main
     deploy-param: opensearchMonitoring
-  - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.ElasticStack/dbaas-opensearch-adapter
-    location: master
-    docker-image-id: timestamp
+    service-name: opensearch-monitoring
+  - type: image
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/dbaas-opensearch-adapter:main
     deploy-param: opensearchDbaasAdapter
-  - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: master
-    docker-image-id: timestamp
+    service-name: dbaas-opensearch-adapter
+  - type: image
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/docker-elastic-curator:main
     deploy-param: opensearchCurator
-  - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.ElasticStack/docker-elastic-curator
-    location: master
-    prefix: elasticsearch_indices_cleaner
-    docker-image-id: timestamp
+    service-name: docker-elastic-curator
+  - type: image
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/elasticsearch-indices-cleaner:main
     deploy-param: opensearchIndicesCleaner
-  - type: find-latest-deployment-descriptor
-    repo: PROD.Platform.Streaming/deployment-status-provisioner
-    location: master
-    docker-image-id: timestamp
+    service-name: opensearch-indices-cleaner
+  - type: image
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/deployment-status-provisioner:main
     deploy-param: deploymentStatusProvisioner
+    service-name: deployment-status-provisioner
   - type: image
     docker-image: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.11.1
     deploy-param: dockerDashboards
