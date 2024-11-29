@@ -94,7 +94,6 @@ func (r MonitoringReconciler) prepareSlowLogIndicesHelper() SlowLogIndicesHelper
 	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
 	client, _ := r.reconciler.configureClient()
 	credentials := r.reconciler.parseOpenSearchCredentials(r.cr, r.logger)
-	r.logger.Info(fmt.Sprintf("cred = %s", credentials.Password))
 	return SlowLogIndicesHelper{
 		logger:     r.logger,
 		restClient: util.NewRestClient(url, client, credentials),
