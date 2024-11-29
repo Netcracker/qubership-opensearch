@@ -121,6 +121,10 @@ cloud:
 
 integration:
   - type: image
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/opensearch-service-operator:main
+    deploy-param: opensearchServiceOperator
+    service-name: opensearch-service-operator
+  - type: image
     docker-image: artifactorycn.netcracker.com:17152/netcracker/disaster-recovery-daemon:main
     deploy-param: disasterRecoveryImage
     service-name: disaster-recovery-daemon
