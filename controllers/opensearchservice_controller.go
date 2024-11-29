@@ -27,6 +27,7 @@ const (
 	maxRateLimiterDelay              = 60
 	minRateLimiterDelay              = 5
 	opensearchSecretHashName         = "secret.opensearch"
+	opensearchOldSecretHashName      = "secret.opensearch.old"
 	opensearchServiceConditionReason = "ReconcileCycleStatus"
 )
 
