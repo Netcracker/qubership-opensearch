@@ -180,8 +180,6 @@ Follow these instructions to generate the CSR (Certificate Signing Request) file
         cipherSuites: []
         generateCerts:
           enabled: false
-          certProvider: dev
-          clusterIssuerName: ""
 
       disasterRecovery:
         tls:
