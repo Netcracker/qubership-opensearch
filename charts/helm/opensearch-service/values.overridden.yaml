@@ -1,5 +1,4 @@
 dashboards:
-  enabled: false
   dockerImage: artifactorycn.netcracker.com:17064/opensearchproject/opensearch-dashboards:2.11.1
 
 global:

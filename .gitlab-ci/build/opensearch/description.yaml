@@ -25,7 +25,7 @@ deployment:
 
 integration:
   - type: image
-    docker-image: artifactorycn.netcracker.com:17152/netcracker/opensearch-service-operator:main
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-operator:main
     deploy-param: opensearchServiceOperator
     service-name: opensearch-service-operator
   - type: image
@@ -33,35 +33,35 @@ integration:
     deploy-param: disasterRecoveryImage
     service-name: disaster-recovery-daemon
   - type: image
-    docker-image: artifactorycn.netcracker.com:17152/netcracker/opensearch-integration-tests:main
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-integration-tests:main
     deploy-param: opensearchIntegrationTests
     service-name: opensearch-integration-tests
   - type: image
-    docker-image: artifactorycn.netcracker.com:17152/netcracker/docker-opensearch:main
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/qubership-docker-opensearch:main
     deploy-param: dockerOpensearch
     service-name: docker-opensearch
   - type: image
-    docker-image: artifactorycn.netcracker.com:17152/netcracker/opensearch-tls-init:main
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-tls-init:main
     deploy-param: opensearchTlsInit
     service-name: opensearch-tls-init
   - type: image
-    docker-image: artifactorycn.netcracker.com:17152/netcracker/elasticsearch-telegraf:main
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-monitoring:main
     deploy-param: opensearchMonitoring
     service-name: opensearch-monitoring
   - type: image
-    docker-image: artifactorycn.netcracker.com:17152/netcracker/dbaas-opensearch-adapter:main
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-dbaas-adapter:main
     deploy-param: opensearchDbaasAdapter
     service-name: dbaas-opensearch-adapter
   - type: image
-    docker-image: artifactorycn.netcracker.com:17152/netcracker/docker-elastic-curator:main
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-curator:main
     deploy-param: opensearchCurator
     service-name: docker-elastic-curator
   - type: image
-    docker-image: artifactorycn.netcracker.com:17152/netcracker/elasticsearch-indices-cleaner:main
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-indices-cleaner:main
     deploy-param: opensearchIndicesCleaner
     service-name: opensearch-indices-cleaner
   - type: image
-    docker-image: artifactorycn.netcracker.com:17152/netcracker/deployment-status-provisioner:main
+    docker-image: artifactorycn.netcracker.com:17152/netcracker/qubership-deployment-status-provisioner:main
     deploy-param: deploymentStatusProvisioner
     service-name: deployment-status-provisioner
   - type: image
