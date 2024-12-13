@@ -8,36 +8,36 @@ global:
     image: artifactorycn.netcracker.com:17152/netcracker/disaster-recovery-daemon:main
 
 operator:
-  dockerImage: artifactorycn.netcracker.com:17152/netcracker/opensearch-service-operator:main
+  dockerImage: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-operator:main
 
 opensearch:
   initContainer:
     dockerImage: artifactorycn.netcracker.com:17064/library/busybox:1.35.0
-  dockerImage: artifactorycn.netcracker.com:17152/netcracker/docker-opensearch:main
-  dockerTlsInitImage: artifactorycn.netcracker.com:17152/netcracker/opensearch-tls-init:main
+  dockerImage: artifactorycn.netcracker.com:17152/netcracker/qubership-docker-opensearch:main
+  dockerTlsInitImage: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-tls-init:main
 
 podScheduler:
   dockerImage: artifactorycn.netcracker.com:17014/netcracker/prod.platform.streaming_docker-kubectl:0.0.2_20230324-083045
 
 monitoring:
-  dockerImage: artifactorycn.netcracker.com:17152/netcracker/elasticsearch-telegraf:main
+  dockerImage: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-monitoring:main
 
 # DBaaS adapter based on OpenSearch client
 dbaasAdapter:
-  dockerImage: artifactorycn.netcracker.com:17152/netcracker/dbaas-opensearch-adapter:main
+  dockerImage: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-dbaas-adapter:main
 
 curator:
   enabled: false
-  dockerImage: artifactorycn.netcracker.com:17152/netcracker/docker-elastic-curator:main
-  dockerIndicesCleanerImage: artifactorycn.netcracker.com:17152/netcracker/elasticsearch-indices-cleaner:main
+  dockerImage: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-curator:main
+  dockerIndicesCleanerImage: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-cleaner:main
 
 statusProvisioner:
   enabled: true
-  dockerImage: artifactorycn.netcracker.com:17152/netcracker/deployment-status-provisioner:main
+  dockerImage: artifactorycn.netcracker.com:17152/netcracker/qubership-deployment-status-provisioner:main
 
 integrationTests:
   enabled: false
-  dockerImage: artifactorycn.netcracker.com:17152/netcracker/opensearch-integration-tests:main
+  dockerImage: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-integration-tests:main
 
 nameOverride: "opensearch"
 fullnameOverride: "opensearch"

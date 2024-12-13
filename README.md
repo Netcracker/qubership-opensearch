@@ -22,6 +22,17 @@
 
 ### Build
 
+#### Local Build
+
+1. Specify required version of opensource Qubership OpenSearch transfer version in `build.env`.
+2. Go to the `/.gitlab-ci/build/opensearch` and run the command:
+
+```bash
+./build.sh
+```
+
+Merged Helm chart will be placed to `/.gitlab-ci/build/opensearch/helm` folder.
+
 #### Operator Docker Image
 
 1. Go to [DP-Builder](https://cisrvrecn.netcracker.com/job/DP.Pub.Microservice_builder_v2/)
@@ -97,11 +108,11 @@ The changes might be marked as fully done if it accepts the following criteria:
 
 #### Pure helm
 
-1. Build operator and integration tests, if you need non-master versions.
+1. Build operator and integration tests, if you need non-master versions. Go [Local Build](#local-build) for build Helm chart.
 2. Prepare kubeconfig on you host machine to work with target cluster.
 3. Prepare `sample.yaml` file with deployment parameters, which should contains custom docker images if it is needed.
-4. Store `sample.yaml` file in `/charts/helm/opensearch-service` directory.
-5. Go to `/charts/helm/opensearch-service` directory.
+4. Store `sample.yaml` file in `/.gitlab-ci/build/opensearch/helm` directory.
+5. Go to `/.gitlab-ci/build/opensearch/helm` directory.
 6. Run the following command:
 
   ```sh

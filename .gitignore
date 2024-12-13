@@ -23,3 +23,5 @@ testbin/*
 *.swp
 *.swo
 *~
+
+/.gitlab-ci/build/opensearch/helm/**
