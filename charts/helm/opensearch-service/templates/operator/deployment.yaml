@@ -85,6 +85,10 @@ spec:
             - name: OPENSEARCH_GKE_SERVICE
               value: {{ template "opensearch-gke-service-name" . }}
             {{ end }}
+            {{- if eq (include "tlsInitJob.enabled" .) "true" }}
+            - name: TIME_TO_SLEEP_AFTER_TLS_INIT_JOB
+              value: "20"
+            {{ end }}
           resources:
             limits:
               cpu: {{ default "100m" .Values.operator.resources.limits.cpu  }}
@@ -136,7 +140,7 @@ spec:
                   fieldPath: status.podIP
             - name: ADDITIONAL_HEALTH_ENDPOINT
               value: http://$(POD_IP):8069/healthz
-            {{- if .Values.global.disasterRecovery.httpAuth.enabled}}
+            {{- if .Values.global.disasterRecovery.httpAuth.enabled }}
             - name: SITE_MANAGER_NAMESPACE
               value: {{ .Values.global.disasterRecovery.httpAuth.smNamespace | quote }}
             - name: SITE_MANAGER_SERVICE_ACCOUNT_NAME

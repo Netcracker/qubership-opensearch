@@ -1525,3 +1525,7 @@ Ingress host for OpenSearch
     {{- fail "Overriden opensearch.tls.*.existingCertSecretRootCASubPath parameters are not supported" -}}
   {{- end -}}
 {{- end -}}
+
+{{- define "tlsInitJob.enabled" -}}
+{{ and (not .Values.global.externalOpensearch.enabled) .Values.global.tls.generateCerts.enabled (ne (include "certProvider" .) "cert-manager") }}
+{{- end -}}
