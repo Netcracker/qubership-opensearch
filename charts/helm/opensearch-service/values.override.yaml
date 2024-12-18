@@ -1,0 +1,14 @@
+dashboards:
+  resources:
+    requests:
+      cpu: "55m"
+      memory: "205M"
+    limits:
+      cpu: "1000m"
+      memory: "5120M"
+operator:
+  replicas: 5
+  reconcilePeriod: 6000
+global:
+  clusterName: my_custom_name
+  ss: ss

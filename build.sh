@@ -20,6 +20,12 @@ mkdir -p deployments/charts/opensearch-service
 cp -R ./charts/helm/opensearch-service/* deployments/charts/opensearch-service
 cp ./charts/deployment-configuration.json deployments/deployment-configuration.json
 
+wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
+
+yq eval-all 'select(filename == "values.yaml") * select(filename == "values.override.yaml")' values.yaml values.override.yaml -i
+
+rm deployments/charts/opensearch-service/values.override.yaml
+
 echo "Archive artifacts"
 zip -r ${TARGET_DIR}/${HELM_ARTIFACT_NAME}.zip charts/helm/opensearch-service
 
