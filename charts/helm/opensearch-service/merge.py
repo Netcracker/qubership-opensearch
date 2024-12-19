@@ -19,8 +19,8 @@ def merge_yaml(base, override):
       base[key] = value
 
 
-values_file = "values.yaml"
-override_file = "values.override.yaml"
+values_file = "./charts/helm/opensearch-service/values.yaml"
+override_file = "./charts/helm/opensearch-service/values.override.yaml"
 
 base_values = load_yaml(values_file)
 override_values = load_yaml(override_file)
