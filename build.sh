@@ -19,8 +19,24 @@ done
 uname -a
 cat /etc/os-release
 
-apk add --no-cache python3 py3-pip
+# Install EPEL repository if not already installed
+if ! yum repolist | grep -q epel; then
+    echo "Installing EPEL repository..."
+    yum install -y epel-release
+fi
+
+# Install Python and pip
+if ! command -v python3 &>/dev/null; then
+    echo "Python3 not found. Installing..."
+    yum install -y python3
+fi
+
+# Ensure pip is up-to-date
+echo "Upgrading pip..."
 pip3 install --upgrade pip
+
+# Install PyYAML
+echo "Installing PyYAML..."
 pip3 install pyyaml
 
 python ./charts/helm/opensearch-service/merge.py
