@@ -19,11 +19,11 @@ done
 uname -a
 cat /etc/os-release
 
-# Install EPEL repository if not already installed
-if ! yum repolist | grep -q epel; then
-    echo "Installing EPEL repository..."
-    yum install -y epel-release
-fi
+## Install EPEL repository if not already installed
+#if ! yum repolist | grep -q epel; then
+#    echo "Installing EPEL repository..."
+#    yum install -y epel-release
+#fi
 
 # Install Python and pip
 if ! command -v python3 &>/dev/null; then
