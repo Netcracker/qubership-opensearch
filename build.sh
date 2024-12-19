@@ -16,12 +16,9 @@ for docker_image_name in ${DOCKER_NAMES}; do
     .
 done
 
-apt-get update
-apt-get install -y python3 python3-venv python3-pip
-apt-get install -y python3-pip
+apk add --no-cache python3 py3-pip
 pip3 install --upgrade pip
 pip3 install pyyaml
-
 
 python ./charts/helm/opensearch-service/merge.py
 rm deployments/charts/opensearch-service/values.override.yaml
