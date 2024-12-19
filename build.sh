@@ -19,27 +19,11 @@ done
 uname -a
 cat /etc/os-release
 
-## Install EPEL repository if not already installed
-#if ! yum repolist | grep -q epel; then
-#    echo "Installing EPEL repository..."
-#    yum install -y epel-release
-#fi
+# Ensure pip is linked to Python 3.8.6
+python3.8 -m pip install --upgrade pip
+python3.8 -m pip install pyyaml
 
-## Install Python and pip
-#if ! command -v python3 &>/dev/null; then
-#    echo "Python3 not found. Installing..."
-#    yum install -y python3
-#fi
-
-# Ensure pip is up-to-date
-echo "Upgrading pip..."
-pip install --upgrade pip
-
-# Install PyYAML
-echo "Installing PyYAML..."
-pip install pyyaml
-
-python ./charts/helm/opensearch-service/merge.py
+python3.8 ./charts/helm/opensearch-service/merge.py
 rm deployments/charts/opensearch-service/values.override.yaml
 
 mkdir -p deployments/charts/opensearch-service
