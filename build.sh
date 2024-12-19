@@ -16,6 +16,7 @@ for docker_image_name in ${DOCKER_NAMES}; do
     .
 done
 
+pip install pyyaml
 python ./charts/helm/opensearch-service/merge.py
 rm deployments/charts/opensearch-service/values.override.yaml
 
