@@ -25,11 +25,11 @@ cat /etc/os-release
 #    yum install -y epel-release
 #fi
 
-# Install Python and pip
-if ! command -v python3 &>/dev/null; then
-    echo "Python3 not found. Installing..."
-    yum install -y python3
-fi
+## Install Python and pip
+#if ! command -v python3 &>/dev/null; then
+#    echo "Python3 not found. Installing..."
+#    yum install -y python3
+#fi
 
 # Ensure pip is up-to-date
 echo "Upgrading pip..."
