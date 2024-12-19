@@ -16,6 +16,9 @@ for docker_image_name in ${DOCKER_NAMES}; do
     .
 done
 
+uname -a
+cat /etc/os-release
+
 apk add --no-cache python3 py3-pip
 pip3 install --upgrade pip
 pip3 install pyyaml
