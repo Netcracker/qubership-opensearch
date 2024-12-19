@@ -24,7 +24,7 @@ python3.8 -m pip install --upgrade pip
 python3.8 -m pip install pyyaml
 
 python3.8 ./charts/helm/opensearch-service/merge.py
-rm deployments/charts/opensearch-service/values.override.yaml
+rm ./charts/helm/opensearch-service/values.override.yaml
 
 mkdir -p deployments/charts/opensearch-service
 cp -R ./charts/helm/opensearch-service/* deployments/charts/opensearch-service
