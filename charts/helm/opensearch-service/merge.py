@@ -1,12 +1,15 @@
 import yaml
 
+
 def load_yaml(file_path):
   with open(file_path, "r") as file:
     return yaml.safe_load(file)
 
+
 def save_yaml(data, file_path):
   with open(file_path, "w") as file:
     yaml.dump(data, file, default_flow_style=False, sort_keys=False)
+
 
 def merge_yaml(base, override):
   for key, value in override.items():
@@ -14,6 +17,7 @@ def merge_yaml(base, override):
       merge_yaml(base[key], value)
     else:
       base[key] = value
+
 
 values_file = "values.yaml"
 override_file = "values.override.yaml"
@@ -26,4 +30,4 @@ merge_yaml(base_values, override_values)
 # Save back to values.yaml
 save_yaml(base_values, values_file)
 
-print(f"Merged {override_file} into {values_file}")
+# print(f"Merged {override_file} into {values_file}")
