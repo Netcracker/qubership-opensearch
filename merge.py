@@ -30,9 +30,7 @@ parser.add_argument(
 )
 
 args = parser.parse_args()
-# values_file = "./charts/helm/opensearch-service/values.yaml"
 values_file = args.main
-# override_file = "./charts/helm/opensearch-service/values.override.yaml"
 override_file = args.override
 
 base_values = load_yaml(values_file)
@@ -40,5 +38,4 @@ override_values = load_yaml(override_file)
 
 merge_yaml(base_values, override_values)
 
-# Save back to values.yaml
 save_yaml(base_values, values_file)
