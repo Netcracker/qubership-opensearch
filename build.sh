@@ -25,6 +25,13 @@ rm -rf temporary_directory
 docker stop opensearch-transfer
 docker rm opensearch-transfer
 
+# Ensure pip is linked to Python 3.8.6
+python3.8 -m pip install --upgrade pip
+python3.8 -m pip install pyyaml
+
+python3.8 ./merge.py "./charts/helm/opensearch-service/values.yaml" "./charts/helm/opensearch-service/values.override.yaml"
+rm ./charts/helm/opensearch-service/values.override.yaml
+
 mkdir -p deployments/charts/opensearch-service
 cp -R ./charts/helm/opensearch-service/* deployments/charts/opensearch-service
 cp ./charts/deployment-configuration.json deployments/deployment-configuration.json

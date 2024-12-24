@@ -2,7 +2,8 @@ build:
   networkRules: nc.product.dtrust
   env:
     type: microservice
-    version: generic-1.0
+    version: python-3.8.6
+    tree: tree-7
 publication:
   docker:
     - latest
