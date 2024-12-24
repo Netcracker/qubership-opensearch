@@ -29,8 +29,8 @@ docker rm opensearch-transfer
 python3.8 -m pip install --upgrade pip
 python3.8 -m pip install pyyaml
 
-python3.8 ./merge.py "./charts/helm/opensearch-service/values.yaml" "./charts/helm/opensearch-service/values.override.yaml"
-rm ./charts/helm/opensearch-service/values.override.yaml
+python3.8 ./merge.py "./charts/helm/opensearch-service/values.yaml" "./charts/helm/opensearch-service/values.overridden.yaml"
+rm ./charts/helm/opensearch-service/values.overridden.yaml
 
 mkdir -p deployments/charts/opensearch-service
 cp -R ./charts/helm/opensearch-service/* deployments/charts/opensearch-service

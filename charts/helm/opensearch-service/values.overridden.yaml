@@ -6,6 +6,7 @@ global:
   cloudIntegrationEnabled: true
   disasterRecovery:
     image: artifactorycn.netcracker.com:17152/netcracker/disaster-recovery-daemon:main
+    siteManagerApiGroup: "netcracker.com"
 
 operator:
   dockerImage: artifactorycn.netcracker.com:17152/netcracker/qubership-opensearch-operator:main
