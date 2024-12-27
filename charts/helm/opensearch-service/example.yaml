@@ -1,13 +1,9 @@
-global:
-  imagePullSecrets:
-    - name: github-registry
-
 dashboards:
   enabled: true
   ingress:
     enabled: true
     hosts:
-      - host: dashboards-opensearch-service.example.com
+      - host: dashboards-opensearch.azureclpl.netcracker.com
         paths:
           - path: /
 
@@ -26,6 +22,7 @@ opensearch:
     persistence:
       enabled: true
       storageClass: "default"
+      size: 2Gi
     resources:
       limits:
         cpu: 1
@@ -39,9 +36,9 @@ opensearch:
       enabled: true
       path: /
       hosts:
-        - opensearch-opensearch-service.example.com
+        - opensearch-opensearch.azureclpl.netcracker.com
   snapshots:
-    enabled: true
+    enabled: false
     storageClass: "default"
     size: 2Gi
 
@@ -49,7 +46,7 @@ monitoring:
   enabled: true
 
 dbaasAdapter:
-  enabled: false
+  enabled: true
 
 curator:
   enabled: true

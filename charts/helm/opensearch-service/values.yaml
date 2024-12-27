@@ -930,6 +930,7 @@ dbaasAdapter:
   registrationAuthUsername: ""
   registrationAuthPassword: ""
   physicalDatabasesLabels: {}
+  registrationEnabled: false
 
   opensearchHost: ""
   opensearchPort: 9200
