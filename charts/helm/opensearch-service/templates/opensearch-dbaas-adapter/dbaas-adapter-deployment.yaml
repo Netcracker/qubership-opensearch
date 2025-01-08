@@ -62,7 +62,7 @@ spec:
                   key: registration-auth-username
                   name: {{ template "dbaas-adapter.name" . }}-secret
             - name: REGISTRATION_ENABLED
-              value: {{ .Values.dbaasAdapter.registrationEnabled}}
+              value: {{ .Values.dbaasAdapter.registrationEnabled }}
             - name: DBAAS_AGGREGATOR_REGISTRATION_PASSWORD
               valueFrom:
                 secretKeyRef:
