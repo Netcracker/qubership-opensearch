@@ -49,7 +49,7 @@ monitoring:
   enabled: true
 
 dbaasAdapter:
-  enabled: true
+  enabled: false
 
 curator:
   enabled: true
