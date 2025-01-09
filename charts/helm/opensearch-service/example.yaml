@@ -1,3 +1,7 @@
+global:
+  imagePullSecrets:
+    - name: github-registry
+
 dashboards:
   enabled: true
   ingress:
