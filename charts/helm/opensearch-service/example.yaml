@@ -3,7 +3,7 @@ dashboards:
   ingress:
     enabled: true
     hosts:
-      - host: dashboards-opensearch.azureclpl.netcracker.com
+      - host: dashboards-opensearch-service.example.com
         paths:
           - path: /
 
@@ -22,7 +22,6 @@ opensearch:
     persistence:
       enabled: true
       storageClass: "default"
-      size: 2Gi
     resources:
       limits:
         cpu: 1
@@ -36,9 +35,9 @@ opensearch:
       enabled: true
       path: /
       hosts:
-        - opensearch-opensearch.azureclpl.netcracker.com
+        - opensearch-opensearch-service.example.com
   snapshots:
-    enabled: false
+    enabled: true
     storageClass: "default"
     size: 2Gi
 
