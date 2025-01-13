@@ -1,6 +1,6 @@
 dashboards:
   enabled: false
-  dockerImage: opensearchproject/opensearch-dashboards:2.11.1
+  dockerImage: opensearchproject/opensearch-dashboards:2.17.1
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
@@ -793,7 +793,7 @@ opensearch:
 
   maxMapCount: 262144
 
-  dockerImage: ghcr.io/netcracker/qubership-docker-opensearch:main
+  dockerImage: ghcr.io/netcracker/qubership-docker-opensearch:feature_upgrade_to_2.17.1
   dockerTlsInitImage: ghcr.io/netcracker/qubership-opensearch-tls-init:main
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
