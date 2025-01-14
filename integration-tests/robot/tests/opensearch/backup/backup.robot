@@ -46,12 +46,17 @@ Granular Backup And Restore
     Log To Console    document: ${document}
     Log To Console   ${document} For Index ${OPENSEARCH_BACKUP_INDEX}-2
     Update Document ${document} For Index ${OPENSEARCH_BACKUP_INDEX}-2
-
+    Log To Console    Updat after
     Full Restore  ${backup_id}  ["${OPENSEARCH_BACKUP_INDEX}-1", "${OPENSEARCH_BACKUP_INDEX}-2"]
+    Log To Console    ful rest
     Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_INDEX}-1
+    Log To Console    ch opensearchindexex1
     Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_INDEX}-2
+    Log To Console    ch opensearchindexex2
     Check That Document Exists By Field  ${OPENSEARCH_BACKUP_INDEX}-2  age  10
+    Log To Console    chthatdoc
     [Teardown]  Run Keywords  Delete Data  ${OPENSEARCH_BACKUP_INDEX}  AND  Delete Backup  ${backup_id}
+
 
 Granular Backup And Restore By Timestamp
     [Tags]  opensearch  backup  granular_backup  restore_by_timestamp
