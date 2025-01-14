@@ -1,7 +1,3 @@
-global:
-  imagePullSecrets:
-    - name: github-registry
-
 dashboards:
   enabled: true
   ingress:
@@ -17,8 +13,8 @@ opensearch:
   securityConfig:
     authc:
       basic:
-        username: "netcrk"
-        password: "crknet"
+        username: "admin"
+        password: "admin"
 
   master:
     enabled: true
@@ -40,10 +36,6 @@ opensearch:
       path: /
       hosts:
         - opensearch-opensearch-service.example.com
-  snapshots:
-    enabled: true
-    storageClass: "default"
-    size: 2Gi
 
 monitoring:
   enabled: true
