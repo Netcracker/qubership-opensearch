@@ -59,9 +59,13 @@ Delete Backup If Exists
 
 Full Restore
     [Arguments]  ${backup_id}  ${indices_list}
+    Log To Console    Ful Restore backup id: ${backup_id} ${indices_list}
     ${restore_data}=  Set Variable  {"vault":"${backup_id}","dbs":${indices_list}}
+    Log To Console    Ful Restore restore_data: ${restore_data}
     ${response}=  Post Request  curatorsession  /restore  data=${restore_data}  headers=${headers}
+    Log To Console    Ful Restore response: ${response}
     Should Be Equal As Strings  ${response.status_code}  200
+    Log To Console    Ful Restore response.status_code: ${response.status_code}
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Restore Status  ${response.content}
 
