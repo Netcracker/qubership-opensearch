@@ -40,7 +40,7 @@ Granular Backup And Restore
     ${backup_id}=  Granular Backup  ["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]
     Log To Console    backup id: ${backup_id}
     ${response}=  Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
-    Log To Console    response: ${response}
+    Log To Console    response: ${response.status_code}
     Should Be Equal As Strings  ${response.status_code}  200
     ${document}=  Set Variable  {"age": "1"}
     Log To Console    document: ${document}
