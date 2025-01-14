@@ -44,6 +44,7 @@ Granular Backup And Restore
     Should Be Equal As Strings  ${response.status_code}  200
     ${document}=  Set Variable  {"age": "1"}
     Log To Console    document: ${document}
+    Log To Console   ${document} For Index ${OPENSEARCH_BACKUP_INDEX}-2
     Update Document ${document} For Index ${OPENSEARCH_BACKUP_INDEX}-2
 
     Full Restore  ${backup_id}  ["${OPENSEARCH_BACKUP_INDEX}-1", "${OPENSEARCH_BACKUP_INDEX}-2"]
