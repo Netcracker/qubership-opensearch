@@ -387,7 +387,7 @@ opensearch:
 
     resources:
       requests:
-        cpu: 250m
+        cpu: 300m
         memory: 2Gi
       limits:
         cpu: 1
@@ -400,9 +400,9 @@ opensearch:
     livenessProbe:
       tcpSocket:
         port: transport
-      initialDelaySeconds: 90
+      initialDelaySeconds: 120
       periodSeconds: 20
-      failureThreshold: 5
+      failureThreshold: 10
     startupProbe: {}
     imagePullSecrets: []
     nodeSelector: {}
