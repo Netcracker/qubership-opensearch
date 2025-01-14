@@ -33,14 +33,17 @@ Full Backup And Restore
     [Teardown]  Run Keywords  Delete Data  ${OPENSEARCH_BACKUP_INDEX}  AND  Delete Backup  ${backup_id}
 
 Granular Backup And Restore
+    Log To Console    Starting the test
     [Tags]  opensearch  backup  granular_backup  restore
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-1
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-2
     ${backup_id}=  Granular Backup  ["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]
-
+    Log To Console    backup id: ${backup_id}
     ${response}=  Delete OpenSearch Index  ${OPENSEARCH_BACKUP_INDEX}-1
+    Log To Console    response: ${response.content}
     Should Be Equal As Strings  ${response.status_code}  200
     ${document}=  Set Variable  {"age": "1"}
+    Log To Console    document: ${document}
     Update Document ${document} For Index ${OPENSEARCH_BACKUP_INDEX}-2
 
     Full Restore  ${backup_id}  ["${OPENSEARCH_BACKUP_INDEX}-1", "${OPENSEARCH_BACKUP_INDEX}-2"]
