@@ -66,10 +66,8 @@ Full Restore
     Log To Console    Ful Restore response: ${response}
     Should Be Equal As Strings  ${response.status_code}  200
     Log To Console    Ful Restore response.status_code: ${response.status_code}
-    Log To Console    times ${RETRY_TIME}  ${RETRY_INTERVAL}
+    Log To Console    times ${RETRY_TIME} ${RETRY_INTERVAL}
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    Log To Console    times ${RETRY_TIME}  ${RETRY_INTERVAL}
-
     ...  Check Restore Status  ${response.content}
 
 Full Restore By Timestamp
@@ -103,8 +101,11 @@ Check Backup Status
 
 Check Restore Status
     [Arguments]  ${task_id}
+    Log To Console    task_id: ${task_id}
     ${response}=  Get Request  curatorsession  /jobstatus/${task_id}
+    Log To Console    response: ${response}
     ${content}=  Convert Json ${response.content} To Type
+    Log To Console    content: ${content}
     Should Be Equal As Strings  ${content['status']}  Successful
 
 Check Backup Absence By Curator
