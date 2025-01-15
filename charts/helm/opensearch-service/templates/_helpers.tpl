@@ -1401,3 +1401,22 @@ Ingress host for OpenSearch
     {{- fail "Overriden opensearch.tls.*.existingCertSecretRootCASubPath parameters are not supported" -}}
   {{- end -}}
 {{- end -}}
+
+{{/*
+Curator SSL secret name
+*/}}
+{{- define "curator.s3.tlsSecretName" -}}
+  {{- if .Values.opensearch.snapshots.s3.sslCert -}}
+    {{- if .Values.opensearch.snapshots.s3.sslSecretName -}}
+      {{- .Values.opensearch.snapshots.s3.sslSecretName -}}
+    {{- else -}}
+      {{- printf "consul-backup-daemon-s3-tls-secret" -}}
+    {{- end -}}
+  {{- else -}}
+    {{- if .Values.opensearch.snapshots.s3.sslSecretName -}}
+      {{- .Values.opensearch.snapshots.s3.sslSecretName -}}
+    {{- else -}}
+      {{- printf "" -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}

@@ -230,6 +230,10 @@ spec:
         {{- end }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/trustcerts
               name: trusted-certs
+            {{- if and (include "curator.s3.tlsSecretName" .) .Values.opensearch.snapshots.s3.enabled }}
+            - mountPath: {{ .Values.opensearch.configDirectory }}/s3certs
+              name: s3-ssl-certs
+            {{- end }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/logging.yml
               name: config
               subPath: logging.yml
@@ -307,6 +311,11 @@ spec:
         - name: trusted-certs
           secret:
             secretName: {{ template "opensearch.fullname" . }}-trusted-certs
+        {{ if and (include "curator.s3.tlsSecretName" .) .Values.opensearch.snapshots.s3.enabled }}
+        - name: s3-ssl-certs
+          secret:
+            secretName: {{ template "curator.s3.tlsSecretName" . }}
+        {{ end }}
         {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
         - name: rest-certs
           secret:

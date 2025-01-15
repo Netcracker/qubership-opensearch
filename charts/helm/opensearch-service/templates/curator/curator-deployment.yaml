@@ -170,6 +170,10 @@ spec:
             - name: gcs
               mountPath: /usr/share/opensearch/gcs
             {{- end }}
+            {{- if and (include "curator.s3.tlsSecretName" .) .Values.opensearch.snapshots.s3.enabled }}
+            - name: s3-ssl-certs
+              mountPath: /s3Certs
+            {{- end }}
           ports:
             - protocol: TCP
               containerPort: {{ template "curator.port" . }}
@@ -265,6 +269,11 @@ spec:
               - key: {{ .Values.opensearch.snapshots.s3.gcs.secretKey }}
                 path: key.json
         {{- end }}
+        {{ if and (include "curator.s3.tlsSecretName" .) .Values.opensearch.snapshots.s3.enabled }}
+        - name: s3-ssl-certs
+          secret:
+            secretName: {{ template "curator.s3.tlsSecretName" . }}
+        {{ end }}
       {{- if .Values.curator.priorityClassName }}
       priorityClassName: {{ .Values.curator.priorityClassName | quote }}
       {{- end }}

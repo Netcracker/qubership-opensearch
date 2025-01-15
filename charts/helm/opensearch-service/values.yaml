@@ -691,6 +691,8 @@ opensearch:
       keySecret: ""
       basePath: ""
       region: ""
+      sslSecretName: ""
+      sslCert: ""
       gcs:
         secretName: ""
         secretKey: ""
@@ -793,7 +795,7 @@ opensearch:
 
   maxMapCount: 262144
 
-  dockerImage: ghcr.io/netcracker/qubership-docker-opensearch:main
+  dockerImage: ghcr.io/netcracker/qubership-docker-opensearch:feature_support_s3_ssl_certs
   dockerTlsInitImage: ghcr.io/netcracker/qubership-opensearch-tls-init:main
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
