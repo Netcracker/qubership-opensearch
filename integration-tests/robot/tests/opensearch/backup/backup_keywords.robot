@@ -68,6 +68,7 @@ Full Restore
     Log To Console    Ful Restore response.status_code: ${response.status_code}
     Log To Console    times ${RETRY_TIME}  ${RETRY_INTERVAL}
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    Log To Console    times ${RETRY_TIME}  ${RETRY_INTERVAL}
 
     ...  Check Restore Status  ${response.content}
 
