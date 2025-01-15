@@ -14,7 +14,7 @@ on:
         required: false
 env:
   TAG_NAME: ${{ github.event.release.tag_name || github.ref }}
-  PUSH: ${{ (github.event_name != 'workflow_dispatch' || inputs.publish_docker) && !startsWith(github.ref, 'refs/heads/dependabot') }}
+  PUSH: ${{ (github.event_name == 'workflow_dispatch' && inputs.publish_docker) || !startsWith(github.ref, 'refs/heads/dependabot') }}
   GITHUB_GROUP: ${{ github.repository_owner }}
 
 jobs:
