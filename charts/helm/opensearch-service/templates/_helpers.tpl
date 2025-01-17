@@ -1410,7 +1410,7 @@ Curator SSL secret name
     {{- if .Values.opensearch.snapshots.s3.sslSecretName -}}
       {{- .Values.opensearch.snapshots.s3.sslSecretName -}}
     {{- else -}}
-      {{- printf "consul-backup-daemon-s3-tls-secret" -}}
+      {{- printf "curator-s3-tls-secret" -}}
     {{- end -}}
   {{- else -}}
     {{- if .Values.opensearch.snapshots.s3.sslSecretName -}}
