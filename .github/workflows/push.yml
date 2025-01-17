@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - '**'
+  pull_request:
+    branches:
+      - '**'
   workflow_dispatch:
     inputs:
       publish_docker:
