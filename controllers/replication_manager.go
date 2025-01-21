@@ -239,11 +239,12 @@ func (rm ReplicationManager) Start() error {
 func (rm ReplicationManager) RemoveReplicationRule() error {
 	body := fmt.Sprintf(`{"leader_alias": "%s","name": "%s"}`, leaderAlias, replicationName)
 	statusCode, reqBody, err := rm.restClient.SendRequest(http.MethodDelete, startFullReplicationPath, strings.NewReader(body))
+	rm.logger.Info(fmt.Sprintf("Request Responce is BOOOOOODDDDDDDDDDDYYYY %s", reqBody))
 	if err != nil {
 		return err
 	}
 	if statusCode >= 400 && statusCode != http.StatusNotFound {
-		rm.logger.Info(fmt.Sprintf("Request Responce is %s", reqBody))
+		rm.logger.Info(fmt.Sprintf("Request Responce is BOOOOOODDDDDDDDDDDYYYY %s", reqBody))
 		return fmt.Errorf("internal server error with %d status code", statusCode)
 	}
 	return nil
