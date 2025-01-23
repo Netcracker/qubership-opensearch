@@ -1008,11 +1008,6 @@ Caused by: java.security.cert.CertificateExpiredException: NotAfter: Thu Jan 18 
 
 The solution is to re-generate internal TLS certificates with long-lived duration.
 
-The most right solution is to upgrade OpenSearch to one of the following stable versions to generate them automatically:
-
-* [0.2.13](https://github.com/Netcracker/opensearch-service/-/tags/0.2.13)
-* [0.3.7](https://github.com/Netcracker/opensearch-service/-/tags/0.3.7)
-* [1.3.2](https://github.com/Netcracker/opensearch-service/-/tags/1.3.2)
 
 If upgrade is not possible and manual fix is required, please follow steps:
 

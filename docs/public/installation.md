@@ -122,8 +122,6 @@ If the deployment user does not have the necessary rights, you need to perform t
 **Note**: If you deploy OpenSearch service to Kubernetes version less than 1.16, you have to manually install CRD from `config/crd/old/qubership.org_opensearchservices.yaml`
 and disable automatic CRD creation by Helm in the following way:
 
-* Specify the `--skip-crds` in `ADDITIONAL_OPTIONS` parameter of DP Deployer Job.
-* Specify `DISABLE_CRD=true;` in the `CUSTOM_PARAMS` parameter of Groovy Deployer Job.
 
 ### Deployment Permissions
 
@@ -1977,11 +1975,6 @@ If you need migrate to OpenSearch Service `1.x.x` (with OpenSearch 2.x) from pre
 
 OpenSearch Service allows migration from OpenDistro Elasticsearch deployments.
 
-There are 3 ways for migration:
-
-1. Automatic via Deployer Job (DP|App)
-2. Manual Steps
-3. Backup and Restore
 
 **Note**: If you need to migrate from Elasticsearch 6.8 cluster to OpenSearch, refer to [Migrate From Elasticsearch Service](#migrate-from-elasticsearch-68-service).
 
@@ -2071,9 +2064,6 @@ With this approach snapshots collected on Elasticsearch side and restored on Ope
      With Elasticsearch `username:password` specified.
 
    * Check the snapshot status and indices from response.
-     <!-- #GFCFilterMarkerStart# -->Additional information about manual backup described in
-     [Manual backup guide](https://git.qubership.org/PROD.Platform.ElasticStack/elasticsearch-service/-/blob/master/documentation/maintenance-guide/backup/manual-backup-procedure.md)
-     <!-- #GFCFilterMarkerEnd# -->
 
 2. Copy `snapshots` directory from Elasticsearch side:
 
@@ -2107,10 +2097,7 @@ With this approach snapshots collected on Elasticsearch side and restored on Ope
 
    * Check that response is `"accepted":true`. Otherwise, some problem occurred and described in response, such as already existing open index in new cluster,
      but if OpenSearch cluster has clean installation, no conflicts expected. If such problem reproduced, close or delete indices that already exists or use renaming pattern.
-     <!-- #GFCFilterMarkerStart# --> Additional information about manual snapshot recovery described in
-     [Manual recovery guide](https://git.qubership.org/PROD.Platform.ElasticStack/elasticsearch-service/-/blob/master/documentation/maintenance-guide/recovery/manual-recovery-procedure.md)
-     <!-- #GFCFilterMarkerEnd# -->
-
+   
 #### Migrate From Elasticsearch 6.8 Service
 
 It is also possible to migrate from Elasticsearch 6.8 installations, but only with manual steps.

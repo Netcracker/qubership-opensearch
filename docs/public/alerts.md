@@ -297,7 +297,7 @@ For more information, refer to [Last Backup Has Failed](./troubleshooting.md#las
 ### Recommended Actions to Resolve Issue
 
 1. Fix issues with backup storage if necessary.
-2. Follow [Last Backup Has Failed](./troubleshooting.md#problemslast-backup-has-failed) for additional steps.
+2. Follow [Last Backup Has Failed](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/troubleshooting.md#last-backup-has-failed) for additional steps.
 
 ## OpenSearchQueryIsTooSlowAlert
 
