@@ -158,6 +158,12 @@ type PluginReplicationError struct {
 	Status int `json:"status"`
 }
 
+type ErrorResponse struct {
+	Error struct {
+		Reason string `json:"reason"`
+	} `json:"error"`
+}
+
 func NewReplicationManager(restClient util.RestClient, remoteUrl string, indexPattern string, logger logr.Logger) *ReplicationManager {
 	return &ReplicationManager{
 		restClient: restClient,
@@ -238,14 +244,20 @@ func (rm ReplicationManager) Start() error {
 
 func (rm ReplicationManager) RemoveReplicationRule() error {
 	body := fmt.Sprintf(`{"leader_alias": "%s","name": "%s"}`, leaderAlias, replicationName)
-	statusCode, reqBody, err := rm.restClient.SendRequest(http.MethodDelete, startFullReplicationPath, strings.NewReader(body))
-	rm.logger.Info(fmt.Sprintf("Request Responce is BOOOOOODDDDDDDDDDDYYYY %s", reqBody))
+	statusCode, responseBody, err := rm.restClient.SendRequest(http.MethodDelete, startFullReplicationPath, strings.NewReader(body))
 	if err != nil {
 		return err
 	}
 	if statusCode >= 400 && statusCode != http.StatusNotFound {
-		rm.logger.Info(fmt.Sprintf("Request Responce is BOOOOOODDDDDDDDDDDYYYY %s", reqBody))
-		return fmt.Errorf("internal server error with %d status code", statusCode)
+		var errResp ErrorResponse
+		if err := json.Unmarshal(responseBody, &errResp); err != nil {
+			return fmt.Errorf("failed to parse delete respose from %s", startFullReplicationPath)
+		}
+		if strings.Contains(errResp.Error.Reason, fmt.Sprintf("%s does not exist", replicationName)) {
+			return nil
+		} else {
+			return fmt.Errorf("internal server error with %d status code", statusCode)
+		}
 	}
 	return nil
 }
