@@ -245,7 +245,7 @@ func (rm ReplicationManager) Start() error {
 func (rm ReplicationManager) RemoveReplicationRule() error {
 	body := fmt.Sprintf(`{"leader_alias": "%s","name": "%s"}`, leaderAlias, replicationName)
 	statusCode, responseBody, err := rm.restClient.SendRequest(http.MethodDelete, startFullReplicationPath, strings.NewReader(body))
-	rm.logger.Info(fmt.Sprintf("STATUS %d, body %s", statusCode, body))
+	rm.logger.Info(fmt.Sprintf("STATUS %d, body %s", statusCode, responseBody))
 	if err != nil {
 		var errResp ErrorResponse
 		if err = json.Unmarshal(responseBody, &errResp); err != nil {
