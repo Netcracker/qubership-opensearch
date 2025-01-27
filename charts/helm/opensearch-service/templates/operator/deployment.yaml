@@ -52,6 +52,10 @@ spec:
               name: opensearch-certs
               subPath: {{ template "opensearch.root-ca-path" . }}
           {{- end }}
+          {{- if and (include "curator.s3.tlsSecretName" .) .Values.opensearch.snapshots.s3.enabled }}
+            - name: s3-ssl-certs
+              mountPath: /s3Certs
+          {{- end }}
           {{ if and (eq (include "dbaas.enabled" .) "true") (eq (include "dbaas-adapter.tlsEnabled" .) "true") }}
             - mountPath: /certs/dbaas-adapter/crt.pem
               name: dbaas-adapter-certs
@@ -166,6 +170,11 @@ spec:
           secret:
             secretName: {{ template "opensearch.rest-cert-secret-name" . }}
         {{- end }}
+        {{ if and (include "curator.s3.tlsSecretName" .) .Values.opensearch.snapshots.s3.enabled }}
+        - name: s3-ssl-certs
+          secret:
+            secretName: {{ template "curator.s3.tlsSecretName" . }}
+        {{ end }}
         {{- if eq (include "disasterRecovery.tlsEnabled" .) "true" }}
         - name: drd-certs
           secret:
