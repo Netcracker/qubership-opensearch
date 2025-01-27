@@ -38,6 +38,7 @@ const (
 	opensearchConfigHashName       = "config.opensearch"
 	opensearchRoleMappingsHashName = "rolemappings"
 	certificateFilePath            = "/certs/crt.pem"
+	s3CertificateFilePath          = "/s3Certs/ca.crt"
 	healthCheckInterval            = 30 * time.Second
 	healthCheckTimeout             = 5 * time.Minute
 	podCheckInterval               = 1 * time.Minute

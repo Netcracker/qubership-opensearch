@@ -449,8 +449,14 @@ func (r *OpenSearchServiceReconciler) configureClientWithCertificate(certificate
 		log.Error(err, fmt.Sprintf("Unable to read certificates from %s file", certificatePath))
 		return httpClient, err
 	}
+	s3CaCert, err := os.ReadFile(s3CertificateFilePath)
+	if err != nil {
+		log.Error(err, fmt.Sprintf("Unable to read certificates from %s file", certificatePath))
+		return httpClient, err
+	}
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
+	caCertPool.AppendCertsFromPEM(s3CaCert)
 	httpClient.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{
 			RootCAs: caCertPool,
