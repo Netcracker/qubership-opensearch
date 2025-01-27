@@ -38,7 +38,6 @@ const (
 	opensearchConfigHashName       = "config.opensearch"
 	opensearchRoleMappingsHashName = "rolemappings"
 	certificateFilePath            = "/certs/crt.pem"
-	s3CertificateFilePath          = "/s3Certs/ca.crt"
 	healthCheckInterval            = 30 * time.Second
 	healthCheckTimeout             = 5 * time.Minute
 	podCheckInterval               = 1 * time.Minute
@@ -929,9 +928,10 @@ func (r OpenSearchReconciler) createSnapshotsRepository(restClient *util.RestCli
 	var body []byte
 	for i := 0; i < attemptsNumber; i++ {
 		statusCode, body, err = restClient.SendRequest(http.MethodGet,
-			fmt.Sprintf("%s/*", requestPath), nil)
+			requestPath, nil)
+
 		// repository recreation is required if snapshots folder is changed not by OpenSearch
-		if err == nil && statusCode == http.StatusNotFound && strings.Contains(string(body), "no_such_file_exception") {
+		if err == nil && statusCode == http.StatusNotFound && strings.Contains(string(body), "repository_missing_exception") {
 			r.deleteSnapshotsRepository(restClient, requestPath)
 		}
 		statusCode, _, err = restClient.SendRequest(http.MethodPut, requestPath, strings.NewReader(requestBody))
