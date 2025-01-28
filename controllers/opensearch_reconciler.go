@@ -580,7 +580,6 @@ func (r OpenSearchReconciler) Configure() error {
 
 func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
 	restClient, err := r.updateCredentials()
-	r.logger.Info(fmt.Sprintf("REST CLIENT %v", restClient))
 	if err != nil {
 		if strings.Contains(err.Error(), "is read-only") {
 			clusterManagerPod, requestErr := r.getClusterManagerNode(restClient)
@@ -989,9 +988,6 @@ func (r OpenSearchReconciler) getSnapshotsRepositoryBody() string {
 			s3BasePath := r.cr.Spec.OpenSearch.Snapshots.S3.BasePath
 			s3Region := r.cr.Spec.OpenSearch.Snapshots.S3.Region
 			s3PathStyleAccess := strconv.FormatBool(r.cr.Spec.OpenSearch.Snapshots.S3.PathStyleAccess)
-			if strings.Contains(r.cr.Spec.OpenSearch.Snapshots.S3.Url, "minio") {
-				s3PathStyleAccess = "true"
-			}
 			return fmt.Sprintf(`{"type": "s3", "settings": {"base_path": "%s", "bucket": "%s", "region": "%s", "endpoint": "%s", "protocol": "http", "access_key": "%s", "secret_key": "%s", "compress": true, "path_style_access": "%s"}}`, s3BasePath, s3Bucket, s3Region, s3Url, s3KeyId, s3KeySecret, s3PathStyleAccess)
 		}
 	}
