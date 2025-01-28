@@ -74,27 +74,6 @@ func (rc RestClient) SendBasicRequest(method string, path string, body io.Reader
 	return
 }
 
-func (rc RestClient) SendBasicRequestWithResp(method string, path string, body io.Reader, useHeaders bool) (statusCode int, response *http.Response, err error) {
-	requestUrl := fmt.Sprintf("%s/%s", rc.url, path)
-	request, err := http.NewRequest(method, requestUrl, body)
-	if err != nil {
-		return
-	}
-	if useHeaders {
-		request.Header.Add("Accept", "application/json")
-		request.Header.Add("Content-Type", "application/json")
-	}
-	if rc.credentials.Username != "" && rc.credentials.Password != "" {
-		request.SetBasicAuth(rc.credentials.Username, rc.credentials.Password)
-	}
-	response, err = rc.httpClient.Do(request)
-	if err != nil {
-		return
-	}
-	statusCode = response.StatusCode
-	return
-}
-
 func (rc RestClient) SendRequestWithStatusCodeCheck(method string, path string, body io.Reader) ([]byte, error) {
 	statusCode, responseBody, err := rc.SendRequest(method, path, body)
 	if statusCode >= 400 {
