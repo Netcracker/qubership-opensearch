@@ -247,15 +247,16 @@ func (rm ReplicationManager) RemoveReplicationRule() error {
 	body := fmt.Sprintf(`{"leader_alias": "%s","name": "%s"}`, leaderAlias, replicationName)
 	statusCode, response, err := rm.restClient.SendBasicRequestWithResp(http.MethodDelete, startFullReplicationPath, strings.NewReader(body), true)
 	//statusCode, response, err := rm.restClient.SendRequest(http.MethodDelete, startFullReplicationPath, strings.NewReader(body))
-	rm.logger.Info(fmt.Sprintf("STATUS %d, body %s", statusCode, response))
+	rm.logger.Info(fmt.Sprintf("STATUS %d, body %v", statusCode, response))
+	rm.logger.Info(fmt.Sprintf("STATUS %d, body %v", statusCode, response.Body))
 	if err != nil {
 		var errResp ErrorResponse
 		defer response.Body.Close()
 		responseBody, err := io.ReadAll(response.Body)
 		rm.logger.Info(fmt.Sprintf("BODYYYY %s", body))
 		if err = json.Unmarshal(responseBody, &errResp); err != nil {
-			//return fmt.Errorf("failed to parse delete respose from %s", startFullReplicationPath)
-			return err
+			return fmt.Errorf("failed to parse delete respose from %s", startFullReplicationPath)
+			//return err
 		}
 		if strings.Contains(errResp.Error.Reason, fmt.Sprintf("%s does not exist", replicationName)) {
 			return nil
