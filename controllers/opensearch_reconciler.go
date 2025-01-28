@@ -934,7 +934,7 @@ func (r OpenSearchReconciler) createSnapshotsRepository(restClient *util.RestCli
 		if err == nil && statusCode == http.StatusNotFound && strings.Contains(string(body), "repository_missing_exception") {
 			r.deleteSnapshotsRepository(restClient, requestPath)
 		}
-		statusCode, body, err = restClient.SendRequest(http.MethodPut, requestPath, strings.NewReader(requestBody))
+		statusCode, _, err = restClient.SendRequest(http.MethodPut, requestPath, strings.NewReader(requestBody))
 		if err == nil && statusCode == http.StatusOK {
 			r.logger.Info("Snapshot repository is created")
 			return nil
