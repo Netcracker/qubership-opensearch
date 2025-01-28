@@ -153,6 +153,9 @@ func (r *OpenSearchServiceReconciler) calculateSecretDataHash(secretName string,
 
 // parseOpenSearchCredentials gets credentials from OpenSearch secret
 func (r *OpenSearchServiceReconciler) parseOpenSearchCredentials(cr *opensearchservice.OpenSearchService, logger logr.Logger) util.Credentials {
+	if cr.Spec.ExternalOpenSearch != nil {
+		return r.parseSecretCredentials(fmt.Sprintf(secretPattern, cr.Name), cr.Namespace, logger)
+	}
 	return r.parseSecretCredentials(fmt.Sprintf(oldSecretPattern, cr.Name), cr.Namespace, logger)
 }
 
