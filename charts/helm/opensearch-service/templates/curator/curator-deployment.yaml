@@ -113,6 +113,10 @@ spec:
                 secretKeyRef:
                   name: {{ template "opensearch.fullname" . }}-s3-secret
                   key: s3-key-secret
+            {{ if (include "curator.s3.tlsSecretName" .) }}
+            - name: S3_CERTS_PATH
+              value: /s3Certs
+            {{- end }}
           {{- end }}
             - name: BACKUP_DAEMON_API_CREDENTIALS_USERNAME
               valueFrom:
@@ -204,10 +208,6 @@ spec:
               value: "{{ .Values.curator.indicesCleanerSchedulerUnitCount | default 1 }}"
             - name: INDICES_CLEANER_CONFIGURATION_KEY
               value: {{ .Values.curator.indicesCleanerConfigurationKey | default "patterns_to_delete" }}
-            {{ if and (include "curator.s3.tlsSecretName" .) .Values.opensearch.snapshots.s3.enabled }}
-            - name: S3_CERTS_PATH
-              value: /s3Certs
-            {{- end }}
           image: {{ template "indices-cleaner.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
           livenessProbe:
