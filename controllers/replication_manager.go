@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/Netcracker/opensearch-service/util"
 	"github.com/go-logr/logr"
-	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -250,19 +249,20 @@ func (rm ReplicationManager) RemoveReplicationRule() error {
 	rm.logger.Info(fmt.Sprintf("STATUS %d, body %v", statusCode, response))
 	rm.logger.Info(fmt.Sprintf("STATUS %d, body %v", statusCode, response.Body))
 	if err != nil {
-		var errResp ErrorResponse
-		defer response.Body.Close()
-		responseBody, err := io.ReadAll(response.Body)
-		rm.logger.Info(fmt.Sprintf("BODYYYY %s", body))
-		if err = json.Unmarshal(responseBody, &errResp); err != nil {
-			return fmt.Errorf("failed to parse delete respose from %s", startFullReplicationPath)
-			//return err
-		}
-		if strings.Contains(errResp.Error.Reason, fmt.Sprintf("%s does not exist", replicationName)) {
-			return nil
-		} else {
-			return err
-		}
+		//var errResp ErrorResponse
+		//defer response.Body.Close()
+		//responseBody, err := io.ReadAll(response.Body)
+		//rm.logger.Info(fmt.Sprintf("BODYYYY %s", body))
+		//if err = json.Unmarshal(responseBody, &errResp); err != nil {
+		//	return fmt.Errorf("failed to parse delete respose from %s", startFullReplicationPath)
+		//	//return err
+		//}
+		//if strings.Contains(errResp.Error.Reason, fmt.Sprintf("%s does not exist", replicationName)) {
+		//	return nil
+		//} else {
+		//	return err
+		//}
+		return err
 	}
 	if statusCode >= 400 && statusCode != http.StatusNotFound {
 		return fmt.Errorf("internal server error with %d status code", statusCode)
