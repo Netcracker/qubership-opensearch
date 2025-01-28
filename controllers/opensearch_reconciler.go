@@ -38,7 +38,6 @@ const (
 	opensearchConfigHashName       = "config.opensearch"
 	opensearchRoleMappingsHashName = "rolemappings"
 	certificateFilePath            = "/certs/crt.pem"
-	s3CertificateFilePath          = "/s3Certs/ca.crt"
 	healthCheckInterval            = 30 * time.Second
 	healthCheckTimeout             = 5 * time.Minute
 	podCheckInterval               = 1 * time.Minute
@@ -932,13 +931,11 @@ func (r OpenSearchReconciler) createSnapshotsRepository(restClient *util.RestCli
 		statusCode, body, err = restClient.SendRequest(http.MethodGet,
 			requestPath, nil)
 
-		r.logger.Info(fmt.Sprintf("FIRST Status %d, body %s, err %s", statusCode, body, err))
 		// repository recreation is required if snapshots folder is changed not by OpenSearch
 		if err == nil && statusCode == http.StatusNotFound && strings.Contains(string(body), "repository_missing_exception") {
 			r.deleteSnapshotsRepository(restClient, requestPath)
 		}
 		statusCode, body, err = restClient.SendRequest(http.MethodPut, requestPath, strings.NewReader(requestBody))
-		r.logger.Info(fmt.Sprintf("SECOND Status %d, body %s, err %s", statusCode, body, err))
 		if err == nil && statusCode == http.StatusOK {
 			r.logger.Info("Snapshot repository is created")
 			return nil
@@ -992,6 +989,9 @@ func (r OpenSearchReconciler) getSnapshotsRepositoryBody() string {
 			s3BasePath := r.cr.Spec.OpenSearch.Snapshots.S3.BasePath
 			s3Region := r.cr.Spec.OpenSearch.Snapshots.S3.Region
 			s3PathStyleAccess := strconv.FormatBool(r.cr.Spec.OpenSearch.Snapshots.S3.PathStyleAccess)
+			if strings.Contains(r.cr.Spec.OpenSearch.Snapshots.S3.Url, "minio") {
+				s3PathStyleAccess = "true"
+			}
 			return fmt.Sprintf(`{"type": "s3", "settings": {"base_path": "%s", "bucket": "%s", "region": "%s", "endpoint": "%s", "protocol": "http", "access_key": "%s", "secret_key": "%s", "compress": true, "path_style_access": "%s"}}`, s3BasePath, s3Bucket, s3Region, s3Url, s3KeyId, s3KeySecret, s3PathStyleAccess)
 		}
 	}
