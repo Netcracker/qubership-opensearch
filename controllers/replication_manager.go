@@ -158,12 +158,6 @@ type PluginReplicationError struct {
 	Status int `json:"status"`
 }
 
-type ErrorResponse struct {
-	Error struct {
-		Reason string `json:"reason"`
-	} `json:"error"`
-}
-
 func NewReplicationManager(restClient util.RestClient, remoteUrl string, indexPattern string, logger logr.Logger) *ReplicationManager {
 	return &ReplicationManager{
 		restClient: restClient,
