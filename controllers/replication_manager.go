@@ -248,7 +248,7 @@ func (rm ReplicationManager) RemoveReplicationRule() error {
 		return fmt.Errorf(fmt.Sprintf("failed to get replication rule, reason: %e", err))
 	}
 	if rule == nil {
-		rm.logger.Info("Skipping replication rile removal since its does not exist")
+		rm.logger.Info("Skipping replication rule removal since its does not exist")
 		return nil
 	}
 	body := fmt.Sprintf(`{"leader_alias": "%s","name": "%s"}`, leaderAlias, replicationName)
