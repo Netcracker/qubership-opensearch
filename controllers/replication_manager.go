@@ -243,21 +243,18 @@ func (rm ReplicationManager) Start() error {
 }
 
 func (rm ReplicationManager) RemoveReplicationRule() error {
-	body := fmt.Sprintf(`{"leader_alias": "%s","name": "%s"}`, leaderAlias, replicationName)
-	statusCode, response, err := rm.restClient.SendRequest(http.MethodDelete, startFullReplicationPath, strings.NewReader(body))
-	rm.logger.Info(fmt.Sprintf("STATUS %d, body %v", statusCode, response))
+	rule, err := rm.GetAutoFollowRuleStats()
 	if err != nil {
-		var errResp ErrorResponse
-		rm.logger.Info(fmt.Sprintf("BODYYYY %s", body))
-		if err = json.Unmarshal(response, &errResp); err != nil {
-			return fmt.Errorf("failed to parse delete respose from %s", startFullReplicationPath)
-			//return err
-		}
-		if strings.Contains(errResp.Error.Reason, fmt.Sprintf("%s does not exist", replicationName)) {
-			return nil
-		} else {
-			return err
-		}
+		return fmt.Errorf(fmt.Sprintf("failed to get replication rule, reason: %e", err))
+	}
+	if rule == nil {
+		rm.logger.Info("Skipping replication rile removal since its does not exist")
+		return nil
+	}
+	body := fmt.Sprintf(`{"leader_alias": "%s","name": "%s"}`, leaderAlias, replicationName)
+	statusCode, _, err := rm.restClient.SendRequest(http.MethodDelete, startFullReplicationPath, strings.NewReader(body))
+	if err != nil {
+		return err
 	}
 	if statusCode >= 400 && statusCode != http.StatusNotFound {
 		return fmt.Errorf("internal server error with %d status code", statusCode)
