@@ -666,15 +666,15 @@ func (r OpenSearchReconciler) updateCredentials() (*util.RestClient, error) {
 			}
 		}
 		log.Info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-		err = wait.PollImmediate(waitingInterval, updateTimeout, func() (bool, error) {
-			log.Info("HERE wait.PollImmediate")
-			err = r.reconciler.updateSecretWithCredentials(fmt.Sprintf(oldSecretPattern, r.cr.Name), r.cr.Namespace, newCredentials, r.logger)
-			if err != nil {
-				r.logger.Error(err, "Unable to update secret with credentials")
-				return false, nil
-			}
-			return true, nil
-		})
+		//err = wait.PollImmediate(waitingInterval, updateTimeout, func() (bool, error) {
+		log.Info("HERE wait.PollImmediate")
+		err = r.reconciler.updateSecretWithCredentials(fmt.Sprintf(oldSecretPattern, r.cr.Name), r.cr.Namespace, newCredentials, r.logger)
+		if err != nil {
+			r.logger.Error(err, "Unable to update secret with credentials")
+			//return false, nil
+		}
+		//	return true, nil
+		//})
 		if err != nil {
 			return restClient, err
 		}
