@@ -660,7 +660,7 @@ func (r OpenSearchReconciler) updateCredentials() (*util.RestClient, error) {
 			if err = r.changeUserPassword(newCredentials.Username, newCredentials.Password, restClient); err != nil {
 				return restClient, err
 			}
-			if err = r.changeUserPassword(newCredentials.Username, oldCredentials.Password, restClient); err != nil {
+			if err = r.changeUserPassword(oldCredentials.Username, newCredentials.Password, restClient); err != nil {
 				return restClient, err
 			}
 		}
