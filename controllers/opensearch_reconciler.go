@@ -650,7 +650,9 @@ func (r OpenSearchReconciler) updateCredentials() (*util.RestClient, error) {
 
 	if newCredentials.Username != oldCredentials.Username ||
 		newCredentials.Password != oldCredentials.Password {
+		log.Info(fmt.Sprintf("OOOOOOOOOOOOOOOOOOOOOOOOOOOO %s, %s", newCredentials.Password, oldCredentials.Password))
 		if newCredentials.Username != oldCredentials.Username {
+			log.Info(fmt.Sprintf("NEWCRED %s, %s", newCredentials.Username, oldCredentials.Username))
 			if err = r.createNewUser(newCredentials.Username, newCredentials.Password, restClient); err != nil {
 				return restClient, err
 			}
@@ -658,6 +660,7 @@ func (r OpenSearchReconciler) updateCredentials() (*util.RestClient, error) {
 				return restClient, err
 			}
 		} else {
+			log.Info("ELSEEEEEE")
 			if err = r.changeUserPassword(newCredentials.Username, newCredentials.Password, restClient); err != nil {
 				return restClient, err
 			}
