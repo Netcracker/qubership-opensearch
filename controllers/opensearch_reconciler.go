@@ -638,6 +638,7 @@ func (r OpenSearchReconciler) createRestClientWithOldCreds() (*util.RestClient, 
 }
 
 func (r OpenSearchReconciler) updateCredentials() (*util.RestClient, error) {
+	log.Info("EFFFFFFFFFFFFFFF")
 	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
 	client, err := r.reconciler.configureClient()
 	if err != nil {
