@@ -579,7 +579,6 @@ func (r OpenSearchReconciler) Configure() error {
 }
 
 func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
-	log.Info("AAAAAAAAAAAAAAAAAAAAAAAAA")
 	restClient, err := r.updateCredentials()
 	if err != nil {
 		if strings.Contains(err.Error(), "is read-only") {
