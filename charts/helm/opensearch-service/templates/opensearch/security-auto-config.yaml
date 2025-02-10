@@ -115,6 +115,7 @@ stringData:
       backend_roles:
         - opensearch_security_anonymous_backendrole
     all_access:
+      - "{{ (include "opensearch.username" .) }}"
       reserved: false
       description: "Maps admin to all_access"
   tenants.yml: |-
