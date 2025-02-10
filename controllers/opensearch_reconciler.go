@@ -579,6 +579,7 @@ func (r OpenSearchReconciler) Configure() error {
 }
 
 func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
+	log.Info("AAAAAAAAAAAAAAAAAAAAAAAAA")
 	restClient, err := r.updateCredentials()
 	if err != nil {
 		if strings.Contains(err.Error(), "is read-only") {
@@ -593,6 +594,14 @@ func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
 			}
 		}
 		return restClient, err
+	}
+	credentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(secretPattern, r.cr.Name), r.cr.Namespace, r.logger)
+	allaccessRole, err := r.getRoleMapping(restClient, "all_access")
+	if err != nil {
+		return restClient, err
+	}
+	if allaccessRole.BackendRoles == nil {
+		r.UpdateRoles(restClient, credentials.Username, "all_access")
 	}
 	if r.cr.Spec.OpenSearch.DisabledRestCategories != nil {
 		err := r.updateAuditConfiguration(restClient)
@@ -837,6 +846,44 @@ func (r OpenSearchReconciler) getRoleMappingListFromSecret(secretName string) ([
 		return nil, err
 	}
 	return mappings, nil
+}
+
+func (r OpenSearchReconciler) getRoleMapping(restClient *util.RestClient, roleName string) (*OpenSearchRoleMapping, error) {
+	requestPath := fmt.Sprintf("_plugins/_security/api/rolesmapping/%s", roleName)
+	_, responseBody, err := restClient.SendRequest(http.MethodGet, requestPath, nil)
+	if err != nil {
+		log.Error(err, "An error occurred during audit config request")
+		return nil, err
+	}
+	var mappings OpenSearchRoleMapping
+	if err = json.Unmarshal(responseBody, &mappings); err != nil {
+		return nil, err
+	}
+	return &mappings, nil
+}
+
+func (r OpenSearchReconciler) UpdateRoles(restClient *util.RestClient, userName string, role string) error {
+	log.Info(fmt.Sprintf("start Update mapping roles for user:%s ", userName))
+	requestPath := "_plugins/_security/api/rolesmapping"
+	value := fmt.Sprintf(`{"backend_roles": ["%s"]}`, userName)
+	body := fmt.Sprintf(`[{"op": "add", "path": "/%s", "value": %s}]`, role, value)
+	statusCode, responseBody, err := restClient.SendRequest(http.MethodPatch, requestPath, strings.NewReader(body))
+	if err == nil {
+		if statusCode == http.StatusOK {
+			requestPathOpensistro := fmt.Sprintf("_plugins/_security/api/internalusers/%s", userName)
+			bodyOpendistro := `[{"op": "replace", "path": "/opendistro_security_roles", "value": []}]`
+			statusCodeOD, responseBodyOD, err := restClient.SendRequest(http.MethodPatch, requestPathOpensistro, strings.NewReader(bodyOpendistro))
+			if err == nil {
+				if statusCodeOD == http.StatusOK {
+					r.logger.Info("The roles for user is successfully updated")
+					return nil
+				}
+				return fmt.Errorf("opendistro security roles update went wrong: [%d] %s", statusCodeOD, responseBodyOD)
+			}
+		}
+		return fmt.Errorf("mapping roles update went wrong: [%d] %s", statusCode, responseBody)
+	}
+	return nil
 }
 
 func (r OpenSearchReconciler) mergeBackendRolesLists(oldSecretList []string, newSecretList []string, listFromOpensearch []string) []string {
