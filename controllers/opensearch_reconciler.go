@@ -864,8 +864,7 @@ func (r OpenSearchReconciler) getRoleMapping(restClient *util.RestClient, roleNa
 func (r OpenSearchReconciler) UpdateRoles(restClient *util.RestClient, userName string, role string) error {
 	log.Info(fmt.Sprintf("start Update mapping roles for user:%s ", userName))
 	requestPath := "_plugins/_security/api/rolesmapping"
-	value := fmt.Sprintf(`{"backend_roles": ["%s"]}`, userName)
-	body := fmt.Sprintf(`[{"op": "add", "path": "/%s", "value": %s}]`, role, value)
+	body := fmt.Sprintf(`[{"op": "add", "path": "/%s", "value": {"backend_roles": ["admin"]}}]`, role)
 	statusCode, responseBody, err := restClient.SendRequest(http.MethodPatch, requestPath, strings.NewReader(body))
 	if err == nil {
 		if statusCode == http.StatusOK {
