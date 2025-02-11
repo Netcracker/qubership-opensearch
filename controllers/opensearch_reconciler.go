@@ -594,12 +594,12 @@ func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
 		}
 		return restClient, err
 	}
-	credentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(secretPattern, r.cr.Name), r.cr.Namespace, r.logger)
 	allaccessRole, err := r.getRoleMapping(restClient, "all_access")
 	if err != nil {
 		return restClient, err
 	}
 	if allaccessRole.BackendRoles == nil {
+		credentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(secretPattern, r.cr.Name), r.cr.Namespace, r.logger)
 		r.UpdateRoles(restClient, credentials.Username, "all_access")
 	}
 	if r.cr.Spec.OpenSearch.DisabledRestCategories != nil {
