@@ -847,18 +847,18 @@ func (r OpenSearchReconciler) getRoleMappingListFromSecret(secretName string) ([
 	return mappings, nil
 }
 
-func (r OpenSearchReconciler) getRoleMapping(restClient *util.RestClient, roleName string) (*OpenSearchRoleMapping, error) {
+func (r OpenSearchReconciler) getRoleMapping(restClient *util.RestClient, roleName string) (OpenSearchRoleMapping, error) {
 	requestPath := fmt.Sprintf("_plugins/_security/api/rolesmapping/%s", roleName)
 	_, responseBody, err := restClient.SendRequest(http.MethodGet, requestPath, nil)
 	if err != nil {
 		log.Error(err, "An error occurred during audit config request")
-		return nil, err
+		return OpenSearchRoleMapping{}, err
 	}
 	var mappings OpenSearchRoleMapping
 	if err = json.Unmarshal(responseBody, &mappings); err != nil {
-		return nil, err
+		return OpenSearchRoleMapping{}, err
 	}
-	return &mappings, nil
+	return mappings, nil
 }
 
 func (r OpenSearchReconciler) UpdateRoles(restClient *util.RestClient, userName string, role string) error {
