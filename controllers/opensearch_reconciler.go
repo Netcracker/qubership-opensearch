@@ -47,6 +47,7 @@ const (
 	flushPath                      = "_flush"
 	clusterHealthPath              = "_cluster/health"
 	clusterSettingsPath            = "_cluster/settings"
+	allAccess                      = "all_access"
 )
 
 type OpenSearchHealth struct {
@@ -589,13 +590,13 @@ func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
 	}
 	newCredentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(secretPattern, r.cr.Name), r.cr.Namespace, r.logger)
 	restClient := util.NewRestClient(url, client, newCredentials)
-	allaccessRole, err := r.getRoleMapping(restClient, "all_access")
+	allaccessRole, err := r.getRoleMapping(restClient, allAccess)
 	if err != nil {
 		return restClient, err
 	}
 	if allaccessRole.BackendRoles == nil {
 		credentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(secretPattern, r.cr.Name), r.cr.Namespace, r.logger)
-		err = r.UpdateRoles(restClient, credentials.Username, "all_access")
+		err = r.UpdateRoles(restClient, credentials.Username, allAccess)
 		if err != nil {
 			return restClient, err
 		}
@@ -874,19 +875,22 @@ func (r OpenSearchReconciler) UpdateRoles(restClient *util.RestClient, userName 
 	requestPath := "_plugins/_security/api/rolesmapping"
 	body := fmt.Sprintf(`[{"op": "add", "path": "/%s", "value": {"backend_roles": ["admin"]}}]`, role)
 	statusCode, responseBody, err := restClient.SendRequest(http.MethodPatch, requestPath, strings.NewReader(body))
-	if err == nil {
-		if statusCode == http.StatusOK {
-			requestPathOpendistro := fmt.Sprintf("_plugins/_security/api/internalusers/%s", userName)
-			bodyOpendistro := `[{"op": "replace", "path": "/opendistro_security_roles", "value": []}]`
-			statusCodeOD, responseBodyOD, err := restClient.SendRequest(http.MethodPatch, requestPathOpendistro, strings.NewReader(bodyOpendistro))
-			if err == nil {
-				if statusCodeOD == http.StatusOK {
-					r.logger.Info("The roles for user are successfully updated")
-					return nil
-				}
-				return fmt.Errorf("opendistro security roles update went wrong: [%d] %s", statusCodeOD, responseBodyOD)
+	if err != nil {
+		return err
+	}
+
+	if statusCode == http.StatusOK {
+		requestPathOpendistro := fmt.Sprintf("_plugins/_security/api/internalusers/%s", userName)
+		bodyOpendistro := `[{"op": "replace", "path": "/opendistro_security_roles", "value": []}]`
+		statusCodeOD, responseBodyOD, err := restClient.SendRequest(http.MethodPatch, requestPathOpendistro, strings.NewReader(bodyOpendistro))
+		if err == nil {
+			if statusCodeOD == http.StatusOK {
+				r.logger.Info("The roles for user are successfully updated")
+				return nil
 			}
+			return fmt.Errorf("opendistro security roles update went wrong: [%d] %s", statusCodeOD, responseBodyOD)
 		}
+	} else {
 		return fmt.Errorf("mapping roles update went wrong: [%d] %s", statusCode, responseBody)
 	}
 	return err
