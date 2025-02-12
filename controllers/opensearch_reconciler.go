@@ -87,6 +87,9 @@ type OpenSearchReconciler struct {
 	reconciler *OpenSearchServiceReconciler
 }
 
+type MappingAllAccess struct {
+	AllAccess OpenSearchRoleMapping `json:"all_access"`
+}
 type OpenSearchRoleMapping struct {
 	RoleName        string   `json:"role_name,omitempty"`
 	Description     string   `json:"description"`
@@ -579,7 +582,26 @@ func (r OpenSearchReconciler) Configure() error {
 }
 
 func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
-	restClient, err := r.updateCredentials()
+	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
+	client, err := r.reconciler.configureClient()
+	if err != nil {
+		return nil, err
+	}
+	newCredentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(secretPattern, r.cr.Name), r.cr.Namespace, r.logger)
+	restClient := util.NewRestClient(url, client, newCredentials)
+	allaccessRole, err := r.getRoleMapping(restClient, "all_access")
+	if err != nil {
+		return restClient, err
+	}
+	log.Info(fmt.Sprint(allaccessRole.BackendRoles))
+	if allaccessRole.BackendRoles == nil {
+		credentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(secretPattern, r.cr.Name), r.cr.Namespace, r.logger)
+		err = r.UpdateRoles(restClient, credentials.Username, "all_access")
+		if err != nil {
+			return restClient, err
+		}
+	}
+	restClient, err = r.updateCredentials(url, client, newCredentials)
 	if err != nil {
 		if strings.Contains(err.Error(), "is read-only") {
 			clusterManagerPod, requestErr := r.getClusterManagerNode(restClient)
@@ -637,44 +659,27 @@ func (r OpenSearchReconciler) createRestClientWithOldCreds() (*util.RestClient, 
 	return util.NewRestClient(url, client, oldCredentials), nil
 }
 
-func (r OpenSearchReconciler) updateCredentials() (*util.RestClient, error) {
-	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
-	client, err := r.reconciler.configureClient()
-	if err != nil {
-		return nil, err
-	}
-	oldCredentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(oldSecretPattern, r.cr.Name), r.cr.Namespace, r.logger)
-	newCredentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(secretPattern, r.cr.Name), r.cr.Namespace, r.logger)
-	restClient := util.NewRestClient(url, client, oldCredentials)
+func (r OpenSearchReconciler) updateCredentials(url string, client http.Client, newCredentials util.Credentials) (*util.RestClient, error) {
 
-	allaccessRole, err := r.getRoleMapping(restClient, "all_access")
-	if err != nil {
-		return restClient, err
-	}
-	if allaccessRole.BackendRoles == nil {
-		credentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(secretPattern, r.cr.Name), r.cr.Namespace, r.logger)
-		err = r.UpdateRoles(restClient, credentials.Username, "all_access")
-		if err != nil {
-			return restClient, err
-		}
-	}
+	oldCredentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(oldSecretPattern, r.cr.Name), r.cr.Namespace, r.logger)
+	restClient := util.NewRestClient(url, client, oldCredentials)
 
 	if newCredentials.Username != oldCredentials.Username ||
 		newCredentials.Password != oldCredentials.Password {
 		if newCredentials.Username != oldCredentials.Username {
-			if err = r.createNewUser(newCredentials.Username, newCredentials.Password, restClient); err != nil {
+			if err := r.createNewUser(newCredentials.Username, newCredentials.Password, restClient); err != nil {
 				return restClient, err
 			}
-			if err = r.removeUser(oldCredentials.Username, restClient); err != nil {
+			if err := r.removeUser(oldCredentials.Username, restClient); err != nil {
 				return restClient, err
 			}
 		} else {
-			if err = r.changeUserPassword(newCredentials.Username, newCredentials.Password, restClient); err != nil {
+			if err := r.changeUserPassword(newCredentials.Username, newCredentials.Password, restClient); err != nil {
 				return restClient, err
 			}
 		}
-		err = wait.PollImmediate(waitingInterval, updateTimeout, func() (bool, error) {
-			err = r.reconciler.updateSecretWithCredentials(fmt.Sprintf(oldSecretPattern, r.cr.Name), r.cr.Namespace, newCredentials, r.logger)
+		err := wait.PollImmediate(waitingInterval, updateTimeout, func() (bool, error) {
+			err := r.reconciler.updateSecretWithCredentials(fmt.Sprintf(oldSecretPattern, r.cr.Name), r.cr.Namespace, newCredentials, r.logger)
 			if err != nil {
 				r.logger.Error(err, "Unable to update secret with credentials")
 				return false, nil
@@ -858,11 +863,11 @@ func (r OpenSearchReconciler) getRoleMapping(restClient *util.RestClient, roleNa
 		log.Error(err, "Failed get RoleMapping")
 		return OpenSearchRoleMapping{}, err
 	}
-	var mappings OpenSearchRoleMapping
+	var mappings MappingAllAccess
 	if err = json.Unmarshal(responseBody, &mappings); err != nil {
 		return OpenSearchRoleMapping{}, err
 	}
-	return mappings, nil
+	return mappings.AllAccess, nil
 }
 
 func (r OpenSearchReconciler) UpdateRoles(restClient *util.RestClient, userName string, role string) error {
