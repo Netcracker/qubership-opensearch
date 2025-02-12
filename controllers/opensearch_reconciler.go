@@ -593,7 +593,6 @@ func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
 	if err != nil {
 		return restClient, err
 	}
-	log.Info(fmt.Sprint(allaccessRole.BackendRoles))
 	if allaccessRole.BackendRoles == nil {
 		credentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(secretPattern, r.cr.Name), r.cr.Namespace, r.logger)
 		err = r.UpdateRoles(restClient, credentials.Username, "all_access")
