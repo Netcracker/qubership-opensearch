@@ -588,8 +588,9 @@ func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	newCredentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(secretPattern, r.cr.Name), r.cr.Namespace, r.logger)
-	restClient := util.NewRestClient(url, client, newCredentials)
+	oldCredentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(oldSecretPattern, r.cr.Name), r.cr.Namespace, r.logger)
+
+	restClient := util.NewRestClient(url, client, oldCredentials)
 	allaccessRole, err := r.getRoleMapping(restClient, allAccess)
 	if err != nil {
 		return restClient, err
@@ -601,7 +602,7 @@ func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {
 			return restClient, err
 		}
 	}
-	restClient, err = r.updateCredentials(url, client, newCredentials)
+	restClient, err = r.updateCredentials(url, client, oldCredentials)
 	if err != nil {
 		if strings.Contains(err.Error(), "is read-only") {
 			clusterManagerPod, requestErr := r.getClusterManagerNode(restClient)
@@ -659,11 +660,9 @@ func (r OpenSearchReconciler) createRestClientWithOldCreds() (*util.RestClient, 
 	return util.NewRestClient(url, client, oldCredentials), nil
 }
 
-func (r OpenSearchReconciler) updateCredentials(url string, client http.Client, newCredentials util.Credentials) (*util.RestClient, error) {
-
-	oldCredentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(oldSecretPattern, r.cr.Name), r.cr.Namespace, r.logger)
+func (r OpenSearchReconciler) updateCredentials(url string, client http.Client, oldCredentials util.Credentials) (*util.RestClient, error) {
+	newCredentials := r.reconciler.parseSecretCredentials(fmt.Sprintf(secretPattern, r.cr.Name), r.cr.Namespace, r.logger)
 	restClient := util.NewRestClient(url, client, oldCredentials)
-
 	if newCredentials.Username != oldCredentials.Username ||
 		newCredentials.Password != oldCredentials.Password {
 		if newCredentials.Username != oldCredentials.Username {
