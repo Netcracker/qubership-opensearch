@@ -218,6 +218,8 @@ spec:
               subPath: {{ .Values.opensearch.master.persistence.subPath }}
             - mountPath: /usr/share/opensearch/snapshots
               name: snapshots-repository
+            - mountPath: /usr/share/opensearch/credentials
+              name: credentials
         {{- if .Values.opensearch.config }}
             - mountPath: {{ .Values.opensearch.configDirectory }}/opensearch.yml
               name: config
@@ -341,6 +343,9 @@ spec:
               - key: action_groups.yml
                 path: action_groups.yml
       {{- end }}
+      - name: credentials
+        secret:
+          secretName: opensearch-secret
       {{- if .Values.opensearch.securityConfig.configSecret }}
         - name: security-config
           secret:
