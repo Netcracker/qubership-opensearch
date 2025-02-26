@@ -309,7 +309,7 @@ spec:
             secretName: {{ template "opensearch.fullname" . }}-config
         - name: credentials
           secret:
-            secretName: opensearch-secret
+            secretName: {{ template "opensearch.fullname" . }}-secret-old
         - name: transport-certs
           secret:
             secretName: {{ template "opensearch.transport-cert-secret-name" . }}
