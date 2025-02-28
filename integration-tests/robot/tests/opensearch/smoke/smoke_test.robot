@@ -1,6 +1,9 @@
 *** Variables ***
 ${SMOKE_TEST_INDEX_NAME}  smoke_test
 ${SLEEP_TIME}             5s
+${secret_name}            opensearch-secret
+${secret_name_old}        opensearch-secret-old
+${body}                   [{"op" : "replace" ,"path" : "/data/username" ,"value" : "UUEtZ29vZC1wYXNzd29yZDEhLUFU" ,"path" : "/data/password" ,"value" : "T3BlbnNlYXJjaC1hZG1pbjEhLUFU"}]
 
 *** Settings ***
 Library  String
@@ -12,6 +15,16 @@ Prepare
     Prepare OpenSearch
 
 *** Test Cases ***
+
+Change Password for User
+    [Tags]  smoke
+    ${response}=  Get Secret  ${secret_name}  ${namespace}
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Patch Secret  ${secret_name}  ${namespace} ${body}
+    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  Get Secret  ${secret_name_old}  ${namespace}
+    Should Be Equal As Strings  ${response.status_code}  200
+
 Create Index
     [Tags]  smoke  index  create_index
     ${response}=  Create OpenSearch Index  ${SMOKE_TEST_INDEX_NAME}

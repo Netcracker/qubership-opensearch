@@ -6,6 +6,9 @@ ${OPENSEARCH_USERNAME}           %{OPENSEARCH_USERNAME}
 ${OPENSEARCH_PASSWORD}           %{OPENSEARCH_PASSWORD}
 ${OPENSEARCH_MASTER_NODES_NAME}  %{OPENSEARCH_MASTER_NODES_NAME}
 ${OPENSEARCH_NAMESPACE}          %{OPENSEARCH_NAMESPACE}
+${secret_name}                   %{secret_name}
+${namespace}                     %{NAMESPACE}
+${body}                          %{body}
 
 *** Settings ***
 Library  Collections
@@ -20,6 +23,14 @@ Library  json
 Prepare OpenSearch
     [Arguments]  ${need_auth}=True
     Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}  ${need_auth}
+
+Get Secret
+    [Arguments]  ${secret_name}  ${namespace}
+    ${secret}=  Get Secret  ${secret_name}  ${namespace}
+
+Patch Secret
+    [Arguments]  ${secret_name}  ${namespace}  ${body}
+    ${secret}=  Patch Secret  ${secret_name}  ${namespace} ${body}
 
 Login To OpenSearch
     [Arguments]  ${username}  ${password}  ${need_auth}=True
