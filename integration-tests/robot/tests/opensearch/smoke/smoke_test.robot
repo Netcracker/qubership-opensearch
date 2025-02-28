@@ -18,11 +18,11 @@ Prepare
 
 Change Password for User
     [Tags]  smoke
-    ${response}=  Get Secret  ${secret_name}  ${namespace}
+    ${response}=  Get Secret  ${secret_name} 
     Should Be Equal As Strings  ${response.status_code}  200
-    ${response}=  Patch Secret  ${secret_name}  ${namespace} ${body}
+    ${response}=  Patch Secret  ${secret_name} ${body}
     Should Be Equal As Strings  ${response.status_code}  200
-    ${response}=  Get Secret  ${secret_name_old}  ${namespace}
+    ${response}=  Get Secret  ${secret_name_old}
     Should Be Equal As Strings  ${response.status_code}  200
 
 Create Index
