@@ -197,6 +197,12 @@
     * [Stack trace](#stack-trace-31)
     * [How to solve](#how-to-solve-32)
     * [Recommendations](#recommendations-32)
+  * [No permissions after change password](#no-permissions-after-change-password)
+    * [Description](#description-33)
+    * [Alerts](#alerts-33)
+    * [Stack trace](#stack-trace-32)
+    * [How to solve](#how-to-solve-33)
+    * [Recommendations](#recommendations-33)
 <!-- TOC -->
 
 ## Cluster Health
@@ -1370,3 +1376,87 @@ Not applicable
 ### Recommendations
 
 This option cleans all index data presented on the standby side. Make sure to remove this and check whether OpenSearch on the active side has correct changes.
+
+## No permissions after change password
+
+### Description
+
+| Problem                                                                                | Severity | Possible Reason                        |
+|----------------------------------------------------------------------------------------|----------|----------------------------------------|
+| After change password, opensearch send error about: no permissions for <any requests>  | Average  | Problem appears due to incorrect roles |
+
+
+### Alerts
+
+Not applicable
+
+### Stack trace
+
+```text
+curl -XGET localhost:9200/_cluster/health -u basic:basic --insecure
+{"error":{"root_cause":[
+
+{"type":"security_exception","reason":"no permissions for [cluster:monitor/health] and User [name=basic, backend_roles=[replication_leader_role], requestedTenant=null]"}
+],"type":"security_exception","reason":"no permissions for [cluster:monitor/health] and User [name=basic, backend_roles=[replication_leader_role], requestedTenant=null]"},"status":403}
+```
+
+### How to solve
+
+Send this 2 requests  in OpenSearch pod:
+1.
+```text
+   curl -X PATCH "https://opensearch:9200/_plugins/_security/api/rolesmapping" \
+   -H "Content-Type: application/json" \
+   --key config/admin-key.pem \
+   --cert config/admin-crt.pem \
+   --cacert config/admin-root-ca.pem \
+   -d '[
+   {
+   "op": "add",
+   "path": "/all_access",
+   "value": {
+   "backend_roles": [
+   "admin"
+   ]
+   }
+   }
+   ]'
+```
+2. 
+    ```text
+   curl -X PATCH "https://opensearch:9200/_plugins/_security/api/internalusers/<username>" \
+-H "Content-Type: application/json" \
+--key config/admin-key.pem \
+--cert config/admin-crt.pem \
+--cacert config/admin-root-ca.pem \
+-d '[
+{
+"op": "replace",
+"path": "/opendistro_security_roles",
+"value": [
+]
+}
+]
+'
+   
+
+### Recommendations
+When command finished, you can check health 
+
+```text
+url --user basic:basic -XGET localhost:9200 
+```
+
+If after command, you have problem with healt yet, check opendistro_roles with this request, opendistro_roles should be empty:
+
+```text
+    curl -XGET "https://localhost:9200/_plugins/_security/api/internalusers/<username>"
+```
+
+And check mapping_roles with this request: 
+
+```text
+    curl -XGET "https://localhost:9200/_plugins/_security/api/rolesmapping/all_access"
+```
+
+In response, mapping roles should have a "backend_roles": ["admin"]
