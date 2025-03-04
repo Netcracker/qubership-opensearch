@@ -21,11 +21,11 @@ Prepare OpenSearch
     [Arguments]  ${need_auth}=True
     Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}  ${need_auth}
 
-Get Secret
+Check Secret
     [Arguments]  ${secret_name}  ${OPENSEARCH_NAMESPACE}
     ${secret}=  Get Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
 
-Patch Secret
+Change Secret
     [Arguments]  ${secret_name}  ${body}  ${OPENSEARCH_NAMESPACE}
     ${secret}=  Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
 
