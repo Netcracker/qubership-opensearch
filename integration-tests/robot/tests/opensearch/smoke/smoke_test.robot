@@ -19,7 +19,7 @@ Change Password for User
     [Tags]  smoke
     Log    Enter first get   INFO  console=yes
     ${response}=  Check Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
-    Should Be Equal As Strings  ${response.name}  opensearch-secret
+    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret
     Log    resp is ${response}  INFO  console=yes
     Log    Enter change  INFO  console=yes
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
@@ -29,7 +29,7 @@ Change Password for User
     Log    Enter 2 get   INFO  console=yes
     ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Log    resp is ${response}  INFO  console=yes
-    Should Be Equal As Strings  ${response.name}  opensearch-secret-old
+    Should Be Equal As Strings  ${response.metadata.name} opensearch-secret-old
 
 Create Index
     [Tags]  smoke  index  create_index
