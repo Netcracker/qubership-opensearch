@@ -28,7 +28,7 @@ Check Secret
 
 Change Secret
     [Arguments]  ${secret_name}  ${body}  ${OPENSEARCH_NAMESPACE}
-    ${response}=  Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
+    ${response}=  Patch Secret  ${secret_name}  ${body}  ${OPENSEARCH_NAMESPACE}
     [Return]  ${response}
 
 Login To OpenSearch
