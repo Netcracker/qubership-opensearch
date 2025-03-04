@@ -17,11 +17,17 @@ Prepare
 
 Change Password for User
     [Tags]  smoke
+    Log    Enter first get   INFO
     ${response}=  Check Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
+    Log    Enter first responce  INFO
     Should Be Equal As Strings  ${response.status_code}  200
+    Log    Enter change  INFO
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
+    Log    Enter change responce INFO
     Should Be Equal As Strings  ${response.status_code}  200
+    Log    Enter 2 get   INFO
     ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
+    Log    Enter 2 responce  INFO
     Should Be Equal As Strings  ${response.status_code}  200
 
 Create Index
