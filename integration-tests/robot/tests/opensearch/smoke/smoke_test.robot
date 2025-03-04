@@ -4,7 +4,7 @@ ${SLEEP_TIME}             5s
 ${secret_name}            opensearch-secret
 ${secret_name_old}        opensearch-secret-old
 ${body}                   [{"op" : "replace" ,"path" : "/data/username" ,"value" : "UUEtZ29vZC1wYXNzd29yZDEhLUFU" ,"path" : "/data/password" ,"value" : "T3BlbnNlYXJjaC1hZG1pbjEhLUFU"}]
-
+${namespace}              opensearch
 *** Settings ***
 Library  String
 Resource  ../shared/keywords.robot
@@ -18,11 +18,11 @@ Prepare
 
 Change Password for User
     [Tags]  smoke
-    ${response}=  Get Secret  ${secret_name} 
+    ${response}=  Get Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal As Strings  ${response.status_code}  200
-    ${response}=  Patch Secret  ${secret_name} ${body}
+    ${response}=  Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
     Should Be Equal As Strings  ${response.status_code}  200
-    ${response}=  Get Secret  ${secret_name_old}
+    ${response}=  Get Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal As Strings  ${response.status_code}  200
 
 Create Index

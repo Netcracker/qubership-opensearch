@@ -6,9 +6,6 @@ ${OPENSEARCH_USERNAME}           %{OPENSEARCH_USERNAME}
 ${OPENSEARCH_PASSWORD}           %{OPENSEARCH_PASSWORD}
 ${OPENSEARCH_MASTER_NODES_NAME}  %{OPENSEARCH_MASTER_NODES_NAME}
 ${OPENSEARCH_NAMESPACE}          %{OPENSEARCH_NAMESPACE}
-${secret_name}                   %{secret_name}
-${namespace}                     %{NAMESPACE}
-${body}                          %{body}
 
 *** Settings ***
 Library  Collections
@@ -25,12 +22,12 @@ Prepare OpenSearch
     Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}  ${need_auth}
 
 Get Secret
-    [Arguments]  ${secret_name}  ${namespace}
-    ${secret}=  Get Secret  ${secret_name}  ${namespace}
+    [Arguments]  ${secret_name}  ${OPENSEARCH_NAMESPACE}
+    ${secret}=  Get Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
 
 Patch Secret
-    [Arguments]  ${secret_name}  ${namespace}  ${body}
-    ${secret}=  Patch Secret  ${secret_name}  ${namespace} ${body}
+    [Arguments]  ${secret_name}  ${body}  ${OPENSEARCH_NAMESPACE}
+    ${secret}=  Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
 
 Login To OpenSearch
     [Arguments]  ${username}  ${password}  ${need_auth}=True
