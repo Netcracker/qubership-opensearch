@@ -3,7 +3,7 @@ ${SMOKE_TEST_INDEX_NAME}  smoke_test
 ${SLEEP_TIME}             5s
 ${secret_name}            opensearch-secret
 ${secret_name_old}        opensearch-secret-old
-${body}                   [{"op" : "replace" ,"path" : "/data/username" ,"value" : "UUEtZ29vZC1wYXNzd29yZDEhLUFU" ,"path" : "/data/password" ,"value" : "T3BlbnNlYXJjaC1hZG1pbjEhLUFU"}]
+${body}                   ["{"op" : "replace" ,"path" : "/data/username" ,"value" : "UUEtZ29vZC1wYXNzd29yZDEhLUFU" ,"path" : "/data/password" ,"value" : "T3BlbnNlYXJjaC1hZG1pbjEhLUFU"}"]
 *** Settings ***
 Library  String
 Resource  ../shared/keywords.robot
