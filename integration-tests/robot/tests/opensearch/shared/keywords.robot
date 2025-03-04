@@ -23,11 +23,13 @@ Prepare OpenSearch
 
 Check Secret
     [Arguments]  ${secret_name}  ${OPENSEARCH_NAMESPACE}
-    ${secret}=  Get Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
+    ${response}=  Get Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
+    [Return]  ${response}
 
 Change Secret
     [Arguments]  ${secret_name}  ${body}  ${OPENSEARCH_NAMESPACE}
-    ${secret}=  Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
+    ${response}=  Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
+    [Return]  ${response}
 
 Login To OpenSearch
     [Arguments]  ${username}  ${password}  ${need_auth}=True

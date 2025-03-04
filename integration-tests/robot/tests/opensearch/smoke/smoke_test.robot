@@ -4,7 +4,6 @@ ${SLEEP_TIME}             5s
 ${secret_name}            opensearch-secret
 ${secret_name_old}        opensearch-secret-old
 ${body}                   [{"op" : "replace" ,"path" : "/data/username" ,"value" : "UUEtZ29vZC1wYXNzd29yZDEhLUFU" ,"path" : "/data/password" ,"value" : "T3BlbnNlYXJjaC1hZG1pbjEhLUFU"}]
-${namespace}              opensearch
 *** Settings ***
 Library  String
 Resource  ../shared/keywords.robot
