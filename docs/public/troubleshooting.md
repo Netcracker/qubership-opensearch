@@ -1412,29 +1412,28 @@ Send this 2 requests  in OpenSearch pod:
    --cacert config/admin-root-ca.pem \
    -d '[
    {
-   "op": "add",
-   "path": "/all_access",
-   "value": {
-   "backend_roles": [
-   "admin"
-   ]
-   }
+      "op": "add",
+      "path": "/all_access",
+      "value": {
+         "backend_roles": [
+            "admin"
+         ]
+      }
    }
    ]'
 ```
 2. 
-    ```text
-   curl -X PATCH "https://opensearch:9200/_plugins/_security/api/internalusers/<username>" \
+```text
+curl -X PATCH "https://opensearch:9200/_plugins/_security/api/internalusers/<username>" \
 -H "Content-Type: application/json" \
 --key config/admin-key.pem \
 --cert config/admin-crt.pem \
 --cacert config/admin-root-ca.pem \
 -d '[
 {
-"op": "replace",
-"path": "/opendistro_security_roles",
-"value": [
-]
+   "op": "replace",
+   "path": "/opendistro_security_roles",
+   "value": []
 }
 ]
 '
