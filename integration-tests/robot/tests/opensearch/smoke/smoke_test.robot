@@ -3,7 +3,7 @@ ${SMOKE_TEST_INDEX_NAME}  smoke_test
 ${SLEEP_TIME}             5s
 ${secret_name}            opensearch-secret
 ${secret_name_old}        opensearch-secret-old
-
+${body}                   ""
 *** Settings ***
 Library  String
 Resource  ../shared/keywords.robot
@@ -22,7 +22,7 @@ Change Password for User
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret
     Log    resp is ${response}  INFO  console=yes
     Log    Enter change  INFO  console=yes
-    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
+    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
     Log    resp is ${response}  INFO  console=yes
     Should Be Equal As Strings  ${response.data.password}  T3BlbnNlYXJjaC1hZG1pbjEhLUFU
     Should Be Equal As Strings  ${response.data.username}  UUEtZ29vZC1wYXNzd29yZDEhLUFU
