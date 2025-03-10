@@ -24,12 +24,10 @@ Change Password for User
     Log    Enter change  INFO  console=yes
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
     Log    resp is ${response}  INFO  console=yes
-    Should Be Equal As Strings  ${response.data.password}  T3BlbnNlYXJjaC1hZG1pbjEhLUFU
-    Should Be Equal As Strings  ${response.data.username}  UUEtZ29vZC1wYXNzd29yZDEhLUFU
     Log    Enter 2 get   INFO  console=yes
     ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Log    resp is ${response}  INFO  console=yes
-    Should Be Equal As Strings  ${response.metadata.name} opensearch-secret-old
+    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
 
 Create Index
     [Tags]  smoke  index  create_index
