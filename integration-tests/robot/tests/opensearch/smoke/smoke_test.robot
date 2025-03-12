@@ -21,9 +21,8 @@ Change Password for User
     ${response}=  Check Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
-    Log    resp is ${response}   INFO  console=yes
-    Should Be Equal As Strings  responce['data']['password']  UUEtZ29vZC1wYXNzd29yZDEhLUFU
-    Should Be Equal As Strings  ${response.data.username}  T3BlbnNlYXJjaC1hZG1pbjEhLUFU
+    Should Be Equal As Strings  responce['data']['password']  ${password}
+    Should Be Equal As Strings  responce['data']['username']  ${username}
     ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
 
