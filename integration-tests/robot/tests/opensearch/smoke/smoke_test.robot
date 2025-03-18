@@ -1,28 +1,17 @@
 *** Variables ***
 ${SMOKE_TEST_INDEX_NAME}  smoke_test
 ${SLEEP_TIME}             5s
-${secret_name}            opensearch-secret
-${secret_name_old}        opensearch-secret-old
 
 *** Settings ***
 Library  String
 Resource  ../shared/keywords.robot
 Suite Setup  Prepare
-Variables    variables.py
 
 *** Keywords ***
 Prepare
     Prepare OpenSearch
 
 *** Test Cases ***
-
-Change Password for User
-    [Tags]  smoke
-    ${response}=  Check Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
-    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret
-    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
-    ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
-    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
 
 Create Index
     [Tags]  smoke  index  create_index

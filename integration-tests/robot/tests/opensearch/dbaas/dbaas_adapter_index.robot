@@ -10,12 +10,16 @@ ${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}  %{OPENSEARCH_DBAAS_ADAPTER_API_VERSION=
 ${RETRY_TIME}                            20s
 ${RETRY_INTERVAL}                        1s
 ${SLEEP_TIME}                            5s
+${secret_name}                           opensearch-secret
+${secret_name_old}                       opensearch-secret-old
+${SMOKE_TEST_INDEX_NAME}                 smoke_test
 
 *** Settings ***
 Library  DateTime
 Library  String
 Resource  ../shared/keywords.robot
 Test Setup  Prepare
+Variables    variables.py
 
 *** Keywords ***
 Prepare
@@ -43,6 +47,17 @@ Delete Resources By Dbaas Agent
     Should Be Equal As Strings  ${response.status_code}  200
 
 *** Test Cases ***
+
+Change Password for User and Create Index
+    [Tags]   dbaas  dbaas_opensearch  dbaas_index  dbaas_create_index  dbaas_v1
+    ${response}=  Check Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
+    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret
+    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
+    ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
+    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
+    ${response}=  Create OpenSearch Index  ${SMOKE_TEST_INDEX_NAME}
+    Should Be Equal As Strings  ${response.status_code}  200
+
 Create Index By Dbaas Adapter
     [Tags]  dbaas  dbaas_opensearch  dbaas_index  dbaas_create_index  dbaas_v1
     ${prefix}=  Generate Random String  5  [LOWER]
@@ -112,3 +127,11 @@ Create Index With User By Dbaas Adapter And Write Data
     Should Be Equal As Strings  ${document['age']}  25
 
     [Teardown]  Delete Resources By Dbaas Agent  ${response['resources']}
+
+Restore Password for User
+    [Tags]   dbaas  dbaas_opensearch  dbaas_index  dbaas_create_index  dbaas_v1
+    ${response}=  Check Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
+    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret
+    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
+    ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
+    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
