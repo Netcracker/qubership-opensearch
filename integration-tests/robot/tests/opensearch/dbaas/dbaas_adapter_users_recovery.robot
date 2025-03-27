@@ -2,8 +2,13 @@
 ${RETRY_TIME}                            60s
 ${RETRY_INTERVAL}                        5s
 ${SLEEP_TIME}                            5s
+${NAMESPACE}                             ${OPENSEARCH_NAMESPACE}  
+${selected_pod}                          ""
+${secret_name}                           opensearch-secret
+${secret_name_old}                       opensearch-secret-old
 
 *** Settings ***
+Library    KubeLibrary
 Resource  ./keywords.robot
 Suite Setup  Prepare
 
@@ -24,6 +29,28 @@ Check Users Recovery State
     Should Be Equal As Strings  ${state}  done
 
 *** Test Cases ***
+Change Password for User and Healthcheck Dbaas Pod
+    [Tags]   dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
+    ${response}=  Check Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
+    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret
+    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
+    ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
+    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
+    Sleep  150s
+    ${pod_names}=    Get Pod Names In Namespace    ${NAMESPACE}
+    FOR    ${pod}    IN    @{pod_names}
+    Run Keyword If    '${pod}' == 'dbaas-*'    Set Variable    ${selected_pod}    ${pod}
+    END
+     Log    Selected pod: ${selected_pod}
+    ${healthcheck}=    Get Healthcheck    ${NAMESPACE}    ${selected_pod}
+    Log    Healthcheck result: ${healthcheck}
+    Should Contain    ${healthcheck}    "success" 
+    ${readiness}=    Get Healthcheck    ${NAMESPACE}    ${selected_pod}   readiness
+    Should Contain    ${readiness}    "success"
+    ${liveness}=    Get Healthcheck    ${NAMESPACE}    ${selected_pod}   liveness
+    Should Contain    ${liveness}    "success"
+    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body2}
+
 Recover Users In OpenSearch
     [Tags]  dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
     ${resource_prefix}=  Set Variable  860dde0d-dfcc-480a-9880-19533c5aa7aa
