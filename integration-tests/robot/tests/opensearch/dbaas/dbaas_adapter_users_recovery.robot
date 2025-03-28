@@ -8,7 +8,7 @@ ${secret_name}                           opensearch-secret
 ${secret_name_old}                       opensearch-secret-old
 
 *** Settings ***
-Library    KubeLibrary
+Library    KubeLibrary    incluster=True
 Resource  ./keywords.robot
 Suite Setup  Prepare
 
@@ -37,7 +37,7 @@ Change Password for User and Healthcheck Dbaas Pod
     ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
     Sleep  150s
-    ${pod_names}=    Get Pod Names In Namespace    ${NAMESPACE}
+    ${pod_names}=  Get Pod Names In Namespace  ${NAMESPACE}
     FOR    ${pod}    IN    @{pod_names}
     Run Keyword If    '${pod}' == 'dbaas-*'    Set Variable    ${selected_pod}    ${pod}
     END
@@ -46,8 +46,10 @@ Change Password for User and Healthcheck Dbaas Pod
     Log    Healthcheck result: ${healthcheck}
     Should Contain    ${healthcheck}    "success" 
     ${readiness}=    Get Healthcheck    ${NAMESPACE}    ${selected_pod}   readiness
+    Log    Readiness result: ${readiness}
     Should Contain    ${readiness}    "success"
     ${liveness}=    Get Healthcheck    ${NAMESPACE}    ${selected_pod}   liveness
+    Log    Liveness result: ${liveness}
     Should Contain    ${liveness}    "success"
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body2}
 
