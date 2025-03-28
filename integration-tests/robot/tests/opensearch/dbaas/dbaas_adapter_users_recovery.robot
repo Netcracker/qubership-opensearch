@@ -10,6 +10,7 @@ ${secret_name_old}                       opensearch-secret-old
 *** Settings ***
 Library    KubeLibrary    incluster=True
 Resource  ./keywords.robot
+Variables    variables.py
 Suite Setup  Prepare
 
 *** Keywords ***
