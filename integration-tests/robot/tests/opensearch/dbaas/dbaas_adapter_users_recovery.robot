@@ -3,7 +3,6 @@ ${RETRY_TIME}                            60s
 ${RETRY_INTERVAL}                        5s
 ${SLEEP_TIME}                            5s
 ${NAMESPACE}                             ${OPENSEARCH_NAMESPACE}  
-${selected_pod}                          ""
 ${secret_name}                           opensearch-secret
 ${secret_name_old}                       opensearch-secret-old
 ${POD_PATTERN}                           dbaas-*
@@ -38,8 +37,8 @@ Change Password for User and Healthcheck Dbaas Pod
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
     ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
-    Sleep  150s
     ${pod_names}=    Get Pod Names In Namespace    ${POD_PATTERN}    ${NAMESPACE}   
+    Log  pod names:  ${pod_names}
     ${selected_pod}=    Get From List    ${pod_names}    0
     Log    Selected pod: ${selected_pod}
     ${healthcheck}=    Get Healthcheck    ${NAMESPACE}    ${selected_pod}
