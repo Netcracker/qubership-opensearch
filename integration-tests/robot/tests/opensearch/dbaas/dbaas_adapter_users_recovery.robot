@@ -6,6 +6,7 @@ ${NAMESPACE}                             ${OPENSEARCH_NAMESPACE}
 ${selected_pod}                          ""
 ${secret_name}                           opensearch-secret
 ${secret_name_old}                       opensearch-secret-old
+${POD_PATTERN}                           dbaas-*
 
 *** Settings ***
 Library    KubeLibrary    incluster=True
@@ -38,11 +39,9 @@ Change Password for User and Healthcheck Dbaas Pod
     ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
     Sleep  150s
-    ${pod_names}=  Get Pod Names In Namespace  ${NAMESPACE}
-    FOR    ${pod}    IN    @{pod_names}
-    Run Keyword If    '${pod}' == 'dbaas-*'    Set Variable    ${selected_pod}    ${pod}
-    END
-     Log    Selected pod: ${selected_pod}
+    ${pod_names}=    Get Pod Names In Namespace    ${NAMESPACE}    ${POD_PATTERN}
+    ${selected_pod}=    Get From List    ${pod_names}    0
+    Log    Selected pod: ${selected_pod}
     ${healthcheck}=    Get Healthcheck    ${NAMESPACE}    ${selected_pod}
     Log    Healthcheck result: ${healthcheck}
     Should Contain    ${healthcheck}    "success" 
