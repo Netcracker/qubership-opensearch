@@ -37,6 +37,7 @@ Change Password for User and Healthcheck Dbaas Pod
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
     ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
+    Log  Start get pods
     ${pod_names}=    Get Pod Names In Namespace    ${POD_PATTERN}    ${NAMESPACE}   
     Log  pod names: ${pod_names}
     ${selected_pod}=    Get From List    ${pod_names}    0
