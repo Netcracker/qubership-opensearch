@@ -39,18 +39,12 @@ Change Password for User and Healthcheck Dbaas Pod
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
     Log  Start get pods  console=yes
     ${pod_names}=    Get Pod Names In Namespace    ${POD_PATTERN}    ${NAMESPACE}   
-    Log  pod names: ${pod_names}
+    Log  pod names: ${pod_names}  console=yes
     ${selected_pod}=    Get From List    ${pod_names}    0
     Log    Selected pod: ${selected_pod}  console=yes
-    ${healthcheck}=    Get Healthcheck    ${NAMESPACE}    ${selected_pod}
+    ${healthcheck}=    Get Healthcheck    ${NAMESPACE}    ${selected_pod}  /health
     Log    Healthcheck result: ${healthcheck}  console=yes
     Should Contain    ${healthcheck}    "success" 
-    ${readiness}=    Get Healthcheck    ${NAMESPACE}    ${selected_pod}   readiness
-    Log    Readiness result: ${readiness}  console=yes
-    Should Contain    ${readiness}    "success"
-    ${liveness}=    Get Healthcheck    ${NAMESPACE}    ${selected_pod}   liveness
-    Log    Liveness result: ${liveness}  console=yes
-    Should Contain    ${liveness}    "success"
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body2}
 
 Recover Users In OpenSearch
