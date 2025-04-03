@@ -42,8 +42,8 @@ Change Password for User and Healthcheck Dbaas Pod
     Log  pod names: ${pod_names}  console=yes
     ${selected_pod}=    Get From List    ${pod_names}    0
     Log    Selected pod: ${selected_pod}  console=yes
-    ${healthcheck}=    Get Healthcheck    ${NAMESPACE}    ${selected_pod}  /health
-    Log    Healthcheck result: ${healthcheck}  console=yes
+    ${healthcheck}=  Get Healthcheck  ${NAMESPACE}  ${selected_pod}  /health
+    Log  Healthcheck result: ${healthcheck}  console=yes
     Should Contain    ${healthcheck}    "success" 
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body2}
 
