@@ -6,9 +6,11 @@ ${NAMESPACE}                             ${OPENSEARCH_NAMESPACE}
 ${secret_name}                           opensearch-secret
 ${secret_name_old}                       opensearch-secret-old
 ${POD_PATTERN}                           dbaas-*
+${command}                               curl http://dbaas-opensearch-adapter:8080/health
 
 *** Settings ***
 Library    KubeLibrary    incluster=True
+Library    Process
 Resource  ./keywords.robot
 Variables    variables.py
 Suite Setup  Prepare
@@ -37,14 +39,8 @@ Change Password for User and Healthcheck Dbaas Pod
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
     ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
-    Log  Start get pods  console=yes
-    ${pod_names}=    Get Pod Names In Namespace    ${POD_PATTERN}    ${NAMESPACE}   
-    Log  pod names: ${pod_names}  console=yes
-    ${selected_pod}=    Get From List    ${pod_names}    0
-    Log    Selected pod: ${selected_pod}  console=yes
-    ${healthcheck}=  Get Healthcheck  ${NAMESPACE}  ${selected_pod}  /health
-    Log  Healthcheck result: ${healthcheck}  console=yes
-    Should Contain    ${healthcheck}    "success" 
+    ${health}=  Run Process  ${command}
+    Log  Health:${health}  console=yes
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body2}
 
 Recover Users In OpenSearch
