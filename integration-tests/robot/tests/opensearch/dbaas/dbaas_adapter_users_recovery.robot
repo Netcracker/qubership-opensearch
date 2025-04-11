@@ -7,7 +7,6 @@ ${secret_name}                           opensearch-secret
 ${secret_name_old}                       opensearch-secret-old
 ${POD_PATTERN}                           dbaas-*
 ${command}                               http://dbaas-opensearch-adapter:8080/health
-${PIPE}                                  Evaluate    __import__('subprocess').PIPE
 
 *** Settings ***
 Library    KubeLibrary    incluster=True
@@ -41,8 +40,9 @@ Change Password for User and Healthcheck Dbaas Pod
     ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
     Sleep  150s
-    ${health}=  Run Process    curl    ${command}    stdout=${PIPE}    stderr=${PIPE}
-    Log    Curl Output: ${health.stdout}    console=yes
+    ${health}=  Run Process  curl  ${command}  shell=True
+    Log  Return Code: ${health.rc}  console=yes
+    Log  Output: ${health.stdout}   console=yes
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body2}
 
 Recover Users In OpenSearch
