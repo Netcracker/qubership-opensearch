@@ -42,6 +42,7 @@ Change Password for User and Healthcheck Dbaas Pod
     Log  \nOutput: ${health.stdout}   console=yes
     Should Be Equal As Strings  ${health.stdout}  ${status}
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body_default}
+    Sleep  150s
 
 Recover Users In OpenSearch
     [Tags]  dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
