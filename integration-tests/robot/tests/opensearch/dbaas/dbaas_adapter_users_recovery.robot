@@ -40,8 +40,8 @@ Change Password for User and Healthcheck Dbaas Pod
     ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
     Sleep  150s
-    ${health}=  Run Process  curl    ${command}  stdout=PIPE    stderr=PIPE
-    Log    Health: ${health.stdout}    console=yes
+    ${health}=  Run Process    curl    ${command}    stdout=${PIPE}    stderr=${PIPE}
+    Log    Curl Output: ${health.stdout}    console=yes
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body2}
 
 Recover Users In OpenSearch
