@@ -6,7 +6,7 @@ ${NAMESPACE}                             ${OPENSEARCH_NAMESPACE}
 ${secret_name}                           opensearch-secret
 ${secret_name_old}                       opensearch-secret-old
 ${POD_PATTERN}                           dbaas-*
-${command}                               curl http://dbaas-opensearch-adapter:8080/health
+${command}                               http://dbaas-opensearch-adapter:8080/health
 
 *** Settings ***
 Library    KubeLibrary    incluster=True
@@ -39,7 +39,7 @@ Change Password for User and Healthcheck Dbaas Pod
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
     ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
-    ${health}=  Run Process  ${command}
+    ${health}=  Run Process  curl    ${command}
     Log  Health:${health}  console=yes
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body2}
 
