@@ -7,6 +7,8 @@ ${secret_name}                           opensearch-secret
 ${secret_name_old}                       opensearch-secret-old
 ${POD_PATTERN}                           dbaas-*
 ${command}                               http://dbaas-opensearch-adapter:8080/health
+${status}                                {"status":"UP","opensearchHealth":{"status":"UP"},"dbaasAggregatorHealth":{"status":"OK"}}
+${host}                                  ${OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}://${OPENSEARCH_DBAAS_ADAPTER_HOST}:${OPENSEARCH_DBAAS_ADAPTER_PORT}
 
 *** Settings ***
 Library    KubeLibrary    incluster=True
@@ -41,8 +43,9 @@ Change Password for User and Healthcheck Dbaas Pod
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
     Sleep  150s
     ${health}=  Run Process  curl  ${command}  shell=True
-    Log  Return Code: ${health.rc}  console=yes
+    Log  host: ${host}  console=yes
     Log  Output: ${health.stdout}   console=yes
+    Should Be Equal As Strings  ${health.stdout}  ${status} 
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body2}
 
 Recover Users In OpenSearch
