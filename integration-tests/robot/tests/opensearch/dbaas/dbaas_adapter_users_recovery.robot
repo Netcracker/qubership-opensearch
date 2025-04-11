@@ -7,6 +7,7 @@ ${secret_name}                           opensearch-secret
 ${secret_name_old}                       opensearch-secret-old
 ${POD_PATTERN}                           dbaas-*
 ${command}                               http://dbaas-opensearch-adapter:8080/health
+${PIPE}                                  Evaluate    __import__('subprocess').PIPE
 
 *** Settings ***
 Library    KubeLibrary    incluster=True
