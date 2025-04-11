@@ -2,16 +2,12 @@
 ${RETRY_TIME}                            60s
 ${RETRY_INTERVAL}                        5s
 ${SLEEP_TIME}                            5s
-${NAMESPACE}                             ${OPENSEARCH_NAMESPACE}  
 ${secret_name}                           opensearch-secret
 ${secret_name_old}                       opensearch-secret-old
-${POD_PATTERN}                           dbaas-*
-${command}                               http://dbaas-opensearch-adapter:8080/health
 ${status}                                {"status":"UP","opensearchHealth":{"status":"UP"},"dbaasAggregatorHealth":{"status":"OK"}}
-${host}                                  ${OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}://${OPENSEARCH_DBAAS_ADAPTER_HOST}:${OPENSEARCH_DBAAS_ADAPTER_PORT}
+${host}                                  ${OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}://${OPENSEARCH_DBAAS_ADAPTER_HOST}:${OPENSEARCH_DBAAS_ADAPTER_PORT}/health
 
 *** Settings ***
-Library    KubeLibrary    incluster=True
 Library    Process
 Resource  ./keywords.robot
 Variables    variables.py
@@ -42,11 +38,10 @@ Change Password for User and Healthcheck Dbaas Pod
     ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
     Sleep  150s
-    ${health}=  Run Process  curl  ${command}  shell=True
-    Log  host: ${host}  console=yes
-    Log  Output: ${health.stdout}   console=yes
-    Should Be Equal As Strings  ${health.stdout}  ${status} 
-    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body2}
+    ${health}=  Run Process  curl  ${host}  shell=True
+    Log  \nOutput: ${health.stdout}   console=yes
+    Should Be Equal As Strings  ${health.stdout}  ${status}
+    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body_default}
 
 Recover Users In OpenSearch
     [Tags]  dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
