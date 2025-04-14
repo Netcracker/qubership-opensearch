@@ -1,4 +1,4 @@
-# Affinity
+# Affinity 
 
 Affinity is a characteristic that allows to specify a set of rules used by the scheduler to determine where a pod
 can be placed.
