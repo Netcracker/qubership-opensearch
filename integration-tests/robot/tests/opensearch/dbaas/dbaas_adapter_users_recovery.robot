@@ -2,9 +2,15 @@
 ${RETRY_TIME}                            60s
 ${RETRY_INTERVAL}                        5s
 ${SLEEP_TIME}                            5s
+${secret_name}                           opensearch-secret
+${secret_name_old}                       opensearch-secret-old
+${status}                                {"status":"UP","opensearchHealth":{"status":"UP"},"dbaasAggregatorHealth":{"status":"OK"}}
+${host}                                  ${OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}://${OPENSEARCH_DBAAS_ADAPTER_HOST}:${OPENSEARCH_DBAAS_ADAPTER_PORT}/health
 
 *** Settings ***
+Library    Process
 Resource  ./keywords.robot
+Variables    variables.py
 Suite Setup  Prepare
 
 *** Keywords ***
@@ -24,6 +30,20 @@ Check Users Recovery State
     Should Be Equal As Strings  ${state}  done
 
 *** Test Cases ***
+Change Password for User and Healthcheck Dbaas Pod
+    [Tags]   dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
+    ${response}=  Check Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
+    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret
+    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
+    ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
+    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
+    Sleep  150s
+    ${health}=  Run Process  curl  ${host}  shell=True
+    Log  \nOutput: ${health.stdout}   console=yes
+    Should Be Equal As Strings  ${health.stdout}  ${status}
+    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body_default}
+    Sleep  150s
+
 Recover Users In OpenSearch
     [Tags]  dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
     ${resource_prefix}=  Set Variable  860dde0d-dfcc-480a-9880-19533c5aa7aa

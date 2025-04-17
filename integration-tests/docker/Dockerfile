@@ -18,6 +18,7 @@ RUN chmod -R 775 ${ROBOT_HOME}/tests/opensearch/ha/test-data-resources/*
 
 RUN set -x \
     && pip3 install -r ${ROBOT_HOME}/requirements.txt \
+    && apk add --no-cache curl \
     && rm -rf /var/cache/apk/*
 
 USER 1000:0

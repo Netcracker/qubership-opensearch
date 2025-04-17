@@ -21,6 +21,16 @@ Prepare OpenSearch
     [Arguments]  ${need_auth}=True
     Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}  ${need_auth}
 
+Check Secret
+    [Arguments]  ${secret_name}  ${OPENSEARCH_NAMESPACE}
+    ${response}=  Get Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
+    [Return]  ${response}
+
+Change Secret
+    [Arguments]  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
+    ${response}=  Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
+    [Return]  ${response}
+
 Login To OpenSearch
     [Arguments]  ${username}  ${password}  ${need_auth}=True
     ${auth}=  Run Keyword If  ${need_auth}  Create List  ${username}  ${password}
