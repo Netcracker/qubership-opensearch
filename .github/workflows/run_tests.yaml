@@ -1,14 +1,15 @@
 name: Run Opensearch Pipeline
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [main]
+  push
+  # pull_request:
+  #   types: [opened, synchronize, reopened]
+  #   branches: [main]
 
 jobs:
   Opensearch-Pipeline:
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@main
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@test_opensearch
     with:
       service_branch: '${{ github.head_ref || github.ref_name }}'
       versions_file: '.github/versions.yaml'
-      pipeline_branch: 'main' #this value must match the value after '@' in 'uses'
+      pipeline_branch: 'test_opensearch' #this value must match the value after '@' in 'uses'
