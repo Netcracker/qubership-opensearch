@@ -1,4 +1,4 @@
-FROM ghcr.io/netcracker/qubership-docker-integration-tests:main
+FROM ghcr.io/netcracker/qubership-docker-integration-tests:bugfix-problem_with_custom_probe
 
 ENV ROBOT_OUTPUT=/opt/robot/output \
     SERVICE_CHECKER_SCRIPT=${ROBOT_HOME}/opensearch_pods_checker.py \
