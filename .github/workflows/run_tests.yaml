@@ -1,0 +1,15 @@
+name: Run Opensearch Pipeline
+
+on:
+  push
+  # pull_request:
+  #   types: [opened, synchronize, reopened]
+#   branches: [main]
+
+jobs:
+  Opensearch-Pipeline:
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@test_opensearch
+    with:
+      service_branch: 'bugfix/problem_with_custom_probe'
+      versions_file: '.github/versions.yaml'
+      pipeline_branch: 'test_opensearch' #this value must match the value after '@' in 'uses'
