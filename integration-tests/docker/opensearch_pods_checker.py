@@ -138,7 +138,62 @@ if __name__ == '__main__':
                         print("Shards:")
                         print(shards_resp.text)
 
-                        run_opensearch_diagnostics()
+                    def get_json(endpoint):
+                        resp = requests.get(f"{protocol}://{host}:{port}{endpoint}", auth=auth, verify=verify)
+                        if resp.status_code != 200:
+                            print(f"❌ Failed to GET {endpoint}, status {resp.status_code}")
+                            return []
+                        return json.loads(resp.content.decode('utf-8'))
+
+                    try:
+                        # Cluster settings
+                        settings = get_json("/_cluster/settings?include_defaults=true&flat_settings=true")
+                        routing_allocation = settings.get("persistent", {}).get("cluster.routing.allocation.enable") or \
+                                             settings.get("transient", {}).get("cluster.routing.allocation.enable") or \
+                                             settings.get("defaults", {}).get("cluster.routing.allocation.enable")
+                        if routing_allocation:
+                            print(f"Routing allocation setting: cluster.routing.allocation.enable = {routing_allocation}")
+
+                        # Cluster stats
+                        cluster_stats = get_json("/_cluster/stats")
+                        print("Cluster stats:")
+                        print(json.dumps(cluster_stats.get("nodes", {}), indent=2))
+
+                        # Node stats
+                        node_stats = get_json("/_nodes/stats")
+                        print("Node stats (heap, fs):")
+                        for node_id, stats in node_stats.get("nodes", {}).items():
+                            heap_used = stats.get("jvm", {}).get("mem", {}).get("heap_used_percent")
+                            disk_used = stats.get("fs", {}).get("total", {}).get("disk_used_percent")
+                            print(f"Node: {stats.get('name')} - Heap Used: {heap_used}%, Disk Used: {disk_used}%")
+
+                        # Shards
+                        shards = get_json("/_cat/shards?format=json")
+                        for shard in shards:
+                            if shard.get("state") == "UNASSIGNED" and shard.get("prirep") == "r":
+                                explain_body = {
+                                    "index": shard["index"],
+                                    "shard": int(shard["shard"]),
+                                    "primary": False
+                                }
+                                headers = {'Content-Type': 'application/json'}
+                                explain_resp = requests.post(
+                                    f"{protocol}://{host}:{port}/_cluster/allocation/explain",
+                                    auth=auth, verify=verify,
+                                    headers=headers,
+                                    data=json.dumps(explain_body)
+                                )
+                                if explain_resp.status_code == 200:
+                                    explanation = explain_resp.json()
+                                    print("Shard allocation explanation:")
+                                    print(json.dumps(explanation, indent=2))
+                                else:
+                                    print("Failed to get allocation explanation")
+                                break
+
+                    except Exception as e:
+                        print(f"Diagnostic error: {e}")
+                        traceback.print_exc()
 
                 except (json.JSONDecodeError, KeyError, IndexError) as e:
                     print(f"Failed to parse JSON response: {e}")
