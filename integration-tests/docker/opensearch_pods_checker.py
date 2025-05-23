@@ -155,9 +155,9 @@ if __name__ == '__main__':
                             print(f"Routing allocation setting: cluster.routing.allocation.enable = {routing_allocation}")
 
                         # Cluster stats
-                        cluster_stats = get_json("/_cluster/stats")
-                        print("Cluster stats:")
-                        print(json.dumps(cluster_stats.get("nodes", {}), indent=2))
+                        # cluster_stats = get_json("/_cluster/stats")
+                        # print("Cluster stats:")
+                        # print(json.dumps(cluster_stats.get("nodes", {}), indent=2))
 
                         # Node stats
                         node_stats = get_json("/_nodes/stats")
