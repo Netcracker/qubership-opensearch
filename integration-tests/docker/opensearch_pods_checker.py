@@ -135,7 +135,7 @@ if __name__ == '__main__':
                         print("Nodes:")
                         print(nodes_resp.text)
 
-                        print("Shards:")
+                        print("Shards: ")
                         print(shards_resp.text)
 
                     def get_json(endpoint):
