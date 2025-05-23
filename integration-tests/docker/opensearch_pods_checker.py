@@ -30,8 +30,12 @@ port = environ.get("OPENSEARCH_PORT", "9200")
 namespace = environ.get("OPENSEARCH_NAMESPACE")
 username = environ.get("OPENSEARCH_USERNAME")
 password = environ.get("OPENSEARCH_PASSWORD")
-external = environ.get("EXTERNAL_OPENSEARCH", False)
+external = environ.get("EXTERNAL_OPENSEARCH", "false").lower() == "true"
 timeout = 300
+
+print(f"Connecting to OpenSearch at {protocol}://{host}:{port} (external={external})")
+print(f"Using namespace: {namespace}")
+print(f"Auth provided: {bool(username and password)}")
 
 if __name__ == '__main__':
     try:
@@ -51,7 +55,7 @@ if __name__ == '__main__':
         try:
             wait_for_replicas_readiness = False
             if not external:
-                print(f"Checking statefulsets readiness for host={url}")
+                print(f"Checking statefulsets readiness for host={host}")
                 stateful_set_names = platform_library.get_stateful_set_names_by_label(namespace, host, 'app')
                 print(f"Found statefulsets: {stateful_set_names}")
                 for stateful_set_name in stateful_set_names:
@@ -75,10 +79,29 @@ if __name__ == '__main__':
                 try:
                     status = json.loads(response.content.decode('utf-8'))[0]['status']
                     print(f"Cluster status: {status}")
-                    if status == 'green' or (external and status == 'yellow'):
+                    if status == 'green':
                         print('OpenSearch is ready. Waiting for subsidiary components for 30 seconds')
                         time.sleep(30)
                         exit(0)
+                    elif status == 'yellow':
+                        print("Cluster is yellow — performing diagnostics...")
+                        indices_url = f'{protocol}://{host}:{port}/_cat/indices?v&format=json'
+                        nodes_url = f'{protocol}://{host}:{port}/_cat/nodes?v&format=json'
+                        shards_url = f'{protocol}://{host}:{port}/_cat/shards?v&format=json'
+
+                        indices_resp = requests.get(indices_url, auth=auth, verify=verify)
+                        nodes_resp = requests.get(nodes_url, auth=auth, verify=verify)
+                        shards_resp = requests.get(shards_url, auth=auth, verify=verify)
+
+                        print("Indices:")
+                        print(indices_resp.text)
+
+                        print("Nodes:")
+                        print(nodes_resp.text)
+
+                        print("Shards:")
+                        print(shards_resp.text)
+
                 except (json.JSONDecodeError, KeyError, IndexError) as e:
                     print(f"Failed to parse JSON response: {e}")
                     print(f"Raw response content: {response.text}")
