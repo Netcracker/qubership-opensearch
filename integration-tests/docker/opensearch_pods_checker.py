@@ -167,6 +167,14 @@ if __name__ == '__main__':
                             disk_used = stats.get("fs", {}).get("total", {}).get("disk_used_percent")
                             print(f"Node: {stats.get('name')} - Heap Used: {heap_used}%, Disk Used: {disk_used}%")
 
+                        # Cat allocation
+                        allocation_resp = requests.get(f"{protocol}://{host}:{port}/_cat/allocation?v", auth=auth, verify=verify)
+                        if allocation_resp.status_code == 200:
+                            print("/cat/allocation:")
+                            print(allocation_resp.text)
+                        else:
+                            print("Failed to fetch /_cat/allocation")
+
                         # Shards
                         shards = get_json("/_cat/shards?format=json")
                         for shard in shards:
