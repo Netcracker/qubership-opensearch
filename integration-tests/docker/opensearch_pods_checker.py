@@ -168,7 +168,8 @@ if __name__ == '__main__':
                             print(f"Node: {stats.get('name')} - Heap Used: {heap_used}%, Disk Used: {disk_used}%")
 
                         # Cat allocation
-                        allocation_resp = requests.get(f"{protocol}://{host}:{port}/_cat/allocation?v", auth=auth, verify=verify)
+                        print("Allocation:")
+                        allocation_resp = requests.get(f"{protocol}://{host}:{port}/_cat/allocation?format=json", auth=auth, verify=verify)
                         if allocation_resp.status_code == 200:
                             print("/cat/allocation:")
                             print(allocation_resp.text)
