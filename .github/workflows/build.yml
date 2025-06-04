@@ -67,9 +67,6 @@ jobs:
           component-tag: ${{ env.TAG_NAME }}
           access-token: ${{ secrets.GITHUB_TOKEN }}
         if: ${{ env.PUSH }}
-      - name: List files in `opensearch-filter-plugin/target`
-        run: ls -l opensearch-filter-plugin/target
-
       - name: List files in `docker`
         run: ls -l docker
       - name: Build and push
