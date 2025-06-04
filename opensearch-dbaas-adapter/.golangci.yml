@@ -1,0 +1,48 @@
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+  #  - unused
+    - bodyclose
+    - gofmt
+    - copyloopvar
+ #   - prealloc
+ #   - gocritic
+linters-settings:
+  staticcheck:
+    checks:
+      - all
+      - "-SA1019"
+      - "-SA1029"
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  govet:
+    enable:
+     # - fieldalignment
+      - httpresponse
+      - defers
+      - ifaceassert
+      - slog
+      - waitgroup
+ # gocritic:
+ #   enabled-tags:
+     #  - diagnostic
+     #  - experimental
+     #  - opinionated
+     #  - performance
+     #  - style
+
+issues:
+  exclude-files:
+    - _test\.go
+
+run:
+  timeout: 10m
+  go: '1.22'
+  modules-download-mode: readonly
