@@ -71,7 +71,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           no-cache: true
-          context: .
+          context: ${{ matrix.component.context }}
           file: ${{ matrix.component.file }}
           platforms: linux/amd64,linux/arm64
           push: ${{ env.PUSH }}
