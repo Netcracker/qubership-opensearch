@@ -40,11 +40,11 @@ jobs:
           distribution: 'temurin'
       - name: Build Maven Project
         run: |
-          cd opensearch-filter-plugin
+          cd docker-opensearch/opensearch-filter-plugin
           mvn clean package
       - name: Archive build output
         run: |
-          mv opensearch-filter-plugin/target/opensearch-filter-plugin-2.17.1.0.zip docker/opensearch-filter-plugin-2.17.1.0.zip
+          mv docker-opensearch/opensearch-filter-plugin/target/opensearch-filter-plugin-2.17.1.0.zip docker-opensearch/docker/opensearch-filter-plugin-2.17.1.0.zip
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
