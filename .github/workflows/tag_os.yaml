@@ -1,27 +1,13 @@
 name: Push tag
 on:
-  workflow_dispatch:
-    inputs:
-      package_name:
-        type: string
-        description: "Package name"
-        required: true
-        default: ''
-      docker_file_path:
-        type: string
-        description: "Path do dockerfile"
-        required: true
-        default: ''
-      context:
-        type: string
-        description: "Docker build context"
-        required: false
-        default: .
-      tag_name:
-        type: string
-        description: "Tag name"
-        required: true
-        default: ''
+  release:
+    types: [created]
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
 
 jobs:
   multiplatform_build:
