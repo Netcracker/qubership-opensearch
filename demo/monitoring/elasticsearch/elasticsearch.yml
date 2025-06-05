@@ -1,0 +1,8 @@
+http.host: 0.0.0.0
+network.host: 0.0.0.0
+
+discovery.type: single-node
+cluster.name: elasticsearch
+
+searchguard.ssl.http.enabled: false
+searchguard.ssl.transport.enabled: false

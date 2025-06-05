@@ -1,0 +1,31 @@
+version: '2.2'
+services:
+  elasticsearch:
+    image: elasticsearch:5.6
+    ports:
+    - 9200:9200
+    - 9300:9300
+    volumes:
+    - ./config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    - ./config/elasticsearch-security.yml:/usr/share/elasticsearch/config/security/elasticsearch-security.yml
+    - ./config/log4j2.properties:/usr/share/elasticsearch/config/log4j2.properties
+    - ./snapshots:/usr/share/elasticsearch/snapshots
+    environment:
+    - ES_JAVA_OPTS=-Xms1024m -Xmx1024m
+  elasticsearch-curator:
+    image: ghcr.io/netcracker/elasticsearch-curator:main
+    ports:
+      - 8080:8080
+    volumes:
+      - ./backup:/backup-storage
+    links:
+      - elasticsearch
+    environment:
+      - ES_HOST=elasticsearch
+      - TLS_HTTP_ENABLED=false
+      - ES_AUTH=admin:admin
+      - BACKUP_SCHEDULE=*/20 * * * *
+      - EVICTION_POLICY=1h/1h
+      - LOG_LEVEL=DEBUG
+      - SNAPSHOT_REPOSITORY_NAME=backup
+      - VAULT_NAME_FORMAT=curator-%Y%m%d%H%M%S

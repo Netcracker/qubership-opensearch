@@ -1,0 +1,5 @@
+grant {
+    permission java.lang.RuntimePermission "setFactory";
+    permission java.io.FilePermission "config/security/elasticsearch-security.yml", "read";
+    permission java.net.SocketPermission "*", "connect,accept,listen";
+};

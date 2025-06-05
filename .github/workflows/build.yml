@@ -1,4 +1,4 @@
-name: Build Artifacts
+name: Build Opensearch With Plugin
 on:
   release:
     types: [created]
@@ -26,34 +26,25 @@ jobs:
       fail-fast: false
       matrix:
         component:
-          - name: qubership-opensearch-integration-tests
-            file: integration-tests/docker/Dockerfile
-            context: integration-tests
-          - name: qubership-opensearch-tls-init
-            file: tls-init/docker/Dockerfile
-            context: tls-init
-          - name: qubership-opensearch-operator
-            file: Dockerfile
-            context: .
-          - name: qubership-opensearch-transfer
-            file: docker-transfer/Dockerfile
-            context: ""
-          - name: qubership-opensearch-monitoring
-            file: monitoring/docker/Dockerfile
-            context: monitoring
-          - name: qubership-opensearch-curator
-            file: opensearch-curator/docker/backup-docker/Dockerfile
-            context: opensearch-curator
-          - name: qubership-opensearch-indices-cleaner
-            file: opensearch-curator/opensearch_indices_cleaner/docker/Dockerfile
-            context: opensearch-curator/opensearch_indices_cleaner
-          - name: qubership-opensearch-dbaas-adapter
-            file: opensearch-dbaas-adapter/docker/Dockerfile
-            context: opensearch-dbaas-adapter
+          - name: qubership-docker-opensearch
+            file: docker-opensearch/docker/Dockerfile
+            context: docker-opensearch
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set up JDK for Maven Build
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+      - name: Build Maven Project
+        run: |
+          cd docker-opensearch/opensearch-filter-plugin
+          mvn clean package
+      - name: Archive build output
+        run: |
+          mv docker-opensearch/opensearch-filter-plugin/target/opensearch-filter-plugin-2.17.1.0.zip docker-opensearch/docker/opensearch-filter-plugin-2.17.1.0.zip
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -74,7 +65,7 @@ jobs:
         with:
           component-name: ${{ matrix.component.name }}
           component-tag: ${{ env.TAG_NAME }}
-          access-token: ${{secrets.GITHUB_TOKEN}}
+          access-token: ${{ secrets.GITHUB_TOKEN }}
         if: ${{ env.PUSH }}
       - name: Build and push
         uses: docker/build-push-action@v5
