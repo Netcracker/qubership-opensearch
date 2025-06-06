@@ -1420,3 +1420,14 @@ Curator SSL secret name
     {{- end -}}
   {{- end -}}
 {{- end -}}
+
+{{/*
+Whether restricted environment is enabled
+*/}}
+{{- define "global.restrictedEnvironment" -}}
+  {{- if and .Values.global.restrictedEnvironment (eq (.Values.INFRA_RESTRICTED_ENVIRONMENT | toString) "true") -}}
+    {{- "true" -}}
+  {{- else -}}
+    {{- "false" -}}
+  {{- end -}}
+{{- end -}}

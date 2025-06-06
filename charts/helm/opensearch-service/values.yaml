@@ -130,6 +130,8 @@ global:
 
   imagePullSecrets: []
 
+  restrictedEnvironment: false
+
   externalOpensearch:
     enabled: false
     url: ""
@@ -1098,6 +1100,16 @@ statusProvisioner:
   customLabels: {}
   securityContext: {}
 
+updateResourcesJob:
+  resources:
+    requests:
+      memory: "75Mi"
+      cpu: "75m"
+    limits:
+      memory: "150Mi"
+      cpu: "150m"
+  securityContext: {}
+
 integrationTests:
   enabled: false
   dockerImage: ghcr.io/netcracker/qubership-opensearch-integration-tests:main
@@ -1157,5 +1169,7 @@ PART_OF: "opensearch-service"
 DELIMITER: "-"
 # Artifact descriptor version which is installed.
 ARTIFACT_DESCRIPTOR_VERSION: ""  # TO_BE_REPLACED
+
+INFRA_RESTRICTED_ENVIRONMENT: "false"
 
 DEPLOY_W_HELM: "true"
