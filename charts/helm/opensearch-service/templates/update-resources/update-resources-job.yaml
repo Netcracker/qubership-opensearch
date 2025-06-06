@@ -1,0 +1,70 @@
+{{- if and (eq .Values.global.restrictedEnvironment "true") (eq .Values.INFRA_RESTRICTED_ENVIRONMENT "true") }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "opensearch.fullname" . }}-update-resources
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+spec:
+  template:
+    metadata:
+      name: {{ template "opensearch.fullname" . }}-update-resources
+      labels:
+        {{ include "opensearch.labels.standard" . | nindent 8 }}
+        component: update-resources
+    spec:
+      securityContext:
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.updateResourcesJob.securityContext }}
+        {{- toYaml . | nindent 8 -}}
+        {{- end }}
+      {{- end }}
+      restartPolicy: Never
+      serviceAccountName: {{ template "opensearch.fullname" . }}-update-resources
+      containers:
+        - name: upgrade-preparation
+          image: {{ template "deployment-status-provisioner.image" . }}
+          command:
+              - "/bin/bash"
+              - "-c"
+              - |
+                if command -v kubectl &>/dev/null; then
+                  ocBin=kubectl
+                else
+                  source ${WORKSPACE}/oc_version_used.sh
+                  ocBin=$OCBINVERP
+                fi
+
+                eval $(sed -e 's/:[^:\/\/]/="/g;s/$/"/g;s/ *=/=/g' <<<"$DEPLOYMENT_PARAMETERS" | grep "ENABLE_PRIVILEGED_PSS")
+                : "${ENABLE_PRIVILEGED_PSS:=false}"
+                if [[ $ENABLE_PRIVILEGED_PSS != "true" ]]; then
+                  exit 0
+                fi
+
+                : "${NAMESPACE:=${CLOUD_NAMESPACE}}"
+                if [[ -z "$NAMESPACE" ]]; then
+                  echo >&2 "Error: Cannot get namespace from job's parameters ('NAMESPACE' and 'CLOUD_NAMESPACE' are empty)"
+                  exit 121
+                fi
+
+                echo "Setting 'privileged' pod security standard to the namespace '${NAMESPACE}'"
+                is_patch_ns_permitted=$(${ocBin} auth can-i patch namespace/${NAMESPACE} 2>/dev/null)
+                if [[ ${is_patch_ns_permitted} != "yes" ]]; then
+                  echo >&2 "Warning: Cannot patch namespace due to lack of permissions"
+                  exit 121
+                fi
+
+                ${ocBin} label --overwrite ns "$NAMESPACE" pod-security.kubernetes.io/enforce=privileged
+                echo "Namespace '${NAMESPACE}' was patched with privileged PSS"
+          resources:
+            requests:
+              cpu: {{ default "75m" .Values.updateResourcesJob.resources.requests.cpu }}
+              memory: {{ default "75Mi" .Values.updateResourcesJob.resources.requests.memory }}
+            limits:
+              cpu: {{ default "150m" .Values.updateResourcesJob.resources.limits.cpu }}
+              memory: {{ default "150Mi" .Values.updateResourcesJob.resources.limits.memory }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
+{{- end }}

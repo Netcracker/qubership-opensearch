@@ -1,0 +1,16 @@
+{{- if and (eq .Values.global.restrictedEnvironment "true") (eq .Values.INFRA_RESTRICTED_ENVIRONMENT "true") }}
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ template "opensearch.fullname" . }}-update-resources
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+subjects:
+  - kind: ServiceAccount
+    name: {{ template "opensearch.fullname" . }}-update-resources
+roleRef:
+  kind: Role
+  name: {{ template "opensearch.fullname" . }}-update-resources
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
