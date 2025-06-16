@@ -1,0 +1,16 @@
+---
+
+charts:
+  - name: qubership-opensearch
+    chart_file: charts/helm/opensearch-service/Chart.yaml
+    values_file: charts/helm/opensearch-service/values.yaml
+    image:
+      - ghcr.io/netcracker/qubership-opensearch-integration-tests:${release}
+      - ghcr.io/netcracker/qubership-opensearch-tls-init:${release}
+      - ghcr.io/netcracker/qubership-opensearch-operator:${release}
+      - ghcr.io/netcracker/qubership-opensearch-transfer:${release}
+      - ghcr.io/netcracker/qubership-docker-opensearch:${release}
+      - ghcr.io/netcracker/qubership-opensearch-monitoring:${release}
+      - ghcr.io/netcracker/qubership-opensearch-curator:${release}
+      - ghcr.io/netcracker/qubership-opensearch-indices-cleaner:${release}
+      - ghcr.io/netcracker/qubership-opensearch-dbaas-adapter:${release}
