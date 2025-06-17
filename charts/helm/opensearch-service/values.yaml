@@ -155,6 +155,7 @@ global:
 
   velero:
     preHookBackupEnabled: true
+    timeout: "600s"
 
   psp:
     create: false
