@@ -8,7 +8,7 @@ on:
         description: 'Release version'
         required: true
         type: string
-      drd-release:
+      drd_release:
         description: 'DRD Release version'
         required: true
         type: string
