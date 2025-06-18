@@ -12,12 +12,12 @@
     },
     {
       "name": "qubership-opensearch-transfer",
-      "file": "tls-init/docker/Dockerfile",
+      "file": "Dockerfile",
       "context": ""
     },
     {
       "name": "qubership-opensearch-tls-init",
-      "file": "opensearch-backup-daemon/docker/Dockerfile",
+      "file": "tls-init/docker/Dockerfile",
       "context": "tls-init"
     },
     {
