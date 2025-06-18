@@ -8,14 +8,6 @@ on:
         description: 'Release version'
         required: true
         type: string
-      drd_release:
-        description: 'DRD Release version'
-        required: true
-        type: string
-      sp_release:
-        description: 'Status Provisioner Release version'
-        required: true
-        type: string
 permissions:
   contents: write
   packages: write
@@ -23,9 +15,6 @@ run-name: ${{ github.repository }} Release ${{ github.event.inputs.release }}
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-env:
-  drd_release: ${{ inputs.drd_release }}
-  sp_release: ${{ inputs.sp_release }}
 jobs:
   check-tag:
     runs-on: ubuntu-latest
@@ -34,7 +23,7 @@ jobs:
         id: check_tag
         uses: netcracker/qubership-workflow-hub/actions/tag-action@main
         with:
-          tag-name: 'v${{ inputs.release }}'
+          tag-name: '${{ inputs.release }}'
           ref: ${{ github.ref }}
           create-tag: false
           check-tag: true
@@ -126,7 +115,7 @@ jobs:
       - name: Create release tag
         uses: netcracker/qubership-workflow-hub/actions/tag-action@main
         with:
-          tag-name: "v${{ inputs.release }}"
+          tag-name: "${{ inputs.release }}"
           ref: "release-${{ inputs.release }}"
           create-tag: true
           check-tag: false
@@ -146,7 +135,7 @@ jobs:
       - name: Docker build
         uses: netcracker/qubership-workflow-hub/actions/docker-action@main
         with:
-          ref: v${{ inputs.release }}
+          ref: ${{ inputs.release }}
           download-artifact: false
           dry-run: false
           component: ${{ toJson(matrix.component) }}
@@ -175,7 +164,7 @@ jobs:
         uses: netcracker/chart-releaser-action@main
         with:
           charts_dir: charts/helm
-          release_name_template: "v{{ .Version }}"
+          release_name_template: "{{ .Version }}"
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
@@ -185,8 +174,8 @@ jobs:
           config-name: release-drafter-config.yml
           publish: true
           name: ${{ inputs.release }}
-          tag: v${{ inputs.release }}
-          version: v${{ inputs.release }}
+          tag: ${{ inputs.release }}
+          version: ${{ inputs.release }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   upload-assets:
@@ -196,7 +185,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: v${{ inputs.release }}
+          ref: ${{ inputs.release }}
 
       - name: Archive and Upload Assets
         uses: netcracker/qubership-workflow-hub/actions/archive-and-upload-assets@main
@@ -204,6 +193,6 @@ jobs:
           config-path: './.github/assets-config.yml'
           dist-path: './dist'
           upload: true
-          ref: v${{ inputs.release }}
+          ref: ${{ inputs.release }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
