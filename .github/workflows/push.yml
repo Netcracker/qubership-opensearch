@@ -50,6 +50,9 @@ jobs:
           - name: qubership-opensearch-dbaas-adapter
             file: opensearch-dbaas-adapter/docker/Dockerfile
             context: opensearch-dbaas-adapter
+          - name: qubership-docker-opensearch
+            file: docker-opensearch/docker/Dockerfile
+            context: docker-opensearch
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

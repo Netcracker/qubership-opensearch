@@ -1,3 +1,15 @@
+FROM amazoncorretto:11-alpine AS builder
+
+RUN apk add --no-cache maven git
+
+WORKDIR /build
+
+COPY opensearch-filter-plugin/pom.xml .
+RUN mvn dependency:go-offline
+
+COPY opensearch-filter-plugin /build
+RUN mvn clean package
+
 FROM opensearchproject/opensearch:2.17.1
 
 USER 0
@@ -34,7 +46,7 @@ RUN echo "Download OpenSearch plugins..." \
        exit 1; \
      fi
 
-COPY docker/opensearch-filter-plugin-2.17.1.0.zip ${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/
+COPY --from=builder /build/target/opensearch-filter-plugin-2.17.1.0.zip  ${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/opensearch-filter-plugin-2.17.1.0.zip
 
 # Adapt grants
 RUN set -x \
