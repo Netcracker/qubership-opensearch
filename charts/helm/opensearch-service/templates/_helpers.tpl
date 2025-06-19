@@ -1422,12 +1422,12 @@ Curator SSL secret name
 {{- end -}}
 
 {{/*
-Whether restricted environment is enabled
+Restricted environment.
 */}}
-{{- define "global.restrictedEnvironment" -}}
-  {{- if and .Values.global.restrictedEnvironment (eq (.Values.INFRA_RESTRICTED_ENVIRONMENT | toString) "true") -}}
-    {{- "true" -}}
+{{- define "opensearch.restrictedEnvironment" -}}
+  {{- if and (ne (.Values.INFRA_RESTRICTED_ENVIRONMENT | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.INFRA_RESTRICTED_ENVIRONMENT }}
   {{- else -}}
-    {{- "false" -}}
+    {{- .Values.global.restrictedEnvironment -}}
   {{- end -}}
 {{- end -}}
