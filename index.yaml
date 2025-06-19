@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  opensearch:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2025-06-19T16:58:23.014207186Z"
+    description: OpenSearch Helm chart for Kubernetes
+    digest: e7821a1befa1db43148e55157f67befb9c68bf8230c859c97bd835db537b7f21
+    name: opensearch
+    type: application
+    urls:
+    - https://github.com/Netcracker/qubership-opensearch/releases/download/1.14.5/opensearch-1.14.5.tgz
+    version: 1.14.5
+generated: "2025-06-19T16:58:23.014217074Z"
