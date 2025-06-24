@@ -72,22 +72,6 @@ RUN set -x \
     && curl \
         --silent \
         --show-error \
-        --output-dir ${OPENSEARCH_HOME}/performance-analyzer-rca/lib \
-        -O "https://repo1.maven.org/maven2/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar" \
-    && rm -rf ${OPENSEARCH_HOME}/performance-analyzer-rca/lib/commons-io-2.7.jar
-
-RUN set -x \
-    && curl \
-        --silent \
-        --show-error \
-        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-performance-analyzer \
-        -O "https://repo1.maven.org/maven2/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar" \
-    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-performance-analyzer/commons-io-2.7.jar
-
-RUN set -x \
-    && curl \
-        --silent \
-        --show-error \
         --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-ml \
         -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
     && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-ml/json-20230227.jar
