@@ -1,4 +1,4 @@
-FROM python:3.10.17-alpine3.21
+FROM python:3.10.18-alpine3.22
 
 ENV ELASTICSEARCH_INDICES_CLEANER_HOME=/opt/elasticsearch-indices-cleaner
 
