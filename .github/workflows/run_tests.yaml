@@ -13,3 +13,4 @@ jobs:
       service_branch: '${{ github.head_ref || github.ref_name }}'
       versions_file: '.github/versions.yaml'
       pipeline_branch: 'test_opensearch' #this value must match the value after '@' in 'uses'
+      runner_type: 'self-hosted'
