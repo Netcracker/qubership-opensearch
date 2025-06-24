@@ -1,0 +1,8 @@
+http.host: 0.0.0.0
+network.host: 0.0.0.0
+
+cluster.name: elasticsearch
+path.repo: /usr/share/elasticsearch/snapshots
+
+searchguard.ssl.http.enabled: false
+searchguard.ssl.transport.enabled: false

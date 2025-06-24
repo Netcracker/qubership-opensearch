@@ -1420,3 +1420,14 @@ Curator SSL secret name
     {{- end -}}
   {{- end -}}
 {{- end -}}
+
+{{/*
+Restricted environment.
+*/}}
+{{- define "opensearch.restrictedEnvironment" -}}
+  {{- if and (ne (.Values.INFRA_RESTRICTED_ENVIRONMENT | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.INFRA_RESTRICTED_ENVIRONMENT }}
+  {{- else -}}
+    {{- .Values.global.restrictedEnvironment -}}
+  {{- end -}}
+{{- end -}}

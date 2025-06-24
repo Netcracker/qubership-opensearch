@@ -29,6 +29,7 @@ spec:
       {{- if and (not .Values.global.externalOpensearch.enabled) .Values.global.velero.preHookBackupEnabled }}
       annotations:
         pre.hook.backup.velero.io/command: {{ template "opensearch.velero-pre-hook-backup-flush" . }}
+        pre.hook.backup.velero.io/timeout: {{ .Values.global.velero.timeout | default "600s" }}
       {{- end }}
     spec:
       {{- if .Values.global.imagePullSecrets }}

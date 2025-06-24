@@ -22,6 +22,21 @@ jobs:
           - name: qubership-opensearch-transfer
             file: docker-transfer/Dockerfile
             context: ""
+          - name: qubership-opensearch-monitoring
+            file: monitoring/docker/Dockerfile
+            context: monitoring
+          - name: qubership-opensearch-curator
+            file: opensearch-curator/docker/backup-docker/Dockerfile
+            context: opensearch-curator
+          - name: qubership-opensearch-indices-cleaner
+            file: opensearch-curator/opensearch_indices_cleaner/docker/Dockerfile
+            context: opensearch-curator/opensearch_indices_cleaner
+          - name: qubership-opensearch-dbaas-adapter
+            file: opensearch-dbaas-adapter/docker/Dockerfile
+            context: opensearch-dbaas-adapter
+          - name: qubership-docker-opensearch
+            file: docker-opensearch/docker/Dockerfile
+            context: docker-opensearch
     if: github.event.ref_type == 'branch'
     runs-on: ubuntu-latest
     steps:
