@@ -1,6 +1,6 @@
 dashboards:
   enabled: false
-  dockerImage: opensearchproject/opensearch-dashboards:2.17.1
+  dockerImage: opensearchproject/opensearch-dashboards:2.19.2
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""

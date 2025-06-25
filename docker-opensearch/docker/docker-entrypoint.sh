@@ -3,11 +3,11 @@
 set -e
 
 ${OPENSEARCH_HOME}/bin/opensearch-plugin install \
-  --batch --verbose "file://${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.17.1.zip"
+  --batch --verbose "file://${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.2.zip"
 ${OPENSEARCH_HOME}/bin/opensearch-plugin install \
-  --batch --verbose "file://${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.17.1.zip"
+  --batch --verbose "file://${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.2.zip"
 ${OPENSEARCH_HOME}/bin/opensearch-plugin install \
-  --batch --verbose "file://${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/opensearch-filter-plugin-2.17.1.0.zip"
+  --batch --verbose "file://${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/opensearch-filter-plugin-2.19.2.0.zip"
 rm -rf ${OPENSEARCH_HOME}/dist
 
 if [[ -n "$OPENSEARCH_SECURITY_CONFIG_PATH" ]]; then
