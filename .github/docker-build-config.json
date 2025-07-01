@@ -12,7 +12,7 @@
     },
     {
       "name": "qubership-opensearch-transfer",
-      "file": "Dockerfile",
+      "file": "docker-transfer/Dockerfile",
       "context": ""
     },
     {
