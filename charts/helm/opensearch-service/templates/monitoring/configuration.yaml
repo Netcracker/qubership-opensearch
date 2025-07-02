@@ -119,7 +119,7 @@ data:
       # udp_payload = 512
 
       ## Optional SSL Config
-      # ssl_ca = "/etc/telegraf/ca.pem"
+      # tls_ca = "/etc/telegraf/ca.pem"
       # ssl_cert = "/etc/telegraf/cert.pem"
       # ssl_key = "/etc/telegraf/key.pem"
       ## Use SSL but skip chain & host verification
@@ -285,13 +285,13 @@ data:
       password = "$ELASTICSEARCH_PASSWORD"
 
       ## Optional SSL Config
-      # ssl_ca = "/etc/telegraf/ca.pem"
+      # tls_ca = "/etc/telegraf/ca.pem"
       # ssl_cert = "/etc/telegraf/cert.pem"
       # ssl_key = "/etc/telegraf/key.pem"
       ## Use SSL but skip chain & host verification
     {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
       insecure_skip_verify = false
-      ssl_ca = "/trusted-certs/root-ca.pem"
+      tls_ca = "/trusted-certs/root-ca.pem"
     {{- end }}
 
       ##Specifies a prefix to attach to the measurement name.
