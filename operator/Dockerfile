@@ -17,10 +17,10 @@ RUN go mod download
 
 # Copy the go source
 COPY main.go main.go
-COPY api/ api/
-COPY controllers/ controllers/
-COPY disasterrecovery/ disasterrecovery/
-COPY util/ util/
+COPY api api/
+COPY controllers controllers/
+COPY ../disasterrecovery disasterrecovery/
+COPY util util/
 
 # Build
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o manager main.go

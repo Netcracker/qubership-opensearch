@@ -163,7 +163,7 @@ jobs:
         #continue-on-error: true
         uses: netcracker/chart-releaser-action@main
         with:
-          charts_dir: charts/helm
+          charts_dir: operator/charts/helm
           release_name_template: "{{ .Version }}"
           skip_existing: true
           skip_upload: true

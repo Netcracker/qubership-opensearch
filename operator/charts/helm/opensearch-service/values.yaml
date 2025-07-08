@@ -165,7 +165,7 @@ global:
   disasterRecovery:
     image: ghcr.io/netcracker/disaster-recovery-daemon:main
     tls:
-      enabled: true
+      enabled: false
       certificates:
         crt: ""
         key: ""
@@ -254,8 +254,8 @@ opensearch:
     path: "/usr/share/opensearch/config/opensearch-security"
     authc:
       basic:
-        username: ""
-        password: ""
+        username: "Admin1234!"
+        password: "Admin1234!"
       oidc:
         subject_key: preferred_username
         openid_connect_url: ""
@@ -375,7 +375,7 @@ opensearch:
       ## If undefined (the default) or set to null, no storageClassName spec is
       ##   set, choosing the default provisioner (gp2 on AWS, standard on GKE, AWS & OpenStack).
       ##
-      storageClass: "-"
+      storageClass: "standard"
 
       # The List of predefined Persistent Volumes for the OpenSearch master. Should be specified as yaml list.
       # OpenSearch nodes take name of these Persistent Volumes in order.
@@ -842,7 +842,7 @@ podScheduler:
   customLabels: {}
 
 monitoring:
-  enabled: true
+  enabled: false
   dockerImage: ghcr.io/netcracker/qubership-opensearch-monitoring:main
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".

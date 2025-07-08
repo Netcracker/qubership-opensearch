@@ -17,8 +17,8 @@ jobs:
             file: tls-init/docker/Dockerfile
             context: tls-init
           - name: qubership-opensearch-operator
-            file: Dockerfile
-            context: .
+            file: operator/Dockerfile
+            context: operator
           - name: qubership-opensearch-transfer
             file: docker-transfer/Dockerfile
             context: ""
