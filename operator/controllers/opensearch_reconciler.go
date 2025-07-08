@@ -29,8 +29,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/utils/strings/slices"
 
-	opensearchservice "github.com/Netcracker/opensearch-service/api/v1"
-	"github.com/Netcracker/opensearch-service/util"
+	opensearchservice "github.com/Netcracker/opensearch-service/operator/api/v1"
+	"github.com/Netcracker/opensearch-service/operator/util"
 	"github.com/go-logr/logr"
 )
 
@@ -711,7 +711,7 @@ func (r OpenSearchReconciler) createNewUser(username string, password string, re
 		return nil
 	}
 	requestPath := fmt.Sprintf("_plugins/_security/api/internalusers/%s", username)
-	body := fmt.Sprintf(`{"password": "%s", "description": "Admin user", "backend_roles": ["admin"], 
+	body := fmt.Sprintf(`{"password": "%s", "description": "Admin user", "backend_roles": ["admin"],
 "opendistro_security_roles": ["all_access", "manage_snapshots"]}`, password)
 	statusCode, responseBody, err := restClient.SendRequest(http.MethodPut, requestPath, strings.NewReader(body))
 	if err == nil {

@@ -7,8 +7,8 @@
     },
     {
       "name": "qubership-opensearch-operator",
-      "file": "Dockerfile",
-      "context": "."
+      "file": "operator/Dockerfile",
+      "context": "operator"
     },
     {
       "name": "qubership-opensearch-transfer",

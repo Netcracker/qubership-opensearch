@@ -15,7 +15,7 @@
 package controllers
 
 import (
-	opensearchservice "github.com/Netcracker/opensearch-service/api/v1"
+	opensearchservice "github.com/Netcracker/opensearch-service/operator/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

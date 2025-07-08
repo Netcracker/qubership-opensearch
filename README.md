@@ -14,7 +14,7 @@ Designed for creating resilient and secure OpenSearch clusters in a cloud-native
 * [Troubleshooting guide](/docs/public/troubleshooting.md).
 * [Internal Developer Guide](/docs/internal/developing.md).
 * [Guides](/docs/public).
-* [Quick Start](/charts/helm/opensearch-service/README.md).
+* [Quick Start](/operator/charts/helm/opensearch-service/README.md).
 
 ## Repository structure
 

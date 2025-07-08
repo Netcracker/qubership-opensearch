@@ -17,7 +17,7 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/Netcracker/opensearch-service/util"
+	"github.com/Netcracker/opensearch-service/operator/util"
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -33,7 +33,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	opensearchservice "github.com/Netcracker/opensearch-service/api/v1"
+	opensearchservice "github.com/Netcracker/opensearch-service/operator/api/v1"
 )
 
 const (

@@ -13,6 +13,6 @@ resources:
   controller: true
   domain: qubership.org
   kind: OpenSearchService
-  path: github.com/Netcracker/opensearch-service/api/v1
+  path: github.com/Netcracker/opensearch-service/operator/api/v1
   version: v1
 version: "3"

@@ -16,7 +16,7 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/Netcracker/opensearch-service/util"
+	"github.com/Netcracker/opensearch-service/operator/util"
 	"github.com/go-logr/logr"
 	"net/http"
 	"strings"
