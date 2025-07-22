@@ -13,7 +13,7 @@
     {
       "name": "qubership-opensearch-transfer",
       "file": "docker-transfer/Dockerfile",
-      "context": ""
+      "context": "."
     },
     {
       "name": "qubership-opensearch-tls-init",
