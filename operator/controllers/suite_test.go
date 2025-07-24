@@ -25,7 +25,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"testing"
 
-	qubershiporgv1 "github.com/Netcracker/opensearch-service/operator/api/v1"
+	qubershiporgv1 "github.com/Netcracker/qubership-opensearch/operator/api/v1"
 	//+kubebuilder:scaffold:imports
 )
 

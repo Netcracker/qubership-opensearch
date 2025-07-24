@@ -16,7 +16,7 @@ package util
 
 import (
 	"context"
-	opensearchservice "github.com/Netcracker/opensearch-service/operator/api/v1"
+	opensearchservice "github.com/Netcracker/qubership-opensearch/operator/api/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"

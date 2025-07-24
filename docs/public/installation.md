@@ -1970,7 +1970,7 @@ If you need migrate to OpenSearch Service `1.x.x` (with OpenSearch 2.x) from pre
 
 * Disable OpenSearch TLS on REST layer with property (`opensearch.tls.enabled: false`).
 * Depending on the installed OpenSearch Service version:
-  * if [0.2.4](https://github.com/Netcracker/opensearch-service/-/tags/0.2.4) (or newest) version installed just proceed with upgrade.
+  * if [0.2.4](https://github.com/Netcracker/qubership-opensearch/-/tags/0.2.4) (or newest) version installed just proceed with upgrade.
   * if version before `0.2.4` installed, you need previously upgrade to version `0.2.4` to migrate security configuration to new format and then install required `1.x.x` version.
 
 ### Migration From OpenDistro Elasticsearch

@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Netcracker/opensearch-service/operator/util"
+	"github.com/Netcracker/qubership-opensearch/operator/util"
 	"github.com/go-logr/logr"
 	"net/http"
 	"regexp"

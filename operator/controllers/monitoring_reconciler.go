@@ -16,8 +16,8 @@ package controllers
 
 import (
 	"fmt"
-	opensearchservice "github.com/Netcracker/opensearch-service/operator/api/v1"
-	"github.com/Netcracker/opensearch-service/operator/util"
+	opensearchservice "github.com/Netcracker/qubership-opensearch/operator/api/v1"
+	"github.com/Netcracker/qubership-opensearch/operator/util"
 	"github.com/go-logr/logr"
 )
 

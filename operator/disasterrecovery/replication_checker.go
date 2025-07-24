@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Netcracker/opensearch-service/operator/util"
+	"github.com/Netcracker/qubership-opensearch/operator/util"
 	"net/http"
 	"os"
 	"regexp"

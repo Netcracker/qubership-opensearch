@@ -29,8 +29,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/utils/strings/slices"
 
-	opensearchservice "github.com/Netcracker/opensearch-service/operator/api/v1"
-	"github.com/Netcracker/opensearch-service/operator/util"
+	opensearchservice "github.com/Netcracker/qubership-opensearch/operator/api/v1"
+	"github.com/Netcracker/qubership-opensearch/operator/util"
 	"github.com/go-logr/logr"
 )
 
