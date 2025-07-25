@@ -31,7 +31,7 @@
       "context": "docker-opensearch"
     },
     {
-      "name": "qubership-curator",
+      "name": "qubership-opensearch-curator",
       "file": "curator/docker/backup-docker/Dockerfile",
       "context": "curator"
     },
