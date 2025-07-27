@@ -1459,3 +1459,39 @@ And check mapping_roles with this request:
 ```
 
 In response, mapping roles should have a "backend_roles": ["admin"]
+
+## Database Cannot be Created Due to Prefix Intersection
+
+### Description
+
+| Problem                                               | Severity | Possible Reason                                    |
+|-------------------------------------------------------|----------|----------------------------------------------------|
+| Database Cannot be Created Due to Prefix Intersection | High     | Problem appears due to incorrect resource prefixes |
+ 
+In logs the following error:
+
+```text
+[2025-07-15T20:21:38.093] [INFO] [request_id=921ce162-] [tenant_id= ] [thread= ] [class= ] Creating new database for requests, dbName: '', username: '', metadata: 'map[classifier:map[]', settings: '{ResourcePrefix:true CreateOnly:[user] IndexSettings:<nil>}'
+[2025-07-15T20:21:38.093] [INFO] [request_id=921ce162] [tenant_id= ] [thread= ] [class= ] Checking user prefix uniqueness during restoration with renaming
+[2025-07-15T20:21:38.139] [ERROR] [request_id=921ce162] [tenant_id= ] [thread= ] [class= ] provided prefix already exists or a part of another prefix: namespace-microservice
+[2025-07-15T20:21:38.139] [ERROR] [request_id=921ce162] [tenant_id= ] [thread= ] [class= ] Failed to create database
+```
+
+This issue means that you're trying to create a database with a prefix that either already exists or overlaps with existing prefixes.
+
+For example, if you already have databases with prefixes like `{namespace}`, then you cannot register a new database with the prefix `{namespace}-{microservice}`, as this would cause security issues and potential access leakage.
+
+### Alerts
+
+Not applicable
+
+### How to solve
+
+1. Ensure each product/project uses a unique database prefix. The prefix should not be just the namespace.
+   This is configured via:
+   `quarkus.dbaas.opensearch.api.service.prefix-config.prefix`
+2. Identify the conflicting database in DBaaS (usually one using the namespace as a prefix).
+   Remove this database using the DBaaS API.
+   Then reinstall the application with the corrected prefix.
+
+**Note:** For emergency cases the prefix intersection unique validation can be disabled. You need to redeploy opensearch-service with parameter `dbaasAdapter.prefixUniqueEnabled: false`.

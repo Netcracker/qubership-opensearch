@@ -944,6 +944,7 @@ dbaasAdapter:
   opensearchRepoRoot: "/usr/share/opensearch"
   opensearchClusterVersion: ""
   qubershipOpensearchClusterVersion: ""
+  prefixUniqueEnabled: true
 
   tls:
     enabled: true

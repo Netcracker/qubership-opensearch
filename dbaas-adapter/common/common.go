@@ -55,6 +55,10 @@ const (
 	RequestIdKey       = "X-Request-Id"
 )
 
+var (
+	checkPrefixesUniqueEnabled = GetBoolEnv("CHECK_PREFIXES_UNIQUE_ENABLED", true)
+)
+
 type CorrelationID string
 
 var logger = GetLogger()
@@ -198,6 +202,15 @@ func GetIntEnv(key string, fallback int) int {
 	return fallback
 }
 
+func GetBoolEnv(key string, fallback bool) bool {
+	if value, ok := os.LookupEnv(key); ok {
+		if boolValue, err := strconv.ParseBool(value); err == nil {
+			return boolValue
+		}
+	}
+	return fallback
+}
+
 func ConvertStructToMap(structure interface{}) (map[string]interface{}, error) {
 	var result map[string]interface{}
 	body, err := json.Marshal(structure)
@@ -257,11 +270,15 @@ func CheckPrefixUniqueness(prefix string, ctx context.Context, opensearchcli Cli
 		for element, user := range users {
 			if strings.HasPrefix(element, prefix) {
 				logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
-				return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
+				if checkPrefixesUniqueEnabled {
+					return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
+				}
 			}
 			if user.Attributes[resourcePrefixAttributeName] != "" && strings.HasPrefix(user.Attributes[resourcePrefixAttributeName], prefix) {
 				logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
-				return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
+				if checkPrefixesUniqueEnabled {
+					return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
+				}
 			}
 		}
 	} else if response.StatusCode == http.StatusNotFound {
