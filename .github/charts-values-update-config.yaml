@@ -14,5 +14,5 @@ charts:
       - ghcr.io/netcracker/qubership-opensearch-curator:${release}
       - ghcr.io/netcracker/qubership-opensearch-indices-cleaner:${release}
       - ghcr.io/netcracker/qubership-opensearch-dbaas-adapter:${release}
-      - ghcr.io/netcracker/qubership-disaster-recovery-daemon:${drd_release}
-      - ghcr.io/netcracker/qubership-deployment-status-provisioner:${sp_release}
+      - ghcr.io/netcracker/qubership-disaster-recovery-daemon:#latest
+      - ghcr.io/netcracker/qubership-deployment-status-provisioner:#latest
