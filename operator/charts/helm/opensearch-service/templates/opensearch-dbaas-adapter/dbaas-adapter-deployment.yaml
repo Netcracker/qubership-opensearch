@@ -109,9 +109,9 @@ spec:
                 secretKeyRef:
                   name: {{ template "opensearch.fullname" . }}-curator-secret
                   key: password
-            - name: CHECK_PREFIXES_UNIQUE_ENABLED
-              value: "{{ .Values.dbaasAdapter.prefixUniqueEnabled | default true | quote }}"
             {{- end }}
+            - name: CHECK_PREFIXES_UNIQUE_ENABLED
+              value: "{{ .Values.dbaasAdapter.prefixUniqueEnabled | quote }}"
           image: {{ template "dbaas-adapter.image" . }}
           imagePullPolicy: {{ .Values.dbaasAdapter.imagePullPolicy | default "Always" | quote }}
           livenessProbe:

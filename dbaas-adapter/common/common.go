@@ -56,7 +56,7 @@ const (
 )
 
 var (
-	checkPrefixesUniqueEnabled = GetBoolEnv("CHECK_PREFIXES_UNIQUE_ENABLED", true)
+	CheckPrefixesUniqueEnabled = GetBoolEnv("CHECK_PREFIXES_UNIQUE_ENABLED", true)
 )
 
 type CorrelationID string
@@ -270,13 +270,13 @@ func CheckPrefixUniqueness(prefix string, ctx context.Context, opensearchcli Cli
 		for element, user := range users {
 			if strings.HasPrefix(element, prefix) {
 				logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
-				if checkPrefixesUniqueEnabled {
+				if CheckPrefixesUniqueEnabled {
 					return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
 				}
 			}
 			if user.Attributes[resourcePrefixAttributeName] != "" && strings.HasPrefix(user.Attributes[resourcePrefixAttributeName], prefix) {
 				logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
-				if checkPrefixesUniqueEnabled {
+				if CheckPrefixesUniqueEnabled {
 					return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
 				}
 			}

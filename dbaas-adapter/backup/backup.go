@@ -36,8 +36,6 @@ import (
 var (
 	logger                      = common.GetLogger()
 	resourcePrefixAttributeName = "resource_prefix"
-
-	checkPrefixesUniqueEnabled = common.GetBoolEnv("CHECK_PREFIXES_UNIQUE_ENABLED", true)
 )
 
 type Repository struct {
@@ -697,13 +695,13 @@ func (bp BackupProvider) checkPrefixUniqueness(prefix string, ctx context.Contex
 		for element, user := range users {
 			if strings.HasPrefix(element, prefix) {
 				logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
-				if checkPrefixesUniqueEnabled {
+				if common.CheckPrefixesUniqueEnabled {
 					return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
 				}
 			}
 			if user.Attributes[resourcePrefixAttributeName] != "" && strings.HasPrefix(user.Attributes[resourcePrefixAttributeName], prefix) {
 				logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
-				if checkPrefixesUniqueEnabled {
+				if common.CheckPrefixesUniqueEnabled {
 					return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
 				}
 			}
