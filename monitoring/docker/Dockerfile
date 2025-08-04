@@ -1,4 +1,4 @@
-FROM telegraf:1.35.1-alpine
+FROM telegraf:1.35.2-alpine
 
 ENV ELASTICSEARCH_MONITORING_HOME=/opt/elasticsearch-monitoring
 
@@ -25,7 +25,7 @@ RUN rm /usr/lib/python3.12/EXTERNALLY-MANAGED
 RUN set -x \
     && python3 -m ensurepip \
     && rm -r /usr/lib/python*/ensurepip \
-    && pip3 install --upgrade pip setuptools==70.0.0 \
+    && pip3 install --upgrade pip setuptools==80.9.0 \
     && pip3 install -r ${ELASTICSEARCH_MONITORING_HOME}/requirements.txt \
     && pip3 install --upgrade urllib3==1.26.17 \
     && chmod -R 777 ${ELASTICSEARCH_MONITORING_HOME}/exec-scripts \

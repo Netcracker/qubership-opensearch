@@ -1,9 +1,8 @@
 module github.com/Netcracker/qubership-opensearch/operator
 
-go 1.24
+go 1.24.5
 
 require (
-	github.com/Netcracker/opensearch-service v0.0.0-20250625032528-21b7018e9626
 	github.com/go-logr/logr v1.4.3
 	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.1
