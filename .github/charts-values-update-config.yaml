@@ -7,8 +7,8 @@
 
 charts:
   - name: qubership-opensearch
-    chart_file: charts/helm/opensearch-service/Chart.yaml
-    values_file: charts/helm/opensearch-service/values.yaml
+    chart_file: operator/charts/helm/opensearch-service/Chart.yaml
+    values_file: operator/charts/helm/opensearch-service/values.yaml
     image:
       - ghcr.io/netcracker/qubership-opensearch-integration-tests:${release}
       - ghcr.io/netcracker/qubership-opensearch-tls-init:${release}
