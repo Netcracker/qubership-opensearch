@@ -14,19 +14,19 @@ Designed for creating resilient and secure OpenSearch clusters in a cloud-native
 * [Troubleshooting guide](/docs/public/troubleshooting.md).
 * [Internal Developer Guide](/docs/internal/developing.md).
 * [Guides](/docs/public).
-* [Quick Start](/charts/helm/opensearch-service/README.md).
+* [Quick Start](/operator/charts/helm/opensearch-service/README.md).
 
 ## Repository structure
 
-* `./charts` - directory with main HELM chart for OpenSearch and integration tests.
-* `./config` - directory with YAML resources for operator framework.
-* `./controllers` - directory with operator's Golang source code which implements controller functionality.
-* `./dev-kit` - directory with scripts for working with Golang Operator Framework.
-* `./disasterrecovery` - directory with operator's Golang source code which implements disaster recovery functionality.
+* `./operator/charts` - directory with main HELM chart for OpenSearch and integration tests.
+* `./operator/config` - directory with YAML resources for operator framework.
+* `./operator/controllers` - directory with operator's Golang source code which implements controller functionality.
+* `./operator/dev-kit` - directory with scripts for working with Golang Operator Framework.
+* `./operator/disasterrecovery` - directory with operator's Golang source code which implements disaster recovery functionality.
 * `./docs` - directory with actual documentation for OpenSearch service component.
 * `./integration-tests` - directory with Robot Framework test cases for OpenSearch.
 * `./tls-init` - directory with source code, Dockerfile and CI/CD config files for `tls-init` job.
-* `./utils` - directory with operator's Golang source code which implements common functions.
+* `./operator/utils` - directory with operator's Golang source code which implements common functions.
 
 ## How to start
 

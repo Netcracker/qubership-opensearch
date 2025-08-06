@@ -1,0 +1,198 @@
+{{- if eq (include "dbaas.enabled" .) "true" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    name: {{ template "dbaas-adapter.name" . }}
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ template "dbaas-adapter.name" . }}
+    app.kubernetes.io/instance: {{ cat (printf "%s"  (include "dbaas-adapter.name" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+    app.kubernetes.io/technology: go
+    component: dbaas-opensearch-adapter
+  name: {{ template "dbaas-adapter.name" . }}
+spec:
+  replicas: {{ template "opensearch.replicasForSingleService" . }}
+  selector:
+    matchLabels:
+{{ include "opensearch.labels.selector" . | indent 6 }}
+      name: {{ template "dbaas-adapter.name" . }}
+      component: dbaas-opensearch-adapter
+  template:
+    metadata:
+      labels:
+{{- with .Values.global.customLabels }}
+  {{- toYaml . | nindent 8 -}}
+{{- end }}
+{{- with .Values.dbaasAdapter.customLabels }}
+  {{- toYaml . | nindent 8 -}}
+{{- end }}
+{{ include "opensearch.labels.standard" . | indent 8 }}
+        name: {{ template "dbaas-adapter.name" . }}
+        component: dbaas-opensearch-adapter
+        app.kubernetes.io/name: {{ template "dbaas-adapter.name" . }}
+    spec:
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+      {{ toYaml .Values.global.imagePullSecrets | indent 8 }}
+      {{- end }}
+      containers:
+        - env:
+            - name: DBAAS_ADAPTER_ADDRESS
+              value: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (include "dbaas-adapter.address" .) }}
+            - name: DBAAS_ADAPTER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+            - name: DBAAS_ADAPTER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+            - name: API_VERSION
+              value: {{ .Values.dbaasAdapter.apiVersion | quote }}
+            - name: DBAAS_AGGREGATOR_REGISTRATION_ADDRESS
+              value: {{ include "dbaas.registrationUrl" . | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
+            - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER
+              value: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
+            - name: DBAAS_AGGREGATOR_REGISTRATION_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: registration-auth-username
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+            - name: REGISTRATION_ENABLED
+              value: {{ .Values.dbaasAdapter.registrationEnabled | quote }}
+            - name: DBAAS_AGGREGATOR_REGISTRATION_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: registration-auth-password
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+            - name: OPENSEARCH_HOST
+              value: {{ default (printf "%s.%s" (include "opensearch.fullname" .) .Release.Namespace) (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-host" .) .Values.dbaasAdapter.opensearchHost) }}
+            - name: OPENSEARCH_PORT
+              value: "{{ default 9200 (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-port" .) .Values.dbaasAdapter.opensearchPort) }}"
+            - name: OPENSEARCH_PROTOCOL
+              value: {{ template "dbaas-adapter.opensearch-protocol" . }}
+            - name: OPENSEARCH_REPO
+              value: {{ .Values.dbaasAdapter.opensearchRepo | default "snapshots" }}
+            - name: OPENSEARCH_REPO_ROOT
+              value: {{ .Values.dbaasAdapter.opensearchRepoRoot | default "/usr/share/opensearch" }}
+            - name: OPENSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ template "opensearch.fullname" . }}-secret
+            - name: OPENSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ template "opensearch.fullname" . }}-secret
+            - name: ENHANCED_SECURITY_PLUGIN_ENABLED
+              value: "{{ template "opensearch.enhancedSecurityPluginEnabled" . }}"
+            - name: LABELS_FILE_LOCATION_NAME
+              value: "dbaas.physical_databases.registration.labels.json"
+            - name: LABELS_FILE_LOCATION_DIR
+              value: "/app/config/"
+            - name: TLS_ENABLED
+              value: "{{ template "dbaas-adapter.tlsEnabled" . }}"
+            {{- if .Values.curator.enabled }}
+            - name: CURATOR_ADDRESS
+              value: {{ (include "curator.address" .) }}
+            - name: CURATOR_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  key: username
+            - name: CURATOR_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  key: password
+            {{- end }}
+            - name: CHECK_PREFIXES_UNIQUE_ENABLED
+              value: "{{ .Values.dbaasAdapter.prefixUniqueEnabled }}"
+          image: {{ template "dbaas-adapter.image" . }}
+          imagePullPolicy: {{ .Values.dbaasAdapter.imagePullPolicy | default "Always" | quote }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ template "dbaas-adapter.port" . }}
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              port: {{ template "dbaas-adapter.port" . }}
+              path: "/health"
+              scheme: {{ upper (include "dbaas-adapter.protocol" .) }}
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          resources:
+{{ toYaml .Values.dbaasAdapter.resources | indent 12 }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
+          name: {{ template "dbaas-adapter.name" . }}
+          volumeMounts:
+            - mountPath: "/app/config/"
+              name: dbaas-physical-databases-labels
+            {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+            - mountPath: /trusted-certs/root-ca.pem
+              name: opensearch-certs
+              subPath: {{ template "opensearch.root-ca-path" . }}
+            {{- end }}
+            {{- if eq (include "dbaas-adapter.tlsEnabled" .) "true" }}
+            - mountPath: /tls
+              name: dbaas-adapter-certs
+            {{- end }}
+            {{ if eq (include "curator.tlsEnabled" .) "true" }}
+            - mountPath: /tls/curator
+              name: curator-certs
+            {{- end }}
+          ports:
+            - protocol: TCP
+              containerPort: {{ template "dbaas-adapter.port" . }}
+      volumes:
+        - name: dbaas-physical-databases-labels
+          configMap:
+            name: dbaas-physical-databases-labels
+        {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+        - name: opensearch-certs
+          secret:
+            secretName: {{ template "opensearch.rest-cert-secret-name" . }}
+        {{- end }}
+        {{- if eq (include "dbaas-adapter.tlsEnabled" .) "true" }}
+        - name: dbaas-adapter-certs
+          secret:
+            secretName: {{ template "dbaas-adapter.tlsSecretName" . }}
+        {{- end }}
+        {{ if eq (include "curator.tlsEnabled" .) "true" }}
+        - name: curator-certs
+          secret:
+            secretName: {{ template "curator.certSecretName" . }}
+        {{- end }}
+      {{- if .Values.dbaasAdapter.priorityClassName }}
+      priorityClassName: {{ .Values.dbaasAdapter.priorityClassName | quote }}
+      {{- end }}
+    {{- with .Values.dbaasAdapter.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.dbaasAdapter.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      securityContext:
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.dbaasAdapter.securityContext }}
+          {{- toYaml . | nindent 8 -}}
+        {{- end }}
+    {{- with .Values.dbaasAdapter.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+{{ end }}

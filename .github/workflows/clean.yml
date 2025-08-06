@@ -17,8 +17,8 @@ jobs:
             file: tls-init/docker/Dockerfile
             context: tls-init
           - name: qubership-opensearch-operator
-            file: Dockerfile
-            context: .
+            file: operator/Dockerfile
+            context: operator
           - name: qubership-opensearch-transfer
             file: docker-transfer/Dockerfile
             context: ""
@@ -26,14 +26,14 @@ jobs:
             file: monitoring/docker/Dockerfile
             context: monitoring
           - name: qubership-opensearch-curator
-            file: opensearch-curator/docker/backup-docker/Dockerfile
-            context: opensearch-curator
+            file: curator/docker/backup-docker/Dockerfile
+            context: curator
           - name: qubership-opensearch-indices-cleaner
-            file: opensearch-curator/opensearch_indices_cleaner/docker/Dockerfile
-            context: opensearch-curator/opensearch_indices_cleaner
+            file: curator/opensearch_indices_cleaner/docker/Dockerfile
+            context: curator/opensearch_indices_cleaner
           - name: qubership-opensearch-dbaas-adapter
-            file: opensearch-dbaas-adapter/docker/Dockerfile
-            context: opensearch-dbaas-adapter
+            file: dbaas-adapter/docker/Dockerfile
+            context: dbaas-adapter
           - name: qubership-docker-opensearch
             file: docker-opensearch/docker/Dockerfile
             context: docker-opensearch

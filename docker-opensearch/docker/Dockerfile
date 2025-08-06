@@ -10,7 +10,7 @@ RUN mvn dependency:go-offline
 COPY opensearch-filter-plugin /build
 RUN mvn clean package
 
-FROM opensearchproject/opensearch:2.17.1
+FROM opensearchproject/opensearch:2.19.2
 
 USER 0
 
@@ -35,18 +35,18 @@ RUN yum install --nogpgcheck -y jq \
 RUN yum update --nogpgcheck --assumeyes --skip-broken
 
 RUN echo "Download OpenSearch plugins..." \
-  && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/2.17.1/repository-s3-2.17.1.zip" \
-    -o ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.17.1.zip \
-  && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/2.17.1/repository-gcs-2.17.1.zip" \
-    -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.17.1.zip \
-  && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.17.1.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.17.1.zip ]; then \
+  && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/2.19.2/repository-s3-2.19.2.zip" \
+    -o ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.2.zip \
+  && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/2.19.2/repository-gcs-2.19.2.zip" \
+    -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.2.zip \
+  && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.2.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.2.zip ]; then \
        echo "Plugins downloaded successfully."; \
      else \
        echo "Plugin download failed"; \
        exit 1; \
      fi
 
-COPY --from=builder /build/target/opensearch-filter-plugin-2.17.1.0.zip  ${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/opensearch-filter-plugin-2.17.1.0.zip
+COPY --from=builder /build/target/opensearch-filter-plugin-2.19.2.0.zip  ${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/opensearch-filter-plugin-2.19.2.0.zip
 
 # Adapt grants
 RUN set -x \
@@ -67,22 +67,6 @@ RUN set -x \
        done
 
 USER 1000
-
-RUN set -x \
-    && curl \
-        --silent \
-        --show-error \
-        --output-dir ${OPENSEARCH_HOME}/performance-analyzer-rca/lib \
-        -O "https://repo1.maven.org/maven2/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar" \
-    && rm -rf ${OPENSEARCH_HOME}/performance-analyzer-rca/lib/commons-io-2.7.jar
-
-RUN set -x \
-    && curl \
-        --silent \
-        --show-error \
-        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-performance-analyzer \
-        -O "https://repo1.maven.org/maven2/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar" \
-    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-performance-analyzer/commons-io-2.7.jar
 
 RUN set -x \
     && curl \

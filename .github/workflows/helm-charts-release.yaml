@@ -8,14 +8,6 @@ on:
         description: 'Release version'
         required: true
         type: string
-      drd_release:
-        description: 'DRD Release version'
-        required: true
-        type: string
-      sp_release:
-        description: 'Status Provisioner Release version'
-        required: true
-        type: string
 permissions:
   contents: write
   packages: write
@@ -23,9 +15,6 @@ run-name: ${{ github.repository }} Release ${{ github.event.inputs.release }}
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-env:
-  drd_release: ${{ inputs.drd_release }}
-  sp_release: ${{ inputs.sp_release }}
 jobs:
   check-tag:
     runs-on: ubuntu-latest
@@ -40,7 +29,6 @@ jobs:
           check-tag: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   load-docker-build-components:
     runs-on: ubuntu-latest
     outputs:
@@ -110,28 +98,18 @@ jobs:
           fetch-depth: 0
       - name: "Update versions in values"
         id: update-versions
-        uses: netcracker/qubership-workflow-hub/actions/helm-charts-release@main
+        uses: netcracker/qubership-workflow-hub/actions/charts-values-update-action@main
         with:
           release-version: ${{ inputs.release }}
-          config-file: .github/helm-charts-release-config.yaml
+          config-file: .github/charts-values-update-config.yaml
         env:
           ${{ insert }}: ${{ vars }}
       - name: "Debug"
         run: |
           echo "Images versions: ${{ steps.update-versions.outputs.images-versions }}"
-  tag:
-    needs: [chart-release-prepare]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create release tag
-        uses: netcracker/qubership-workflow-hub/actions/tag-action@main
-        with:
-          tag-name: "${{ inputs.release }}"
-          ref: "release-${{ inputs.release }}"
-          create-tag: true
-          check-tag: false
+
   docker-build:
-    needs: [tag, chart-release-prepare, load-docker-build-components]
+    needs: [chart-release-prepare, load-docker-build-components]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -146,7 +124,7 @@ jobs:
       - name: Docker build
         uses: netcracker/qubership-workflow-hub/actions/docker-action@main
         with:
-          ref: ${{ inputs.release }}
+          ref: release-${{ inputs.release }}
           download-artifact: false
           dry-run: false
           component: ${{ toJson(matrix.component) }}
@@ -154,10 +132,9 @@ jobs:
           tags: "${{ env.IMAGE_VERSION }},latest"
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
   charts-release:
-    needs: [tag, docker-build]
-    continue-on-error: true
+    needs: [docker-build]
+    continue-on-error: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -172,10 +149,13 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Run chart-releaser
+        #continue-on-error: true
         uses: netcracker/chart-releaser-action@main
         with:
-          charts_dir: charts/helm
+          charts_dir: operator/charts/helm
           release_name_template: "{{ .Version }}"
+          skip_existing: true
+          skip_upload: true
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
@@ -189,21 +169,10 @@ jobs:
           version: ${{ inputs.release }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  upload-assets:
-    needs: [charts-release]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Upload Assets
+        uses: netcracker/qubership-workflow-hub/actions/assets-action@main
         with:
-          ref: ${{ inputs.release }}
-
-      - name: Archive and Upload Assets
-        uses: netcracker/qubership-workflow-hub/actions/archive-and-upload-assets@main
-        with:
-          config-path: './.github/assets-config.yml'
-          dist-path: './dist'
-          upload: true
-          ref: ${{ inputs.release }}
+          tag: ${{ inputs.release }}
+          item-path: .cr-release-packages/*.tgz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

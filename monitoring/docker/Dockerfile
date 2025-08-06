@@ -1,4 +1,4 @@
-FROM telegraf:1.31.2-alpine
+FROM telegraf:1.35.1-alpine
 
 ENV ELASTICSEARCH_MONITORING_HOME=/opt/elasticsearch-monitoring
 
