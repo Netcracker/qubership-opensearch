@@ -15,5 +15,8 @@ Test Hardcoded Images
 
     ${expected_tag}=  Get Image Tag  ${image}
     ${actual_tag}=    Get Image Tag  ${resource_image}
+
+    Log To Console  \n[COMPARE] ${resource}: Expected tag = ${expected_tag}, Actual tag = ${actual_tag}
+    
     Should Be Equal   ${actual_tag}   ${expected_tag}
   END
