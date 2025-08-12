@@ -1,4 +1,4 @@
-FROM telegraf:1.35.1-alpine
+FROM telegraf:1.35-alpine
 
 ENV ELASTICSEARCH_MONITORING_HOME=/opt/elasticsearch-monitoring
 
@@ -25,9 +25,9 @@ RUN rm /usr/lib/python3.12/EXTERNALLY-MANAGED
 RUN set -x \
     && python3 -m ensurepip \
     && rm -r /usr/lib/python*/ensurepip \
-    && pip3 install --upgrade pip setuptools==70.0.0 \
+    && pip3 install --upgrade pip setuptools \
     && pip3 install -r ${ELASTICSEARCH_MONITORING_HOME}/requirements.txt \
-    && pip3 install --upgrade urllib3==1.26.17 \
+    && pip3 install --upgrade urllib3 \
     && chmod -R 777 ${ELASTICSEARCH_MONITORING_HOME}/exec-scripts \
     && chmod +x /docker-entrypoint.sh \
     && python3 -m unittest discover -s ${ELASTICSEARCH_MONITORING_HOME}/exec-scripts -p "test_*.py" \

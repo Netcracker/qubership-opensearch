@@ -100,11 +100,11 @@ If API model has incompatible changes, new application version should be release
     make manifests
     ```
 
-   Make sure generated CRD `config/crd/bases/qubership.org_opensearchservices.yaml` contains new version.
+   Make sure generated CRD `operator/config/crd/bases/qubership.org_opensearchservices.yaml` contains new version.
 
-7. Copy new generated CRD to `charts/helm/opensearch-service/crds/crd.yaml` file.
+7. Copy new generated CRD to `operator/charts/helm/opensearch-service/crds/crd.yaml` file.
 
-8. Change `apiVersion` from old to new one in `charts/helm/opensearch-service/templates/operator/cr.yaml` file.
+8. Change `apiVersion` from old to new one in `operator/charts/helm/opensearch-service/templates/operator/cr.yaml` file.
 
 # Useful Operator Commands
 
@@ -133,12 +133,12 @@ _kubectl_:
 
 # Useful Helm Commands
 
-* `helm template charts/helm/opensearch-service/` is the command that renders templates.
-* `helm install --dry-run <your-release-name> charts/helm/opensearch-service/` is the command that runs template rendering with connecting
+* `helm template operator/charts/helm/opensearch-service/` is the command that renders templates.
+* `helm install --dry-run <your-release-name> operator/charts/helm/opensearch-service/` is the command that runs template rendering with connecting
   to Kubernetes/OpenShift, but does not deploy anything.
-* `helm install --debug <your-release-name> charts/helm/opensearch-service/` is the command that prints additional logs which can help
+* `helm install --debug <your-release-name> operator/charts/helm/opensearch-service/` is the command that prints additional logs which can help
   investigate issues with charts.
-* `helm test charts/helm/opensearch-service/` is the command to run test suite which is stored in directory `charts/helm/opensearch-service/tests`.
+* `helm test charts/helm/opensearch-service/` is the command to run test suite which is stored in directory `operator/charts/helm/opensearch-service/tests`.
 
 # Manual Linter Run
 
