@@ -11,6 +11,34 @@ updates:
     schedule:
       interval: "weekly"
   
+  # Python dependencies (pip)
+  - package-ecosystem: "pip"
+    directory: "/integration-tests/docker"
+    schedule:
+      interval: "weekly"
+  
+  - package-ecosystem: "pip"
+    directory: "/monitoring/docker/config"
+    schedule:
+      interval: "weekly"
+  
+  - package-ecosystem: "pip"
+    directory: "/curator/opensearch_indices_cleaner/docker"
+    schedule:
+      interval: "weekly"
+  
+  # Maven dependencies
+  - package-ecosystem: "maven"
+    directory: "/docker-opensearch/opensearch-filter-plugin"
+    schedule:
+      interval: "weekly"
+  
+  # Helm charts
+  - package-ecosystem: "helm"
+    directory: "/operator/charts/helm/opensearch-service"
+    schedule:
+      interval: "weekly"
+  
   # Docker images
   - package-ecosystem: "docker"
     directory: "/operator"
