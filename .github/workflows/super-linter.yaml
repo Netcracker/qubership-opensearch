@@ -92,6 +92,3 @@ jobs:
         VALIDATE_ALL_CODEBASE: ${{ inputs.full_scan || false }}
         # To report GitHub Actions status checks
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        VALIDATE_MARKDOWN: true
-        LINTER_RULES_PATH: .
-        MARKDOWN_CONFIG_FILE: .markdownlint.yaml
