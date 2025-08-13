@@ -32,10 +32,10 @@ Change Secret
     [Return]  ${response}
 
 Get Image Tag
-  [Arguments]  ${image}
-  ${parts}=  Split String  ${image}  :
-  Run Keyword If  ${len(${parts})} > 1  Return From Keyword  ${parts[1]}
-  ...  ELSE  Fail  Image has no tag: ${image}
+    [Arguments]  ${image}
+    ${parts}=  Split String  ${image}  :
+    ${length}=  Get Length  ${parts}
+    Run Keyword If  ${length} > 1  Return From Keyword  ${parts[1]}  ELSE  Fail  Image has no tag: ${image}
 
 Login To OpenSearch
     [Arguments]  ${username}  ${password}  ${need_auth}=True
