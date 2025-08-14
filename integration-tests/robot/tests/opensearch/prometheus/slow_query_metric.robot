@@ -22,7 +22,7 @@ Check Metric In Prometheus
         ${metric}=  Set Variable  ${result['metric']}
     END
     Should Not Be Empty  ${metric}
-    [Return]  ${metric}
+    RETURN  ${metric}
 
 *** Test Cases ***
 Produce Slow Query Metric
