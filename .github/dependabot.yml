@@ -23,12 +23,6 @@ updates:
     schedule:
       interval: "weekly"
   
-  # Helm charts
-  - package-ecosystem: "helm"
-    directory: "/operator/charts/helm/opensearch-service"
-    schedule:
-      interval: "weekly"
-  
   # Docker images
   - package-ecosystem: "docker"
     directories: 
