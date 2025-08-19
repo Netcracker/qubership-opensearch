@@ -920,7 +920,7 @@ Comment or delete row `type: object`, and then apply the CRD manually.
 
 ### Recommendations
 
-For more information, refer to [https://github.com/jetstack/cert-manager/issues/2200](https://github.com/jetstack/cert-manager/issues/2200).
+For more information, refer to [Cannot deploy CRDs to Kubernetes 1.11](https://github.com/jetstack/cert-manager/issues/2200/).
 
 **Note**: You need to disable CRD creation during installation in case of such errors.
 
