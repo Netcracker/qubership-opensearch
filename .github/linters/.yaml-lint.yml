@@ -8,7 +8,7 @@
 # - .yamlignore
 
 ignore:
-  - operator/charts/helm/opensearch-service/templates/**
+  - operator/charts/helm/opensearch-service/templates/
 
 rules:
   braces:
