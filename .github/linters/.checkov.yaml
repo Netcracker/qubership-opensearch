@@ -9,9 +9,9 @@ directory:
   - curator
   - monitoring
   - integration-tests
-  -
-ignore: |
-  operator/charts/helm/opensearch-service/templates/monitoring/configuration.yaml
+
+skip-path:
+  - operator/charts/helm/opensearch-service/templates/monitoring/configuration.yaml
 
 skip-check:
   # https://www.checkov.io/5.Policy%20Index/kubernetes.html

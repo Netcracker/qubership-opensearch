@@ -40,11 +40,11 @@ RUN echo "Download OpenSearch plugins..." \
     && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/2.19.2/repository-gcs-2.19.2.zip" \
     -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.2.zip \
     && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.2.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.2.zip ]; then \
-         echo "Plugins downloaded successfully."; \
-       else \
-         echo "Plugin download failed"; \
-         exit 1; \
-       fi
+        echo "Plugins downloaded successfully."; \
+    else \
+        echo "Plugin download failed"; \
+    exit 1; \
+    fi
 
 COPY --from=builder /build/target/opensearch-filter-plugin-2.19.2.0.zip  ${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/opensearch-filter-plugin-2.19.2.0.zip
 
