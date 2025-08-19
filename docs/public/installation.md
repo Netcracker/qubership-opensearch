@@ -104,6 +104,7 @@ Before you start the installation and configuration of an OpenSearch cluster, en
 * All required CRDs are installed
   
 Note the following terms:
+
 * `DEPLOY_W_HELM` means installation is performed with `helm install/upgrade` commands, not `helm template + kubectl apply`.
 
 ### Custom Resource Definitions
@@ -121,7 +122,6 @@ If the deployment user does not have the necessary rights, you need to perform t
 
 **Note**: If you deploy OpenSearch service to Kubernetes version less than 1.16, you have to manually install CRD from `config/crd/old/qubership.org_opensearchservices.yaml`
 and disable automatic CRD creation by Helm in the following way:
-
 
 ### Deployment Permissions
 
@@ -997,7 +997,7 @@ This section lists the configurable parameters of the OpenSearch chart and their
 | `global.disasterRecovery.httpAuth.smNamespace`                             | string  | no        | site-manager             | The name of the Kubernetes namespace where the site manager is located.                                                                                                                                                                                                                                              |
 | `global.disasterRecovery.httpAuth.smServiceAccountName`                    | string  | no        | ""                       | The name of the Kubernetes service account where the site manager is used.                                                                                                                                                                                                                                           |
 | `global.disasterRecovery.httpAuth.restrictedEnvironment`                   | boolean | no        | false                    | Whether the `system:auth-delegator` cluster role is to be bound to the OpenSearch operator service account.                                                                                                                                                                                                          |
-| `global.disasterRecovery.httpAuth.customAudience`                          | string  | no        | sm-services              | The name of custom audience for rest api token, that is used to connect with services. It is necessary if Site Manager installed with `smSecureAuth=true` and has applied custom audience (`sm-services` by default). It is considered if `global.disasterRecovery.httpAuth.smSecureAuth` parameter is set to `true` |
+| `global.disasterRecovery.httpAuth.customAudience`                          | string  | no        | sm-services              | The name of custom audience for rest API token, that is used to connect with services. It is necessary if Site Manager installed with `smSecureAuth=true` and has applied custom audience (`sm-services` by default). It is considered if `global.disasterRecovery.httpAuth.smSecureAuth` parameter is set to `true` |
 | `global.disasterRecovery.mode`                                             | string  | no        | ""                       | The mode of OpenSearch Disaster Recovery installation. If you do not specify this parameter, the service is deployed in the regular mode, not the Disaster Recovery mode. The possible values are "active", "standby", and "disable".                                                                                |
 | `global.disasterRecovery.indicesPattern`                                   | string  | no        | *                        | The regular expression used to find OpenSearch indices for cross cluster replication.                                                                                                                                                                                                                                |
 | `global.disasterRecovery.remoteCluster`                                    | string  | no        | ""                       | The URL of the `active` OpenSearch service. For example, `opensearch.opensearch-service.svc.cluster-2.local:9300`.                                                                                                                                                                                                   |
@@ -1977,7 +1977,6 @@ If you need migrate to OpenSearch Service `1.x.x` (with OpenSearch 2.x) from pre
 ### Migration From OpenDistro Elasticsearch
 
 OpenSearch Service allows migration from OpenDistro Elasticsearch deployments.
-
 
 **Note**: If you need to migrate from Elasticsearch 6.8 cluster to OpenSearch, refer to [Migrate From Elasticsearch Service](#migrate-from-elasticsearch-68-service).
 
