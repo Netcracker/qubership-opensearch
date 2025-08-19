@@ -7,8 +7,9 @@
 # - .gitignore
 # - .yamlignore
 
-ignore:
-  - operator/charts/helm/opensearch-service/templates/
+# Exclude not required files
+ignore-from-file:
+  - operator/charts/helm/opensearch-service/templates/monitoring/configuration.yaml
 
 rules:
   braces:
