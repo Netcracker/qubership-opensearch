@@ -7,6 +7,9 @@
 # - .gitignore
 # - .yamlignore
 
+ignore:
+  - operator/charts/helm/opensearch-service/templates/monitoring/configuration.yaml
+
 rules:
   braces:
     min-spaces-inside: 0
