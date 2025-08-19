@@ -62,9 +62,9 @@ RUN set -x \
             /usr/share/opensearch/jdk \
             /usr/share/opensearch/plugins \
             /usr/share/opensearch/dist \
-       ; do \
-         chmod -R 777 "$path"; \
-       done
+        ; do \
+        chmod -R 777 "$path"; \
+        done
 
 USER 1000
 
