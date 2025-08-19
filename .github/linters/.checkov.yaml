@@ -2,6 +2,14 @@
 
 quiet: true
 
+directory:
+  - operator/charts/helm/opensearch-service
+  - docker-opensearch
+  - dbaas-adapter
+  - curator
+  - monitoring
+  - integration-tests
+
 skip-check:
 # https://www.checkov.io/5.Policy%20Index/kubernetes.html
 - CKV_K8S_15 # Image Pull Policy should be Always
