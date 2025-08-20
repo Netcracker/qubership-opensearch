@@ -1017,7 +1017,6 @@ Caused by: java.security.cert.CertificateExpiredException: NotAfter: Thu Jan 18 
 
 The solution is to re-generate internal TLS certificates with long-lived duration.
 
-
 If upgrade is not possible and manual fix is required, please follow steps:
 
 1. Manually remove secrets "opensearch-admin-certs" and "opensearch-transport-certs"
@@ -1388,7 +1387,6 @@ This option cleans all index data presented on the standby side. Make sure to re
 |----------------------------------------------------------------------------------------|----------|----------------------------------------|
 | After change password, opensearch send error about: no permissions for <any requests>  | Average  | Problem appears due to incorrect roles |
 
-
 ### Alerts
 
 Not applicable
@@ -1406,7 +1404,9 @@ curl -XGET localhost:9200/_cluster/health -u {user}:{pass} --insecure
 ### How to solve
 
 Send this 2 requests  in OpenSearch pod:
-1.
+
+1:
+
 ```text
    curl -X PATCH "https://opensearch:9200/_plugins/_security/api/rolesmapping" \
    -H "Content-Type: application/json" \
@@ -1425,7 +1425,9 @@ Send this 2 requests  in OpenSearch pod:
    }
    ]'
 ```
-2. 
+
+2:
+
 ```text
 curl -X PATCH "https://opensearch:9200/_plugins/_security/api/internalusers/<username>" \
 -H "Content-Type: application/json" \
@@ -1474,10 +1476,10 @@ In response, mapping roles should have a "backend_roles": ["admin"]
 In logs the following error:
 
 ```text
-[2025-07-15T20:21:38.093] [INFO] [request_id=921ce162-] [tenant_id= ] [thread= ] [class= ] Creating new database for requests, dbName: '', username: '', metadata: 'map[classifier:map[]', settings: '{ResourcePrefix:true CreateOnly:[user] IndexSettings:<nil>}'
-[2025-07-15T20:21:38.093] [INFO] [request_id=921ce162] [tenant_id= ] [thread= ] [class= ] Checking user prefix uniqueness during restoration with renaming
-[2025-07-15T20:21:38.139] [ERROR] [request_id=921ce162] [tenant_id= ] [thread= ] [class= ] provided prefix already exists or a part of another prefix: namespace-microservice
-[2025-07-15T20:21:38.139] [ERROR] [request_id=921ce162] [tenant_id= ] [thread= ] [class= ] Failed to create database
+[2025-07-15T20:21:38.093] [INFO] [request_id=921ce162-] Creating new database for requests, dbName: '', username: '', metadata: 'map[classifier:map[]', settings: '{ResourcePrefix:true CreateOnly:[user] IndexSettings:<nil>}'
+[2025-07-15T20:21:38.093] [INFO] [request_id=921ce162] Checking user prefix uniqueness during restoration with renaming
+[2025-07-15T20:21:38.139] [ERROR] [request_id=921ce162] provided prefix already exists or a part of another prefix: namespace-microservice
+[2025-07-15T20:21:38.139] [ERROR] [request_id=921ce162] Failed to create database
 ```
 
 This issue means that you're trying to create a database with a prefix that either already exists or overlaps with existing prefixes.
