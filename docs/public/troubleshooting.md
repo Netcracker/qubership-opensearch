@@ -104,7 +104,7 @@
   * [Availability Zone Outage](#availability-zone-outage)
     * [Description](#description-17)
     * [Alerts](#alerts-17)
-    * [Stack](#stack-)
+    * [Stack](#stack)
     * [How to solve](#how-to-solve-17)
     * [Recommendations](#recommendations-17)
   * [Availability Zone Shutdown and Startup](#availability-zone-shutdown-and-startup)
@@ -185,7 +185,7 @@
     * [Stack trace](#stack-trace-29)
     * [How to solve](#how-to-solve-30)
     * [Recommendations](#recommendations-30)
-  * [ResourceAlreadyExistsException: task with id {replication:index:test_index} already exist](#resourcealreadyexistsexception-task-with-id-replicationindextestindex-already-exist)
+  * [ResourceAlreadyExistsException: task with ID {replication:index:test_index} already exist](#resourcealreadyexistsexception-task-with-id-replicationindextest_index-already-exist)
     * [Description](#description-31)
     * [Alerts](#alerts-31)
     * [Stack trace](#stack-trace-30)
@@ -202,7 +202,10 @@
     * [Alerts](#alerts-33)
     * [Stack trace](#stack-trace-32)
     * [How to solve](#how-to-solve-33)
-    * [Recommendations](#recommendations-33)
+  * [Database Cannot be Created Due to Prefix Intersection](#database-cannot-be-created-due-to-prefix-intersection)
+    * [Description](#description-34)
+    * [Alerts](#alerts-34)
+    * [How to solve](#how-to-solve-34)
 <!-- TOC -->
 
 ## Cluster Health
@@ -716,7 +719,7 @@ The unexpected availability zone shutdown for any reason, which means the shutdo
 
 Not applicable
 
-### Stack 
+### Stack
 
 Not applicable
 
@@ -994,20 +997,20 @@ In the several versions of OpenSearch that certificate was generated with only o
 ```text
 [2024-02-12T14:23:07,448][WARN ][o.o.t.OutboundHandler    ] [opensearch-data-0] send message failed [channel: Netty4TcpChannel{localAddress=/10.129.21.8:57368, remoteAddress=10.129.133.71/10.129.133.71:9300}]
 javax.net.ssl.SSLHandshakeException: PKIX path validation failed: java.security.cert.CertPathValidatorException: validity check failed
-	at sun.security.ssl.Alert.createSSLException(Alert.java:131) ~[?:?]
+    at sun.security.ssl.Alert.createSSLException(Alert.java:131) ~[?:?]
      ... 30 more
 ...
 Caused by: sun.security.validator.ValidatorException: PKIX path validation failed: java.security.cert.CertPathValidatorException: validity check failed
-	at sun.security.validator.PKIXValidator.doValidate(PKIXValidator.java:369) ~[?:?]
+    at sun.security.validator.PKIXValidator.doValidate(PKIXValidator.java:369) ~[?:?]
     ... 30 more
 Caused by: java.security.cert.CertPathValidatorException: validity check failed
-	at sun.security.provider.certpath.PKIXMasterCertPathValidator.validate(PKIXMasterCertPathValidator.java:135) ~[?:?]
-	... 30 more
+    at sun.security.provider.certpath.PKIXMasterCertPathValidator.validate(PKIXMasterCertPathValidator.java:135) ~[?:?]
+    ... 30 more
 Caused by: java.security.cert.CertificateExpiredException: NotAfter: Thu Jan 18 12:41:27 GMT 2024
-	at sun.security.x509.CertificateValidity.valid(CertificateValidity.java:277) ~[?:?]
-	at sun.security.x509.X509CertImpl.checkValidity(X509CertImpl.java:675) ~[?:?]
+    at sun.security.x509.CertificateValidity.valid(CertificateValidity.java:277) ~[?:?]
+    at sun.security.x509.X509CertImpl.checkValidity(X509CertImpl.java:675) ~[?:?]
 ...
-	at sun.security.ssl.CertificateMessage$T13CertificateConsumer.checkServerCerts(CertificateMessage.java:1335) ~[?:?]
+    at sun.security.ssl.CertificateMessage$T13CertificateConsumer.checkServerCerts(CertificateMessage.java:1335) ~[?:?]
 ```
 
 ### How to solve
@@ -1060,10 +1063,10 @@ Request action failed: Unexpected response status for RequestActionHandler.Reque
 
 ### How to solve
 
-  To resolve desynchronization of DBaaS database and OpenSearch users storage you can use the rollowing DBaaS restore api:
+  To resolve desynchronization of DBaaS database and OpenSearch users storage you can use the rollowing DBaaS restore API:
 
 ```bash
-curl -u cluster-dba:{dbaas_password} -XPOST -H "Accept:application/json" -H  "Content-Type:application/json" http://dbaas-aggregator.dbaas:8080/api/v3/dbaas/internal/physical_databases/users/restore-password -d '
+curl -u {dbaas_user}:{dbaas_password} -XPOST -H "Accept:application/json" -H  "Content-Type:application/json" http://dbaas-aggregator.dbaas:8080/api/v3/dbaas/internal/physical_databases/users/restore-password -d '
 {
     "physicalDbId": "{OPENSEARCH-NAMESPACE}",
     "type": "opensearch",
@@ -1273,7 +1276,7 @@ For `standby` side switch OpenSearch cluster to the `active` side and return to 
 
 Not applicable
 
-## ResourceAlreadyExistsException: task with id {replication:index:test_index} already exist
+## ResourceAlreadyExistsException: task with ID {replication:index:test_index} already exist
 
 ### Description
 
@@ -1292,21 +1295,21 @@ Not applicable
 ```text
 [2023-05-18T12:03:27,684][WARN ][o.o.r.t.a.AutoFollowTask ] [opensearch-0][leader-cluster] Failed to start replication for leader-cluster:test_index -> test_index.
 org.opensearch.ResourceAlreadyExistsException: task with id {replication:index:test_index} already exist
-	at org.opensearch.persistent.PersistentTasksClusterService$1.execute(PersistentTasksClusterService.java:135) ~[opensearch-1.3.7.jar:1.3.7]
-	at org.opensearch.cluster.ClusterStateUpdateTask.execute(ClusterStateUpdateTask.java:63) ~[opensearch-1.3.7.jar:1.3.7]
-	at org.opensearch.cluster.service.MasterService.executeTasks(MasterService.java:804) ~[opensearch-1.3.7.jar:1.3.7]
-	at org.opensearch.cluster.service.MasterService.calculateTaskOutputs(MasterService.java:378) ~[opensearch-1.3.7.jar:1.3.7]
-	at org.opensearch.cluster.service.MasterService.runTasks(MasterService.java:249) ~[opensearch-1.3.7.jar:1.3.7]
-	at org.opensearch.cluster.service.MasterService.access$000(MasterService.java:86) ~[opensearch-1.3.7.jar:1.3.7]
-	at org.opensearch.cluster.service.MasterService$Batcher.run(MasterService.java:173) ~[opensearch-1.3.7.jar:1.3.7]
-	at org.opensearch.cluster.service.TaskBatcher.runIfNotProcessed(TaskBatcher.java:174) ~[opensearch-1.3.7.jar:1.3.7]
-	at org.opensearch.cluster.service.TaskBatcher$BatchedTask.run(TaskBatcher.java:212) ~[opensearch-1.3.7.jar:1.3.7]
-	at org.opensearch.common.util.concurrent.ThreadContext$ContextPreservingRunnable.run(ThreadContext.java:733) [opensearch-1.3.7.jar:1.3.7]
-	at org.opensearch.common.util.concurrent.PrioritizedOpenSearchThreadPoolExecutor$TieBreakingPrioritizedRunnable.runAndClean(PrioritizedOpenSearchThreadPoolExecutor.java:275) ~[opensearch-1.3.7.jar:1.3.7]
-	at org.opensearch.common.util.concurrent.PrioritizedOpenSearchThreadPoolExecutor$TieBreakingPrioritizedRunnable.run(PrioritizedOpenSearchThreadPoolExecutor.java:238) ~[opensearch-1.3.7.jar:1.3.7]
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128) [?:?]
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628) [?:?]
-	at java.lang.Thread.run(Thread.java:829) [?:?]
+    at org.opensearch.persistent.PersistentTasksClusterService$1.execute(PersistentTasksClusterService.java:135) ~[opensearch-1.3.7.jar:1.3.7]
+    at org.opensearch.cluster.ClusterStateUpdateTask.execute(ClusterStateUpdateTask.java:63) ~[opensearch-1.3.7.jar:1.3.7]
+    at org.opensearch.cluster.service.MasterService.executeTasks(MasterService.java:804) ~[opensearch-1.3.7.jar:1.3.7]
+    at org.opensearch.cluster.service.MasterService.calculateTaskOutputs(MasterService.java:378) ~[opensearch-1.3.7.jar:1.3.7]
+    at org.opensearch.cluster.service.MasterService.runTasks(MasterService.java:249) ~[opensearch-1.3.7.jar:1.3.7]
+    at org.opensearch.cluster.service.MasterService.access$000(MasterService.java:86) ~[opensearch-1.3.7.jar:1.3.7]
+    at org.opensearch.cluster.service.MasterService$Batcher.run(MasterService.java:173) ~[opensearch-1.3.7.jar:1.3.7]
+    at org.opensearch.cluster.service.TaskBatcher.runIfNotProcessed(TaskBatcher.java:174) ~[opensearch-1.3.7.jar:1.3.7]
+    at org.opensearch.cluster.service.TaskBatcher$BatchedTask.run(TaskBatcher.java:212) ~[opensearch-1.3.7.jar:1.3.7]
+    at org.opensearch.common.util.concurrent.ThreadContext$ContextPreservingRunnable.run(ThreadContext.java:733) [opensearch-1.3.7.jar:1.3.7]
+    at org.opensearch.common.util.concurrent.PrioritizedOpenSearchThreadPoolExecutor$TieBreakingPrioritizedRunnable.runAndClean(PrioritizedOpenSearchThreadPoolExecutor.java:275) ~[opensearch-1.3.7.jar:1.3.7]
+    at org.opensearch.common.util.concurrent.PrioritizedOpenSearchThreadPoolExecutor$TieBreakingPrioritizedRunnable.run(PrioritizedOpenSearchThreadPoolExecutor.java:238) ~[opensearch-1.3.7.jar:1.3.7]
+    at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128) [?:?]
+    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628) [?:?]
+    at java.lang.Thread.run(Thread.java:829) [?:?]
 ```
 
 ### How to solve
@@ -1393,7 +1396,7 @@ Not applicable
 ### Stack trace
 
 ```text
-curl -XGET localhost:9200/_cluster/health -u basic:basic --insecure
+curl -XGET localhost:9200/_cluster/health -u {user}:{pass} --insecure
 {"error":{"root_cause":[
 
 {"type":"security_exception","reason":"no permissions for [cluster:monitor/health] and User [name=basic, backend_roles=[replication_leader_role], requestedTenant=null]"}
