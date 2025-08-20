@@ -1484,7 +1484,8 @@ In logs the following error:
 
 This issue means that you're trying to create a database with a prefix that either already exists or overlaps with existing prefixes.
 
-For example, if you already have databases with prefixes like `{namespace}`, then you cannot register a new database with the prefix `{namespace}-{microservice}`, as this would cause security issues and potential access leakage.
+For example, if you already have databases with prefixes like `{namespace}`, then you cannot register a new database with the prefix `{namespace}-{microservice}`, 
+as this would cause security issues and potential access leakage.
 
 ### Alerts
 
