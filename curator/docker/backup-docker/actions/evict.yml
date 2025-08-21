@@ -1,0 +1,12 @@
+actions:
+  1:
+    action: delete_snapshots
+    description: "Delete snapshot from the selected repository."
+    options:
+      repository: ${SNAPSHOT_REPOSITORY_NAME}
+      disable_action: false
+    filters:
+    - filtertype: pattern
+      kind: prefix
+      value: ${SNAPSHOT_NAME}
+      exclude:

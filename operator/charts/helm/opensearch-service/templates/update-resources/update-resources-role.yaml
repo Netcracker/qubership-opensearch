@@ -1,0 +1,19 @@
+{{ if and .Values.ENABLE_PRIVILEGED_PSS (eq (include "opensearch.restrictedEnvironment" .) "false") }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ template "opensearch.fullname" . }}-update-resources
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+rules:
+  - apiGroups:
+      - ''
+    resources:
+      - namespaces
+    verbs:
+      - patch
+      - get
+    resourceNames:
+      - {{ .Release.Namespace }}
+{{ end }}

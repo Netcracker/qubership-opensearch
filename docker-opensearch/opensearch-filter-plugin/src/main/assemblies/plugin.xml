@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<assembly>
+  <id>plugin</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <dependencySets>
+    <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <outputDirectory>${file.separator}</outputDirectory>
+      <includes>
+        <include>com.fasterxml.jackson.core:jackson-databind</include>
+        <include>com.fasterxml.jackson.core:jackson-annotations</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
+  <files>
+    <file>
+      <source>plugin-descriptor.properties</source>
+      <outputDirectory>${file.separator}</outputDirectory>
+      <filtered>true</filtered>
+    </file>
+  </files>
+  <fileSets>
+    <fileSet>
+      <directory>${project.build.directory}</directory>
+      <outputDirectory>${file.separator}</outputDirectory>
+      <includes>
+        <include>*.jar</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+</assembly>

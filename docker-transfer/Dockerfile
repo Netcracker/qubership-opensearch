@@ -1,5 +1,5 @@
 FROM scratch
 
 # Transfer
-COPY charts /charts
+COPY operator/charts /charts
 COPY docs /docs

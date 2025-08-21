@@ -1,9 +1,9 @@
-name-template: 'v$RESOLVED_VERSION'
-tag-template: 'v$RESOLVED_VERSION'
+name-template: '$RESOLVED_VERSION'
+tag-template: '$RESOLVED_VERSION'
 
 
 categories:
-  - title: '💥 Breaking Changes'
+  - title: '💣 Breaking Changes'
     labels:
       - breaking-change
   - title: '💡 New Features'
@@ -22,8 +22,7 @@ categories:
     labels:
       - documentation
 
-change-template: "- (#$NUMBER) $TITLE by @$AUTHOR"
-
+change-template: '- $TITLE (#$NUMBER) by @$AUTHOR'
 no-changes-template: 'No significant changes'
 
 template: |
@@ -34,7 +33,7 @@ template: |
 
   ---
 
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...$RESOLVED_VERSION
 
 version-resolver:
   major:

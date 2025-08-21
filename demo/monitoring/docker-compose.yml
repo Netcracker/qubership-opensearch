@@ -1,0 +1,78 @@
+version: '2'
+services:
+  influxdb:
+    image: influxdb:1.8.9
+    ports:
+      - 8086:8086
+    environment:
+      - INFLUXDB_ADMIN_USER=influx
+      - INFLUXDB_ADMIN_PASSWORD=influx
+      - INFLUXDB_HTTP_ENABLED=true
+      - INFLUXDB_HTTP_AUTH_ENABLED=false
+      - INFLUXDB_DB=monitoring
+#  prometheus:
+#    image: prom/prometheus:latest
+#    ports:
+#      - 9090:9090
+#    links:
+#      - elasticsearch-monitoring
+#    command:
+#      - '--web.console.templates=/etc/prometheus/consoles'
+#      - '--web.console.libraries=/etc/prometheus/console_libraries'
+#      - '--config.file=/etc/prometheus/prometheus.yml'
+#      - '--storage.tsdb.path=/prometheus'
+#      - '--storage.tsdb.retention.time=24h'
+#      - '--web.enable-lifecycle'
+#      - '--storage.tsdb.no-lockfile'
+#      - '--web.route-prefix=/'
+#    volumes:
+#      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  grafana:
+    image: grafana/grafana:7.3.6
+    ports:
+      - 3000:3000
+    user: "0"
+    environment:
+      - GF_INSTALL_PLUGINS=agenty-flowcharting-panel,flant-statusmap-panel,natel-discrete-panel,blackmirror1-singlestat-math-panel
+    volumes:
+      - ./grafana/:/etc/grafana/provisioning/
+  elasticsearch:
+    image: elasticsearch:6.8
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./elasticsearch/elasticsearch-security.yml:/usr/share/elasticsearch/config/security/elasticsearch-security.yml
+      - ./elasticsearch/log4j2.properties:/usr/share/elasticsearch/config/log4j2.properties
+      - ./elasticsearch/java.policy:/usr/share/elasticsearch/config/java.policy
+    environment:
+      - ES_JAVA_OPTS=-Xms1024m -Xmx1024m -Djava.security.policy=/usr/share/elasticsearch/config/java.policy
+  elasticsearch-monitoring:
+    image: ghcr.io/netcracker/telegraf-elasticsearch:main
+    ports:
+      - 8096:8096
+    links:
+      - elasticsearch
+      - influxdb
+    environment:
+      - DEBUG=false
+      - OS_PROJECT=elasticsearch-service
+      - SM_DB_HOST=http://influxdb:8086
+      - SM_DB_NAME=monitoring
+      - SM_DB_USERNAME=influx
+      - SM_DB_PASSWORD=influx
+      - PROMETHEUS_USERNAME=
+      - PROMETHEUS_PASSWORD=
+      - ELASTICSEARCH_EXEC_PLUGIN_TIMEOUT=15s
+      - ELASTICSEARCH_HOST=elasticsearch
+      - ELASTICSEARCH_PORT=9200
+      - ELASTICSEARCH_PROTOCOL=http
+      - ELASTICSEARCH_USERNAME=admin
+      - ELASTICSEARCH_PASSWORD=admin
+      - ELASTICSEARCH_DATA_NODES_COUNT=1
+      - ELASTICSEARCH_TOTAL_NODES_COUNT=1
+#      - SLOW_QUERIES_TOP_NUMBER=10
+#      - PROCESSING_INTERVAL_MINUTES=5
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf

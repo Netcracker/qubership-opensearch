@@ -1,0 +1,62 @@
+{{ if and .Values.ENABLE_PRIVILEGED_PSS (eq (include "opensearch.restrictedEnvironment" .) "false") }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "opensearch.fullname" . }}-update-resources
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+spec:
+  template:
+    metadata:
+      name: {{ template "opensearch.fullname" . }}-update-resources
+      labels:
+        {{ include "opensearch.labels.standard" . | nindent 8 }}
+        component: update-resources
+    spec:
+      securityContext:
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.updateResourcesJob.securityContext }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      restartPolicy: Never
+      serviceAccountName: {{ template "opensearch.fullname" . }}-update-resources
+      containers:
+        - name: upgrade-preparation
+          image: {{ template "kubectl.image" . }}
+          env:
+            - name: NAMESPACE
+              value: {{ .Release.Namespace }}
+          command:
+            - "/bin/bash"
+            - "-c"
+            - |
+              if [[ -z "$NAMESPACE" ]]; then
+                echo >&2 "Error: NAMESPACE is not set"
+                exit 121
+              fi
+              
+              LABEL_VALUE=$(kubectl get ns "${NAMESPACE}" -o jsonpath='{.metadata.labels.pod-security\.kubernetes\.io/enforce}')
+              echo "Current enforce label for '${NAMESPACE}': ${LABEL_VALUE}"
+              if [[ "${LABEL_VALUE}" != "privileged" ]]; then
+                kubectl label --overwrite ns "${NAMESPACE}" pod-security.kubernetes.io/enforce=privileged
+                  if [[ $? -eq 0 ]]; then
+                    echo "Namespace '${NAMESPACE}' was patched with privileged PSS"
+                  else
+                    echo >&2 "Failed to patch namespace '${NAMESPACE}'"
+                    exit 1
+                  fi
+              else
+                echo "Namespace '${NAMESPACE}' already has 'privileged' PSS"
+              fi
+          resources:
+            requests:
+              cpu: {{ default "75m" .Values.updateResourcesJob.resources.requests.cpu }}
+              memory: {{ default "75Mi" .Values.updateResourcesJob.resources.requests.memory }}
+            limits:
+              cpu: {{ default "150m" .Values.updateResourcesJob.resources.limits.cpu }}
+              memory: {{ default "150Mi" .Values.updateResourcesJob.resources.limits.memory }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
+{{ end }}

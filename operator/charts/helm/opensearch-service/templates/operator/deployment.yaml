@@ -1,0 +1,192 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "opensearch.fullname" . }}-service-operator
+  labels: 
+    name: {{ template "opensearch.fullname" . }}-service-operator
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-service-operator
+    app.kubernetes.io/instance: {{ cat (printf "%s-service-operator"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+    app.kubernetes.io/technology: python
+spec:
+  replicas: {{ default 1 .Values.operator.replicas }}
+  selector:
+    matchLabels:
+      name: {{ template "opensearch.fullname" . }}-service-operator
+      component: opensearch-service-operator
+  template:
+    metadata:
+      labels:
+{{- with .Values.global.customLabels }}
+  {{- toYaml . | nindent 8 -}}
+{{- end }}
+{{- with .Values.operator.customLabels }}
+  {{- toYaml . | nindent 8 -}}
+{{- end }}
+        name: {{ template "opensearch.fullname" . }}-service-operator
+        app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-service-operator
+        component: opensearch-service-operator
+      {{- if and (not .Values.global.externalOpensearch.enabled) .Values.global.velero.preHookBackupEnabled }}
+      annotations:
+        pre.hook.backup.velero.io/command: {{ template "opensearch.velero-pre-hook-backup-flush" . }}
+        pre.hook.backup.velero.io/timeout: {{ .Values.global.velero.timeout | default "600s" }}
+      {{- end }}
+    spec:
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+      {{ toYaml .Values.global.imagePullSecrets | indent 8 }}
+      {{- end }}
+      {{- if .Values.operator.priorityClassName }}
+      priorityClassName: {{ .Values.operator.priorityClassName | quote }}
+      {{- end }}
+      serviceAccountName: {{ template "opensearch.fullname" . }}-service-operator
+      containers:
+        - name: {{ template "opensearch.fullname" . }}-service-operator
+          image: {{ template "operator.image" . }}
+          ports:
+            - containerPort: 8069
+              protocol: TCP
+              name: rep-health
+          volumeMounts:
+          {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+            - mountPath: /certs/crt.pem
+              name: opensearch-certs
+              subPath: {{ template "opensearch.root-ca-path" . }}
+          {{- end }}
+          {{ if and (eq (include "dbaas.enabled" .) "true") (eq (include "dbaas-adapter.tlsEnabled" .) "true") }}
+            - mountPath: /certs/dbaas-adapter/crt.pem
+              name: dbaas-adapter-certs
+              subPath: "ca.crt"
+          {{- end }}
+          command:
+            - /manager
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: RECONCILE_PERIOD
+              value: {{ default "60" .Values.operator.reconcilePeriod | quote }}
+            - name: OPENSEARCH_PROTOCOL
+              {{ if or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}
+              value: "https"
+              {{ else }}
+              value: "http"
+              {{ end }}
+            - name: OPENSEARCH_NAME
+              value: {{ template "opensearch.fullname" . }}
+            - name: OPENSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ template "opensearch.fullname" . }}-secret
+            - name: OPENSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ template "opensearch.fullname" . }}-secret
+            {{- if and (eq (include "opensearch.enableDisasterRecovery" .) "true") .Values.global.disasterRecovery.serviceExport.enabled }}
+            - name: OPENSEARCH_GKE_SERVICE
+              value: {{ template "opensearch-gke-service-name" . }}
+            {{ end }}
+          resources:
+            limits:
+              cpu: {{ default "100m" .Values.operator.resources.limits.cpu  }}
+              memory: {{ default "128Mi" .Values.operator.resources.limits.memory }}
+            requests:
+              cpu: {{ default "25m" .Values.operator.resources.requests.cpu }}
+              memory: {{ default "128Mi" .Values.operator.resources.requests.memory }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
+        {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}
+        - name: {{ template "opensearch.fullname" . }}-disaster-recovery
+          image: {{ template "disasterRecovery.image" . }}
+          imagePullPolicy: Always
+          {{- if eq (include "disasterRecovery.tlsEnabled" .) "true" }}
+          volumeMounts:
+            - name: drd-certs
+              mountPath: /tls
+          {{- end }}
+          ports:
+            - containerPort: {{ template "disasterRecovery.port" . }}
+              protocol: TCP
+              name: dr
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            {{- if eq (include "disasterRecovery.tlsEnabled" .) "true" }}
+            - name: TLS_ENABLED
+              value: "true"
+            - name: CERTS_PATH
+              value: "/tls"
+            - name: CIPHER_SUITES
+              value: "{{ include "disasterRecovery.cipherSuites" . }}"
+            {{- end }}
+            - name: RESOURCE_FOR_DR
+              value: "qubership.org v1 opensearchservices {{ template "opensearch.fullname" . }}"
+            - name: USE_DEFAULT_PATHS
+              value: "true"
+            - name: HEALTH_MAIN_SERVICES_ACTIVE
+              value: "{{ trim (include "opensearch.nodeNames" .) }}"
+            - name: HEALTH_MAIN_SERVICES_STANDBY
+              value: "{{ trim (include "opensearch.nodeNames" .) }}"
+            - name: HEALTH_MAIN_SERVICES_DISABLED
+              value: "{{ trim (include "opensearch.nodeNames" .) }}"
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: ADDITIONAL_HEALTH_ENDPOINT
+              value: http://$(POD_IP):8069/healthz
+            {{- if .Values.global.disasterRecovery.httpAuth.enabled}}
+            - name: SITE_MANAGER_NAMESPACE
+              value: {{ .Values.global.disasterRecovery.httpAuth.smNamespace | quote }}
+            - name: SITE_MANAGER_SERVICE_ACCOUNT_NAME
+              value: {{ include "disasterRecovery.siteManagerServiceAccount" . }}
+            {{- if .Values.global.disasterRecovery.httpAuth.smSecureAuth }}
+            - name: SITE_MANAGER_CUSTOM_AUDIENCE
+              value: {{ .Values.global.disasterRecovery.httpAuth.customAudience }}
+            {{- end }}
+            {{- end }}
+          resources:
+            limits:
+              cpu: {{ default "32m" .Values.global.disasterRecovery.resources.limits.cpu  }}
+              memory: {{ default "32Mi" .Values.global.disasterRecovery.resources.limits.memory }}
+            requests:
+              cpu: {{ default "10m" .Values.global.disasterRecovery.resources.requests.cpu }}
+              memory: {{ default "10Mi" .Values.global.disasterRecovery.resources.requests.memory }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
+        {{- end }}
+      volumes:
+        {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+        - name: opensearch-certs
+          secret:
+            secretName: {{ template "opensearch.rest-cert-secret-name" . }}
+        {{- end }}
+        {{- if eq (include "disasterRecovery.tlsEnabled" .) "true" }}
+        - name: drd-certs
+          secret:
+            secretName: {{ template "disasterRecovery.certSecretName" . }}
+        {{- end }}
+        {{ if and (eq (include "dbaas.enabled" .) "true") (eq (include "dbaas-adapter.tlsEnabled" .) "true") }}
+        - name: dbaas-adapter-certs
+          secret:
+            secretName: {{ template "dbaas-adapter.tlsSecretName" . }}
+        {{- end }}
+      securityContext:
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+        {{- with .Values.operator.securityContext }}
+          {{- toYaml . | nindent 8 -}}
+        {{- end }}
+      {{- with .Values.operator.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.operator.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}

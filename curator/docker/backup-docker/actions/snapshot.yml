@@ -1,0 +1,24 @@
+actions:
+  1:
+    action: snapshot
+    description: >-
+      Snapshot selected indices to 'repository' with the snapshot name or name
+      pattern in 'name'.  Use all other options as assigned
+    options:
+      repository: ${SNAPSHOT_REPOSITORY_NAME}
+      # Leaving name blank will result in the default 'curator-%Y%m%d%H%M%S'
+      name: ${SNAPSHOT_NAME}
+      ignore_unavailable: False
+      include_global_state: False
+      partial: False
+      wait_for_completion: True
+      skip_repo_fs_check: True
+      timeout_override:
+      continue_if_exception: False
+      disable_action: False
+    filters:
+    - filtertype: pattern
+      kind: regex
+      value: ${INDEX_PATTERN}
+    - filtertype: opened
+      exclude: false

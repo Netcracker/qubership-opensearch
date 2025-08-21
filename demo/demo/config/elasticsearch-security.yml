@@ -1,0 +1,24 @@
+audit:
+  enabled: true
+  cef:
+    version: 1
+    device-vendor: Qubership
+    device-product: Elasticsearch
+    device-version: 5.6
+    severity-map:
+      - event-type: "AUTHENTICATION_EVENT"
+        severity: 1
+      - event-type: "DDL_OPERATIONS"
+        severity: 2
+      - event-type: "RELOAD_CONFIGURATION"
+        severity: 3
+
+authentication:
+  filters:
+    basic:
+      order: 0
+  providers:
+    in-memory:
+      users:
+        - username: "admin"
+          password: "admin"
