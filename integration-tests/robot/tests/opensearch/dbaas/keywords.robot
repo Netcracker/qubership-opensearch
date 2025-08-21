@@ -38,7 +38,7 @@ Create Database Resource Prefix By Dbaas Agent
     ${response}=  Post Request  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  201
     ${content}=  Convert Json ${response.content} To Type
-    [Return]  ${content}
+    RETURN  ${content}
 
 Delete Database Resource Prefix Dbaas Agent
     [Arguments]  ${prefix}
