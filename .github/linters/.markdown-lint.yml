@@ -29,3 +29,5 @@ MD007: false
 MD009: false
 # MD010/no-hard-tabs Hard tabs
 MD010: false
+# MD051/Link fragments should be valid
+MD051: false
