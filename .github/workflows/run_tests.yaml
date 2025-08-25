@@ -7,6 +7,15 @@ on:
   #   branches: [main]
 
 jobs:
+  start-self-hosted-runner:
+    uses: Netcracker/qubership-terraform-hub/.github/workflows/ec2-control.yml@main
+    with:
+      instance_id: ${{ vars.AWS_GITHUB_RUNNER_ID }}
+      action: 'start'
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      
   Opensearch-Pipeline:
     uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@e75a24c6a1e5d843de60674e9a395ecb003f5cf3
     with:
@@ -16,4 +25,13 @@ jobs:
       runner_type: 'self-hosted'
     secrets:
       AWS_S3_ACCESS_KEY_ID: ${{secrets.AWS_S3_ACCESS_KEY_ID}}
-      AWS_S3_ACCESS_KEY_SECRET: ${{secrets.AWS_S3_ACCESS_KEY_SECRET}}      
+      AWS_S3_ACCESS_KEY_SECRET: ${{secrets.AWS_S3_ACCESS_KEY_SECRET}}   
+
+  stop-self-hosted-runner:
+    uses: Netcracker/qubership-terraform-hub/.github/workflows/ec2-control.yml@main
+    with:
+      instance_id: ${{ vars.AWS_GITHUB_RUNNER_ID }}
+      action: 'stop'
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}	      
