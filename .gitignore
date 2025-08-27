@@ -24,3 +24,7 @@ testbin/*
 *.swo
 *~
 *.iml
+
+# Ignore Python cache
+__pycache__/
+*.pyc
