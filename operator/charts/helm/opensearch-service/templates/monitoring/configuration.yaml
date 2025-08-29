@@ -256,8 +256,7 @@ data:
       fieldexclude = ["status_code", "plugins_*", "__segments_segment_replication_*"]
 
       ## specify a list of one or more OpenSearch servers
-      # you can add username and password to your url to use basic authentication:
-      # servers = ["http://user:pass@localhost:9200"]
+      # you can add username and password to your url to use basic authentication
       servers = ["$ELASTICSEARCH_PROTOCOL://$ELASTICSEARCH_HOST:$ELASTICSEARCH_PORT"]
 
       ## Timeout for HTTP requests to the OpenSearch server(s)
