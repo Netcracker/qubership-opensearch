@@ -9,8 +9,8 @@
   <version>3.2.0.0</version>
 
   <properties>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jdk.version>21</jdk.version>
     <opensearch.version>3.2.0</opensearch.version>

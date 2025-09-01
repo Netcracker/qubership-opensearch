@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 import org.opensearch.action.support.ActionFilter;
-import org.opensearch.client.Client;
 import org.opensearch.cluster.metadata.IndexNameExpressionResolver;
 import org.opensearch.cluster.service.ClusterService;
 import org.opensearch.core.common.io.stream.NamedWriteableRegistry;
@@ -34,6 +33,7 @@ import org.opensearch.plugins.Plugin;
 import org.opensearch.repositories.RepositoriesService;
 import org.opensearch.script.ScriptService;
 import org.opensearch.threadpool.ThreadPool;
+import org.opensearch.transport.client.Client;
 import org.opensearch.watcher.ResourceWatcherService;
 
 public class CustomOpenSearchPlugin extends Plugin implements ActionPlugin {
