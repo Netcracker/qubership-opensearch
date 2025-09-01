@@ -166,17 +166,26 @@ public class IsmSecurityFilter implements ActionFilter {
   protected boolean allowAction(String action, ActionRequest request, String resourcePrefix)
       throws IOException {
     StreamInput in = getStreamInput(request);
-      return switch (action) {
-          case ADD_POLICY_ACTION_NAME -> allowAddPolicyAction(in, resourcePrefix);
-          case CHANGE_POLICY_ACTION_NAME -> allowChangePolicyAction(in, resourcePrefix);
-          case DELETE_POLICY_ACTION_NAME -> allowDeletePolicyAction(in, resourcePrefix);
-          case EXPLAIN_ACTION_NAME -> allowExplainAction(in, resourcePrefix);
-          case GET_POLICY_ACTION_NAME -> allowGetPolicyAction(in, resourcePrefix);
-          case INDEX_POLICY_ACTION_NAME -> allowIndexPolicyAction(request, resourcePrefix);
-          case REMOVE_POLICY_ACTION_NAME -> allowRemovePolicyAction(in, resourcePrefix);
-          case RETRY_FAILED_MANAGED_INDEX_ACTION_NAME -> allowRetryFailedManagedIndexAction(in, resourcePrefix);
-          default -> false;
-      };
+    switch (action) {
+      case ADD_POLICY_ACTION_NAME:
+        return allowAddPolicyAction(in, resourcePrefix);
+      case CHANGE_POLICY_ACTION_NAME:
+        return allowChangePolicyAction(in, resourcePrefix);
+      case DELETE_POLICY_ACTION_NAME:
+        return allowDeletePolicyAction(in, resourcePrefix);
+      case EXPLAIN_ACTION_NAME:
+        return allowExplainAction(in, resourcePrefix);
+      case GET_POLICY_ACTION_NAME:
+        return allowGetPolicyAction(in, resourcePrefix);
+      case INDEX_POLICY_ACTION_NAME:
+        return allowIndexPolicyAction(request, resourcePrefix);
+      case REMOVE_POLICY_ACTION_NAME:
+        return allowRemovePolicyAction(in, resourcePrefix);
+      case RETRY_FAILED_MANAGED_INDEX_ACTION_NAME:
+        return allowRetryFailedManagedIndexAction(in, resourcePrefix);
+      default:
+        return false;
+    }
   }
 
   /**
