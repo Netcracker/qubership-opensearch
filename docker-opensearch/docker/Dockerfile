@@ -10,7 +10,7 @@ RUN mvn dependency:go-offline
 COPY opensearch-filter-plugin /build
 RUN mvn clean package
 
-FROM opensearchproject/opensearch:2.19.2
+FROM opensearchproject/opensearch:3.2.0
 
 USER 0
 
@@ -35,18 +35,18 @@ RUN yum install --nogpgcheck -y jq \
 RUN yum update --nogpgcheck --assumeyes --skip-broken
 
 RUN echo "Download OpenSearch plugins..." \
-  && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/2.19.2/repository-s3-2.19.2.zip" \
-    -o ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.2.zip \
-  && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/2.19.2/repository-gcs-2.19.2.zip" \
-    -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.2.zip \
-  && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.2.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.2.zip ]; then \
+  && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/3.2.0/repository-s3-3.2.0.zip" \
+    -o ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-3.2.0.zip \
+  && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/3.2.0/repository-gcs-3.2.0.zip" \
+    -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-3.2.0.zip \
+  && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-3.2.0.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-3.2.0.zip ]; then \
        echo "Plugins downloaded successfully."; \
      else \
        echo "Plugin download failed"; \
        exit 1; \
      fi
 
-COPY --from=builder /build/target/opensearch-filter-plugin-2.19.2.0.zip  ${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/opensearch-filter-plugin-2.19.2.0.zip
+COPY --from=builder /build/target/opensearch-filter-plugin-3.2.0.0.zip  ${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/opensearch-filter-plugin-3.2.0.0.zip
 
 # Adapt grants
 RUN set -x \
@@ -67,46 +67,46 @@ RUN set -x \
        done
 
 USER 1000
-
-RUN set -x \
-    && curl \
-        --silent \
-        --show-error \
-        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-ml \
-        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
-    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-ml/json-20230227.jar
-
-RUN set -x \
-    && curl \
-        --silent \
-        --show-error \
-        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-observability \
-        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
-    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-observability/json-20230227.jar
-
-RUN set -x \
-    && curl \
-        --silent \
-        --show-error \
-        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-reports-scheduler \
-        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
-    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-reports-scheduler/json-20230227.jar
-
-RUN set -x \
-    && curl \
-        --silent \
-        --show-error \
-        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-sql \
-        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
-    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-sql/json-20230227.jar
-
-RUN set -x \
-    && curl \
-        --silent \
-        --show-error \
-        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-neural-search \
-        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
-    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-neural-search/json-20230227.jar
+#
+#RUN set -x \
+#    && curl \
+#        --silent \
+#        --show-error \
+#        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-ml \
+#        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
+#    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-ml/json-20230227.jar
+#
+#RUN set -x \
+#    && curl \
+#        --silent \
+#        --show-error \
+#        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-observability \
+#        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
+#    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-observability/json-20230227.jar
+#
+#RUN set -x \
+#    && curl \
+#        --silent \
+#        --show-error \
+#        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-reports-scheduler \
+#        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
+#    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-reports-scheduler/json-20230227.jar
+#
+#RUN set -x \
+#    && curl \
+#        --silent \
+#        --show-error \
+#        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-sql \
+#        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
+#    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-sql/json-20230227.jar
+#
+#RUN set -x \
+#    && curl \
+#        --silent \
+#        --show-error \
+#        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-neural-search \
+#        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
+#    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-neural-search/json-20230227.jar
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["./opensearch-docker-entrypoint.sh"]
