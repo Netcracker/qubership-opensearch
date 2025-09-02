@@ -1,27 +1,46 @@
 name: Build Artifacts
+permissions:
+  contents: read
+  packages: write
+  actions: read
 on:
   release:
     types: [created]
   push:
     branches:
       - '**'
+    paths-ignore:
+      - 'docs/**'
+      - 'CODE-OF-CONDUCT.md'
+      - 'CONTRIBUTING.md'
+      - 'LICENSE'
+      - 'README.md'
+      - 'SECURITY.md'
   pull_request:
     branches:
       - '**'
-  workflow_dispatch:
-    inputs:
-      publish_docker:
-        description: "Publish image to ghcr.io"
-        type: boolean
-        default: true
-        required: false
+    paths-ignore:
+      - 'docs/**'
+      - 'CODE-OF-CONDUCT.md'
+      - 'CONTRIBUTING.md'
+      - 'LICENSE'
+      - 'README.md'
+      - 'SECURITY.md'
+
 env:
   TAG_NAME: ${{ github.event.release.tag_name || github.ref }}
-  PUSH: ${{ (github.event_name == 'workflow_dispatch' && inputs.publish_docker) || !startsWith(github.ref, 'refs/heads/dependabot') }}
   GITHUB_GROUP: ${{ github.repository_owner }}
+
+concurrency:
+  # On main/release, we don't want any jobs cancelled so the sha is used to name the group
+  # On PR branches, we cancel the job if new commits are pushed
+  # More info: https://stackoverflow.com/a/68422069/253468
+  group: ${{ github.ref == 'refs/heads/main' && format('ci-main-{0}', github.sha) || format('ci-main-{0}', github.ref) }}
+  cancel-in-progress: true
 
 jobs:
   multiplatform_build:
+    if: github.event.pull_request.user.login != 'dependabot[bot]' || github.event_name == 'pull_request'
     strategy:
       fail-fast: false
       matrix:
@@ -77,21 +96,14 @@ jobs:
         with:
           component-name: ${{ matrix.component.name }}
           component-tag: ${{ env.TAG_NAME }}
-          access-token: ${{secrets.GITHUB_TOKEN}}
-        if: ${{ env.PUSH }}
+          access-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           no-cache: true
           context: ${{ matrix.component.context }}
           file: ${{ matrix.component.file }}
           platforms: linux/amd64,linux/arm64
-          push: ${{ env.PUSH }}
+          push: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
           tags: ghcr.io/${{ env.GITHUB_GROUP }}/${{ matrix.component.name }}:${{ env.TAG_NAME }}
           provenance: false
-      - uses: actions/delete-package-versions@v5
-        with:
-          package-name: ${{ matrix.component.name }}
-          package-type: 'container'
-          package-version-ids: ${{ steps.get-ids-for-delete.outputs.ids-for-delete }}
-        if: ${{ steps.get-ids-for-delete.outputs.ids-for-delete != '' }}
