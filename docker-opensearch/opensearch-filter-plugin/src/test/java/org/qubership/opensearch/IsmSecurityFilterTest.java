@@ -13,10 +13,11 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.opensearch.action.ActionRequest;
 import org.opensearch.action.ActionRequestValidationException;
-import org.opensearch.client.Client;
+
 import org.opensearch.common.unit.TimeValue;
 import org.opensearch.core.common.io.stream.StreamOutput;
 import org.opensearch.threadpool.ThreadPool;
+import org.opensearch.transport.client.Client;
 
 public class IsmSecurityFilterTest {
 

@@ -49,7 +49,6 @@ import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.action.support.ActionFilter;
 import org.opensearch.action.support.ActionFilterChain;
-import org.opensearch.client.Client;
 import org.opensearch.common.action.ActionFuture;
 import org.opensearch.common.io.stream.BytesStreamOutput;
 import org.opensearch.common.util.concurrent.ThreadContext;
@@ -77,6 +76,7 @@ import org.opensearch.script.ScriptType;
 import org.opensearch.search.SearchHit;
 import org.opensearch.tasks.Task;
 import org.opensearch.threadpool.ThreadPool;
+import org.opensearch.transport.client.Client;
 import org.qubership.opensearch.security.user.User;
 
 public class IsmSecurityFilter implements ActionFilter {
