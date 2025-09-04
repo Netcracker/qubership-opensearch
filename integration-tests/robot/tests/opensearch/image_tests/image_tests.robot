@@ -18,6 +18,6 @@ Test Hardcoded Images
 
     Log To Console  \n[COMPARE] ${resource}: Expected tag = ${expected_tag}, Actual tag = ${actual_tag}
     
-    Should Be Equal   ${actual_tag}   ${expected_tag}
+    Run Keyword And Continue On Failure  Should Be Equal   ${actual_tag}   ${expected_tag}
   END
   
