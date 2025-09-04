@@ -36,7 +36,7 @@ Full Backup
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${response.content}
-    [Return]  ${response.text}
+    RETURN  ${response.text}
 
 Granular Backup
     [Arguments]  ${indices_list}
@@ -45,7 +45,7 @@ Granular Backup
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${response.content}
-    [Return]  ${response.text}
+    RETURN  ${response.text}
 
 Delete Backup
     [Arguments]  ${backup_id}
@@ -78,7 +78,7 @@ Get Backup Timestamp
     ${response}=  Get Request  curatorsession  /listbackups/${backup_id}
     Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
-    [Return]  ${content['ts']}
+    RETURN  ${content['ts']}
 
 Find Backup ID By Timestamp
     [Arguments]  ${backup_ts}
@@ -86,7 +86,7 @@ Find Backup ID By Timestamp
     ${response}=  Get Request  curatorsession  /find  json=${find_data}
     Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
-    [Return]  ${content['id']}
+    RETURN  ${content['id']}
 
 Check Backup Status
     [Arguments]  ${backup_id}
