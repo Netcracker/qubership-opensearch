@@ -30,6 +30,7 @@ jobs:
 
   stop-self-hosted-runner:
     needs: Opensearch-Pipeline
+    if: always()
     uses: Netcracker/qubership-terraform-hub/.github/workflows/ec2-control.yml@main
     with:
       instance_id: ${{ vars.AWS_GITHUB_RUNNER_ID }}
