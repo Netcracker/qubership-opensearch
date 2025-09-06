@@ -10,7 +10,7 @@ RUN mvn dependency:go-offline
 COPY opensearch-filter-plugin /build
 RUN mvn clean package
 
-FROM opensearchproject/opensearch:2.19.3
+FROM opensearchproject/opensearch:3.2.0
 
 USER 0
 
