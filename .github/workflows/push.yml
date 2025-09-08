@@ -56,6 +56,9 @@ jobs:
           - name: qubership-opensearch-monitoring
             file: monitoring/docker/Dockerfile
             context: monitoring
+          - name: qubership-opensearch-dashboard
+            file: docker-opensearch-dashboard/Dockerfile
+            context: docker-opensearch-dashboard
           - name: qubership-opensearch-curator
             file: curator/docker/backup-docker/Dockerfile
             context: curator
