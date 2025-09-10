@@ -8,7 +8,16 @@ ADD https://registry.npmjs.org/axios/-/axios-0.30.1.tgz /tmp/axios.tgz
 
 RUN rm -rf /usr/share/opensearch-dashboards/node_modules/form-data \
     && mkdir -p /usr/share/opensearch-dashboards/node_modules/form-data \
-    && tar -xzf /tmp/form-data.tgz -C /usr/share/opensearch-dashboards/node_modules/form-data --strip-components=1
+    && tar -xzf /tmp/form-data.tgz -C /usr/share/opensearch-dashboards/node_modules/form-data --strip-components=1 \
+ \
+    && rm -rf /usr/share/opensearch-dashboards/plugins/assistantDashboards/node_modules/form-data \
+    && mkdir -p /usr/share/opensearch-dashboards/plugins/assistantDashboards/node_modules/form-data \
+    && tar -xzf /tmp/form-data.tgz -C /usr/share/opensearch-dashboards/plugins/assistantDashboards/node_modules/form-data --strip-components=1 \
+ \
+    && rm -rf /usr/share/opensearch-dashboards/plugins/reportsDashboards/node_modules/form-data \
+    && mkdir -p /usr/share/opensearch-dashboards/plugins/reportsDashboards/node_modules/form-data \
+    && tar -xzf /tmp/form-data.tgz -C /usr/share/opensearch-dashboards/plugins/reportsDashboards/node_modules/form-data --strip-components=1
+
 
 RUN rm -rf /usr/share/opensearch-dashboards/node_modules/axios \
     && mkdir -p /usr/share/opensearch-dashboards/node_modules/axios \
