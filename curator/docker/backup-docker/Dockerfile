@@ -23,10 +23,6 @@ RUN apk add --update --no-cache curl apk-tools \
       && chmod -R 777 ${ELASTICSEARCH_CURATOR_HOME} \
       && chmod +x "/usr/local/bin/jq"
 
-RUN apk add --no-cache build-base wget
-
-
-
 
 RUN set -x \
     && python3 -m unittest discover -s ${ELASTICSEARCH_CURATOR_HOME} -p "*_tests.py"
