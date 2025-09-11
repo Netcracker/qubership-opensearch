@@ -25,25 +25,19 @@ RUN apk add --update --no-cache curl apk-tools \
 
 RUN apk add --no-cache build-base wget
 
-# собираем последнюю версию pcre2
-ARG PCRE2_VERSION=10.46
 
-RUN wget https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${PCRE2_VERSION}/pcre2-${PCRE2_VERSION}.tar.gz \
-    && tar -xzf pcre2-${PCRE2_VERSION}.tar.gz \
-    && cd pcre2-${PCRE2_VERSION} \
-    && ./configure --prefix=/usr --enable-pcre2-16 --enable-pcre2-32 \
-    && make -j$(nproc) \
-    && make install \
-    && cd .. \
-    && rm -rf pcre2-${PCRE2_VERSION} pcre2-${PCRE2_VERSION}.tar.gz
-# Upgrade all tools to avoid vulnerabilities
-RUN set -x && apk upgrade --no-cache --available
 
 
 RUN set -x \
     && python3 -m unittest discover -s ${ELASTICSEARCH_CURATOR_HOME} -p "*_tests.py"
 
 RUN chmod +x ${ELASTICSEARCH_CURATOR_HOME}/*
+
+# Upgrade tools from edge to avoid vulnerabilities
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
+    && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
+    && apk add --update --upgrade --no-cache \
+        pcre2
 
 USER 1000:0
 
