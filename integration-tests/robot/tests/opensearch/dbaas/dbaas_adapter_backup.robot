@@ -31,7 +31,7 @@ Prepare Dbaas Adapter
 Generate Name
     [Arguments]  ${name}
     ${prefix}=  Generate Random String  5  [LOWER]
-    [Return]  dbaas_integration_test-${prefix}-${name}
+    RETURN  dbaas_integration_test-${prefix}-${name}
 
 Create Backup By Dbaas Agent
     [Arguments]  ${indices_list}
@@ -39,7 +39,7 @@ Create Backup By Dbaas Agent
     ${content}=  Convert Json ${response.content} To Type
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${content['trackId']}
-    [Return]  ${content['trackId']}
+    RETURN  ${content['trackId']}
 
 Delete Backup By Dbaas Agent
     [Arguments]  ${backup_id}
