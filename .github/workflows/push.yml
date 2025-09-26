@@ -29,6 +29,7 @@ on:
 
 env:
   TAG_NAME: ${{ github.event.release.tag_name || github.ref }}
+  PUSH: ${{ (github.event_name == 'workflow_dispatch' && inputs.publish_docker) }}
   GITHUB_GROUP: ${{ github.repository_owner }}
 
 concurrency:
@@ -107,6 +108,6 @@ jobs:
           context: ${{ matrix.component.context }}
           file: ${{ matrix.component.file }}
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
+          push: ${{ env.PUSH }}
           tags: ghcr.io/${{ env.GITHUB_GROUP }}/${{ matrix.component.name }}:${{ env.TAG_NAME }}
           provenance: false
