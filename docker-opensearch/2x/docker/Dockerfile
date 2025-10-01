@@ -4,10 +4,10 @@ RUN apk add --no-cache maven git
 
 WORKDIR /build
 
-COPY docker-opensearch/2x/opensearch-filter-plugin/pom.xml ./
+COPY 2x/opensearch-filter-plugin/pom.xml ./
 RUN mvn dependency:go-offline
 
-COPY docker-opensearch/2x/opensearch-filter-plugin/ ./
+COPY 2x/opensearch-filter-plugin/ ./
 RUN mvn clean package
 
 FROM opensearchproject/opensearch:2.19.3
@@ -19,10 +19,10 @@ ENV DISABLE_INSTALL_DEMO_CONFIG=true \
     OPENSEARCH_CONFIGS=/usr/share/opensearch/config
 
 #COPY docker/config/yum-repositories.repo /etc/yum.repos.d
-COPY docker-opensearch/2x/docker/health.sh ${OPENSEARCH_HOME}/bin
-COPY docker-opensearch/2x/docker/reconfiguration.sh ${OPENSEARCH_HOME}/bin
-COPY docker-opensearch/2x/docker/relocate-shards.sh ${OPENSEARCH_HOME}/bin
-COPY docker-opensearch/2x/docker/docker-entrypoint.sh /
+COPY 2x/docker/health.sh ${OPENSEARCH_HOME}/bin
+COPY 2x/docker/reconfiguration.sh ${OPENSEARCH_HOME}/bin
+COPY 2x/docker/relocate-shards.sh ${OPENSEARCH_HOME}/bin
+COPY 2x/docker/docker-entrypoint.sh /
 
 # Install the tools we need
 #RUN yum install --disablerepo=* --enablerepo=paas,os,openstack,nc_updates --nogpgcheck -y jq \
