@@ -1,0 +1,52 @@
+name: Vulnerability Scan
+run-name: Vulnerability Scan for ${{ inputs.target }} ${{ inputs.image && format('({0})', inputs.image) || '' }}
+# This workflow performs security vulnerability scanning on Docker images or source code
+# using Trivy and Grype tools. It can be triggered manually via workflow_dispatch.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Scan part"
+        required: true
+        default: "docker"
+        type: choice
+        options:
+          - docker
+          - source
+      image:
+        description: "Docker image (for docker). By default ghcr.io/<owner>/<repo>:latest"
+        required: false
+        default: ""
+        type: string
+      only-high-critical:
+        description: "Scope only HIGH + CRITICAL"
+        required: false
+        default: true
+        type: boolean
+      trivy-scan:
+        description: "Trivy scan"
+        required: false
+        default: true
+        type: boolean
+      grype-scan:
+        description: "Grype scan"
+        required: false
+        default: true
+        type: boolean
+      continue-on-error:
+        description: "Continue on error"
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  security-scan:
+    uses: Netcracker/qubership-workflow-hub/.github/workflows/re-security-scan.yml@main
+    with:
+      target: ${{ inputs.target }}
+      image: ${{ inputs.image }}
+      only-high-critical: ${{ inputs.only-high-critical }}
+      trivy-scan: ${{ inputs.trivy-scan }}
+      grype-scan: ${{ inputs.grype-scan }}
+      continue-on-error: ${{ inputs.continue-on-error }}
