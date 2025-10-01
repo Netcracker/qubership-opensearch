@@ -4,10 +4,10 @@ RUN apk add --no-cache maven git
 
 WORKDIR /build
 
-COPY opensearch-filter-plugin/pom.xml .
+COPY opensearch-filter-plugin/pom.xml ./
 RUN mvn dependency:go-offline
 
-COPY opensearch-filter-plugin /build
+COPY opensearch-filter-plugin/ ./
 RUN mvn clean package
 
 FROM opensearchproject/opensearch:3.2.0
