@@ -3,6 +3,7 @@ run-name: Vulnerability Scan for ${{ inputs.target }} ${{ inputs.image && format
 # This workflow performs security vulnerability scanning on Docker images or source code
 # using Trivy and Grype tools. It can be triggered manually via workflow_dispatch.
 
+
 on:
   workflow_dispatch:
     inputs:
@@ -39,8 +40,12 @@ on:
         required: false
         default: true
         type: boolean
+
 permissions:
   contents: read
+  packages: read
+  security-events: write
+
 jobs:
   security-scan:
     uses: Netcracker/qubership-workflow-hub/.github/workflows/re-security-scan.yml@main
