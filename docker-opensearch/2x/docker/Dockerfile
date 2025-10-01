@@ -1,6 +1,6 @@
 FROM amazoncorretto:11-alpine AS builder
 
-RUN apk add --no-cache maven git
+RUN apk add --no-cache maven=3.9.9-r0 git=2.49.1-r0
 
 WORKDIR /build
 
@@ -27,7 +27,7 @@ COPY 2x/docker/docker-entrypoint.sh /
 # Install the tools we need
 #RUN yum install --disablerepo=* --enablerepo=paas,os,openstack,nc_updates --nogpgcheck -y jq \
 #    && yum clean all \
-RUN yum install -y jq \
+RUN yum install -y jq=1.7.1-51 \
     && yum clean all
 
 # Upgrade all tools to avoid vulnerabilities
@@ -35,11 +35,14 @@ RUN yum install -y jq \
 RUN yum update --assumeyes --skip-broken
 
 RUN echo "Download OpenSearch plugins..." \
-    && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/2.19.3/repository-s3-2.19.3.zip" \
+    && curl --create-dirs -s  \
+    "https://artifacts.opensearch.org/releases/plugins/repository-s3/2.19.3/repository-s3-2.19.3.zip" \
     -o ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.3.zip \
-    && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/2.19.3/repository-gcs-2.19.3.zip" \
+    && curl --create-dirs -s  \
+    "https://artifacts.opensearch.org/releases/plugins/repository-gcs/2.19.3/repository-gcs-2.19.3.zip" \
     -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.3.zip \
-    && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.3.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.3.zip ]; then \
+    && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.3.zip ] &&  \
+    [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.3.zip ]; then \
         echo "Plugins downloaded successfully."; \
     else \
         echo "Plugin download failed"; \
