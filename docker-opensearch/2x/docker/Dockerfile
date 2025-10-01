@@ -35,14 +35,11 @@ RUN yum install -y jq=1.7.1-51 \
 RUN yum update --assumeyes --skip-broken
 
 RUN echo "Download OpenSearch plugins..." \
-    && curl --create-dirs -s  \
-    "https://artifacts.opensearch.org/releases/plugins/repository-s3/2.19.3/repository-s3-2.19.3.zip" \
+    && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/2.19.3/repository-s3-2.19.3.zip" \
     -o ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.3.zip \
-    && curl --create-dirs -s  \
-    "https://artifacts.opensearch.org/releases/plugins/repository-gcs/2.19.3/repository-gcs-2.19.3.zip" \
+    && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/2.19.3/repository-gcs-2.19.3.zip" \
     -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.3.zip \
-    && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.3.zip ] &&  \
-    [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.3.zip ]; then \
+    && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.3.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.3.zip ]; then \
         echo "Plugins downloaded successfully."; \
     else \
         echo "Plugin download failed"; \

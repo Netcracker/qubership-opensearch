@@ -35,14 +35,11 @@ RUN yum install --nogpgcheck -y jq-1.7.1 \
 RUN yum update --nogpgcheck --assumeyes --skip-broken
 
 RUN echo "Download OpenSearch plugins..." \
-  && curl --create-dirs -s  \
-    "https://artifacts.opensearch.org/releases/plugins/repository-s3/3.2.0/repository-s3-3.2.0.zip" \
+&& curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/3.2.0/repository-s3-3.2.0.zip" \
     -o ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-3.2.0.zip \
-  && curl --create-dirs -s  \
-    "https://artifacts.opensearch.org/releases/plugins/repository-gcs/3.2.0/repository-gcs-3.2.0.zip" \
+&& curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/3.2.0/repository-gcs-3.2.0.zip" \
     -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-3.2.0.zip \
-  && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-3.2.0.zip ] &&  \
-    [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-3.2.0.zip ]; then \
+&& if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-3.2.0.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-3.2.0.zip ]; then \
        echo "Plugins downloaded successfully."; \
      else \
        echo "Plugin download failed"; \
