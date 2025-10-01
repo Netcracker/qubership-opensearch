@@ -26,8 +26,13 @@
       "context": "monitoring"
     },
     {
+      "name": "qubership-docker-opensearch-2",
+      "file": "docker-opensearch/2x/docker/Dockerfile",
+      "context": "docker-opensearch"
+    },
+    {
       "name": "qubership-docker-opensearch",
-      "file": "docker-opensearch/docker/Dockerfile",
+      "file": "docker-opensearch/3x/docker/Dockerfile",
       "context": "docker-opensearch"
     },
     {
