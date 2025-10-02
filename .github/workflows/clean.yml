@@ -37,7 +37,7 @@ jobs:
           - name: qubership-docker-opensearch-2
             file: docker-opensearch/2x/docker/Dockerfile
             context: docker-opensearch
-          - name: qubership-docker-opensearch-2
+          - name: qubership-docker-opensearch-3
             file: docker-opensearch/3x/docker/Dockerfile
             context: docker-opensearch
     if: github.event.ref_type == 'branch'
