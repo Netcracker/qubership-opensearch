@@ -36,7 +36,7 @@ readiness_probe() {
     if [[ ${TLS_ENABLED} == "true" ]]; then
       command="curl -Is -u "${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}" -XGET https://localhost:9200/_cat/health --cacert ${OPENSEARCH_CONFIGS}/rest-crt.pem"
     fi
-    http_status_code=$(${command} | head -1 | grep HTTP/2 | cut -d " " -f 2)
+    http_status_code=$(${command} | head -1 | grep HTTP/1.1 | cut -d " " -f 2)
     log "http status code: [$http_status_code]"
 
     if [ -z "$http_status_code" ]; then
