@@ -27,7 +27,7 @@ COPY 2x/docker/docker-entrypoint.sh /
 # Install the tools we need
 #RUN yum install --disablerepo=* --enablerepo=paas,os,openstack,nc_updates --nogpgcheck -y jq \
 #    && yum clean all \
-RUN yum install -y jq-1.7.1-51 \
+RUN yum install -y jq-1.7.1 \
     && yum clean all
 
 # Upgrade all tools to avoid vulnerabilities
