@@ -929,7 +929,8 @@ Find a kubectl image in various places.
 Find an OpenSearch Dashboards image in various places.
 */}}
 {{- define "dashboards.image" -}}
-       {{- if eq (regexFind "opensearch-[0-9]+" .Values.opensearch.dockerImage) "opensearch-3" }}
+    {{- $image := include "opensearch.image" . }}
+    {{- if eq (regexFind "opensearch-[0-9]+" $image) "opensearch-3" }}
     opensearchproject/opensearch-dashboards:3.2.0
     {{- else }}
     {{- printf "%s" .Values.dashboards.dockerImage -}}
