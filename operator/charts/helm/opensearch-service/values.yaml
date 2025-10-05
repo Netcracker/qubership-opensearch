@@ -126,8 +126,6 @@ dashboards:
 global:
   clusterName: opensearch
 
-  opensearchVer: "opensearch-2"
-
   cloudIntegrationEnabled: false
 
   imagePullSecrets: []
