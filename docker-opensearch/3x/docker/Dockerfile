@@ -67,46 +67,6 @@ RUN set -x \
        done
 
 USER 1000
-#
-#RUN set -x \
-#    && curl \
-#        --silent \
-#        --show-error \
-#        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-ml \
-#        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
-#    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-ml/json-20230227.jar
-#
-#RUN set -x \
-#    && curl \
-#        --silent \
-#        --show-error \
-#        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-observability \
-#        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
-#    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-observability/json-20230227.jar
-#
-#RUN set -x \
-#    && curl \
-#        --silent \
-#        --show-error \
-#        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-reports-scheduler \
-#        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
-#    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-reports-scheduler/json-20230227.jar
-#
-#RUN set -x \
-#    && curl \
-#        --silent \
-#        --show-error \
-#        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-sql \
-#        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
-#    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-sql/json-20230227.jar
-#
-#RUN set -x \
-#    && curl \
-#        --silent \
-#        --show-error \
-#        --output-dir ${OPENSEARCH_HOME}/plugins/opensearch-neural-search \
-#        -O "https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" \
-#    && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-neural-search/json-20230227.jar
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["./opensearch-docker-entrypoint.sh"]
