@@ -55,13 +55,13 @@ RUN set -x \
     && chmod +x ${OPENSEARCH_HOME}/plugins/opensearch-security/tools/*.sh \
     && chmod +x /docker-entrypoint.sh \
     && for path in \
-            /usr/share/opensearch/logs \
-            /usr/share/opensearch/config \
-            /usr/share/opensearch/bin \
-            /usr/share/opensearch/data \
-            /usr/share/opensearch/jdk \
-            /usr/share/opensearch/plugins \
-            /usr/share/opensearch/dist \
+        /usr/share/opensearch/logs \
+        /usr/share/opensearch/config \
+        /usr/share/opensearch/bin \
+        /usr/share/opensearch/data \
+        /usr/share/opensearch/jdk \
+        /usr/share/opensearch/plugins \
+        /usr/share/opensearch/dist \
         ; do \
         chmod -R 777 "$path"; \
         done
