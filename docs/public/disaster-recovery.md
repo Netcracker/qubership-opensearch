@@ -214,10 +214,6 @@ dbaasAdapter:
 
 GKE provides its own multi-cluster services (MCS) mechanism of communications between clusters.
 
-<!-- #GFCFilterMarkerStart# -->
-For more details, refer to the [GKE-DR](https://git.qubership.org/PROD.Platform.HA/kubetools/-/blob/master/documentation/public/GKE-DR.md) document.
-<!-- #GFCFilterMarkerEnd# -->
-
 To deploy OpenSearch with enabled MCS support:
 
 * OpenSearch should be deployed to namespaces with the same names for both clusters. MCS works only if the namespace is presented for both Kubernetes clusters.
