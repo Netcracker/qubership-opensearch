@@ -8,7 +8,7 @@ relocate(){
         index=${pair[0]}
         shard=${pair[1]}
         node=${nodes[$num]}
-        num=$(( (${num} + 1) % ${len}))
+        num=$(( (num + 1) % len))
         curl -k -u "${OPENSEARCH_USERNAME}":"${OPENSEARCH_PASSWORD}" -XPOST ${url}"/_cluster/reroute" -H 'Content-Type: application/json' -d "{  \"commands\" : [{ \"allocate_empty_primary\" : {\"index\" : \"${index}\", \"shard\" : ${shard}, \"node\" : \"${node}\", \"accept_data_loss\" : true }}] }"
     done
 }

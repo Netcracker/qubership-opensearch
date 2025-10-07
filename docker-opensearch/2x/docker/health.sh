@@ -67,5 +67,5 @@ case $1 in
     readiness-probe)
         readiness_probe
         exit $?
-        ц;;
+        ;;
 esac
