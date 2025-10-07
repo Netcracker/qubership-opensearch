@@ -1,11 +1,11 @@
-# name: Build Artifacts
-# permissions:
-#   contents: read
-#   packages: write
-#   actions: read
-# on:
-#   release:
-#     types: [created]
+name: Build Artifacts
+permissions:
+  contents: read
+  packages: write
+  actions: read
+on:
+  release:
+    types: [created]
 #   push:
 #     branches:
 #       - '**'
@@ -27,86 +27,86 @@
 #       - 'README.md'
 #       - 'SECURITY.md'
 
-# env:
-#   TAG_NAME: ${{ github.event.release.tag_name || github.ref }}
-#   GITHUB_GROUP: ${{ github.repository_owner }}
+env:
+  TAG_NAME: ${{ github.event.release.tag_name || github.ref }}
+  GITHUB_GROUP: ${{ github.repository_owner }}
 
-# concurrency:
-#   # On main/release, we don't want any jobs cancelled so the sha is used to name the group
-#   # On PR branches, we cancel the job if new commits are pushed
-#   # More info: https://stackoverflow.com/a/68422069/253468
-#   group: ${{ github.ref == 'refs/heads/main' && format('ci-main-{0}', github.sha) || format('ci-main-{0}', github.ref) }}
-#   cancel-in-progress: true
+concurrency:
+  # On main/release, we don't want any jobs cancelled so the sha is used to name the group
+  # On PR branches, we cancel the job if new commits are pushed
+  # More info: https://stackoverflow.com/a/68422069/253468
+  group: ${{ github.ref == 'refs/heads/main' && format('ci-main-{0}', github.sha) || format('ci-main-{0}', github.ref) }}
+  cancel-in-progress: true
 
-# jobs:
-#   multiplatform_build:
-#     if: github.event.pull_request.user.login != 'dependabot[bot]' || github.event_name == 'pull_request'
-#     strategy:
-#       fail-fast: false
-#       matrix:
-#         component:
-#           - name: qubership-opensearch-integration-tests
-#             file: integration-tests/docker/Dockerfile
-#             context: integration-tests
-#           - name: qubership-opensearch-tls-init
-#             file: tls-init/docker/Dockerfile
-#             context: tls-init
-#           - name: qubership-opensearch-operator
-#             file: operator/Dockerfile
-#             context: operator
-#           - name: qubership-opensearch-transfer
-#             file: docker-transfer/Dockerfile
-#             context: ""
-#           - name: qubership-opensearch-monitoring
-#             file: monitoring/docker/Dockerfile
-#             context: monitoring
-#           - name: qubership-opensearch-dashboard
-#             file: docker-opensearch-dashboard/Dockerfile
-#             context: docker-opensearch-dashboard
-#           - name: qubership-opensearch-curator
-#             file: curator/docker/backup-docker/Dockerfile
-#             context: curator
-#           - name: qubership-opensearch-indices-cleaner
-#             file: curator/opensearch_indices_cleaner/docker/Dockerfile
-#             context: curator/opensearch_indices_cleaner
-#           - name: qubership-opensearch-dbaas-adapter
-#             file: dbaas-adapter/docker/Dockerfile
-#             context: dbaas-adapter
-#           - name: qubership-docker-opensearch
-#             file: docker-opensearch/docker/Dockerfile
-#             context: docker-opensearch
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-#       - name: Set up QEMU
-#         uses: docker/setup-qemu-action@v3
-#       - name: Set up Docker Buildx
-#         uses: docker/setup-buildx-action@v3
-#       - name: Login to Docker Hub
-#         uses: docker/login-action@v3
-#         with:
-#           registry: ghcr.io
-#           username: ${GITHUB_ACTOR}
-#           password: ${{secrets.GITHUB_TOKEN}}
-#       - name: Prepare Tag
-#         run: echo "TAG_NAME=$(echo ${TAG_NAME} | sed 's@refs/tags/@@;s@refs/heads/@@;s@/@_@g')" >> $GITHUB_ENV
-#       - name: Prepare Group
-#         run: echo "GITHUB_GROUP=${GITHUB_GROUP,,}" >> $GITHUB_ENV
-#       - name: Get package IDs for delete
-#         id: get-ids-for-delete
-#         uses: Netcracker/get-package-ids@v0.0.1
-#         with:
-#           component-name: ${{ matrix.component.name }}
-#           component-tag: ${{ env.TAG_NAME }}
-#           access-token: ${{ secrets.GITHUB_TOKEN }}
-#       - name: Build and push
-#         uses: docker/build-push-action@v6
-#         with:
-#           no-cache: true
-#           context: ${{ matrix.component.context }}
-#           file: ${{ matrix.component.file }}
-#           platforms: linux/amd64,linux/arm64
-#           push: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
-#           tags: ghcr.io/${{ env.GITHUB_GROUP }}/${{ matrix.component.name }}:${{ env.TAG_NAME }}
-#           provenance: false
+jobs:
+  multiplatform_build:
+    if: github.event.pull_request.user.login != 'dependabot[bot]' || github.event_name == 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        component:
+          - name: qubership-opensearch-integration-tests
+            file: integration-tests/docker/Dockerfile
+            context: integration-tests
+          - name: qubership-opensearch-tls-init
+            file: tls-init/docker/Dockerfile
+            context: tls-init
+          - name: qubership-opensearch-operator
+            file: operator/Dockerfile
+            context: operator
+          - name: qubership-opensearch-transfer
+            file: docker-transfer/Dockerfile
+            context: ""
+          - name: qubership-opensearch-monitoring
+            file: monitoring/docker/Dockerfile
+            context: monitoring
+          - name: qubership-opensearch-dashboard
+            file: docker-opensearch-dashboard/Dockerfile
+            context: docker-opensearch-dashboard
+          - name: qubership-opensearch-curator
+            file: curator/docker/backup-docker/Dockerfile
+            context: curator
+          - name: qubership-opensearch-indices-cleaner
+            file: curator/opensearch_indices_cleaner/docker/Dockerfile
+            context: curator/opensearch_indices_cleaner
+          - name: qubership-opensearch-dbaas-adapter
+            file: dbaas-adapter/docker/Dockerfile
+            context: dbaas-adapter
+          - name: qubership-docker-opensearch
+            file: docker-opensearch/docker/Dockerfile
+            context: docker-opensearch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${GITHUB_ACTOR}
+          password: ${{secrets.GITHUB_TOKEN}}
+      - name: Prepare Tag
+        run: echo "TAG_NAME=$(echo ${TAG_NAME} | sed 's@refs/tags/@@;s@refs/heads/@@;s@/@_@g')" >> $GITHUB_ENV
+      - name: Prepare Group
+        run: echo "GITHUB_GROUP=${GITHUB_GROUP,,}" >> $GITHUB_ENV
+      - name: Get package IDs for delete
+        id: get-ids-for-delete
+        uses: Netcracker/get-package-ids@v0.0.1
+        with:
+          component-name: ${{ matrix.component.name }}
+          component-tag: ${{ env.TAG_NAME }}
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          no-cache: true
+          context: ${{ matrix.component.context }}
+          file: ${{ matrix.component.file }}
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
+          tags: ghcr.io/${{ env.GITHUB_GROUP }}/${{ matrix.component.name }}:${{ env.TAG_NAME }}
+          provenance: false
