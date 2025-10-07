@@ -59,6 +59,8 @@ jobs:
       tags: "${{ steps.meta.outputs.result }}"
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - id: load
         run: |
