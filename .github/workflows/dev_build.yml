@@ -35,6 +35,11 @@ on:
         type: boolean
         default: false
         description: "Dry run mode"
+      replace-symbol:
+        required: false
+        type: string
+        default: "_"
+        description: "Symbol to replace in tags"
 
 permissions:
   contents: read
@@ -64,9 +69,9 @@ jobs:
         uses: netcracker/qubership-workflow-hub/actions/metadata-action@main
         id: meta
         with:
-          extra-tags: ${{ github.event.inputs.tags }}
           default-template: "{{ref-name}}"
-          replace-symbol: "_"
+          extra-tags: ${{ github.event.inputs.tags }}
+          replace-symbol: ${{ github.event.inputs.replace-symbol }}
           dry-run: ${{ inputs.dry-run }}
 
       - run: |
