@@ -43,7 +43,7 @@ on:
 
 permissions:
   contents: read
-  packages: write
+  packages: read
 
 concurrency:
   group: ${{ github.ref_type == 'branch' && format('build-branch-{0}', github.ref_name) || format('build-{0}', github.sha) }}
@@ -75,9 +75,6 @@ jobs:
           extra-tags: ${{ github.event.inputs.tags }}
           replace-symbol: ${{ github.event.inputs.replace-symbol }}
           dry-run: ${{ inputs.dry-run }}
-
-      - run: |
-          echo Metadata: ${{ steps.meta.outputs.result }}
 
   build:
     name: Build Docker Images
