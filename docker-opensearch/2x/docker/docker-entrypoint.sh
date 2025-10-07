@@ -15,16 +15,16 @@ if [[ -n "$OPENSEARCH_SECURITY_CONFIG_PATH" ]]; then
     password=$("${OPENSEARCH_HOME}/plugins/opensearch-security/tools/hash.sh" -p "${OPENSEARCH_PASSWORD}" | grep -v "\*\*")
     cat >"${OPENSEARCH_SECURITY_CONFIG_PATH}/internal_users.yml" <<EOF
 _meta:
-  type: "internalusers"
-  config_version: 2
+    type: "internalusers"
+    config_version: 2
 
 # Define your internal users here
 ${OPENSEARCH_USERNAME}:
-  hash: "${password}"
-  reserved: false
-  backend_roles:
-  - "admin"
-  description: "Admin user"
+    hash: "${password}"
+    reserved: false
+    backend_roles:
+    - "admin"
+    description: "Admin user"
 EOF
 fi
 
@@ -48,15 +48,15 @@ echo "Copy Java cacerts to $DESTINATION_KEYSTORE_PATH"
 if [[ "$(ls $PUBLIC_CERTS_DIR)" ]]; then
     for filename in "$PUBLIC_CERTS_DIR"/*; do
         echo "Import $filename certificate to Java cacerts"
-        keytool -import -trustcacerts -keystore $DESTINATION_KEYSTORE_PATH -storepass changeit -noprompt -alias "$filename" -file "$filename"
+        keytool -import -trustcacerts -keystore "$DESTINATION_KEYSTORE_PATH" -storepass changeit -noprompt -alias "$filename" -file "$filename"
     done;
 fi
 
 if [[ "$(ls $S3_CERTS_DIR)" ]]; then
     for filename in "$S3_CERTS_DIR"/*; do
         echo "Import $filename certificate to Java cacerts"
-        keytool -import -trustcacerts -keystore $DESTINATION_KEYSTORE_PATH -storepass changeit -noprompt -alias "$filename" -file "$filename"
-        keytool -import -trustcacerts -keystore $KEYSTORE_PATH -storepass changeit -noprompt -alias "$filename" -file "$filename"
+        keytool -import -trustcacerts -keystore "$DESTINATION_KEYSTORE_PATH" -storepass changeit -noprompt -alias "$filename" -file "$filename"
+        keytool -import -trustcacerts -keystore "$KEYSTORE_PATH" -storepass changeit -noprompt -alias "$filename" -file "$filename"
     done;
 fi
 

@@ -65,7 +65,7 @@ readiness_probe() {
 
 case $1 in
     readiness-probe)
-      readiness_probe
-      exit $?
-      ;;
+        readiness_probe
+        exit $?
+        ;;
 esac

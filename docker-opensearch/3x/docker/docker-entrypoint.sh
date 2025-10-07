@@ -46,17 +46,17 @@ echo "Copy Java cacerts to $DESTINATION_KEYSTORE_PATH"
         -deststorepass changeit &> /dev/null
 
 if [[ "$(ls $PUBLIC_CERTS_DIR)" ]]; then
-    for filename in $PUBLIC_CERTS_DIR/*; do
+    for filename in "$PUBLIC_CERTS_DIR"/*; do
         echo "Import $filename certificate to Java cacerts"
         keytool -import -trustcacerts -keystore $DESTINATION_KEYSTORE_PATH -storepass changeit -noprompt -alias "$filename" -file "$filename"
     done;
 fi
 
 if [[ "$(ls $S3_CERTS_DIR)" ]]; then
-    for filename in $S3_CERTS_DIR/*; do
+    for filename in "$S3_CERTS_DIR"/*; do
         echo "Import $filename certificate to Java cacerts"
-        keytool -import -trustcacerts -keystore $DESTINATION_KEYSTORE_PATH -storepass changeit -noprompt -alias "$filename" -file "$filename"
-        keytool -import -trustcacerts -keystore $KEYSTORE_PATH -storepass changeit -noprompt -alias "$filename" -file "$filename"
+        keytool -import -trustcacerts -keystore "$DESTINATION_KEYSTORE_PATH" -storepass changeit -noprompt -alias "$filename" -file "$filename"
+        keytool -import -trustcacerts -keystore "$KEYSTORE_PATH" -storepass changeit -noprompt -alias "$filename" -file "$filename"
     done;
 fi
 
