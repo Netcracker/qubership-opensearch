@@ -20,7 +20,7 @@ jobs:
 #      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   Opensearch-Pipeline:
-    needs: start-self-hosted-runner
+    #needs: start-self-hosted-runner
     uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@e75a24c6a1e5d843de60674e9a395ecb003f5cf3
     with:
       service_branch: '${{ github.head_ref || github.ref_name }}'
