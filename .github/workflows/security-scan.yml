@@ -35,6 +35,11 @@ on:
         default: true
         type: boolean
 
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
 jobs:
   security-scan:
     uses: netcracker/qubership-workflow-hub/.github/workflows/re-security-scan.yml@main
