@@ -1,0 +1,101 @@
+name: Build
+run-name: "Image for ${{ github.event.repository.name }}: ${{ github.run_number }} - ${{ github.actor }}"
+on:
+  release:
+    types: [created]
+  push:
+    branches:
+      - "**"
+    paths-ignore:
+      - "docs/**"
+      - "CODE-OF-CONDUCT.md"
+      - "CONTRIBUTING.md"
+      - "LICENSE"
+      - "README.md"
+      - "SECURITY.md"
+  pull_request:
+    branches:
+      - "**"
+    paths-ignore:
+      - "docs/**"
+      - "CODE-OF-CONDUCT.md"
+      - "CONTRIBUTING.md"
+      - "LICENSE"
+      - "README.md"
+      - "SECURITY.md"
+  workflow_dispatch:
+    inputs:
+      tags:
+        required: false
+        type: string
+        default: ""
+        description: "Tags"
+      dry-run:
+        required: true
+        type: boolean
+        default: false
+        description: "Dry run mode"
+      replace-symbol:
+        required: false
+        type: string
+        default: "_"
+        description: "Symbol to replace in tags"
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: ${{ github.ref_type == 'branch' && format('build-branch-{0}', github.ref_name) || format('build-{0}', github.sha) }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    name: "Prepare Images and Metadata"
+    runs-on: ubuntu-latest
+    outputs:
+      components: ${{ steps.load.outputs.components }}
+      platforms: ${{ steps.load.outputs.platforms }}
+      tags: "${{ steps.meta.outputs.result }}"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - id: load
+        run: |
+          echo "components=$(jq -c '.components' .github/dev-build-config.json)" >> "$GITHUB_OUTPUT"
+          echo "platforms=$(jq -c '.platforms' .github/dev-build-config.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Create tags for images
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@0f2be042d7c833c6bf60df85732609b7991fb821 #2.0.0
+        id: meta
+        with:
+          default-template: "{{ref-name}}"
+          extra-tags: ${{ github.event.inputs.tags }}
+          replace-symbol: ${{ github.event.inputs.replace-symbol }}
+          dry-run: ${{ inputs.dry-run }}
+
+  build:
+    name: Build Docker Images
+    needs: [prepare]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        component: ${{ fromJson(needs.prepare.outputs.components) }}
+    steps:
+      - name: Docker
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@0f2be042d7c833c6bf60df85732609b7991fb821 #2.0.0
+        with:
+          ref: ${{ github.ref }}
+          dry-run: ${{ inputs.dry-run }}
+          download-artifact: false
+          component: ${{ toJson(matrix.component) }}
+          platforms: ${{ needs.prepare.outputs.platforms }}
+          tags: ${{ needs.prepare.outputs.tags }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
