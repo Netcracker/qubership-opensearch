@@ -18,8 +18,10 @@ jobs:
         with:
           workflow: push.yml
           token: ${{ secrets.GITHUB_TOKEN }}
-          poll-interval: 20  
+          poll-interval: 20
   start-self-hosted-runner:
+    needs: Wait-for-images
+    if: ${{ needs.Wait-for-images.outputs.conclusion }} == 'success'
     uses: Netcracker/qubership-terraform-hub/.github/workflows/ec2-control.yml@main
     with:
       instance_id: ${{ vars.AWS_GITHUB_RUNNER_ID }}
