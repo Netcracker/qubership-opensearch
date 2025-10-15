@@ -91,7 +91,7 @@ spec:
               value: {{ template "opensearch-gke-service-name" . }}
             {{ end }}
             - name: OPENSEARCH_IMAGE_VAR
-              value: {{ include "opensearch.imageVariant" . }}
+              value: "{{ include "opensearch.imageVariant" . }}"
           resources:
             limits:
               cpu: {{ default "100m" .Values.operator.resources.limits.cpu  }}
