@@ -314,8 +314,6 @@ opensearch:
   sysctl:
     enabled: false
 
-  imageVariant: 2
-
   ## init container to chown the mount volume. not necessary if setting a
   ## fsGroup in the securityContext
   fixmount:

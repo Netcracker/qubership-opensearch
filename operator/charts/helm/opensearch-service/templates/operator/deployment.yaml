@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "opensearch.fullname" . }}-service-operator
-  labels: 
+  labels:
     name: {{ template "opensearch.fullname" . }}-service-operator
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
     app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-service-operator
@@ -90,6 +90,8 @@ spec:
             - name: OPENSEARCH_GKE_SERVICE
               value: {{ template "opensearch-gke-service-name" . }}
             {{ end }}
+            - name: OPENSEARCH_IMAGE_VAR
+              value: {{ include "opensearch.imageVariant" . }}
           resources:
             limits:
               cpu: {{ default "100m" .Values.operator.resources.limits.cpu  }}
