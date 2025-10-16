@@ -1011,7 +1011,7 @@ func (r OpenSearchReconciler) deleteSnapshotsRepository(restClient *util.RestCli
 
 func (r OpenSearchReconciler) updateCompatibilityMode(restClient *util.RestClient) error {
 	imageVar := strings.TrimSpace(os.Getenv("OPENSEARCH_IMAGE_VAR"))
-	fmt.Printf("OPENSEARCH_IMAGE_VAR='%s'\n", imageVar)
+	r.logger.Info(fmt.Sprintf("OPENSEARCH_IMAGE_VAR='%s'\n", imageVar))
 	if imageVar == "2" {
 		value := "null"
 		if r.cr.Spec.OpenSearch.CompatibilityModeEnabled {
