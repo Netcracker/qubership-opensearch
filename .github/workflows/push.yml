@@ -6,9 +6,9 @@ permissions:
 on:
   release:
     types: [created]
-#   push:
-#     branches:
-#       - '**'
+  push:
+    branches:
+      - '**'
 #     paths-ignore:
 #       - 'docs/**'
 #       - 'CODE-OF-CONDUCT.md'
