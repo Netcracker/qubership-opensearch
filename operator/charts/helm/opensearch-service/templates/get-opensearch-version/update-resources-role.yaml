@@ -1,0 +1,19 @@
+{{- if (eq (include "opensearch.imageVariant" .) "2") }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ template "opensearch.fullname" . }}-get-opensearch-ver
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+rules:
+  - apiGroups:
+      - ''
+    resources:
+      - namespaces
+    verbs:
+      - patch
+      - get
+    resourceNames:
+      - {{ .Release.Namespace }}
+{{ end }}

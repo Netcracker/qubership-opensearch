@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -1010,9 +1009,7 @@ func (r OpenSearchReconciler) deleteSnapshotsRepository(restClient *util.RestCli
 }
 
 func (r OpenSearchReconciler) updateCompatibilityMode(restClient *util.RestClient) error {
-	imageVar := strings.TrimSpace(os.Getenv("OPENSEARCH_IMAGE_VAR"))
-	r.logger.Info(fmt.Sprintf("OPENSEARCH_IMAGE_VAR='%s'\n", imageVar))
-	if imageVar == "2" {
+	if r.cr.Spec.OpenSearch.ImageVariant == "2" {
 		value := "null"
 		if r.cr.Spec.OpenSearch.CompatibilityModeEnabled {
 			value = "true"

@@ -952,6 +952,18 @@ Find an OpenSearch image in various places.
     {{- printf "%s" .Values.opensearch.dockerImage -}}
 {{- end -}}
 
+{{- define "validateOpensearchUpgrade" -}}
+{{- $desiredVar := include "opensearch.imageVariant" -}}
+    {{ if eq $desiredVar "2"}}
+       {{- $cm := (lookup "v1" "ConfigMap" .Release.Namespace "opensearch-version") -}}
+       {{- $version := (default "0.0.0" (index $cm.data "version")) -}}
+       {{- if and (ne $version "unknown") (lt ($version | float64) 2.19) }}
+           {{- fail (printf "It is forbidden to upgrade to Opensearch 3.x from previous versions.\n You must migrate Opensearch to Kraft mode before upgrading to 3.x versions, please refer to our migration guide - https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#migration") -}}
+       {{- end }}
+    {{- end }}
+{{- end }}
+
+
 {{/*
 Find an OpenSearch image in various places.
 */}}
