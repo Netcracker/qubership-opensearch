@@ -1,0 +1,16 @@
+{{- if (eq (include "opensearch.imageVariant" .) "2") }}
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ template "opensearch.fullname" . }}-get-opensearch-ver
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+subjects:
+  - kind: ServiceAccount
+    name: {{ template "opensearch.fullname" . }}-get-opensearch-ver
+roleRef:
+  kind: Role
+  name: {{ template "opensearch.fullname" . }}-get-opensearch-ver
+  apiGroup: rbac.authorization.k8s.io
+{{ end }}

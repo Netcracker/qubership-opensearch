@@ -36,6 +36,7 @@ spec:
     {{- if .Values.opensearch.rollingUpdate }}
     statefulSetNames: "{{ trim (include "opensearch.statefulsetNames" .) }}"
     {{ end }}
+    imageVar: "{{ include "opensearch.imageVariant" . }}"
     {{- if .Values.opensearch.snapshots.enabled }}
     snapshots:
       repositoryName: {{ coalesce .Values.opensearch.snapshots.repositoryName .Values.curator.snapshotRepositoryName | default "snapshots" }}

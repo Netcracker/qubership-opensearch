@@ -246,7 +246,7 @@ opensearch:
   discoveryOverride: ""
   compatibilityModeEnabled: false
   gcLoggingEnabled: false
-  performanceAnalyzerEnabled: true
+  performanceAnalyzerEnabled: false
   rollingUpdate: false
   readinessTimeout: "800s"
   securityConfig:

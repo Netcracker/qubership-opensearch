@@ -1009,13 +1009,16 @@ func (r OpenSearchReconciler) deleteSnapshotsRepository(restClient *util.RestCli
 }
 
 func (r OpenSearchReconciler) updateCompatibilityMode(restClient *util.RestClient) error {
-	value := "null"
-	if r.cr.Spec.OpenSearch.CompatibilityModeEnabled {
-		value = "true"
+	if r.cr.Spec.OpenSearch.ImageVariant == "2" {
+		value := "null"
+		if r.cr.Spec.OpenSearch.CompatibilityModeEnabled {
+			value = "true"
+		}
+		r.logger.Info(fmt.Sprintf("Update compatibility mode with '%s' value", value))
+		requestBody := fmt.Sprintf(`{"persistent": {"compatibility.override_main_response_version": %s}}`, value)
+		return r.updateSettings(restClient, strings.NewReader(requestBody))
 	}
-	r.logger.Info(fmt.Sprintf("Update compatibility mode with '%s' value", value))
-	requestBody := fmt.Sprintf(`{"persistent": {"compatibility.override_main_response_version": %s}}`, value)
-	return r.updateSettings(restClient, strings.NewReader(requestBody))
+	return nil
 }
 
 func (r OpenSearchReconciler) getS3Credentials() (string, string) {
