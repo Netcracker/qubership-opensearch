@@ -186,7 +186,7 @@ global:
     indicesPattern: "*"
     remoteCluster: ""
     siteManagerEnabled: true
-    siteManagerApiGroup: "qubership.org"
+    siteManagerApiGroup: "netcracker.com"
     timeout: 600
     afterServices: []
     replicationWatcherEnabled: false

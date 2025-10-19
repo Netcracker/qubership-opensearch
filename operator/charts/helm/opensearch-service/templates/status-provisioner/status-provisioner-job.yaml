@@ -62,7 +62,7 @@ spec:
             - name: POD_READINESS_TIMEOUT
               value: "{{ .Values.statusProvisioner.podReadinessTimeout | default 800 }}"
             - name: MONITORED_CUSTOM_RESOURCES
-              value: {{ printf "qubership.org v1 opensearchservices %s $.status.conditions[?(@.reason=='ReconcileCycleStatus')].type Successful" (include "opensearch.fullname" .) }}
+              value: {{ printf "netcracker.com v1 opensearchservices %s $.status.conditions[?(@.reason=='ReconcileCycleStatus')].type Successful" (include "opensearch.fullname" .) }}
             - name: CR_PROCESSING_TIMEOUT
               value: "{{ .Values.statusProvisioner.crProcessingTimeout | default 600 }}"
           {{- if and .Values.integrationTests.enabled .Values.integrationTests.statusWritingEnabled (not (or (eq .Values.global.disasterRecovery.mode "standby") (eq .Values.global.disasterRecovery.mode "disabled"))) }}
