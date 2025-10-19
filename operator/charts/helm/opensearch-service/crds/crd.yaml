@@ -163,6 +163,8 @@ spec:
                       type: object
                     statefulSetNames:
                       type: string
+                    imageVariant:
+                      type: string
                   required:
                     - dedicatedClientPod
                     - dedicatedDataPod
