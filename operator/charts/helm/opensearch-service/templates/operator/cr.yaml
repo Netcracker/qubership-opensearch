@@ -4,7 +4,6 @@
 {{- if and .Values.deployDescriptor .Values.dockerOpensearch (ne (.Values.DEPLOY_W_HELM | toString) "true") }}
   {{- fail "OpenSearch requires `DEPLOY_W_HELM` parameter to be set to `true` for App Deployer" }}
 {{- end }}
-{{- include "validateOpensearchUpgrade" . -}}
 apiVersion: qubership.org/v1
 kind: OpenSearchService
 metadata:
@@ -16,6 +15,7 @@ metadata:
     name: {{ template "opensearch.fullname" . }}
     component: opensearch-service
 spec:
+  {{- include "validateOpensearchUpgrade" . -}}
   {{- if and .Values.global.externalOpensearch.enabled .Values.global.externalOpensearch.applyConfig }}
   externalOpenSearch:
     url: "{{ .Values.global.externalOpensearch.url }}"
@@ -37,7 +37,7 @@ spec:
     {{- if .Values.opensearch.rollingUpdate }}
     statefulSetNames: "{{ trim (include "opensearch.statefulsetNames" .) }}"
     {{ end }}
-    imageVariant: "{{ include "opensearch.imageVariant" . }}"
+      imageVariant: "{{ include "opensearch.imageVariant" . }}"
     {{- if .Values.opensearch.snapshots.enabled }}
     snapshots:
       repositoryName: {{ coalesce .Values.opensearch.snapshots.repositoryName .Values.curator.snapshotRepositoryName | default "snapshots" }}
