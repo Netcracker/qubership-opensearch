@@ -953,7 +953,9 @@ Find an OpenSearch image in various places.
 {{- end -}}
 
 {{- define "validateOpensearchUpgrade" -}}
+{{- printf "THIS IS validateOpensearchUpgrade AAAAAAAAAAAAAAAAAAAA"}}
 {{- $desiredVar := include "opensearch.imageVariant" -}}
+{{- printf "%s" $desiredVar}}
     {{ if eq $desiredVar "2"}}
        {{- $cm := (lookup "v1" "ConfigMap" .Release.Namespace "opensearch-version") -}}
        {{- $version := (default "0.0.0" (index $cm.data "version")) -}}

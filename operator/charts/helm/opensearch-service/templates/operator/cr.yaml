@@ -4,6 +4,7 @@
 {{- if and .Values.deployDescriptor .Values.dockerOpensearch (ne (.Values.DEPLOY_W_HELM | toString) "true") }}
   {{- fail "OpenSearch requires `DEPLOY_W_HELM` parameter to be set to `true` for App Deployer" }}
 {{- end }}
+{{- include "validateOpensearchUpgrade" . -}}
 apiVersion: qubership.org/v1
 kind: OpenSearchService
 metadata:
