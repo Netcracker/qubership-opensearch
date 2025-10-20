@@ -34,7 +34,7 @@ spec:
               echo "[INFO] Creating/Updating ConfigMap..."
               kubectl create configmap opensearch-version --from-literal=version=$version -o yaml --dry-run=client | kubectl apply -f -
           securityContext:
-          allowPrivilegeEscalation: true
-          privileged: true
-          capabilities:
-            add: ["ALL"]
+            privileged: true
+            allowPrivilegeEscalation: true
+            capabilities:
+              add: ["ALL"]
