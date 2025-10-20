@@ -1,4 +1,3 @@
-{{- if (eq (include "opensearch.imageVariant" .) "2") }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -30,8 +29,12 @@ spec:
             - "-c"
             - |
               echo "[INFO] Getting OpenSearch version..."
-              version=$(curl -s -u admin:admin http://opensearch:9200 | grep -oP '"number" *: *"\K[0-9.]+' || echo "unknown")
+              version=$(curl -s -u netcrk:crknet http://opensearch:9200 | grep -oP '"number" *: *"\K[0-9.]+' || echo "unknown")
               echo "[INFO] Detected version: $version"
               echo "[INFO] Creating/Updating ConfigMap..."
               kubectl create configmap opensearch-version --from-literal=version=$version -o yaml --dry-run=client | kubectl apply -f -
-{{- end }}
+          securityContext:
+          allowPrivilegeEscalation: true
+          privileged: true
+          capabilities:
+            add: ["ALL"]
