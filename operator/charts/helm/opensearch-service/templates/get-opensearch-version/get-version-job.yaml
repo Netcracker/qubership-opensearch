@@ -1,4 +1,3 @@
-{{- if (eq (include "opensearch.imageVariant" .) "3") }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -41,4 +40,3 @@ spec:
               echo "[INFO] Detected version: $version"
               echo "[INFO] Creating/Updating ConfigMap..."
               kubectl create configmap opensearch-version --from-literal=version=$version -o yaml --dry-run=client | kubectl apply -f -
-{{- end }}
