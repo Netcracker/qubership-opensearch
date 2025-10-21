@@ -939,11 +939,7 @@ Find an OpenSearch Dashboards image in various places.
 
 {{- define "opensearch.imageVariant"}}
     {{- $image := include "opensearch.image" . }}
-    {{- if eq (regexFind "opensearch-[0-9]+" $image) "opensearch-3" }}
-    3
-    {{- else }}
-    2
-    {{- end }}
+    {{- if eq (regexFind "opensearch-[0-9]+" $image) "opensearch-3" }}3{{- else }}2{{- end }}
 {{- end -}}
 {{/*
 Find an OpenSearch image in various places.
@@ -954,7 +950,7 @@ Find an OpenSearch image in various places.
 
 {{- define "validateOpensearchUpgrade" -}}
     {{- $desiredVar := include "opensearch.imageVariant" .}}
-    {{ if eq $desiredVar "2"}}
+    {{ if eq $desiredVar "3"}}
        {{- $cm := (lookup "v1" "ConfigMap" .Release.Namespace "opensearch-version") -}}
        {{- $version := (default "0.0.0" (index $cm.data "version")) -}}
        {{- if and (ne $version "unknown") (lt ($version | float64) 2.19) }}
