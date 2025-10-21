@@ -1,3 +1,4 @@
+{{- if .Values.opensearch.rollingUpdate -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -47,3 +48,4 @@ spec:
             limits:
               cpu: {{ default "150m" .Values.updateResourcesJob.resources.limits.cpu }}
               memory: {{ default "150Mi" .Values.updateResourcesJob.resources.limits.memory }}
+{{- end -}}
