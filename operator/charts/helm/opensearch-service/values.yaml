@@ -824,7 +824,7 @@ opensearch:
 
 podScheduler:
   enabled: true
-  dockerImage: bitnami/kubectl:1.30.6
+  dockerImage: artifactorycn.netcracker.com:17152/netcracker/qubership-docker-kubectl:main
   affinity: {}
   nodeSelector: {}
   resources:

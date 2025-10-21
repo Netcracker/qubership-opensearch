@@ -1,10 +1,11 @@
+{{- if (eq (include "opensearch.imageVariant" .) "3") }}
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ template "opensearch.fullname" . }}-get-opensearch-ver
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
-    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-weight": "0"
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 spec:
   template:
@@ -15,11 +16,9 @@ spec:
         component: update-resources
     spec:
       securityContext:
-          {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
-          {{- with .Values.updateResourcesJob.securityContext }}
-          {{- toYaml . | nindent 8 }}
-          {{- end }}
-      restartPolicy: Never
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      restartPolicy: OnFailure
       serviceAccountName: {{ template "opensearch.fullname" . }}-get-opensearch-ver
       containers:
         - name: get-version
@@ -28,13 +27,18 @@ spec:
             - "/bin/bash"
             - "-c"
             - |
+              echo "Disabling compatibility.override_main_response_version..."
+              curl -s -u netcrk:crknet \
+                   -X PUT "http://opensearch:9200/_cluster/settings" \
+                   -H 'Content-Type: application/json' \
+                   -d '{
+                     "persistent": {
+                       "compatibility.override_main_response_version": false
+                     }
+                   }'
               echo "[INFO] Getting OpenSearch version..."
               version=$(curl -s -u netcrk:crknet http://opensearch:9200 | sed -nE 's/.*"number"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' || echo "unknown")
               echo "[INFO] Detected version: $version"
               echo "[INFO] Creating/Updating ConfigMap..."
               kubectl create configmap opensearch-version --from-literal=version=$version -o yaml --dry-run=client | kubectl apply -f -
-          securityContext:
-            privileged: true
-            allowPrivilegeEscalation: true
-            capabilities:
-              add: ["ALL"]
+{{- end }}
