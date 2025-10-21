@@ -1,4 +1,3 @@
-{{- if (eq (include "opensearch.imageVariant" . | trim) "3") }}
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -14,4 +13,3 @@ roleRef:
   kind: Role
   name: {{ template "opensearch.fullname" . }}-get-opensearch-ver
   apiGroup: rbac.authorization.k8s.io
-{{- end }}
