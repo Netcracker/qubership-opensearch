@@ -40,6 +40,7 @@ spec:
               version=$(curl -s -u netcrk:crknet http://opensearch:9200 | sed -nE 's/.*"number"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' || echo "unknown")
               echo "[INFO] Detected version: $version"
               echo "[INFO] Creating/Updating ConfigMap..."
+              helm upgrade opensearch ./chart --set opensearch.currentVersion=$version
               kubectl create configmap opensearch-version --from-literal=version=$version -o yaml --dry-run=client | kubectl apply -f -
           resources:
             requests:

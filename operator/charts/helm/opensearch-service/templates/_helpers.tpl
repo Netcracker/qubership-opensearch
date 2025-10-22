@@ -949,13 +949,12 @@ Find an OpenSearch image in various places.
 {{- end -}}
 
 {{- define "validateOpensearchUpgrade" -}}
-    {{- $desiredVar := include "opensearch.imageVariant" .}}
-    {{ if eq $desiredVar "3"}}
-       {{- $cm := (lookup "v1" "ConfigMap" .Release.Namespace "opensearch-version") -}}
-       {{- $version := (default "0.0.0" (index $cm.data "version")) -}}
-       {{- if and (ne $version "unknown") (lt ($version | float64) 2.19) }}
-           {{- fail (printf "It is forbidden to upgrade to Opensearch 3.x from previous versions.\n You must migrate Opensearch to Kraft mode before upgrading to 3.x versions, please refer to our migration guide - https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#migration") -}}
-       {{- end }}
+   {{- $desiredVar := include "opensearch.imageVariant" . -}}
+   {{- $currentVersion := (default "0.0.0" .Values.opensearch.currentVersion) -}}
+    {{- if and (eq $desiredVar "3") .Values.opensearch.rollingUpdate }}
+        {{- if (lt ($currentVersion | float64) 2.19) }}
+            {{- fail (printf "It is forbidden to upgrade to OpenSearch 3.x from previous versions.\nYou must migrate OpenSearch to Kraft mode before upgrading to 3.x versions.\nSee: https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#migration") -}}
+        {{- end }}
     {{- end }}
 {{- end }}
 
