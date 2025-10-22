@@ -1,4 +1,4 @@
-{{- if and(eq .Values.DEPLOY_MODE "RollingUpdate") (eq (include "opensearch.imageVariant" .) "3") -}}
+{{- if and (eq .Values.DEPLOY_MODE "RollingUpdate") (eq (include "opensearch.imageVariant" .) "3") -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
