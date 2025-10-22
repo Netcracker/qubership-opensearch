@@ -1,4 +1,4 @@
-{{- if .Values.opensearch.rollingUpdate -}}
+{{- if eq .Values.DEPLOY_MODE "RollingUpdate" -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
