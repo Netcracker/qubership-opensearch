@@ -60,8 +60,11 @@ jobs:
           - name: qubership-opensearch-monitoring
             file: monitoring/docker/Dockerfile
             context: monitoring
-          - name: qubership-opensearch-dashboard
-            file: docker-opensearch-dashboard/Dockerfile
+          - name: qubership-opensearch-dashboard-2
+            file: docker-opensearch-dashboard/2x/Dockerfile
+            context: docker-opensearch-dashboard
+          - name: qubership-opensearch-dashboard-3
+            file: docker-opensearch-dashboard/3x/Dockerfile
             context: docker-opensearch-dashboard
           - name: qubership-opensearch-curator
             file: curator/docker/backup-docker/Dockerfile
@@ -72,8 +75,11 @@ jobs:
           - name: qubership-opensearch-dbaas-adapter
             file: dbaas-adapter/docker/Dockerfile
             context: dbaas-adapter
-          - name: qubership-docker-opensearch
-            file: docker-opensearch/docker/Dockerfile
+          - name: qubership-docker-opensearch-2
+            file: docker-opensearch/2x/docker/Dockerfile
+            context: docker-opensearch
+          - name: qubership-docker-opensearch-3
+            file: docker-opensearch/3x/docker/Dockerfile
             context: docker-opensearch
     runs-on: ubuntu-latest
     steps:

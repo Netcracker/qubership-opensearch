@@ -929,15 +929,35 @@ Find a kubectl image in various places.
 Find an OpenSearch Dashboards image in various places.
 */}}
 {{- define "dashboards.image" -}}
+    {{- $desiredVar := include "opensearch.imageVariant" -}}
+    {{ if eq $desiredVar "3"}}
+    opensearchproject/opensearch-dashboards:3.2.0
+    {{- else }}
     {{- printf "%s" .Values.dashboards.dockerImage -}}
+    {{- end }}
 {{- end -}}
 
+{{- define "opensearch.imageVariant"}}
+    {{- $image := include "opensearch.image" . }}
+    {{- if eq (regexFind "opensearch-[0-9]+" $image) "opensearch-3" }}3{{- else }}2{{- end }}
+{{- end -}}
 {{/*
 Find an OpenSearch image in various places.
 */}}
 {{- define "opensearch.image" -}}
     {{- printf "%s" .Values.opensearch.dockerImage -}}
 {{- end -}}
+
+{{- define "validateOpensearchUpgrade" -}}
+   {{- $desiredVar := include "opensearch.imageVariant" . -}}
+   {{- $currentVersion := (default "0.0.0" .Values.opensearch.currentVersion) -}}
+    {{- if and (eq $desiredVar "3") (eq .Values.DEPLOY_MODE "RollingUpdate")}}
+        {{- if (lt ($currentVersion | float64) 2.19) }}
+            {{- fail (printf "It is forbidden to upgrade to OpenSearch 3.x from previous versions.\nYou must migrate OpenSearch to Kraft mode before upgrading to 3.x versions.\nSee: https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#migration") -}}
+        {{- end }}
+    {{- end }}
+{{- end }}
+
 
 {{/*
 Find an OpenSearch image in various places.

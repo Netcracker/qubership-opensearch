@@ -1,0 +1,15 @@
+[paas]
+name=paas
+baseurl=https://mirror.openshift.com/pub/origin/release/1.5/el7/x86_64/
+
+[os]
+name=CentOS 7 - Base
+baseurl=http://mirror.centos.org/centos/7/os/$basearch/
+
+[openstack]
+name=OpenStack Rocky
+baseurl=https://repos.fedorapeople.org/repos/openstack/openstack-rocky/epel-7/$basearch/
+
+[nc_updates]
+name=CentOS 7 - Updates
+baseurl=http://mirror.centos.org/centos/7/updates/$basearch/

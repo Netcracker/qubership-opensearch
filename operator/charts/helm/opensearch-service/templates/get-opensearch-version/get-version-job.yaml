@@ -1,0 +1,56 @@
+{{- if and (eq .Values.DEPLOY_MODE "RollingUpdate") (eq (include "opensearch.imageVariant" .) "3") -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "opensearch.fullname" . }}-get-opensearch-ver
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+spec:
+  template:
+    metadata:
+      name: {{ template "opensearch.fullname" . }}-get-opensearch-ver
+      labels:
+          {{ include "opensearch.labels.standard" . | nindent 8 }}
+        component: update-resources
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      restartPolicy: OnFailure
+      serviceAccountName: {{ template "opensearch.fullname" . }}-get-opensearch-ver
+      containers:
+        - name: get-version
+          image: {{ template "kubectl.image" . }}
+          env:
+            - name: OPENSEARCH_USERNAME
+              value: "{{ include "opensearch.username" . }}"
+            - name: OPENSEARCH_PASSWORD
+              value: "{{ include "opensearch.password" . }}"
+          command:
+            - "/bin/bash"
+            - "-c"
+            - |
+              echo "Disabling compatibility.override_main_response_version..."
+              curl -s -u netcrk:crknet \
+                   -X PUT "http://opensearch:9200/_cluster/settings" \
+                   -H 'Content-Type: application/json' \
+                   -d '{
+                     "persistent": {
+                       "compatibility.override_main_response_version": false
+                     }
+                   }'
+              echo "[INFO] Getting OpenSearch version..."
+              version=$(curl -s -u "${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}" http://opensearch:9200 | sed -nE 's/.*"number"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' || echo "unknown")
+              echo "[INFO] Detected version: $version"
+              echo "[INFO] Creating/Updating ConfigMap..."
+              helm upgrade opensearch ./chart --set opensearch.currentVersion=$version
+          resources:
+            requests:
+              cpu: {{ default "75m" .Values.updateResourcesJob.resources.requests.cpu }}
+              memory: {{ default "75Mi" .Values.updateResourcesJob.resources.requests.memory }}
+            limits:
+              cpu: {{ default "150m" .Values.updateResourcesJob.resources.limits.cpu }}
+              memory: {{ default "150Mi" .Values.updateResourcesJob.resources.limits.memory }}
+{{- end -}}

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "opensearch.fullname" . }}-service-operator
-  labels: 
+  labels:
     name: {{ template "opensearch.fullname" . }}-service-operator
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
     app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-service-operator
