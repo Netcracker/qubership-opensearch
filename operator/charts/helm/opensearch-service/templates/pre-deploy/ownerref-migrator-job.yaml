@@ -92,8 +92,8 @@ spec:
               cpu: {{ .Values.groupMigration.resources.limits.cpu  }}
               memory: {{ .Values.groupMigration.resources.limits.memory }}
             requests:
-              cpu: {{ .Values.operator.resources.requests.cpu }}
-              memory: {{ .Values.operator.resources.requests.memory }}
+              cpu: {{ .Values.groupMigration.resources.requests.cpu }}
+              memory: {{ .Values.groupMigration.resources.requests.memory }}
           {{- if .Values.groupMigration.runAsNonRoot }}
           securityContext:
             allowPrivilegeEscalation: false
