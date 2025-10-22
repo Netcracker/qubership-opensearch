@@ -37,7 +37,7 @@ spec:
                      }
                    }'
               echo "[INFO] Getting OpenSearch version..."
-              version=$(curl -s -u netcrk:crknet http://opensearch:9200 | sed -nE 's/.*"number"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' || echo "unknown")
+              version=$(curl -s -u "{{ include "opensearch.username" . }}:{{ include "opensearch.password" . }}" http://opensearch:9200 | sed -nE 's/.*"number"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' || echo "unknown")
               echo "[INFO] Detected version: $version"
               echo "[INFO] Creating/Updating ConfigMap..."
               helm upgrade opensearch ./chart --set opensearch.currentVersion=$version
