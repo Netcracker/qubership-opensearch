@@ -6,6 +6,11 @@
       "context": "integration-tests"
     },
     {
+      "name": "qubership-opensearch-tls-init",
+      "file": "tls-init/docker/Dockerfile",
+      "context": "tls-init"
+    },
+    {
       "name": "qubership-opensearch-operator",
       "file": "operator/Dockerfile",
       "context": "operator"
@@ -13,12 +18,7 @@
     {
       "name": "qubership-opensearch-transfer",
       "file": "docker-transfer/Dockerfile",
-      "context": "."
-    },
-    {
-      "name": "qubership-opensearch-tls-init",
-      "file": "tls-init/docker/Dockerfile",
-      "context": "tls-init"
+      "context": ""
     },
     {
       "name": "qubership-opensearch-monitoring",
@@ -29,11 +29,6 @@
       "name": "qubership-opensearch-dashboard",
       "file": "docker-opensearch-dashboard/Dockerfile",
       "context": "docker-opensearch-dashboard"
-    },
-    {
-      "name": "qubership-docker-opensearch",
-      "file": "docker-opensearch/docker/Dockerfile",
-      "context": "docker-opensearch"
     },
     {
       "name": "qubership-opensearch-curator",
@@ -49,6 +44,11 @@
       "name": "qubership-opensearch-dbaas-adapter",
       "file": "dbaas-adapter/docker/Dockerfile",
       "context": "dbaas-adapter"
+    },
+    {
+      "name": "qubership-docker-opensearch",
+      "file": "docker-opensearch/docker/Dockerfile",
+      "context": "docker-opensearch"
     }
   ],
   "platforms": "linux/amd64,linux/arm64"

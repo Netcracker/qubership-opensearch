@@ -32,6 +32,7 @@ COPY health health
 COPY physical physical
 COPY server server
 
+
 RUN go mod tidy
 
 RUN go test -v ./...

@@ -10,7 +10,7 @@ RUN mvn dependency:go-offline
 COPY opensearch-filter-plugin /build
 RUN mvn clean package
 
-FROM opensearchproject/opensearch:2.19.2
+FROM opensearchproject/opensearch:2.19.3
 
 USER 0
 
@@ -27,26 +27,26 @@ COPY docker/docker-entrypoint.sh /
 # Install the tools we need
 #RUN yum install --disablerepo=* --enablerepo=paas,os,openstack,nc_updates --nogpgcheck -y jq \
 #    && yum clean all \
-RUN yum install --nogpgcheck -y jq \
+RUN yum install -y jq \
     && yum clean all
 
 # Upgrade all tools to avoid vulnerabilities
 #RUN yum update --disablerepo=* --enablerepo=os,nc_updates --nogpgcheck --assumeyes --skip-broken
-RUN yum update --nogpgcheck --assumeyes --skip-broken
+RUN yum update --assumeyes --skip-broken
 
 RUN echo "Download OpenSearch plugins..." \
-  && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/2.19.2/repository-s3-2.19.2.zip" \
-    -o ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.2.zip \
-  && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/2.19.2/repository-gcs-2.19.2.zip" \
-    -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.2.zip \
-  && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.2.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.2.zip ]; then \
-       echo "Plugins downloaded successfully."; \
-     else \
-       echo "Plugin download failed"; \
-       exit 1; \
-     fi
+    && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/2.19.3/repository-s3-2.19.3.zip" \
+    -o ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.3.zip \
+    && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/2.19.3/repository-gcs-2.19.3.zip" \
+    -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.3.zip \
+    && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.3.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.3.zip ]; then \
+        echo "Plugins downloaded successfully."; \
+    else \
+        echo "Plugin download failed"; \
+    exit 1; \
+    fi
 
-COPY --from=builder /build/target/opensearch-filter-plugin-2.19.2.0.zip  ${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/opensearch-filter-plugin-2.19.2.0.zip
+COPY --from=builder /build/target/opensearch-filter-plugin-2.19.3.0.zip  ${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/opensearch-filter-plugin-2.19.3.0.zip
 
 # Adapt grants
 RUN set -x \
@@ -62,9 +62,9 @@ RUN set -x \
             /usr/share/opensearch/jdk \
             /usr/share/opensearch/plugins \
             /usr/share/opensearch/dist \
-       ; do \
-         chmod -R 777 "$path"; \
-       done
+        ; do \
+        chmod -R 777 "$path"; \
+        done
 
 USER 1000
 

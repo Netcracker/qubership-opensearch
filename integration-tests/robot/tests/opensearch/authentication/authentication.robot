@@ -17,24 +17,24 @@ Resource  ../shared/keywords.robot
 Send Request With Basic Authentication
     [Arguments]  ${path}
     ${response}=  Get Request  opensearch  ${path}
-    [Return]  ${response}
+    RETURN  ${response}
 
 Register New Client
     [Documentation]  Registers new Identity Provider client
     ${client}=  Register Client  ${CLIENT_NAME}
-    [Return]  ${client['client_id']}
+    RETURN  ${client['client_id']}
 
 Get New Token
     [Documentation]  Provides new access token or refresh existed (creates new client if it is necessary)
     ${client_id}=  Register New Client
     ${token}=  Get Token  ${client_id}
-    [Return]  ${token}
+    RETURN  ${token}
 
 Send Request With OAuth Token
     [Arguments]  ${endpoint}  ${token}  ${data}=${None}
     &{headers}=  Create Dictionary  Authorization=Bearer ${token}
     ${response}=  Get Request  opensearch  ${endpoint}  headers=${headers}
-    [Return]  ${response}
+    RETURN  ${response}
 
 *** Test Cases ***
 Basic Authentication With Valid Credentials

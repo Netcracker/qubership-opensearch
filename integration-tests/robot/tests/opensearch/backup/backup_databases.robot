@@ -61,7 +61,7 @@ Generate And Add Unique Data To Index By Id
     ${document_name}=  Generate Random String  10
     ${document}=  Set Variable  {"name": "${document_name}", "age": "10"}
     Add Document To Index By Id  ${index_name}  ${document}  ${id}
-    [Return]  ${document_name}
+    RETURN  ${document_name}
 
 Granular Backup
     [Arguments]  ${databases}
@@ -70,7 +70,7 @@ Granular Backup
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${response.content}
-    [Return]  ${response.text}
+    RETURN  ${response.text}
 
 Check Backup Status
     [Arguments]  ${backup_id}
