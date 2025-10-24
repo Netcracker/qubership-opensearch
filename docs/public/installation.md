@@ -279,6 +279,18 @@ To avoid using `cluster-wide` rights during the deployment, the following condit
           - create
           - get
           - patch
+      - apiGroups:
+          - apps
+        resources:
+          - daemonsets
+        verbs:
+          - create
+          - get
+          - list
+          - patch
+          - update
+          - watch
+          - delete
     ```
 
     </details>
