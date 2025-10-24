@@ -5,7 +5,7 @@ metadata:
   name: opensearchservice-viewer-role
 rules:
 - apiGroups:
-  - qubership.org
+  - netcracker.com
   resources:
   - opensearchservices
   verbs:
@@ -13,7 +13,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - qubership.org
+  - netcracker.com
   resources:
   - opensearchservices/status
   verbs:

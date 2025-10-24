@@ -9,7 +9,7 @@ metadata:
 {{ include "opensearch-service.defaultLabels" . | indent 4 }}
 rules:
   - apiGroups:
-      - qubership.org
+      - netcracker.com
     resources:
       - "*"
     verbs:

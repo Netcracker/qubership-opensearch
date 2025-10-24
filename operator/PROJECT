@@ -1,4 +1,4 @@
-domain: qubership.org
+domain: netcracker.com
 layout:
 - go.kubebuilder.io/v3
 plugins:
@@ -11,7 +11,7 @@ resources:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: qubership.org
+  domain: netcracker.com
   kind: OpenSearchService
   path: github.com/Netcracker/qubership-opensearch/operator/api/v1
   version: v1

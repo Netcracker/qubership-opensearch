@@ -71,9 +71,9 @@ func (nre NotReadyError) Error() string {
 	return message
 }
 
-//+kubebuilder:rbac:groups=qubership.org,resources=opensearchservices,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=qubership.org,resources=opensearchservices/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=qubership.org,resources=opensearchservices/finalizers,verbs=update
+//+kubebuilder:rbac:groups=netcracker.com,resources=opensearchservices,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=netcracker.com,resources=opensearchservices/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=netcracker.com,resources=opensearchservices/finalizers,verbs=update
 
 func (r *OpenSearchServiceReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)

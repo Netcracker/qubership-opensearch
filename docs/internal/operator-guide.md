@@ -100,7 +100,7 @@ If API model has incompatible changes, new application version should be release
     make manifests
     ```
 
-   Make sure generated CRD `operator/config/crd/bases/qubership.org_opensearchservices.yaml` contains new version.
+   Make sure generated CRD `operator/config/crd/bases/netcracker.com_opensearchservices.yaml` contains new version.
 
 7. Copy new generated CRD to `operator/charts/helm/opensearch-service/crds/crd.yaml` file.
 
@@ -110,10 +110,10 @@ If API model has incompatible changes, new application version should be release
 
 _operator-sdk_:
 
-* `operator-sdk create api --group qubership.org --version <new_version> --kind=OpenSearchService --resource` is
+* `operator-sdk create api --group netcracker.com --version <new_version> --kind=OpenSearchService --resource` is
   the command to add a new custom resource definition API called OpenSearchService, with APIVersion
-  `qubership.org/<new_version>` and Kind `OpenSearchService`.
-* `operator-sdk create api --group qubership.org --version <new_version> --kind=OpenSearchService --controller`
+  `netcracker.com/<new_version>` and Kind `OpenSearchService`.
+* `operator-sdk create api --group netcracker.com --version <new_version> --kind=OpenSearchService --controller`
   is the command to add a new controller to the project that will watch and reconcile the OpenSearchService resource.
 * `make generate` is the command to update the generated code for the OpenSearchService resource.
   You should run this command every time when you change `opensearchservice_types.go`.
