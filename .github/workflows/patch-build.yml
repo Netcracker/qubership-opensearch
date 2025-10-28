@@ -37,6 +37,7 @@ jobs:
       components: ${{ steps.load.outputs.components }}
       platforms: ${{ steps.load.outputs.platforms }}
       tags: "${{ steps.meta.outputs.result }}"
+      custom-image-tag: "${{ steps.custom-base-image.outputs.custom_base_image }}"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -55,6 +56,11 @@ jobs:
           extra-tags: ${{ github.event.inputs.tags }}
           replace-symbol: ${{ github.event.inputs.replace-symbol }}
           dry-run: ${{ inputs.dry-run }}
+      - name: Add build-args if triggered by repository_dispatch event
+        if: ${{ github.event_name == 'repository_dispatch' }}
+        id: custom-base-image
+        run: |
+          echo "custom_base_image=${{ github.event.client_payload.custom_opensearch_version }}" >> $GITHUB_OUTPUT
 
   build:
     name: Build Docker Images
@@ -68,6 +74,10 @@ jobs:
       matrix:
         component: ${{ fromJson(needs.prepare.outputs.components) }}
     steps:
+      - name: Add build arg
+        if: ${{ github.event_name == 'repository_dispatch' }}
+        run: |
+          echo "CUSTOM_BASE_IMAGE_ARG='OPENSEARCH_BASE=${{ needs.prepare.outputs.custom-image-tag }}'" >> "$GITHUB_ENV"
       - name: Docker
         uses: netcracker/qubership-workflow-hub/actions/docker-action@0f2be042d7c833c6bf60df85732609b7991fb821 #2.0.0
         with:
@@ -77,5 +87,6 @@ jobs:
           component: ${{ toJson(matrix.component) }}
           platforms: ${{ needs.prepare.outputs.platforms }}
           tags: ${{ needs.prepare.outputs.tags }}
+          build-args: ${{ env.CUSTOM_BASE_IMAGE_ARG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
