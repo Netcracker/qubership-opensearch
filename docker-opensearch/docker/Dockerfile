@@ -11,7 +11,7 @@ COPY opensearch-filter-plugin /build
 RUN mvn clean package
 
 ARG OPENSEARCH_BASE='opensearchproject/opensearch:2.19.3'
-FROM ${OPENSEARCH_BASE}
+FROM $OPENSEARCH_BASE
 
 USER 0
 
