@@ -929,7 +929,7 @@ Find a kubectl image in various places.
 Find an OpenSearch Dashboards image in various places.
 */}}
 {{- define "dashboards.image" -}}
-    {{- $desiredVar := include "opensearch.imageVariant" -}}
+    {{- $desiredVar := include "opensearch.imageVariant" . }}
     {{ if eq $desiredVar "3"}}
     opensearchproject/opensearch-dashboards:3.2.0
     {{- else }}
