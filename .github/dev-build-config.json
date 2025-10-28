@@ -48,7 +48,8 @@
     {
       "name": "qubership-docker-opensearch",
       "file": "docker-opensearch/docker/Dockerfile",
-      "context": "docker-opensearch"
+      "context": "docker-opensearch",
+      "arguments": "NODE_ENV=production"
     }
   ],
   "platforms": "linux/amd64,linux/arm64"
