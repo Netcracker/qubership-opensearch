@@ -77,7 +77,7 @@ jobs:
       - name: Add build arg
         if: ${{ github.event_name == 'repository_dispatch' }}
         run: |
-          echo "CUSTOM_BASE_IMAGE_ARG='OPENSEARCH_BASE=${{ needs.prepare.outputs.custom-image-tag }}'" >> "$GITHUB_ENV"
+          echo "CUSTOM_BASE_IMAGE_ARG=OPENSEARCH_BASE=${{ needs.prepare.outputs.custom-image-tag }}" >> "$GITHUB_ENV"
       - name: Docker
         uses: netcracker/qubership-workflow-hub/actions/docker-action@0f2be042d7c833c6bf60df85732609b7991fb821 #2.0.0
         with:
