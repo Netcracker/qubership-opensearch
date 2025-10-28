@@ -1,3 +1,5 @@
+ARG OPENSEARCH_BASE='opensearchproject/opensearch:2.19.3'
+
 FROM amazoncorretto:11-alpine AS builder
 
 RUN apk add --no-cache maven git
@@ -10,7 +12,6 @@ RUN mvn dependency:go-offline
 COPY opensearch-filter-plugin /build
 RUN mvn clean package
 
-ARG OPENSEARCH_BASE='opensearchproject/opensearch:2.19.3'
 FROM $OPENSEARCH_BASE
 
 USER 0
