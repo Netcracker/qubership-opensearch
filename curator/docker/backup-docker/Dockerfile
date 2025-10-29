@@ -33,7 +33,7 @@ RUN chmod +x ${ELASTICSEARCH_CURATOR_HOME}/*
 RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
     && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
     && apk add --update --upgrade --no-cache \
-        pcre2
+        pcre2 libcurl curl
 
 USER 1000:0
 
