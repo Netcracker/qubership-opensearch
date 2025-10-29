@@ -1,5 +1,5 @@
-botocore==1.40.55
-boto3==1.40.58
+botocore==1.40.61
+boto3==2.49.0
 curator-opensearch==0.0.13
 opensearch-py==3.0.0
 schedule==1.2.2
