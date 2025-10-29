@@ -21,6 +21,11 @@ RUN set -x \
     && apk add --no-cache curl \
     && rm -rf /var/cache/apk/*
 
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
+    && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
+    && apk add --update --upgrade --no-cache \
+        libcurl curl
+
 USER 1000:0
 
 EXPOSE 8080
