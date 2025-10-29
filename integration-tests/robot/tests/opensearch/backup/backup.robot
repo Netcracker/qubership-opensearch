@@ -77,5 +77,5 @@ Unauthorized Access
     [Tags]  opensearch  backup  unauthorized_access
     Create Session  curator_unauthorized  ${OPENSEARCH_CURATOR_PROTOCOL}://${OPENSEARCH_CURATOR_HOST}:${OPENSEARCH_CURATOR_PORT}
     ...  disable_warnings=1
-    ${response}=  Post Request  curator_unauthorized  /backup
+    ${response}=  POST On Session  curator_unauthorized  /backup
     Should Be Equal As Strings  ${response.status_code}  401
