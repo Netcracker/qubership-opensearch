@@ -249,7 +249,6 @@ opensearch:
   performanceAnalyzerEnabled: false
   rollingUpdate: false
   readinessTimeout: "800s"
-  currentVersion: ""
   securityConfig:
     enabled: true
     path: "/usr/share/opensearch/config/opensearch-security"
