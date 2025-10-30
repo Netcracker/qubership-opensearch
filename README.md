@@ -86,5 +86,5 @@ To keep the component up to date, the following activities should be performed r
 
 ## Useful links
 
-* [OpenSearch Doc Portal](https://opensearch.org/docs/latest/)
+* [OpenSearch Doc Portal](https://opensearch.org/docs/latest/).
 * [Internal Developer Guide](/docs/internal/developing.md).
