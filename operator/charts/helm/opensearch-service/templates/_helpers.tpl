@@ -962,7 +962,7 @@ Find an OpenSearch image in various places.
                 {{- $rawVer := (index $cm.data "version") -}}
                 {{- $trimmedVer := regexFind "^[0-9]+\\.[0-9]+" $rawVer | default "0.0" -}}
                 {{- $ver := ($trimmedVer | float64) -}}
-                {{- if (lt ($ver | float64) 2.19) }}
+                {{- if (lt $ver 2.19) }}
                     {{- fail (printf "It is forbidden to upgrade to OpenSearch 3.x from previous versions.\nYou must migrate OpenSearch to Kraft mode before upgrading to 3.x versions.\nSee: https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#migration") -}}
                 {{- end }}
             {{- end }}
