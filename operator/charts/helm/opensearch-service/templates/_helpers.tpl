@@ -957,10 +957,12 @@ Find an OpenSearch image in various places.
    {{- $cr := lookup $apiVersion $kind $ns $name -}}
    {{- if $cr -}}
         {{- if and (eq $desiredVar "3") (eq .Values.DEPLOY_MODE "RollingUpdate") }}
-            {{- $cm := (lookup "v1" "ConfigMap" .Release.Namespace "opensearch-version") -}}
+            {{- $cm := (lookup "v1" "ConfigMap" $ns "opensearch-version") -}}
             {{- if $cm }}
-                {{- $currentVersion := (index $cm.data "version") -}}
-                {{- if (lt ($currentVersion | float64) 2.19) }}
+                {{- $rawVer := (index $cm.data "version") -}}
+                {{- $trimmedVer := regexFind "^[0-9]+\\.[0-9]+" $rawVer | default "0.0" -}}
+                {{- $ver := ($trimmedVer | float64) -}}
+                {{- if (lt ($ver | float64) 2.19) }}
                     {{- fail (printf "It is forbidden to upgrade to OpenSearch 3.x from previous versions.\nYou must migrate OpenSearch to Kraft mode before upgrading to 3.x versions.\nSee: https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#migration") -}}
                 {{- end }}
             {{- end }}
