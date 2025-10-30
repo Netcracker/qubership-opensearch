@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -1046,8 +1045,8 @@ func (r OpenSearchReconciler) getSnapshotsRepositoryBody() string {
 			s3Url := r.cr.Spec.OpenSearch.Snapshots.S3.Url
 			s3BasePath := r.cr.Spec.OpenSearch.Snapshots.S3.BasePath
 			s3Region := r.cr.Spec.OpenSearch.Snapshots.S3.Region
-			s3PathStyleAccess := strconv.FormatBool(r.cr.Spec.OpenSearch.Snapshots.S3.PathStyleAccess)
-			return fmt.Sprintf(`{"type": "s3", "settings": {"base_path": "%s", "bucket": "%s", "region": "%s", "endpoint": "%s", "protocol": "http", "access_key": "%s", "secret_key": "%s", "compress": true, "path_style_access": "%s"}}`, s3BasePath, s3Bucket, s3Region, s3Url, s3KeyId, s3KeySecret, s3PathStyleAccess)
+			s3PathStyleAccess := r.cr.Spec.OpenSearch.Snapshots.S3.PathStyleAccess
+			return fmt.Sprintf(`{"type": "s3", "settings": {"base_path": "%s", "bucket": "%s", "region": "%s", "endpoint": "%s", "protocol": "http", "access_key": "%s", "secret_key": "%s", "compress": true, "path_style_access": %v}}`, s3BasePath, s3Bucket, s3Region, s3Url, s3KeyId, s3KeySecret, s3PathStyleAccess)
 		}
 	}
 	return `{"type": "fs", "settings": {"location": "/usr/share/opensearch/snapshots", "compress": true}}`
