@@ -33,7 +33,7 @@ spec:
             - "-c"
             - |
               echo "Disabling compatibility.override_main_response_version..."
-              curl --connect-timeout 5 --max-time 10 --retry 3 --retry-delay 2 -s -u "${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}" \
+              curl -s -u "${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}" \
                    -X PUT "http://opensearch:9200/_cluster/settings" \
                    -H 'Content-Type: application/json' \
                    -d '{
@@ -42,11 +42,7 @@ spec:
                      }
                    }'
               echo "[INFO] Getting OpenSearch version..."
-              version=$(curl --connect-timeout 5 --max-time 10 -s -u "${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}" http://opensearch:9200 | sed -nE 's/.*"number"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' || echo "")
-              if [ -z "$version" ]; then
-                  echo "[WARN] OpenSearch not available yet, skipping version detection."
-                  exit 0
-              fi
+              version=$(curl -s -u "${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}" http://opensearch:9200 | sed -nE 's/.*"number"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' || echo "")
               echo "[INFO] Detected version: $version"
               echo "[INFO] Creating/Updating ConfigMap..."
               helm upgrade opensearch ./chart --set opensearch.currentVersion=$version
