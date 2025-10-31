@@ -41,7 +41,6 @@ spec:
               set -euo pipefail
 
               echo "Disabling compatibility.override_main_response_version..."
-              # Если этот PUT вернётся с ошибкой — остановим Job (и тем самым прекратим апгрейд)
               curl -s -u "${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}" \
                    -X PUT "http://opensearch:9200/_cluster/settings" \
                    -H 'Content-Type: application/json' \
@@ -66,10 +65,11 @@ spec:
               fi
               echo "[INFO] Parsed major.minor: $major_minor"
 
-              # Проверка минимальной версии (через awk, т.к. bash с float плохо работает)
               awk -v v="$major_minor" 'BEGIN {
                 if (v+0 < 2.19) {
-                  printf "It is forbidden to upgrade to OpenSearch 3.x from version %s. You must migrate to Kraft mode first.\n", v;
+                  msg = sprintf("It is forbidden to upgrade to OpenSearch 3.x from version %s.\nYou must migrate OpenSearch to Kraft mode before upgrading to 3.x versions.\nSee: https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#migration", v)
+                  print msg
+                  print msg > "/dev/termination-log"
                   exit 1;
                 } else {
                   printf "Version check passed: %s\n", v;
@@ -77,7 +77,6 @@ spec:
               }'
 
               echo "[INFO] Creating/Updating ConfigMap..."
-              # Патчим либо создаём ConfigMap с версией в ней
               if kubectl get configmap opensearch-version -n {{ .Release.Namespace }} >/dev/null 2>&1; then
                 kubectl patch configmap opensearch-version -n {{ .Release.Namespace }} \
                   --type merge -p "{\"data\":{\"version\":\"$version\"}}" || \
@@ -89,4 +88,11 @@ spec:
               fi
 
               echo "[INFO] Done. Version validated and ConfigMap updated."
+          resources:
+            requests:
+              cpu: {{ default "75m" .Values.validateOpensearchUpgrade.resources.requests.cpu }}
+              memory: {{ default "75Mi" .Values.validateOpensearchUpgrade.resources.requests.memory }}
+            limits:
+              cpu: {{ default "150m" .Values.validateOpensearchUpgrade.resources.limits.cpu }}
+              memory: {{ default "150Mi" .Values.validateOpensearchUpgrade.resources.limits.memory }}
 {{- end -}}

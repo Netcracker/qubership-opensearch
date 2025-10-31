@@ -1111,6 +1111,15 @@ updateResourcesJob:
       cpu: "150m"
   securityContext: {}
 
+validateOpensearchUpgrade:
+  resources:
+    requests:
+      memory: "75Mi"
+      cpu: "75m"
+    limits:
+      memory: "150Mi"
+      cpu: "150m"
+
 integrationTests:
   enabled: false
   dockerImage: ghcr.io/netcracker/qubership-opensearch-integration-tests:main
