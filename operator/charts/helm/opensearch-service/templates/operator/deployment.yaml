@@ -9,7 +9,6 @@ metadata:
     app.kubernetes.io/instance: {{ cat (printf "%s-service-operator"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
     app.kubernetes.io/technology: python
 spec:
-  {{- include "validateOpensearchUpgrade" . -}}
   replicas: {{ default 1 .Values.operator.replicas }}
   selector:
     matchLabels:
