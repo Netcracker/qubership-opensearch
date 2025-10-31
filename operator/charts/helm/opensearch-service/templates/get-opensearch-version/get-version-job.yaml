@@ -1,27 +1,33 @@
-{{- if and (eq .Values.DEPLOY_MODE "RollingUpdate") (eq (include "opensearch.imageVariant" .) "3") -}}
+{{- $ns := .Release.Namespace -}}
+{{- $apiVersion := "netcracker.com/v1" -}}
+{{- $kind := "OpenSearchService" -}}
+{{- $name := include "opensearch.name" . -}}
+{{- $cr := lookup $apiVersion $kind $ns $name -}}
+
+{{- if and $cr (eq .Values.DEPLOY_MODE "RollingUpdate") (eq (include "opensearch.imageVariant" .) "3") -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ template "opensearch.fullname" . }}-get-opensearch-ver
+  name: {{ template "opensearch.fullname" . }}-validate-opensearch-upgrade
   annotations:
     "helm.sh/hook": pre-upgrade
     "helm.sh/hook-weight": "0"
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 spec:
+  backoffLimit: 0
   template:
     metadata:
-      name: {{ template "opensearch.fullname" . }}-get-opensearch-ver
       labels:
-          {{ include "opensearch.labels.standard" . | nindent 8 }}
-        component: update-resources
+        {{ include "opensearch.labels.standard" . | nindent 8 }}
+        component: version-check
     spec:
+      restartPolicy: Never
+      serviceAccountName: {{ template "opensearch.fullname" . }}-get-opensearch-ver
       securityContext:
         runAsNonRoot: true
         seccompProfile: { type: RuntimeDefault }
-      restartPolicy: OnFailure
-      serviceAccountName: {{ template "opensearch.fullname" . }}-get-opensearch-ver
       containers:
-        - name: get-version
+        - name: validate-version
           image: {{ template "kubectl.image" . }}
           env:
             - name: OPENSEARCH_USERNAME
@@ -30,9 +36,12 @@ spec:
               value: "{{ include "opensearch.password" . }}"
           command:
             - "/bin/bash"
-            - "-c"
+            - "-ce"
             - |
+              set -euo pipefail
+
               echo "Disabling compatibility.override_main_response_version..."
+              # Если этот PUT вернётся с ошибкой — остановим Job (и тем самым прекратим апгрейд)
               curl -s -u "${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}" \
                    -X PUT "http://opensearch:9200/_cluster/settings" \
                    -H 'Content-Type: application/json' \
@@ -40,19 +49,44 @@ spec:
                      "persistent": {
                        "compatibility.override_main_response_version": false
                      }
-                   }'
+                   }' >/dev/null || { echo "Failed to disable compatibility.override_main_response_version"; exit 1; }
+
               echo "[INFO] Getting OpenSearch version..."
-              version=$(curl -s -u "${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}" http://opensearch:9200 | sed -nE 's/.*"number"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' || echo "")
+              version=$(curl -s -u "${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}" http://opensearch:9200 | sed -nE 's/.*"number"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' || true)
+              if [ -z "$version" ]; then
+                echo "Could not determine OpenSearch version from http://opensearch:9200"
+                exit 1
+              fi
               echo "[INFO] Detected version: $version"
+
+              major_minor=$(echo "$version" | grep -Eo '^[0-9]+\.[0-9]+' || true)
+              if [ -z "$major_minor" ]; then
+                echo "Failed to parse major.minor from version: $version"
+                exit 1
+              fi
+              echo "[INFO] Parsed major.minor: $major_minor"
+
+              # Проверка минимальной версии (через awk, т.к. bash с float плохо работает)
+              awk -v v="$major_minor" 'BEGIN {
+                if (v+0 < 2.19) {
+                  printf "It is forbidden to upgrade to OpenSearch 3.x from version %s. You must migrate to Kraft mode first.\n", v;
+                  exit 1;
+                } else {
+                  printf "Version check passed: %s\n", v;
+                }
+              }'
+
               echo "[INFO] Creating/Updating ConfigMap..."
-              kubectl patch configmap opensearch-version \
-                --type merge \
-                -p "{\"data\":{\"version\":\"$version\"}}"
-          resources:
-            requests:
-              cpu: {{ default "75m" .Values.updateResourcesJob.resources.requests.cpu }}
-              memory: {{ default "75Mi" .Values.updateResourcesJob.resources.requests.memory }}
-            limits:
-              cpu: {{ default "150m" .Values.updateResourcesJob.resources.limits.cpu }}
-              memory: {{ default "150Mi" .Values.updateResourcesJob.resources.limits.memory }}
+              # Патчим либо создаём ConfigMap с версией в ней
+              if kubectl get configmap opensearch-version -n {{ .Release.Namespace }} >/dev/null 2>&1; then
+                kubectl patch configmap opensearch-version -n {{ .Release.Namespace }} \
+                  --type merge -p "{\"data\":{\"version\":\"$version\"}}" || \
+                { echo "Failed to patch ConfigMap opensearch-version"; exit 1; }
+              else
+                kubectl create configmap opensearch-version -n {{ .Release.Namespace }} \
+                  --from-literal=version="$version" || \
+                { echo "Failed to create ConfigMap opensearch-version"; exit 1; }
+              fi
+
+              echo "[INFO] Done. Version validated and ConfigMap updated."
 {{- end -}}
