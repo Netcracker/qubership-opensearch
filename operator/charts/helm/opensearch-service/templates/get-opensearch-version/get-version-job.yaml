@@ -45,7 +45,9 @@ spec:
               version=$(curl -s -u "${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}" http://opensearch:9200 | sed -nE 's/.*"number"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' || echo "")
               echo "[INFO] Detected version: $version"
               echo "[INFO] Creating/Updating ConfigMap..."
-              kubectl create configmap opensearch-version --from-literal=version=$version -o yaml --dry-run=client | kubectl apply -f -
+              kubectl patch configmap opensearch-version \
+                --type merge \
+                -p "{\"data\":{\"version\":\"$version\"}}"
           resources:
             requests:
               cpu: {{ default "75m" .Values.updateResourcesJob.resources.requests.cpu }}

@@ -1,0 +1,11 @@
+{{- if not (lookup "v1" "ConfigMap" .Release.Namespace "opensearch-version") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opensearch-version
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: opensearch
+data:
+  version: "0.0.0"
+{{- end }}
