@@ -22,7 +22,7 @@ spec:
         component: version-check
     spec:
       restartPolicy: Never
-      serviceAccountName: {{ template "opensearch.fullname" . }}-get-opensearch-ver
+      serviceAccountName: {{ template "opensearch.fullname" . }}-validate-opensearch-upgrade
       securityContext:
         runAsNonRoot: true
         seccompProfile: { type: RuntimeDefault }
