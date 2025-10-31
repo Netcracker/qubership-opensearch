@@ -15,7 +15,6 @@ metadata:
     name: {{ template "opensearch.fullname" . }}
     component: opensearch-service
 spec:
-  {{- include "validateOpensearchUpgrade" . -}}
   {{- if and .Values.global.externalOpensearch.enabled .Values.global.externalOpensearch.applyConfig }}
   externalOpenSearch:
     url: "{{ .Values.global.externalOpensearch.url }}"
