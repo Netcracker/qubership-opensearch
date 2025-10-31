@@ -955,18 +955,20 @@ Find an OpenSearch image in various places.
    {{- $kind := "OpenSearchService" -}}
    {{- $desiredVar := include "opensearch.imageVariant" . -}}
    {{- $cr := lookup $apiVersion $kind $ns $name -}}
-   {{- if and (eq $desiredVar "3") (eq .Values.DEPLOY_MODE "RollingUpdate") }}
-      {{- $cm := (lookup "v1" "ConfigMap" $ns "opensearch-version") -}}
-      {{- $currentVersion := (index $cm.data "version") -}}
-      {{- $versionStr := ($currentVersion | trim | regexFind "^[0-9]+\\.[0-9]+") -}}
-      {{- if not $versionStr }}
-         {{- fail "Cannot extract version number from ConfigMap: missing or invalid format" -}}
-      {{- end -}}
-      {{- $versionNum := float64 $versionStr -}}
-      {{- if lt $versionNum 2.19 }}
-         {{- fail (printf "It is forbidden to upgrade to OpenSearch 3.x from previous versions.\nYou must migrate OpenSearch to Kraft mode before upgrading to 3.x versions.") -}}
-      {{- end }}
-      {{- printf "currentVersion: '%s', regex result: '%s', versionNum: '%v'\n" $currentVersion ($currentVersion | regexFind "^[0-9]+\\.[0-9]+") ($currentVersion | regexFind "^[0-9]+\\.[0-9]+" | float64) | fail -}}
+   {{- if $cr }}
+        {{- if and (eq $desiredVar "3") (eq .Values.DEPLOY_MODE "RollingUpdate") }}
+          {{- $cm := (lookup "v1" "ConfigMap" $ns "opensearch-version") -}}
+          {{- $currentVersion := (index $cm.data "version") -}}
+          {{- $versionStr := ($currentVersion | trim | regexFind "^[0-9]+\\.[0-9]+") -}}
+          {{- if not $versionStr }}
+             {{- fail "Cannot extract version number from ConfigMap: missing or invalid format" -}}
+          {{- end -}}
+          {{- $versionNum := float64 $versionStr -}}
+          {{- if lt $versionNum 2.19 }}
+             {{- fail (printf "It is forbidden to upgrade to OpenSearch 3.x from previous versions.\nYou must migrate OpenSearch to Kraft mode before upgrading to 3.x versions.") -}}
+          {{- end }}
+          {{- printf "currentVersion: '%s', regex result: '%s', versionNum: '%v'\n" $currentVersion ($currentVersion | regexFind "^[0-9]+\\.[0-9]+") ($currentVersion | regexFind "^[0-9]+\\.[0-9]+" | float64) | fail -}}
+        {{- end }}
    {{- end }}
 {{- end }}
 
