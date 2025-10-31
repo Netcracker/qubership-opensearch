@@ -47,7 +47,7 @@ RUN set -x && apk upgrade --no-cache --available
 RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
     && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
     && apk add --update --upgrade --no-cache \
-        pcre2
+        pcre2 libcurl curl
 
 RUN addgroup ${GROUP_NAME} && adduser -D -G ${GROUP_NAME} -u ${USER_UID} ${USER_NAME}
 USER ${USER_UID}
