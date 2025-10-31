@@ -87,6 +87,8 @@ jobs:
         if: ${{ github.event_name == 'repository_dispatch' }}
         run: |
           echo "CUSTOM_BASE_IMAGE_ARG=OPENSEARCH_BASE=${{ needs.prepare.outputs.custom-image-tag }}" >> "$GITHUB_ENV"
+          IMAGE_TAG="${{ needs.prepare.outputs.custom-image-tag }}"
+          echo "IMAGE_TAG=${IMAGE_TAG#*:}" >> "$GITHUB_ENV"
       # - name: "Checkout"
       #   uses: actions/checkout@v5
       # - name: "Show Dockerfile"
@@ -100,7 +102,7 @@ jobs:
           download-artifact: false
           component: ${{ toJson(matrix.component) }}
           platforms: ${{ needs.prepare.outputs.platforms }}
-          tags: ${{ needs.prepare.outputs.tags || needs.prepare.outputs.custom-image-tag }}
+          tags: ${{ needs.prepare.outputs.tags || env.IMAGE_TAG }}
           build-args: ${{ env.CUSTOM_BASE_IMAGE_ARG }}
           #checkout: "false"
         env:
