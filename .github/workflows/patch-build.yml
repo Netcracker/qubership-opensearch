@@ -49,6 +49,7 @@ jobs:
           echo "platforms=$(jq -c '.platforms' .github/dev-build-config.json)" >> "$GITHUB_OUTPUT"
 
       - name: Create tags for images
+        if: ${{ github.event_name != 'repository_dispatch' }}
         uses: netcracker/qubership-workflow-hub/actions/metadata-action@0f2be042d7c833c6bf60df85732609b7991fb821 #2.0.0
         id: meta
         with:
@@ -56,6 +57,14 @@ jobs:
           extra-tags: ${{ github.event.inputs.tags }}
           replace-symbol: ${{ github.event.inputs.replace-symbol }}
           dry-run: ${{ inputs.dry-run }}
+      - name: Set tags for images with custom patches
+        if: ${{ github.event_name == 'repository_dispatch' }}
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@0f2be042d7c833c6bf60df85732609b7991fb821 #2.0.0
+        id: custom-patches-tag
+        with:
+          default-template: ""
+          extra-tags: ${{ github.event.client_payload.custom_opensearch_version }}
+          dry-run: 'false'
       - name: Add build-args if triggered by repository_dispatch event
         if: ${{ github.event_name == 'repository_dispatch' }}
         id: custom-base-image
@@ -91,7 +100,7 @@ jobs:
           download-artifact: false
           component: ${{ toJson(matrix.component) }}
           platforms: ${{ needs.prepare.outputs.platforms }}
-          tags: ${{ needs.prepare.outputs.tags }}
+          tags: ${{ needs.prepare.outputs.tags || needs.prepare.outputs.custom-image-tag }}
           build-args: ${{ env.CUSTOM_BASE_IMAGE_ARG }}
           #checkout: "false"
         env:
