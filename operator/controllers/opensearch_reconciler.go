@@ -1046,7 +1046,8 @@ func (r OpenSearchReconciler) getSnapshotsRepositoryBody() string {
 			s3BasePath := r.cr.Spec.OpenSearch.Snapshots.S3.BasePath
 			s3Region := r.cr.Spec.OpenSearch.Snapshots.S3.Region
 			s3PathStyleAccess := r.cr.Spec.OpenSearch.Snapshots.S3.PathStyleAccess
-			return fmt.Sprintf(`{"type": "s3", "settings": {"base_path": "%s", "bucket": "%s", "region": "%s", "endpoint": "%s", "protocol": "http", "access_key": "%s", "secret_key": "%s", "compress": true, "path_style_access": %v}}`, s3BasePath, s3Bucket, s3Region, s3Url, s3KeyId, s3KeySecret, s3PathStyleAccess)
+			s3hunkedEncoding := r.cr.Spec.OpenSearch.Snapshots.S3.ChunkedEncoding
+			return fmt.Sprintf(`{"type": "s3", "settings": {"base_path": "%s", "bucket": "%s", "region": "%s", "endpoint": "%s", "protocol": "http", "access_key": "%s", "secret_key": "%s", "compress": true, "path_style_access": %v, "disable_chunked_encoding: %v"}}`, s3BasePath, s3Bucket, s3Region, s3Url, s3KeyId, s3KeySecret, s3PathStyleAccess, s3hunkedEncoding)
 		}
 	}
 	return `{"type": "fs", "settings": {"location": "/usr/share/opensearch/snapshots", "compress": true}}`
