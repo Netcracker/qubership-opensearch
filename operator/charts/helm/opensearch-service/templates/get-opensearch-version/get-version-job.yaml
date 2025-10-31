@@ -5,7 +5,7 @@ metadata:
   name: {{ template "opensearch.fullname" . }}-get-opensearch-ver
   annotations:
     "helm.sh/hook": pre-upgrade
-    "helm.sh/hook-weight": "-170"
+    "helm.sh/hook-weight": "0"
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 spec:
   template:
