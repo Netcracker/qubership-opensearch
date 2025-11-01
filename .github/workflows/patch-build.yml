@@ -89,13 +89,8 @@ jobs:
           echo "CUSTOM_BASE_IMAGE_ARG=OPENSEARCH_BASE=${{ needs.prepare.outputs.custom-image-tag }}" >> "$GITHUB_ENV"
           IMAGE_TAG="${{ needs.prepare.outputs.custom-image-tag }}"
           echo "IMAGE_TAG=${IMAGE_TAG#*:}" >> "$GITHUB_ENV"
-      # - name: "Checkout"
-      #   uses: actions/checkout@v5
-      # - name: "Show Dockerfile"
-      #   run: |
-      #     cat ${{ matrix.component.file }}
       - name: Docker
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@451-feat-improve-docker-action-with-skip-multi-arch-and-add-new-build-args-param-in-to-component
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@v2.0.1
         with:
           ref: ${{ github.ref }}
           dry-run: ${{ inputs.dry-run }}
