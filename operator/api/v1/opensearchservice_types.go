@@ -45,15 +45,16 @@ type Snapshots struct {
 }
 
 type S3 struct {
-	Enabled         bool   `json:"enabled,omitempty"`
-	PathStyleAccess bool   `json:"pathStyleAccess,omitempty"`
-	Url             string `json:"url,omitempty"`
-	Bucket          string `json:"bucket,omitempty"`
-	BasePath        string `json:"basePath,omitempty"`
-	Region          string `json:"region,omitempty"`
-	SecretName      string `json:"secretName,omitempty"`
-	GcsEnabled      bool   `json:"gcsEnabled,omitempty"`
-	ChunkedEncoding bool   `json:"chunkedEncoding,omitempty"`
+	Enabled                bool   `json:"enabled,omitempty"`
+	PathStyleAccess        bool   `json:"pathStyleAccess,omitempty"`
+	Url                    string `json:"url,omitempty"`
+	Bucket                 string `json:"bucket,omitempty"`
+	BasePath               string `json:"basePath,omitempty"`
+	Region                 string `json:"region,omitempty"`
+	SecretName             string `json:"secretName,omitempty"`
+	GcsEnabled             bool   `json:"gcsEnabled,omitempty"`
+	ChunkedEncoding        bool   `json:"chunkedEncoding,omitempty"`
+	DisableSslVerification bool   `json:"disableSslVerification,omitempty"`
 }
 
 // Dashboards structure defines parameters necessary for interaction with Dashboards
