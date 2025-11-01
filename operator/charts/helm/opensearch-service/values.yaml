@@ -696,6 +696,8 @@ opensearch:
       region: ""
       sslSecretName: ""
       sslCert: ""
+      chunkedEncoding: false
+      disableSslVerification: false
       gcs:
         secretName: ""
         secretKey: ""

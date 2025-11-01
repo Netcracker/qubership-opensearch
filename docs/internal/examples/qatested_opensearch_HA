@@ -58,6 +58,8 @@ opensearch:
       keySecret: example
       basePath: ""
       region: ""
+      disableSslVerification: true
+      chunkedEncoding: true
   client:
     enabled: true
     ingress:

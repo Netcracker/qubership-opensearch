@@ -157,6 +157,10 @@ spec:
                               type: string
                             url:
                               type: string
+                            chunkedEncoding:
+                              type: boolean
+                            disableSslVerification:
+                              type: boolean
                           type: object
                       required:
                         - repositoryName
