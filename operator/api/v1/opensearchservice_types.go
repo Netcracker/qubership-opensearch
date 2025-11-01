@@ -53,7 +53,7 @@ type S3 struct {
 	Region          string `json:"region,omitempty"`
 	SecretName      string `json:"secretName,omitempty"`
 	GcsEnabled      bool   `json:"gcsEnabled,omitempty"`
-	ChunkedEncoding bool   `json:"ChunkedEncoding,omitempty"`
+	ChunkedEncoding bool   `json:"chunkedEncoding,omitempty"`
 }
 
 // Dashboards structure defines parameters necessary for interaction with Dashboards
