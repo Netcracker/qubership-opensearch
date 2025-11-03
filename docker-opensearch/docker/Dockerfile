@@ -27,12 +27,14 @@ COPY docker/docker-entrypoint.sh /
 # Install the tools we need
 #RUN yum install --disablerepo=* --enablerepo=paas,os,openstack,nc_updates --nogpgcheck -y jq \
 #    && yum clean all \
-RUN yum install -y jq \
-    && yum clean all
 
 # Upgrade all tools to avoid vulnerabilities
 #RUN yum update --disablerepo=* --enablerepo=os,nc_updates --nogpgcheck --assumeyes --skip-broken
-RUN yum update --assumeyes --skip-broken
+
+RUN yum update -y --skip-broken \
+    && yum install -y jq \
+    && yum clean all
+
 
 RUN echo "Download OpenSearch plugins..." \
     && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/2.19.3/repository-s3-2.19.3.zip" \

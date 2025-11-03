@@ -16,7 +16,7 @@ RUN set -x \
     && rm -rf /var/cache/apk/*
 
 # Upgrade all tools to avoid vulnerabilities
-RUN set -x && apk upgrade --no-cache --available
+RUN set -x && apk upgrade --available
 
 RUN set -x \
     && python3 -m unittest discover -s ${ELASTICSEARCH_INDICES_CLEANER_HOME} -p "*_tests.py"
