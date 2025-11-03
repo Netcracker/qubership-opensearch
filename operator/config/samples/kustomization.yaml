@@ -1,5 +1,5 @@
 ## Append samples you want in your CSV to this file as resources ##
 resources:
-- qubership.org_v1_opensearchservice.yaml
+- netcracker.com_v1_opensearchservice.yaml
 - _v1_opensearchservice.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

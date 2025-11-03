@@ -40,7 +40,7 @@ If you face issue with out of sync, check the difference.
 * If you see difference of monitoring resources 'kind: AmsObserverGroup' like below.
     
     ```yaml 
-    apiVersion: monitoring.qubership.org/v1beta1
+    apiVersion: monitoring.netcracker.com/v1beta1
     kind: AmsObserverGroup
     metadata:
         kubectl.kubernetes.io/last-applied-configuration:
@@ -50,7 +50,7 @@ If you face issue with out of sync, check the difference.
     Then you can add annotations to ingore trackking this resources and then sync it:
     
     ```yaml
-    apiVersion: monitoring.qubership.org/v1beta1
+    apiVersion: monitoring.netcracker.com/v1beta1
     kind: AmsObserverGroup
     metadata:
         annotations:

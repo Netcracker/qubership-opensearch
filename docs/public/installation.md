@@ -120,7 +120,7 @@ The following Custom Resource Definitions should be installed to the cloud befor
 **Important**: To create CRDs, you must have cloud rights for `CustomResourceDefinitions`.
 If the deployment user does not have the necessary rights, you need to perform the steps described in the [Deployment Permissions](#deployment-permissions) section before the installation.
 
-**Note**: If you deploy OpenSearch service to Kubernetes version less than 1.16, you have to manually install CRD from `config/crd/old/qubership.org_opensearchservices.yaml`
+**Note**: If you deploy OpenSearch service to Kubernetes version less than 1.16, you have to manually install CRD from `config/crd/old/netcracker.com_opensearchservices.yaml`
 and disable automatic CRD creation by Helm in the following way:
 
 ### Deployment Permissions
@@ -136,7 +136,7 @@ To avoid using `cluster-wide` rights during the deployment, the following condit
     ```yaml
     rules:
       - apiGroups:
-          - qubership.org
+          - netcracker.com
         resources:
           - "*"
         verbs:

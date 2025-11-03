@@ -126,7 +126,7 @@ spec:
               value: "{{ include "disasterRecovery.cipherSuites" . }}"
             {{- end }}
             - name: RESOURCE_FOR_DR
-              value: "qubership.org v1 opensearchservices {{ template "opensearch.fullname" . }}"
+              value: "netcracker.com v1 opensearchservices {{ template "opensearch.fullname" . }}"
             - name: USE_DEFAULT_PATHS
               value: "true"
             - name: HEALTH_MAIN_SERVICES_ACTIVE
