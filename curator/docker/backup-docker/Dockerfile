@@ -9,6 +9,7 @@ COPY docker/backup-docker/actions ${ELASTICSEARCH_CURATOR_HOME}/actions
 COPY docker/backup-docker/docker-entrypoint.sh /docker-entrypoint.sh
 
 RUN set -x \
+    && pip3 install --upgrade pip setuptools wheel \
     && pip3 install -U opensearch-py==2.5.0 elasticsearch==7.17.12 curator-opensearch==0.0.13 \
     && pip3 install --upgrade pip urllib3 click \
     && rm -rf /var/cache/apk/*
