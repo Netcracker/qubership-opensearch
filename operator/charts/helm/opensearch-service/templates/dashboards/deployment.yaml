@@ -150,17 +150,16 @@ spec:
               path: /api/status
               port: {{ .Values.dashboards.service.port }}
               scheme: HTTP
-            initialDelaySeconds: 60
+            initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 5
-
           readinessProbe:
             httpGet:
               path: /api/status
               port: {{ .Values.dashboards.service.port }}
               scheme: HTTP
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1

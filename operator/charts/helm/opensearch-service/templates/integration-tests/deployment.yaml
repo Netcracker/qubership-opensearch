@@ -253,7 +253,7 @@ spec:
             - sh
             - -c
             - 'cat /opt/robot/output/result.txt | grep -q "RESULT: TESTS PASSED"'
-        initialDelaySeconds: 20
+        initialDelaySeconds: 40
         timeoutSeconds: 5
         periodSeconds: 20
         successThreshold: 1

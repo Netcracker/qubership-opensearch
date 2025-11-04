@@ -124,7 +124,45 @@ spec:
             - protocol: TCP
               containerPort: 8096
           {{- end }}
-
+      {{- if eq .Values.monitoring.monitoringType "influxdb" }}
+      livenessProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - 'pgrep -x telegraf > /dev/null'
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        timeoutSeconds: 5
+        failureThreshold: 5
+      readinessProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - 'pgrep -x telegraf > /dev/null'
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        timeoutSeconds: 5
+        failureThreshold: 5
+      {{- else }}
+      livenessProbe:
+        tcpSocket:
+          port: 8096
+        initialDelaySeconds: 30
+        timeoutSeconds: 5
+        periodSeconds: 10
+        successThreshold: 1
+        failureThreshold: 5
+      readinessProbe:
+        tcpSocket:
+          port: 8096
+        initialDelaySeconds: 60
+        timeoutSeconds: 5
+        periodSeconds: 10
+        successThreshold: 1
+        failureThreshold: 5
+      {{- end }}
       volumes:
         - name: config
           configMap:

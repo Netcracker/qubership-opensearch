@@ -123,7 +123,7 @@ spec:
           readinessProbe:
             tcpSocket:
               port:  {{ template "disasterRecovery.port" . }}
-            initialDelaySeconds: 40
+            initialDelaySeconds: 60
             timeoutSeconds: 15
             periodSeconds: 15
             successThreshold: 1
