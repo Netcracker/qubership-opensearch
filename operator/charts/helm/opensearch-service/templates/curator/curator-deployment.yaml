@@ -221,6 +221,14 @@ spec:
             periodSeconds: 10
             successThreshold: 1
             failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port:  {{ template "curator.port" . }}
+            initialDelaySeconds: 40
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 5
           name: {{ template "opensearch.fullname" . }}-indices-cleaner
           resources:
             requests:

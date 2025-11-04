@@ -145,6 +145,26 @@ spec:
             - containerPort: {{ .Values.dashboards.service.port }}
               name: {{ .Values.dashboards.service.httpPortName | default "http" }}
               protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /api/status
+              port: {{ .Values.dashboards.service.port }}
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+
+          readinessProbe:
+            httpGet:
+              path: /api/status
+              port: {{ .Values.dashboards.service.port }}
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
           resources:
 {{ toYaml .Values.dashboards.resources | indent 12 }}
           volumeMounts:
@@ -171,5 +191,6 @@ spec:
         {{- if .Values.dashboards.extraContainers }}
 {{ toYaml .Values.dashboards.extraContainers | indent 6 }}
         {{- end }}
+
 {{- end }}
 {{- end }}

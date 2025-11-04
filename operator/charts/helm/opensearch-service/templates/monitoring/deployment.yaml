@@ -124,6 +124,7 @@ spec:
             - protocol: TCP
               containerPort: 8096
           {{- end }}
+
       volumes:
         - name: config
           configMap:
