@@ -34,9 +34,14 @@ readiness_probe() {
     if [ "$(has_http_port)" -eq 0 ]; then
         command="curl -Is -u "${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}" -XGET http://localhost:9200/_cat/health"
         if [[ ${TLS_ENABLED} == "true" ]]; then
-            command="curl -Is -u "${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}" -XGET https://localhost:9200/_cat/health --cacert ${OPENSEARCH_CONFIGS}/rest-crt.pem"
+            http_status_code=$(curl -s -o /dev/null -w "%{http_code}" \
+              --http2 \
+              -u "${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}" \
+              -XGET "https://localhost:9200/_cat/health" \
+              --cacert "${OPENSEARCH_CONFIGS}/rest-crt.pem")
+        else
+            http_status_code=$(${command} | head -1 | grep HTTP/1.1 | cut -d " " -f 2)
         fi
-        http_status_code=$(${command} | head -1 | grep HTTP/1.1 | cut -d " " -f 2)
         log "http status code: [$http_status_code]"
 
         if [ -z "$http_status_code" ]; then
