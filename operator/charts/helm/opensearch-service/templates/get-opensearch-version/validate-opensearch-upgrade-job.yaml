@@ -4,7 +4,7 @@
 {{- $name := include "opensearch.name" . -}}
 {{- $cr := lookup $apiVersion $kind $ns $name -}}
 
-{{- if and $cr (eq .Values.DEPLOY_MODE "RollingUpdate") (eq (include "opensearch.imageVariant" .) "3") -}}
+{{- if and $cr (eq .Values.DEPLOY_MODE "RollingUpdate") (eq (include "opensearch.imageVariant" .) "4") -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
