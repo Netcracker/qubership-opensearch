@@ -87,7 +87,7 @@ func main() {
 		Port:                    9443,
 		HealthProbeBindAddress:  probeAddr,
 		LeaderElection:          enableLeaderElection,
-		LeaderElectionID:        fmt.Sprintf("opensearchservice.%s.qubership.org", namespace),
+		LeaderElectionID:        fmt.Sprintf("opensearchservice.%s.netcracker.com", namespace),
 		LeaderElectionNamespace: namespace,
 	})
 	if err != nil {

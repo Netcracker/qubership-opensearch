@@ -1,0 +1,12 @@
+{{- if .Values.groupMigration.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}-ownerref-migrator
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-200"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+{{- end }}
