@@ -1,4 +1,4 @@
-FROM alpine:3.22.0
+FROM alpine:3.22
 
 USER 0
 
@@ -19,6 +19,11 @@ RUN set -x \
        ; do \
          chmod -R 777 "$path"; \
        done
+
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
+    && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
+    && apk add --update --upgrade --no-cache \
+        libcurl curl
 
 WORKDIR ${OPENSEARCH_TLS_INIT_HOME}
 

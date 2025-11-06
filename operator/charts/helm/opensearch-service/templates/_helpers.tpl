@@ -47,6 +47,7 @@ Core OpenSearch resources labels with backend component label
 {{- define "opensearch-service.defaultLabels" -}}
 {{ include "opensearch-service.coreLabels" . }}
 app.kubernetes.io/component: 'backend'
+app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
 {{/*
