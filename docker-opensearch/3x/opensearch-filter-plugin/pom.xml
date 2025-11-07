@@ -16,12 +16,16 @@
     <opensearch.version>3.2.0</opensearch.version>
     <jackson.version>2.15.2</jackson.version>
   </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.opensearch</groupId>
       <artifactId>opensearch</artifactId>
       <version>${opensearch.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opensearch.plugin</groupId>
+      <artifactId>opensearch-security</artifactId>
+      <version>3.2.0.0</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
