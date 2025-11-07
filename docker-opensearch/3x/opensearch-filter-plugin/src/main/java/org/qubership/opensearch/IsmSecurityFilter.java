@@ -78,6 +78,7 @@ import org.opensearch.tasks.Task;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.client.Client;
 import org.qubership.opensearch.security.user.User;
+import org.opensearch.security.user.User as SecurityUser;
 
 public class IsmSecurityFilter implements ActionFilter {
 
@@ -119,19 +120,16 @@ public class IsmSecurityFilter implements ActionFilter {
       ActionFilterChain<RequestT, ResponseT> actionFilterChain) {
     // Get user information from thread context
     User user = null;
-    try {
-      Object contextUser = threadContext.getTransient(OPENDISTRO_SECURITY_USER);
-      if (contextUser != null) {
-          if (contextUser instanceof User) {
-              // OpenSearch 3.x style
-              user = (User) contextUser;
-          } else if (contextUser instanceof Writeable) {
-              // Legacy style (OpenSearch 2.x)
-              user = new User(getStreamInput((Writeable) contextUser));
-          }
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    Object contextUser = threadContext.getTransient("opendistro_security_user");
+
+    if (contextUser instanceof SecurityUser osUser) {
+      user = new User(
+              osUser.getName(),
+              osUser.getBackendRoles(),
+              Collections.emptySet(),
+              osUser.getCustomAttributesMap(),
+              osUser.getRequestedTenant()
+      );
     }
     if (user == null) {
       actionFilterChain.proceed(task, action, request, actionListener);
