@@ -120,16 +120,19 @@ public class IsmSecurityFilter implements ActionFilter {
       ActionFilterChain<RequestT, ResponseT> actionFilterChain) {
     // Get user information from thread context
     User user = null;
-    Object contextUser = threadContext.getTransient("opendistro_security_user");
-
-    if (contextUser instanceof SecurityUser osUser) {
-      user = new User(
-              osUser.getName(),
-              osUser.getBackendRoles(),
-              Collections.emptySet(),
-              osUser.getCustomAttributesMap(),
-              osUser.getRequestedTenant()
-      );
+    try {
+      Object contextUser = threadContext.getTransient(OPENDISTRO_SECURITY_USER);
+      if (contextUser != null) {
+          if (contextUser instanceof User) {
+              // OpenSearch 3.x style
+              user = (User) contextUser;
+          } else if (contextUser instanceof Writeable) {
+              // Legacy style (OpenSearch 2.x)
+              user = new User(getStreamInput((Writeable) contextUser));
+          }
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
     if (user == null) {
       actionFilterChain.proceed(task, action, request, actionListener);
