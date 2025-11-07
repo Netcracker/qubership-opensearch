@@ -78,7 +78,8 @@ import org.opensearch.tasks.Task;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.client.Client;
 import org.qubership.opensearch.security.user.User;
-import org.opensearch.security.user.User as SecurityUser;
+import java.util.Set;
+import java.util.Map;
 
 public class IsmSecurityFilter implements ActionFilter {
 
@@ -123,24 +124,31 @@ public class IsmSecurityFilter implements ActionFilter {
     try {
       Object contextUser = threadContext.getTransient(OPENDISTRO_SECURITY_USER);
       if (contextUser != null) {
-          if (contextUser instanceof SecurityUser) {
-              SecurityUser osUser = (SecurityUser) contextUser;
-              // OpenSearch 3.x style
-              user = new User(
-                      osUser.getName(),
-                      osUser.getBackendRoles(),
-                      osUser.getRoles(),
-                      osUser.getCustomAttributesMap(),
-                      osUser.getRequestedTenant()
-              );
-          } else if (contextUser instanceof Writeable) {
-              Writeable writeableUser = (Writeable) contextUser;
-              // Legacy style (OpenSearch 2.x)
-              user = new User(getStreamInput(writeableUser));
+          // OpenSearch 3.x: класс SecurityUser теперь находится в другом пакете
+          try {
+              Class<?> osUserClass = Class.forName("org.opensearch.security.user.User");
+              if (osUserClass.isInstance(contextUser)) {
+                  Object osUser = osUserClass.cast(contextUser);
+                  String name = (String) osUserClass.getMethod("getName").invoke(osUser);
+                  Set<String> backendRoles = (Set<String>) osUserClass.getMethod("getBackendRoles").invoke(osUser);
+                  Set<String> roles = (Set<String>) osUserClass.getMethod("getRoles").invoke(osUser);
+                  Map<String, String> attributes =
+                          (Map<String, String>) osUserClass.getMethod("getCustomAttributesMap").invoke(osUser);
+                  String tenant = (String) osUserClass.getMethod("getRequestedTenant").invoke(osUser);
+
+                  user = new User(name, backendRoles, roles, attributes, tenant);
+              }
+          } catch (ClassNotFoundException e) {
+              // Если это OpenSearch 2.x, используем старый формат
+              if (contextUser instanceof org.opensearch.core.common.io.stream.Writeable writeableUser) {
+                  user = new User(getStreamInput(writeableUser));
+              }
           }
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
+    } catch (ReflectiveOperationException e) {
+      throw new RuntimeException("Failed to reflectively read OpenSearch SecurityUser", e);
     }
     if (user == null) {
       actionFilterChain.proceed(task, action, request, actionListener);

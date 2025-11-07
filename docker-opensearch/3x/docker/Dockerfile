@@ -8,10 +8,7 @@ COPY 3x/opensearch-filter-plugin/pom.xml .
 RUN mvn dependency:go-offline
 
 COPY 3x/opensearch-filter-plugin /build
-RUN set -eux; \
-    mvn clean package -Dcheckstyle.skip=true -DskipTests=true || \
-    (echo "⚠️ Build failed, checkstyle skipped"; exit 1)
-RUN mvn -e -X clean package
+RUN mvn clean package
 
 FROM opensearchproject/opensearch:3.2.0
 
