@@ -146,24 +146,20 @@ spec:
               name: {{ .Values.dashboards.service.httpPortName | default "http" }}
               protocol: TCP
           livenessProbe:
-            httpGet:
-              path: /api/status
+            tcpSocket:
               port: {{ .Values.dashboards.service.port }}
-              scheme: HTTP
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 5
-          readinessProbe:
-            httpGet:
-              path: /api/status
-              port: {{ .Values.dashboards.service.port }}
-              scheme: HTTP
             initialDelaySeconds: 60
-            periodSeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 10
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.dashboards.service.port }}
+            initialDelaySeconds: 70
+            periodSeconds: 15
             timeoutSeconds: 5
             successThreshold: 1
-            failureThreshold: 3
+            failureThreshold: 5
           resources:
 {{ toYaml .Values.dashboards.resources | indent 12 }}
           volumeMounts:
