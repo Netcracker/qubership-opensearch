@@ -36,9 +36,7 @@ import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.StreamSupport;
 import org.apache.logging.log4j.LogManager;
@@ -127,6 +125,7 @@ public class IsmSecurityFilter implements ActionFilter {
         if (contextUser instanceof User) {
           // OpenSearch 3.x style
           user = (User) contextUser;
+          quser = transformUser(user);
         } else if (contextUser instanceof Writeable) {
           // Legacy style (OpenSearch 2.x)
           quser = new QUser(getStreamInput((Writeable) contextUser));
@@ -161,6 +160,29 @@ public class IsmSecurityFilter implements ActionFilter {
     actionFilterChain.proceed(task, action, request, actionListener);
   }
 
+  private QUser transformUser(User osUser){
+      if (osUser == null) {
+          throw new IllegalArgumentException("OpenSearch User cannot be null");
+      }
+
+      String name = osUser.getName();
+
+      Set<String> backendRoles = osUser.getRoles() != null
+              ? new HashSet<>(osUser.getRoles())
+              : Collections.emptySet();
+
+      Set<String> roles = osUser.getSecurityRoles() != null
+              ? new HashSet<>(osUser.getSecurityRoles())
+              : Collections.emptySet();
+
+      Map<String, String> attributes = osUser.getCustomAttributesMap() != null
+              ? new HashMap<>(osUser.getCustomAttributesMap())
+              : Collections.emptyMap();
+
+      String requestedTenant = osUser.getRequestedTenant(); // может быть null
+
+      return new QUser(name, backendRoles, roles, attributes, requestedTenant);
+  }
   /**
    * Whether specified action is permitted.
    *
