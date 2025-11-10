@@ -1,4 +1,4 @@
-FROM amazoncorretto:11-alpine AS builder
+FROM amazoncorretto:25-alpine AS builder
 
 RUN apk add --no-cache maven git
 
