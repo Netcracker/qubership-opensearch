@@ -12,7 +12,7 @@
       <includes>
         <include>com.fasterxml.jackson.core:jackson-databind</include>
         <include>com.fasterxml.jackson.core:jackson-annotations</include>
-        <include>org.opensearch.plugin:opensearch-security</include>
+        <include>org.opensearch.plugin:opensearch-security-3.2.0.0</include>
       </includes>
     </dependencySet>
   </dependencySets>

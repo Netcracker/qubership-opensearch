@@ -8,8 +8,6 @@ set -e
     --batch --verbose "file://${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-3.2.0.zip"
 "${OPENSEARCH_HOME}"/bin/opensearch-plugin install \
     --batch --verbose "file://${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/opensearch-filter-plugin-3.2.0.0.zip"
-"${OPENSEARCH_HOME}"/bin/opensearch-plugin install \
-    --batch --verbose "file://${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/opensearch-security-3.2.0.0.zip"
 rm -rf "${OPENSEARCH_HOME}"/dist
 
 if [[ -n "$OPENSEARCH_SECURITY_CONFIG_PATH" ]]; then
