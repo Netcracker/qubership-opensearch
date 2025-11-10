@@ -125,6 +125,7 @@ public class IsmSecurityFilter implements ActionFilter {
         if (contextUser instanceof User) {
           // OpenSearch 3.x style
           user = (User) contextUser;
+          System.out.println("User is " + user.toString());
           quser = transformUser(user);
         } else if (contextUser instanceof Writeable) {
           // Legacy style (OpenSearch 2.x)
@@ -134,7 +135,9 @@ public class IsmSecurityFilter implements ActionFilter {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+
     if (quser == null) {
+      System.out.println("User is null");
       actionFilterChain.proceed(task, action, request, actionListener);
       return;
     }
@@ -142,7 +145,9 @@ public class IsmSecurityFilter implements ActionFilter {
     String resourcePrefixAttribute = quser.getAttributes().get(RESOURCE_PREFIX_ATTRIBUTE_NAME);
     if (quser.getBackendRoles().contains(ISM_ROLE_NAME) && resourcePrefixAttribute != null) {
       try {
+        System.out.println("getBackendRoles passed");
         if (allowAction(action, request, resourcePrefixAttribute)) {
+          System.out.println("USer allowed");
           ActionListener<ResponseT> overriddenActionListener =
               overrideActionListener(action, request, actionListener);
           actionFilterChain.proceed(task, action, request, overriddenActionListener);
