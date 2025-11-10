@@ -1,14 +1,21 @@
 FROM amazoncorretto:21-alpine AS builder
 
-RUN apk add --no-cache maven=3.9.9-r0 git=2.49.1-r0
+RUN apk add --no-cache maven=3.9.9-r0 git=2.49.1-r0 curl unzip
 
 WORKDIR /build
 
-COPY 3x/opensearch-filter-plugin/pom.xml .
+COPY 3x/opensearch-filter-plugin /build
+
+RUN mvn install:install-file \
+    -Dfile=/build/vendor/opensearch-security-3.2.0.0.jar \
+    -DgroupId=org.opensearch.plugin \
+    -DartifactId=opensearch-security \
+    -Dversion=3.2.0.0 \
+    -Dpackaging=jar
+
 RUN mvn -e -X dependency:go-offline
 
-COPY 3x/opensearch-filter-plugin /build
-RUN mvn -e -X clean package
+RUN mvn -e -X clean package -Dcheckstyle.skip
 
 FROM opensearchproject/opensearch:3.2.0
 

@@ -23,6 +23,13 @@
       <version>${opensearch.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.opensearch.plugin</groupId>
+      <artifactId>opensearch-security</artifactId>
+        <version>3.2.0.0</version>
+        <scope>system</scope>
+        <systemPath>${project.basedir}/vendor/opensearch-security-3.2.0.0.jar</systemPath>
+    </dependency>
+    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>${jackson.version}</version>

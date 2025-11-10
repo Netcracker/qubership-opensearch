@@ -74,10 +74,11 @@ import org.opensearch.index.reindex.UpdateByQueryRequest;
 import org.opensearch.script.Script;
 import org.opensearch.script.ScriptType;
 import org.opensearch.search.SearchHit;
+import org.opensearch.security.user.User;
 import org.opensearch.tasks.Task;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.client.Client;
-import org.qubership.opensearch.security.user.User;
+import org.qubership.opensearch.security.user.QUser;
 
 public class IsmSecurityFilter implements ActionFilter {
 
@@ -119,6 +120,7 @@ public class IsmSecurityFilter implements ActionFilter {
       ActionFilterChain<RequestT, ResponseT> actionFilterChain) {
     // Get user information from thread context
     User user = null;
+    QUser quser = null;
     try {
       Object contextUser = threadContext.getTransient(OPENDISTRO_SECURITY_USER);
       if (contextUser != null) {
@@ -127,26 +129,26 @@ public class IsmSecurityFilter implements ActionFilter {
           user = (User) contextUser;
         } else if (contextUser instanceof Writeable) {
           // Legacy style (OpenSearch 2.x)
-          user = new User(getStreamInput((Writeable) contextUser));
+          quser = new QUser(getStreamInput((Writeable) contextUser));
         }
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    if (user == null) {
+    if (quser == null) {
       actionFilterChain.proceed(task, action, request, actionListener);
       return;
     }
 
-    String resourcePrefixAttribute = user.getAttributes().get(RESOURCE_PREFIX_ATTRIBUTE_NAME);
-    if (user.getBackendRoles().contains(ISM_ROLE_NAME) && resourcePrefixAttribute != null) {
+    String resourcePrefixAttribute = quser.getAttributes().get(RESOURCE_PREFIX_ATTRIBUTE_NAME);
+    if (quser.getBackendRoles().contains(ISM_ROLE_NAME) && resourcePrefixAttribute != null) {
       try {
         if (allowAction(action, request, resourcePrefixAttribute)) {
           ActionListener<ResponseT> overriddenActionListener =
               overrideActionListener(action, request, actionListener);
           actionFilterChain.proceed(task, action, request, overriddenActionListener);
         } else {
-          String errorMessage = String.format(SECURITY_ERROR_PATTERN, action, user);
+          String errorMessage = String.format(SECURITY_ERROR_PATTERN, action, quser);
           log.error(errorMessage);
           actionListener.onFailure(
               new OpenSearchSecurityException(errorMessage, RestStatus.FORBIDDEN));

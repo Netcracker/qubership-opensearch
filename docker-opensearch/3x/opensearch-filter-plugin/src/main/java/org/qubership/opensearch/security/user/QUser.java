@@ -29,7 +29,7 @@ import org.opensearch.core.common.io.stream.StreamInput;
 import org.opensearch.core.common.io.stream.StreamOutput;
 import org.opensearch.core.common.io.stream.Writeable;
 
-public final class User implements Writeable {
+public final class QUser implements Writeable {
 
   @Nonnull
   private final String name;
@@ -42,7 +42,7 @@ public final class User implements Writeable {
   /**
    * Creates user with specified parameters.
    */
-  public User(@Nonnull String name, Set<String> backendRoles, Set<String> roles,
+  public QUser(@Nonnull String name, Set<String> backendRoles, Set<String> roles,
       Map<String, String> attributes, @Nullable String requestedTenant) {
     this.name = name;
     if (backendRoles != null) {
@@ -60,7 +60,7 @@ public final class User implements Writeable {
   /**
    * Creates user from input stream.
    */
-  public User(StreamInput in) throws IOException {
+  public QUser(StreamInput in) throws IOException {
     this.name = in.readString();
     this.backendRoles.addAll(in.readList(StreamInput::readString));
     this.requestedTenant = in.readString();
