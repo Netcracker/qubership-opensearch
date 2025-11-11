@@ -119,25 +119,15 @@ public class IsmSecurityFilter implements ActionFilter {
     // Get user information from thread context
     User user = null;
     QUser quser = null;
-    try {
-      Object contextUser = threadContext.getTransient(OPENDISTRO_SECURITY_USER);
-      System.out.println("contextUser is " + contextUser);//not null
-      System.out.println("contextUser is " + contextUser.getClass().getName());//not null
-        System.out.println("contextUser is " + contextUser.getClass());
-      if (contextUser != null) {
-        if (contextUser instanceof org.opensearch.security.user.User) {
-          // OpenSearch 3.x style
-          user = (org.opensearch.security.user.User) contextUser; // ?????? null
-          System.out.println("if (contextUser instanceof User) {");
-          System.out.println("User is " + user.toString());
-          quser = transformUser(user);
-        } else if (contextUser instanceof Writeable) {
-          // Legacy style (OpenSearch 2.x)
-          quser = new QUser(getStreamInput((Writeable) contextUser));
-        }
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    Object contextUser = threadContext.getTransient(OPENDISTRO_SECURITY_USER);
+    System.out.println("contextUser is " + contextUser);//not null
+    System.out.println("contextUser is " + contextUser.getClass().getName());//not null
+    System.out.println("contextUser is " + contextUser.getClass().getClassLoader().getName());
+    if (contextUser != null) {
+      user = (org.opensearch.security.user.User) contextUser; // ?????? null
+      System.out.println("if (contextUser instanceof User) {");
+      System.out.println("User is " + user.toString());
+      quser = transformUser(user);
     }
 
     if (quser == null) {
