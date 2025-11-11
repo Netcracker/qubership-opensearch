@@ -1,0 +1,104 @@
+name: Build Qubership-OpenSearch with custom image
+run-name: "Image for ${{ github.event.repository.name }}: ${{ github.run_number }} - ${{ github.actor }}"
+on:
+  repository_dispatch:
+    types: [opensearch-patched-build]
+  workflow_dispatch:
+    inputs:
+      tags:
+        required: false
+        type: string
+        default: ""
+        description: "Tags"
+      dry-run:
+        required: true
+        type: boolean
+        default: false
+        description: "Dry run mode"
+      replace-symbol:
+        required: false
+        type: string
+        default: "_"
+        description: "Symbol to replace in tags"
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: ${{ github.ref_type == 'branch' && format('build-branch-{0}', github.ref_name) || format('build-{0}', github.sha) }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    name: "Prepare Images and Metadata"
+    runs-on: ubuntu-latest
+    outputs:
+      components: ${{ steps.load.outputs.components }}
+      platforms: ${{ steps.load.outputs.platforms }}
+      tags: "${{ steps.meta.outputs.result }}"
+      custom-image-tag: "${{ steps.custom-base-image.outputs.custom_base_image }}"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - id: load
+        run: |
+          echo "components=$(jq -c '.components' .github/dev-build-config.json)" >> "$GITHUB_OUTPUT"
+          echo "platforms=$(jq -c '.platforms' .github/dev-build-config.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Create tags for images
+        if: ${{ github.event_name != 'repository_dispatch' }}
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@0f2be042d7c833c6bf60df85732609b7991fb821 #2.0.0
+        id: meta
+        with:
+          default-template: "{{ref-name}}"
+          extra-tags: ${{ github.event.inputs.tags }}
+          replace-symbol: ${{ github.event.inputs.replace-symbol }}
+          dry-run: ${{ inputs.dry-run }}
+      - name: Set tags for images with custom patches
+        if: ${{ github.event_name == 'repository_dispatch' }}
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@0f2be042d7c833c6bf60df85732609b7991fb821 #2.0.0
+        id: custom-patches-tag
+        with:
+          default-template: ""
+          extra-tags: ${{ github.event.client_payload.custom_opensearch_version }}
+          dry-run: 'false'
+      - name: Add build-args if triggered by repository_dispatch event
+        if: ${{ github.event_name == 'repository_dispatch' }}
+        id: custom-base-image
+        run: |
+          echo "custom_base_image=${{ github.event.client_payload.custom_opensearch_version }}" >> $GITHUB_OUTPUT
+
+  build:
+    name: Build Docker Images
+    needs: [prepare]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        component: ${{ fromJson(needs.prepare.outputs.components) }}
+    steps:
+      - name: Add build arg
+        if: ${{ github.event_name == 'repository_dispatch' }}
+        run: |
+          echo "CUSTOM_BASE_IMAGE_ARG=OPENSEARCH_BASE=${{ needs.prepare.outputs.custom-image-tag }}" >> "$GITHUB_ENV"
+          IMAGE_TAG="${{ needs.prepare.outputs.custom-image-tag }}"
+          echo "IMAGE_TAG=${IMAGE_TAG#*:}" >> "$GITHUB_ENV"
+      - name: Docker
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@v2.0.1
+        with:
+          ref: ${{ github.ref }}
+          dry-run: ${{ inputs.dry-run }}
+          download-artifact: false
+          component: ${{ toJson(matrix.component) }}
+          platforms: ${{ needs.prepare.outputs.platforms }}
+          tags: ${{ needs.prepare.outputs.tags || env.IMAGE_TAG }}
+          build-args: ${{ env.CUSTOM_BASE_IMAGE_ARG }}
+          #checkout: "false"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
