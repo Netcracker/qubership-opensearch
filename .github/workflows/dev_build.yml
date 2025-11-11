@@ -43,7 +43,7 @@ on:
 
 permissions:
   contents: read
-  packages: read
+  packages: write
 
 concurrency:
   group: ${{ github.ref_type == 'branch' && format('build-branch-{0}', github.ref_name) || format('build-{0}', github.sha) }}
@@ -72,9 +72,8 @@ jobs:
         id: meta
         with:
           default-template: "{{ref-name}}"
-          extra-tags: ${{ github.event.inputs.tags }}
-          replace-symbol: ${{ github.event.inputs.replace-symbol }}
-          dry-run: ${{ inputs.dry-run }}
+          extra-tags: ${{ github.event.inputs.tags || '' }}
+          replace-symbol: ${{ github.event.inputs.replace-symbol || '_'}}
 
   build:
     name: Build Docker Images
@@ -92,7 +91,7 @@ jobs:
         uses: netcracker/qubership-workflow-hub/actions/docker-action@0f2be042d7c833c6bf60df85732609b7991fb821 #2.0.0
         with:
           ref: ${{ github.ref }}
-          dry-run: ${{ inputs.dry-run }}
+          dry-run: ${{ github.event.inputs.dry-run || github.event_name == 'pull_request' }}
           download-artifact: false
           component: ${{ toJson(matrix.component) }}
           platforms: ${{ needs.prepare.outputs.platforms }}
