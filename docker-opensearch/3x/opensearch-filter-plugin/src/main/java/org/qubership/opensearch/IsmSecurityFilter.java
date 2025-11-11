@@ -125,6 +125,7 @@ public class IsmSecurityFilter implements ActionFilter {
         if (contextUser instanceof User) {
           // OpenSearch 3.x style
           user = (User) contextUser;
+          System.out.println("if (contextUser instanceof User) {");
           System.out.println("User is " + user.toString());
           quser = transformUser(user);
         } else if (contextUser instanceof Writeable) {
