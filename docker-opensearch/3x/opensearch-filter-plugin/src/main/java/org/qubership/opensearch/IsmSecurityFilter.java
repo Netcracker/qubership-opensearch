@@ -122,7 +122,8 @@ public class IsmSecurityFilter implements ActionFilter {
     try {
       Object contextUser = threadContext.getTransient(OPENDISTRO_SECURITY_USER);
       System.out.println("contextUser is " + contextUser);//not null
-      System.out.println("contextUser is " + contextUser.getClass());//not null
+      System.out.println("contextUser is " + contextUser.getClass().getName());//not null
+        System.out.println("contextUser is " + contextUser.getClass());
       if (contextUser != null) {
         if (contextUser instanceof User) {
           // OpenSearch 3.x style
