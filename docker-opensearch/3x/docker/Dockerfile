@@ -6,13 +6,6 @@ WORKDIR /build
 
 COPY 3x/opensearch-filter-plugin /build
 
-RUN mvn install:install-file \
-    -Dfile=/build/vendor/opensearch-security-3.2.0.0.jar \
-    -DgroupId=org.opensearch.plugin \
-    -DartifactId=opensearch-security \
-    -Dversion=3.2.0.0 \
-    -Dpackaging=jar
-
 RUN mvn -e -X dependency:go-offline
 
 RUN mvn -e -X clean package -Dcheckstyle.skip
