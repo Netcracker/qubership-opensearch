@@ -119,13 +119,25 @@ public class IsmSecurityFilter implements ActionFilter {
     // Get user information from thread context
     User user = null;
     QUser quser = null;
+    try {
       Object contextUser = threadContext.getTransient(OPENDISTRO_SECURITY_USER);
-      System.out.println("contextUser is " + contextUser);
-      System.out.println("contextUser is " + contextUser.getClass());
+      System.out.println("contextUser is " + contextUser);//not null
+      System.out.println("contextUser is " + contextUser.getClass());//not null
       if (contextUser != null) {
-          user = (User) contextUser;
+        if (contextUser instanceof User) {
+          // OpenSearch 3.x style
+          user = (User) contextUser; // ?????? null
+          System.out.println("if (contextUser instanceof User) {");
+          System.out.println("User is " + user.toString());
           quser = transformUser(user);
+        } else if (contextUser instanceof Writeable) {
+          // Legacy style (OpenSearch 2.x)
+          quser = new QUser(getStreamInput((Writeable) contextUser));
+        }
       }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
 
     if (quser == null) {
       System.out.println("User is null");
@@ -175,7 +187,7 @@ public class IsmSecurityFilter implements ActionFilter {
               ? new HashMap<>(osUser.getCustomAttributesMap())
               : Collections.emptyMap();
 
-      String requestedTenant = osUser.getRequestedTenant();
+      String requestedTenant = osUser.getRequestedTenant(); // может быть null
 
       return new QUser(name, backendRoles, roles, attributes, requestedTenant);
   }
