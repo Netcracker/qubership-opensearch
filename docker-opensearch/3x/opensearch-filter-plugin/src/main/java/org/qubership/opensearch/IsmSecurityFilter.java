@@ -119,7 +119,6 @@ public class IsmSecurityFilter implements ActionFilter {
     // Get user information from thread context
     User user = null;
     QUser quser = null;
-    try {
       Object contextUser = threadContext.getTransient(OPENDISTRO_SECURITY_USER);
       System.out.println("contextUser is " + contextUser);
       System.out.println("contextUser is " + contextUser.getClass());
@@ -127,9 +126,6 @@ public class IsmSecurityFilter implements ActionFilter {
           user = (User) contextUser;
           quser = transformUser(user);
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
 
     if (quser == null) {
       System.out.println("User is null");
