@@ -84,19 +84,17 @@ func (bp BaseProvider) GetBackendRoles(roleType string) []string {
 	return []string{fmt.Sprintf(BackendRolePattern, roleType)}
 }
 
-func (bp BaseProvider) CreateRoleWithISMPermissions(enhancedSecurityPluginEnabled bool) error {
+func (bp BaseProvider) CreateRoleWithISMPermissions() error {
 	clusterPermissions := []string{
 		ClusterAdminIsmPermissions,
 	}
 	indexGlobalPermissions := []string{
 		IndicesIsmManagedIndexPermission,
 	}
-	if !enhancedSecurityPluginEnabled {
-		indexGlobalPermissions = append(indexGlobalPermissions,
-			IndicesMonitorStatsPermission,
-			IndicesRolloverPermission,
-			IndicesDeletePermission)
-	}
+	indexGlobalPermissions = append(indexGlobalPermissions,
+		IndicesMonitorStatsPermission,
+		IndicesRolloverPermission,
+		IndicesDeletePermission)
 	return bp.createRole(clusterPermissions, []string{}, indexGlobalPermissions, IsmRoleType)
 }
 

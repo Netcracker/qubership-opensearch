@@ -137,7 +137,7 @@ Managed Index CRUD With Unallowed Resource Prefix
     Log  ${response}
     ${resourcePrefix}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="ism")].resourcePrefix
     Log  Resource Prefix: ${resourcePrefix}
-    ${username_ism}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="ism")].username
+    ${username_ism}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="ism")].username //check admin roles
     ${password_ism}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="ism")].password
 
     Login To OpenSearch  ${username_ism}  ${password_ism}

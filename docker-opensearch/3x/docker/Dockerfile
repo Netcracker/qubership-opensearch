@@ -1,15 +1,3 @@
-FROM amazoncorretto:21-alpine AS builder
-
-RUN apk add --no-cache maven=3.9.9-r0 git=2.49.1-r0 curl unzip
-
-WORKDIR /build
-
-COPY 3x/opensearch-filter-plugin /build
-
-RUN mvn -e -X dependency:go-offline
-
-RUN mvn -e -X clean package -Dcheckstyle.skip
-
 FROM opensearchproject/opensearch:3.2.0
 
 USER 0
@@ -45,8 +33,6 @@ else \
     echo "Plugin download failed"; \
     exit 1; \
 fi
-
-COPY --from=builder /build/target/opensearch-filter-plugin-3.2.0.0.zip  ${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/opensearch-filter-plugin-3.2.0.0.zip
 
 # Adapt grants
 RUN set -x \

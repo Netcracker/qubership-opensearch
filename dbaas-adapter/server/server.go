@@ -54,7 +54,6 @@ var (
 	opensearchRepo     = common.GetEnv("OPENSEARCH_REPO", "dbaas-backups-repository")
 	opensearchRepoRoot = common.GetEnv("OPENSEARCH_REPO_ROOT", "/usr/share/opensearch/")
 	//nolint:errcheck
-	enhancedSecurityPluginEnabled, _ = strconv.ParseBool(common.GetEnv("ENHANCED_SECURITY_PLUGIN_ENABLED", "false"))
 
 	labelsFilename    = common.GetEnv("LABELS_FILE_LOCATION_NAME", "dbaas.physical_databases.registration.labels.json")
 	labelsLocationDir = common.GetEnv("LABELS_FILE_LOCATION_DIR", "/app/config/")
@@ -266,9 +265,6 @@ func createBasicRoles(baseProvider *basic.BaseProvider) {
 	// Migration is tracked by the role mapping, because it is created at the end of the initialization
 	mapping, err := baseProvider.GetRoleMapping(fmt.Sprintf(common.RoleNamePattern, basic.AdminRoleType))
 	if err != nil {
-		panic(err)
-	}
-	if err = baseProvider.CreateRoleWithISMPermissions(enhancedSecurityPluginEnabled); err != nil {
 		panic(err)
 	}
 	if err = baseProvider.CreateRoleWithAdminPermissions(); err != nil {
