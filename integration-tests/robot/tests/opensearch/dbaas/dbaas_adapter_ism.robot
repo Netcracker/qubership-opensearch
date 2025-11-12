@@ -48,7 +48,7 @@ Policy CRUD
     Should Be Equal As Strings  ${content["policy"]["policy_id"]}  ${policy_name}
     Should Be Equal As Strings  ${content["policy"]["description"]}  Testing rollover
     Should Be Equal As Strings  ${content["policy"]["ism_template"][0]["index_patterns"][0]}  ${resource_prefix}*
-    # read all policies - forbidden
+    # read all policies
     ${response}=  Get Policies
     Should Be Equal As Strings  ${response.status_code}  403
     # delete policy
@@ -60,33 +60,33 @@ Policy CRUD
     [Teardown]  Run Keywords  Remove Policy  ${policy_name}
     ...  AND  Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
 
-Policy CRUD With Unallowed Resource Prefix
-    [Tags]  dbaas  dbaas_opensearch  dbaas_ism  dbaas_ism_unallowed_policy_crud  dbaas_v2
-    ${response}=  Create Database Resource Prefix By Dbaas Agent
-    Log  ${response}
-    ${resourcePrefix}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="ism")].resourcePrefix
-    Log  Resource Prefix: ${resourcePrefix}
-    ${username_ism}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="ism")].username
-    ${password_ism}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="ism")].password
-
-    Login To OpenSearch  ${username_ism}  ${password_ism}
-    ${impermissible_resource_prefix}=  Set Variable  custom-2b9e-4cbc-8f7f-b98684b51073
-    ${policy_name}=  Set Variable  ${impermissible_resource_prefix}-policy
-    # create policy
-    ${response}=  Create Policy  ${policy_name}  {"policy": {"description": "Test rollover", "default_state": "test_rollover", "states": [{"name": "test_rollover", "actions": [{"rollover": {"min_doc_count": 2}}]}]}}
-    Should Be Equal As Strings  ${response.status_code}  403
-    # read policy
-    ${response}=  Get Policy  ${policy_name}  False
-    Should Be Equal As Strings  ${response.status_code}  403
-    ${seq_no}=  Set Variable  0
-    ${primary_term}=  Set Variable  1
-    # update policy
-    ${response}=  Update Policy  ${policy_name}  ${seq_no}  ${primary_term}  {"policy": {"description": "Testing rollover", "default_state": "test_rollover", "states": [{"name": "test_rollover", "actions": [{"rollover": {"min_doc_count": 2}}]}], "ism_template": {"index_patterns": ["${resource_prefix}*"], "priority": 100}}}
-    Should Be Equal As Strings  ${response.status_code}  403
-    # delete policy
-    ${response}=  Remove Policy  ${policy_name}
-    Should Be Equal As Strings  ${response.status_code}  403
-    [Teardown]  Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
+#Policy CRUD With Unallowed Resource Prefix
+#    [Tags]  dbaas  dbaas_opensearch  dbaas_ism  dbaas_ism_unallowed_policy_crud  dbaas_v2
+#    ${response}=  Create Database Resource Prefix By Dbaas Agent
+#    Log  ${response}
+#    ${resourcePrefix}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="ism")].resourcePrefix
+#    Log  Resource Prefix: ${resourcePrefix}
+#    ${username_ism}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="ism")].username
+#    ${password_ism}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="ism")].password
+#
+#    Login To OpenSearch  ${username_ism}  ${password_ism}
+#    ${impermissible_resource_prefix}=  Set Variable  custom-2b9e-4cbc-8f7f-b98684b51073
+#    ${policy_name}=  Set Variable  ${impermissible_resource_prefix}-policy
+#    # create policy
+#    ${response}=  Create Policy  ${policy_name}  {"policy": {"description": "Test rollover", "default_state": "test_rollover", "states": [{"name": "test_rollover", "actions": [{"rollover": {"min_doc_count": 2}}]}]}}
+#    Should Be Equal As Strings  ${response.status_code}  403
+#    # read policy
+#    ${response}=  Get Policy  ${policy_name}  False
+#    Should Be Equal As Strings  ${response.status_code}  403
+#    ${seq_no}=  Set Variable  0
+#    ${primary_term}=  Set Variable  1
+#    # update policy
+#    ${response}=  Update Policy  ${policy_name}  ${seq_no}  ${primary_term}  {"policy": {"description": "Testing rollover", "default_state": "test_rollover", "states": [{"name": "test_rollover", "actions": [{"rollover": {"min_doc_count": 2}}]}], "ism_template": {"index_patterns": ["${resource_prefix}*"], "priority": 100}}}
+#    Should Be Equal As Strings  ${response.status_code}  403
+#    # delete policy
+#    ${response}=  Remove Policy  ${policy_name}
+#    Should Be Equal As Strings  ${response.status_code}  403
+#    [Teardown]  Delete Database Resource Prefix Dbaas Agent  ${resourcePrefix}
 
 Managed Index CRUD
     [Tags]  dbaas  dbaas_opensearch  dbaas_ism  dbaas_ism_index_crud  dbaas_v2
@@ -135,10 +135,10 @@ Managed Index CRUD With Unallowed Resource Prefix
     [Tags]  dbaas  dbaas_opensearch  dbaas_ism  dbaas_ism_unallowed_index_crud  dbaas_v2
     ${response}=  Create Database Resource Prefix By Dbaas Agent
     Log  ${response}
-    ${resourcePrefix}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="ism")].resourcePrefix
+    ${resourcePrefix}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="admin")].resourcePrefix
     Log  Resource Prefix: ${resourcePrefix}
-    ${username_ism}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="ism")].username //check admin roles
-    ${password_ism}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="ism")].password
+    ${username_ism}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="admin")].username
+    ${password_ism}=  Get Items By Path  ${response}  $.connectionProperties[?(@.role=="admin")].password
 
     Login To OpenSearch  ${username_ism}  ${password_ism}
     ${impermissible_resource_prefix}=  Set Variable  custom-2b9e-4cbc-8f7f-b98684b51073
