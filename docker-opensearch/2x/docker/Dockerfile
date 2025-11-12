@@ -1,15 +1,3 @@
-FROM amazoncorretto:11-alpine AS builder
-
-RUN apk add --no-cache maven=3.9.9-r0 git=2.49.1-r0
-
-WORKDIR /build
-
-COPY 2x/opensearch-filter-plugin/pom.xml ./
-RUN mvn dependency:go-offline
-
-COPY 2x/opensearch-filter-plugin/ ./
-RUN mvn clean package
-
 FROM opensearchproject/opensearch:2.19.3
 
 USER 0
