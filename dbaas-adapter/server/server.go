@@ -267,6 +267,9 @@ func createBasicRoles(baseProvider *basic.BaseProvider) {
 	if err != nil {
 		panic(err)
 	}
+	if err = baseProvider.CreateRoleWithISMPermissions(); err != nil {
+		panic(err)
+	}
 	if err = baseProvider.CreateRoleWithAdminPermissions(); err != nil {
 		panic(err)
 	}
