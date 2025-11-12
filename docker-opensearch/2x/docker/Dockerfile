@@ -34,8 +34,6 @@ RUN echo "Download OpenSearch plugins..." \
     exit 1; \
     fi
 
-COPY --from=builder /build/target/opensearch-filter-plugin-2.19.3.0.zip  ${OPENSEARCH_HOME}/dist/opensearch-filter-plugin/opensearch-filter-plugin-2.19.3.0.zip
-
 # Adapt grants
 RUN set -x \
     && chmod 777 ${OPENSEARCH_HOME} \
