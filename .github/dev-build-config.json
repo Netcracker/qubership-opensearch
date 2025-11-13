@@ -1,0 +1,55 @@
+{
+  "components": [
+    {
+      "name": "qubership-opensearch-integration-tests",
+      "file": "integration-tests/docker/Dockerfile",
+      "context": "integration-tests"
+    },
+    {
+      "name": "qubership-opensearch-tls-init",
+      "file": "tls-init/docker/Dockerfile",
+      "context": "tls-init"
+    },
+    {
+      "name": "qubership-opensearch-operator",
+      "file": "operator/Dockerfile",
+      "context": "operator"
+    },
+    {
+      "name": "qubership-opensearch-transfer",
+      "file": "docker-transfer/Dockerfile",
+      "context": ""
+    },
+    {
+      "name": "qubership-opensearch-monitoring",
+      "file": "monitoring/docker/Dockerfile",
+      "context": "monitoring"
+    },
+    {
+      "name": "qubership-opensearch-dashboard",
+      "file": "docker-opensearch-dashboard/Dockerfile",
+      "context": "docker-opensearch-dashboard"
+    },
+    {
+      "name": "qubership-opensearch-curator",
+      "file": "curator/docker/backup-docker/Dockerfile",
+      "context": "curator"
+    },
+    {
+      "name": "qubership-opensearch-indices-cleaner",
+      "file": "curator/opensearch_indices_cleaner/docker/Dockerfile",
+      "context": "curator/opensearch_indices_cleaner"
+    },
+    {
+      "name": "qubership-opensearch-dbaas-adapter",
+      "file": "dbaas-adapter/docker/Dockerfile",
+      "context": "dbaas-adapter"
+    },
+    {
+      "name": "qubership-docker-opensearch",
+      "file": "docker-opensearch/docker/Dockerfile",
+      "context": "docker-opensearch"
+    }
+  ],
+  "platforms": "linux/amd64,linux/arm64"
+}

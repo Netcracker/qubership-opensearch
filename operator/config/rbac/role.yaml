@@ -7,7 +7,7 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - qubership.org
+  - netcracker.com
   resources:
   - opensearchservices
   verbs:
@@ -19,13 +19,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - qubership.org
+  - netcracker.com
   resources:
   - opensearchservices/finalizers
   verbs:
   - update
 - apiGroups:
-  - qubership.org
+  - netcracker.com
   resources:
   - opensearchservices/status
   verbs:

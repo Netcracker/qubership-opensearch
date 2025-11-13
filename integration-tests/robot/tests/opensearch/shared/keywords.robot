@@ -31,12 +31,6 @@ Change Secret
     ${response}=  Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
     RETURN  ${response}
 
-Get Image Tag
-    [Arguments]  ${image}
-    ${parts}=  Split String  ${image}  :
-    ${length}=  Get Length  ${parts}
-    Run Keyword If  ${length} > 1  Return From Keyword  ${parts[2]}  ELSE  Fail  Image has no tag: ${image}
-
 Login To OpenSearch
     [Arguments]  ${username}  ${password}  ${need_auth}=True
     ${auth}=  Run Keyword If  ${need_auth}  Create List  ${username}  ${password}
