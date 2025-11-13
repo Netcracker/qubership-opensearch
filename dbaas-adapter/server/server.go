@@ -53,7 +53,6 @@ var (
 	opensearchPassword = common.GetEnv("OPENSEARCH_PASSWORD", "change")
 	opensearchRepo     = common.GetEnv("OPENSEARCH_REPO", "dbaas-backups-repository")
 	opensearchRepoRoot = common.GetEnv("OPENSEARCH_REPO_ROOT", "/usr/share/opensearch/")
-	//nolint:errcheck
 
 	labelsFilename    = common.GetEnv("LABELS_FILE_LOCATION_NAME", "dbaas.physical_databases.registration.labels.json")
 	labelsLocationDir = common.GetEnv("LABELS_FILE_LOCATION_DIR", "/app/config/")
