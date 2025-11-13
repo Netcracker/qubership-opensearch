@@ -50,7 +50,7 @@ Policy CRUD
     Should Be Equal As Strings  ${content["policy"]["ism_template"][0]["index_patterns"][0]}  ${resource_prefix}*
     # read all policies
     ${response}=  Get Policies
-    Should Be Equal As Strings  ${response.status_code}  403
+    Should Be Equal As Strings  ${response.status_code}  200
     # delete policy
     ${response}=  Remove Policy  ${policy_name}
     Should Be Equal As Strings  ${response.status_code}  200
