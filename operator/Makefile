@@ -37,8 +37,8 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # This variable is used to construct full image tags for bundle and catalog images.
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# qubership.org/opensearch-service-bundle:$VERSION and qubership.org/opensearch-service-catalog:$VERSION.
-IMAGE_TAG_BASE ?= qubership.org/opensearch-service
+# netcracker.com/opensearch-service-bundle:$VERSION and netcracker.com/opensearch-service-catalog:$VERSION.
+IMAGE_TAG_BASE ?= netcracker.com/opensearch-service
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
@@ -87,9 +87,9 @@ help: ## Display this help.
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd:maxDescLen=0 webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-	sed -i "/annotations:/a\    crd\/version: $(CRD_VERSION)" config/crd/bases/qubership.org_opensearchservices.yaml
+	sed -i "/annotations:/a\    crd\/version: $(CRD_VERSION)" config/crd/bases/netcracker.com_opensearchservices.yaml
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd:crdVersions=v1beta1,trivialVersions=false,maxDescLen=0 webhook paths="./..." output:crd:artifacts:config=config/crd/old
-	sed -i "/annotations:/a\    crd\/version: $(CRD_VERSION)" config/crd/old/qubership.org_opensearchservices.yaml
+	sed -i "/annotations:/a\    crd\/version: $(CRD_VERSION)" config/crd/old/netcracker.com_opensearchservices.yaml
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.

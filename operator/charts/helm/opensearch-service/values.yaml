@@ -186,7 +186,7 @@ global:
     indicesPattern: "*"
     remoteCluster: ""
     siteManagerEnabled: true
-    siteManagerApiGroup: "qubership.org"
+    siteManagerApiGroup: "netcracker.com"
     timeout: 600
     afterServices: []
     replicationWatcherEnabled: false
@@ -826,7 +826,7 @@ opensearch:
 
 podScheduler:
   enabled: true
-  dockerImage: bitnami/kubectl:1.30.6
+  dockerImage: ghcr.io/netcracker/qubership-docker-kubectl:main
   affinity: {}
   nodeSelector: {}
   resources:
@@ -1168,6 +1168,22 @@ integrationTests:
   # used to assign priority to the OpenSearch integration tests pod
   # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
   priorityClassName: ""
+
+groupMigration:
+  enabled: true
+  oldGroupPrefix: "qubership.org/"
+  # labelSelector: "app.kubernetes.io/part-of=app-name"
+  labelSelector: ""
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 20m
+    limits:
+      memory: 256Mi
+      cpu: 100m
+  image: "ghcr.io/netcracker/qubership-docker-kubectl:main"
+  imagePullPolicy: Always
+  runAsNonRoot: true
 
 nameOverride: "opensearch"
 fullnameOverride: "opensearch"
