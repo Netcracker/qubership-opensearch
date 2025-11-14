@@ -10,7 +10,21 @@ on:
 #    branches: [main]
 
 jobs:
+  Wait-for-images:
+    runs-on: ubuntu-latest
+    outputs:
+      conclusion: ${{ steps.wait.outputs.conclusion }}
+    steps:
+      - name: Wait for push.yml to complete
+        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@main
+        id: wait
+        with:
+          workflow: push.yml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          poll-interval: 20
   start-self-hosted-runner:
+    needs: Wait-for-images
+    if: ${{ needs.Wait-for-images.outputs.conclusion }} == 'success'
     uses: Netcracker/qubership-terraform-hub/.github/workflows/ec2-control.yml@main
     with:
       instance_id: ${{ vars.AWS_GITHUB_RUNNER_ID }}
@@ -18,7 +32,6 @@ jobs:
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
   Opensearch-Pipeline:
     needs: start-self-hosted-runner
     uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@feat/prune_docker_volumes
@@ -30,9 +43,9 @@ jobs:
     secrets:
       AWS_S3_ACCESS_KEY_ID: ${{secrets.AWS_S3_ACCESS_KEY_ID}}
       AWS_S3_ACCESS_KEY_SECRET: ${{secrets.AWS_S3_ACCESS_KEY_SECRET}}
-
   stop-self-hosted-runner:
     needs: Opensearch-Pipeline
+    if: always()
     uses: Netcracker/qubership-terraform-hub/.github/workflows/ec2-control.yml@main
     with:
       instance_id: ${{ vars.AWS_GITHUB_RUNNER_ID }}
