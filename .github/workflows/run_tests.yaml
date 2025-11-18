@@ -5,6 +5,9 @@ permissions:
 
 on:
   push
+#  pull_request:
+#    types: [opened, synchronize, reopened]
+#    branches: [main]
 
 jobs:
   Wait-for-images:
@@ -20,6 +23,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           poll-interval: 20
   Opensearch-Pipeline:
+    needs: Wait-for-images
     uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@opensearch_github_runners
     with:
       service_branch: '${{ github.head_ref || github.ref_name }}'
