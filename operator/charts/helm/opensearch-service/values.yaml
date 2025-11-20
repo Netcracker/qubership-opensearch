@@ -844,7 +844,8 @@ podScheduler:
   customLabels: {}
 
 monitoring:
-  enabled: false
+  enabled: true
+  alertsPackVersion: "v2"
   dockerImage: ghcr.io/netcracker/qubership-opensearch-monitoring:main
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
@@ -921,7 +922,7 @@ monitoring:
 
 # DBaaS adapter based on OpenSearch client
 dbaasAdapter:
-  enabled: false
+  enabled: true
   dockerImage: ghcr.io/netcracker/qubership-opensearch-dbaas-adapter:main
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
@@ -1008,7 +1009,7 @@ dbaasAdapter:
   customLabels: {}
 
 curator:
-  enabled: false
+  enabled: true
   dockerImage: ghcr.io/netcracker/qubership-opensearch-curator:main
   dockerIndicesCleanerImage: ghcr.io/netcracker/qubership-opensearch-indices-cleaner:main
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
