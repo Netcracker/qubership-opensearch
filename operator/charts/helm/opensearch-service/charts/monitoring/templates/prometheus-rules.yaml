@@ -32,17 +32,17 @@ spec:
               {{ $defaultLabelName }}: {{ $defaultLabelValue }}
       {{- end }}
     {{- end }}
-      {{- if $defaultGroup.interval }} 
-      interval: {{ $defaultGroup.interval }} 
+      {{- if $defaultGroup.interval }}
+      interval: {{ $defaultGroup.interval }}
       {{- end }}
-      {{- if $defaultGroup.concurrency }} 
-      concurrency: {{ $defaultGroup.concurrency }} 
+      {{- if $defaultGroup.concurrency }}
+      concurrency: {{ $defaultGroup.concurrency }}
       {{- end }}
       rules:
 {{- range $defaultRuleName, $defaultRule := $defaultGroup.rules }}
         - alert: {{ $defaultRuleName }}
           expr: {{ $defaultRule.expr }}
-          {{- if $defaultRule.for }} 
+          {{- if $defaultRule.for }}
           for: {{ $defaultRule.for }}
           {{- end }}
           labels:

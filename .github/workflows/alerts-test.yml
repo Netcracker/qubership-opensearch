@@ -40,7 +40,7 @@ jobs:
         run: |
           chmod +x ./operator/tests/alerts-tests/tests-checker.sh
           cd ./operator/tests/alerts-tests/
-          ./tests-checker.sh       
+          ./tests-checker.sh
         continue-on-error: true
 
       - name: Install vmalert-tool

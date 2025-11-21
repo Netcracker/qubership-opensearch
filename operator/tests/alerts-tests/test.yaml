@@ -1,396 +1,396 @@
-rule_files:
-- rules.yaml
-evaluation_interval: 1m
-tests:
-- interval: 1m
-  input_series:
-  - series: opensearch_process_cpu_percent{namespace="default"}
-    values: "100x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchCPULoadAlert
-    exp_alerts:
-    - exp_labels:
-        severity: warning
-        namespace: default
-        service: opensearch-montemplate
-      exp_annotations:
-        description: OpenSearch CPU usage is above 95 percent.
-        summary: OpenSearch's CPU usage is above 95 percent
+  rule_files:
+  - rules.yaml
+  evaluation_interval: 1m
+  tests:
+  - interval: 1m
+    input_series:
+    - series: opensearch_process_cpu_percent{namespace="default"}
+      values: "100x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchCPULoadAlert
+      exp_alerts:
+      - exp_labels:
+          severity: warning
+          namespace: default
+          service: opensearch-montemplate
+        exp_annotations:
+          description: OpenSearch CPU usage is above 95 percent.
+          summary: OpenSearch's CPU usage is above 95 percent
 
-- interval: 1m
-  input_series:
-  - series: opensearch_process_cpu_percent{namespace="default"}
-    values: "0x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchCPULoadAlert
-    exp_alerts: []
-    
-- interval: 1m
-  input_series:
-  - series: opensearch_fs_total_free_in_bytes{namespace="default"}
-    values: "2x5"
-  - series: opensearch_fs_total_total_in_bytes{namespace="default"}
-    values: "10x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchDiskUsageAbove75percentAlert
-    exp_alerts:
-    - exp_labels:
-        severity: warning
-        namespace: default
-        service: opensearch-montemplate
-      exp_annotations:
-        description: OpenSearch disk usage is above 75 percent
-        summary: OpenSearch's disk usage is above 75 percent
+  - interval: 1m
+    input_series:
+    - series: opensearch_process_cpu_percent{namespace="default"}
+      values: "0x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchCPULoadAlert
+      exp_alerts: []
 
-- interval: 1m
-  input_series:
-  - series: opensearch_fs_total_free_in_bytes{namespace="default"}
-    values: "10x5"
-  - series: opensearch_fs_total_total_in_bytes{namespace="default"}
-    values: "10x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchDiskUsageAbove75percentAlert
-    exp_alerts: []
-    
-- interval: 1m
-  input_series:
-  - series: opensearch_fs_total_free_in_bytes{namespace="default"}
-    values: "1x5"
-  - series: opensearch_fs_total_total_in_bytes{namespace="default"}
-    values: "10x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchDiskUsageAbove85percentAlert
-    exp_alerts:
-    - exp_labels:
-        severity: warning
-        namespace: default
-        service: opensearch-montemplate
-      exp_annotations:
-        description: OpenSearch disk usage is above 85 percent
-        summary: OpenSearch's disk usage is above 85 percent
+  - interval: 1m
+    input_series:
+    - series: opensearch_fs_total_free_in_bytes{namespace="default"}
+      values: "2x5"
+    - series: opensearch_fs_total_total_in_bytes{namespace="default"}
+      values: "10x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchDiskUsageAbove75percentAlert
+      exp_alerts:
+      - exp_labels:
+          severity: warning
+          namespace: default
+          service: opensearch-montemplate
+        exp_annotations:
+          description: OpenSearch disk usage is above 75 percent
+          summary: OpenSearch's disk usage is above 75 percent
 
-- interval: 1m
-  input_series:
-  - series: opensearch_fs_total_free_in_bytes{namespace="default"}
-    values: "10x5"
-  - series: opensearch_fs_total_total_in_bytes{namespace="default"}
-    values: "10x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchDiskUsageAbove85percentAlert
-    exp_alerts: []
+  - interval: 1m
+    input_series:
+    - series: opensearch_fs_total_free_in_bytes{namespace="default"}
+      values: "10x5"
+    - series: opensearch_fs_total_total_in_bytes{namespace="default"}
+      values: "10x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchDiskUsageAbove75percentAlert
+      exp_alerts: []
 
-- interval: 1m
-  input_series:
-  - series: opensearch_fs_total_free_in_bytes{namespace="default"}
-    values: "0x5"
-  - series: opensearch_fs_total_total_in_bytes{namespace="default"}
-    values: "10x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchDiskUsageAbove95percentAlert
-    exp_alerts:
-    - exp_labels:
-        severity: critical
-        namespace: default
-        service: opensearch-montemplate
-      exp_annotations:
-        description: OpenSearch disk usage is above 95 percent
-        summary: OpenSearch's disk usage is above 95 percent
+  - interval: 1m
+    input_series:
+    - series: opensearch_fs_total_free_in_bytes{namespace="default"}
+      values: "1x5"
+    - series: opensearch_fs_total_total_in_bytes{namespace="default"}
+      values: "10x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchDiskUsageAbove85percentAlert
+      exp_alerts:
+      - exp_labels:
+          severity: warning
+          namespace: default
+          service: opensearch-montemplate
+        exp_annotations:
+          description: OpenSearch disk usage is above 85 percent
+          summary: OpenSearch's disk usage is above 85 percent
 
-- interval: 1m
-  input_series:
-  - series: opensearch_fs_total_free_in_bytes{namespace="default"}
-    values: "10x5"
-  - series: opensearch_fs_total_total_in_bytes{namespace="default"}
-    values: "10x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchDiskUsageAbove95percentAlert
-    exp_alerts: []
+  - interval: 1m
+    input_series:
+    - series: opensearch_fs_total_free_in_bytes{namespace="default"}
+      values: "10x5"
+    - series: opensearch_fs_total_total_in_bytes{namespace="default"}
+      values: "10x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchDiskUsageAbove85percentAlert
+      exp_alerts: []
 
-- interval: 1m
-  input_series:
-  - series: opensearch_jvm_mem_heap_used_percent{namespace="default"}
-    values: "100x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchHeapMemoryUsageAlert
-    exp_alerts:
-    - exp_labels:
-        severity: warning
-        namespace: default
-        service: opensearch-montemplate
-      exp_annotations:
-        description: OpenSearch heap memory usage is above 95 percent.
-        summary: OpenSearch's heap memory usage is above 95 percent
+  - interval: 1m
+    input_series:
+    - series: opensearch_fs_total_free_in_bytes{namespace="default"}
+      values: "0x5"
+    - series: opensearch_fs_total_total_in_bytes{namespace="default"}
+      values: "10x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchDiskUsageAbove95percentAlert
+      exp_alerts:
+      - exp_labels:
+          severity: critical
+          namespace: default
+          service: opensearch-montemplate
+        exp_annotations:
+          description: OpenSearch disk usage is above 95 percent
+          summary: OpenSearch's disk usage is above 95 percent
 
-- interval: 1m
-  input_series:
-  - series: opensearch_jvm_mem_heap_used_percent{namespace="default"}
-    values: "0x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchHeapMemoryUsageAlert
-    exp_alerts: []
-    
-- interval: 1m
-  input_series:
-  - series: opensearch_cluster_health_status_code{namespace="default"}
-    values: "6x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchIsDegradedAlert
-    exp_alerts:
-    - exp_labels:
-        severity: warning
-        namespace: default
-        service: opensearch-montemplate
-      exp_annotations:
-        description: OpenSearch is Degraded.
-        summary: Some of OpenSearch Service pods are down
+  - interval: 1m
+    input_series:
+    - series: opensearch_fs_total_free_in_bytes{namespace="default"}
+      values: "10x5"
+    - series: opensearch_fs_total_total_in_bytes{namespace="default"}
+      values: "10x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchDiskUsageAbove95percentAlert
+      exp_alerts: []
 
-- interval: 1m
-  input_series:
-  - series: opensearch_cluster_health_status_code{namespace="default"}
-    values: "0x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchIsDegradedAlert
-    exp_alerts: []
+  - interval: 1m
+    input_series:
+    - series: opensearch_jvm_mem_heap_used_percent{namespace="default"}
+      values: "100x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchHeapMemoryUsageAlert
+      exp_alerts:
+      - exp_labels:
+          severity: warning
+          namespace: default
+          service: opensearch-montemplate
+        exp_annotations:
+          description: OpenSearch heap memory usage is above 95 percent.
+          summary: OpenSearch's heap memory usage is above 95 percent
 
-- interval: 1m
-  input_series:
-  - series: opensearch_cluster_health_status_code{namespace="default"}
-    values: "10x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchIsDownAlert
-    exp_alerts:
-    - exp_labels:
-        severity: critical
-        namespace: default
-        service: opensearch-montemplate
-      exp_annotations:
-        description: OpenSearch is Down.
-        summary: All of OpenSearch Service pods are down
+  - interval: 1m
+    input_series:
+    - series: opensearch_jvm_mem_heap_used_percent{namespace="default"}
+      values: "0x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchHeapMemoryUsageAlert
+      exp_alerts: []
 
-- interval: 1m
-  input_series:
-  - series: opensearch_cluster_health_status_code{namespace="default"}
-    values: "0x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchIsDownAlert
-    exp_alerts: []
-    
-- interval: 1m
-  input_series:
-  - series: opensearch_dbaas_health_status{namespace="default"}
-    values: "1x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchDBaaSIsDownAlert
-    exp_alerts:
-    - exp_labels:
-        severity: warning
-        namespace: default
-        service: opensearch-montemplate
-      exp_annotations:
-        description: OpenSearch DBaaS agent is Down.
-        summary: OpenSearch DBaaS agent is Down
+  - interval: 1m
+    input_series:
+    - series: opensearch_cluster_health_status_code{namespace="default"}
+      values: "6x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchIsDegradedAlert
+      exp_alerts:
+      - exp_labels:
+          severity: warning
+          namespace: default
+          service: opensearch-montemplate
+        exp_annotations:
+          description: OpenSearch is Degraded.
+          summary: Some of OpenSearch Service pods are down
 
-- interval: 1m
-  input_series:
-  - series: opensearch_dbaas_health_status{namespace="default"}
-    values: "0x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchDBaaSIsDownAlert
-    exp_alerts: []
+  - interval: 1m
+    input_series:
+    - series: opensearch_cluster_health_status_code{namespace="default"}
+      values: "0x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchIsDegradedAlert
+      exp_alerts: []
 
-- interval: 1m
-  input_series:
-  - series: opensearch_backups_metric_last_backup_status{namespace="default"}
-    values: "0x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchLastBackupHasFailedAlert
-    exp_alerts:
-    - exp_labels:
-        severity: warning
-        namespace: default
-        service: opensearch-montemplate
-      exp_annotations:
-        description: OpenSearch Last Backup Has Failed.
-        summary: OpenSearch Last Backup Has Failed
+  - interval: 1m
+    input_series:
+    - series: opensearch_cluster_health_status_code{namespace="default"}
+      values: "10x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchIsDownAlert
+      exp_alerts:
+      - exp_labels:
+          severity: critical
+          namespace: default
+          service: opensearch-montemplate
+        exp_annotations:
+          description: OpenSearch is Down.
+          summary: All of OpenSearch Service pods are down
 
-- interval: 1m
-  input_series:
-  - series: opensearch_backups_metric_last_backup_status{namespace="default"}
-    values: "1x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchLastBackupHasFailedAlert
-    exp_alerts: []
+  - interval: 1m
+    input_series:
+    - series: opensearch_cluster_health_status_code{namespace="default"}
+      values: "0x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchIsDownAlert
+      exp_alerts: []
 
-- interval: 1m
-  input_series:
-  - series: opensearch_slow_query_took_millis{namespace="default"}
-    values: "10001x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchQueryIsTooSlowAlert
-    exp_alerts:
-    - exp_labels:
-        severity: warning
-        namespace: default
-        service: opensearch-montemplate
-      exp_annotations:
-        description: OpenSearch Query Is Too Slow.
-        summary: OpenSearch Query Is Too Slow
+  - interval: 1m
+    input_series:
+    - series: opensearch_dbaas_health_status{namespace="default"}
+      values: "1x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchDBaaSIsDownAlert
+      exp_alerts:
+      - exp_labels:
+          severity: warning
+          namespace: default
+          service: opensearch-montemplate
+        exp_annotations:
+          description: OpenSearch DBaaS agent is Down.
+          summary: OpenSearch DBaaS agent is Down
 
-- interval: 1m
-  input_series:
-  - series: opensearch_slow_query_took_millis{namespace="default"}
-    values: "0x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchQueryIsTooSlowAlert
-    exp_alerts: []
+  - interval: 1m
+    input_series:
+    - series: opensearch_dbaas_health_status{namespace="default"}
+      values: "0x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchDBaaSIsDownAlert
+      exp_alerts: []
 
-- interval: 1m
-  input_series:
-  - series: opensearch_replication_metric_status{namespace="default"}
-    values: "2x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchReplicationDegradedAlert
-    exp_alerts:
-    - exp_labels:
-        severity: warning
-        namespace: default
-        service: opensearch-montemplate
-      exp_annotations:
-        description: OpenSearch Replication has Degraded.
-        summary: OpenSearch Replication has Degraded
+  - interval: 1m
+    input_series:
+    - series: opensearch_backups_metric_last_backup_status{namespace="default"}
+      values: "0x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchLastBackupHasFailedAlert
+      exp_alerts:
+      - exp_labels:
+          severity: warning
+          namespace: default
+          service: opensearch-montemplate
+        exp_annotations:
+          description: OpenSearch Last Backup Has Failed.
+          summary: OpenSearch Last Backup Has Failed
 
-- interval: 1m
-  input_series:
-  - series: opensearch_replication_metric_status{namespace="default"}
-    values: "0x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchReplicationDegradedAlert
-    exp_alerts: []
+  - interval: 1m
+    input_series:
+    - series: opensearch_backups_metric_last_backup_status{namespace="default"}
+      values: "1x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchLastBackupHasFailedAlert
+      exp_alerts: []
 
-- interval: 1m
-  input_series:
-  - series: opensearch_replication_metric_status{namespace="default"}
-    values: "4x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchReplicationFailedAlert
-    exp_alerts:
-    - exp_labels:
-        severity: warning
-        namespace: default
-        service: opensearch-montemplate
-      exp_annotations:
-        description: OpenSearch Replication has Failed.
-        summary: OpenSearch Replication has Failed
+  - interval: 1m
+    input_series:
+    - series: opensearch_slow_query_took_millis{namespace="default"}
+      values: "10001x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchQueryIsTooSlowAlert
+      exp_alerts:
+      - exp_labels:
+          severity: warning
+          namespace: default
+          service: opensearch-montemplate
+        exp_annotations:
+          description: OpenSearch Query Is Too Slow.
+          summary: OpenSearch Query Is Too Slow
 
-- interval: 1m
-  input_series:
-  - series: opensearch_replication_metric_status{namespace="default"}
-    values: "0x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchReplicationFailedAlert
-    exp_alerts: []
+  - interval: 1m
+    input_series:
+    - series: opensearch_slow_query_took_millis{namespace="default"}
+      values: "0x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchQueryIsTooSlowAlert
+      exp_alerts: []
 
-- interval: 1m
-  input_series:
-  - series: opensearch_replication_metric_status{namespace="default"}
-    values: "-1x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchReplicationLeaderConnectionLostAlert
-    exp_alerts:
-    - exp_labels:
-        severity: warning
-        namespace: default
-        service: opensearch-montemplate
-      exp_annotations:
-        description: OpenSearch Replication Leader connection lost.
-        summary: OpenSearch Replication Follower lost connection with Leader side
+  - interval: 1m
+    input_series:
+    - series: opensearch_replication_metric_status{namespace="default"}
+      values: "2x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchReplicationDegradedAlert
+      exp_alerts:
+      - exp_labels:
+          severity: warning
+          namespace: default
+          service: opensearch-montemplate
+        exp_annotations:
+          description: OpenSearch Replication has Degraded.
+          summary: OpenSearch Replication has Degraded
 
-- interval: 1m
-  input_series:
-  - series: opensearch_replication_metric_status{namespace="default"}
-    values: "0x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchReplicationLeaderConnectionLostAlert
-    exp_alerts: []
+  - interval: 1m
+    input_series:
+    - series: opensearch_replication_metric_status{namespace="default"}
+      values: "0x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchReplicationDegradedAlert
+      exp_alerts: []
 
-- interval: 1m
-  input_series:
-  - series: opensearch_replication_metric_index_lag{namespace="default"}
-    values: "2x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchReplicationTooHighLagAlert
-    exp_alerts:
-    - exp_labels:
-        severity: warning
-        namespace: default
-        service: opensearch-montemplate
-      exp_annotations:
-        description: OpenSearch Replication has Index with too high Lag.
-        summary: OpenSearch Replication has Index with Lag higher than expected Maximum.
+  - interval: 1m
+    input_series:
+    - series: opensearch_replication_metric_status{namespace="default"}
+      values: "4x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchReplicationFailedAlert
+      exp_alerts:
+      - exp_labels:
+          severity: warning
+          namespace: default
+          service: opensearch-montemplate
+        exp_annotations:
+          description: OpenSearch Replication has Failed.
+          summary: OpenSearch Replication has Failed
 
-- interval: 1m
-  input_series:
-  - series: opensearch_replication_metric_index_lag{namespace="default"}
-    values: "-2x5"
-  alert_rule_test:
-  - eval_time: 5m
-    groupname: default-opensearch-montemplate
-    alertname: OpenSearchReplicationTooHighLagAlert
-    exp_alerts: []
+  - interval: 1m
+    input_series:
+    - series: opensearch_replication_metric_status{namespace="default"}
+      values: "0x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchReplicationFailedAlert
+      exp_alerts: []
+
+  - interval: 1m
+    input_series:
+    - series: opensearch_replication_metric_status{namespace="default"}
+      values: "-1x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchReplicationLeaderConnectionLostAlert
+      exp_alerts:
+      - exp_labels:
+          severity: warning
+          namespace: default
+          service: opensearch-montemplate
+        exp_annotations:
+          description: OpenSearch Replication Leader connection lost.
+          summary: OpenSearch Replication Follower lost connection with Leader side
+
+  - interval: 1m
+    input_series:
+    - series: opensearch_replication_metric_status{namespace="default"}
+      values: "0x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchReplicationLeaderConnectionLostAlert
+      exp_alerts: []
+
+  - interval: 1m
+    input_series:
+    - series: opensearch_replication_metric_index_lag{namespace="default"}
+      values: "2x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchReplicationTooHighLagAlert
+      exp_alerts:
+      - exp_labels:
+          severity: warning
+          namespace: default
+          service: opensearch-montemplate
+        exp_annotations:
+          description: OpenSearch Replication has Index with too high Lag.
+          summary: OpenSearch Replication has Index with Lag higher than expected Maximum.
+
+  - interval: 1m
+    input_series:
+    - series: opensearch_replication_metric_index_lag{namespace="default"}
+      values: "-2x5"
+    alert_rule_test:
+    - eval_time: 5m
+      groupname: default-opensearch-montemplate
+      alertname: OpenSearchReplicationTooHighLagAlert
+      exp_alerts: []
 
 
 
