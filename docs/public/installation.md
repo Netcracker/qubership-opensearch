@@ -1948,6 +1948,17 @@ Automatic CRD upgrade requires the following cluster rights for the deployment u
 
 ## Migration
 
+### Migration to OpenSearch 3.x (OpenSearch Service 2.x.x)
+
+There are the following breaking changes:
+
+1. The Opensearch recommends upgrade to Opensearch recommends upgrading from version 2.19 for more stable operation.
+3. The performance-analyzer-rca agent has been removed.
+4. compatibility.override_main_response_version has been removed.
+
+**Important**: A minio version from 2025-01-20 is required.(https://github.com/minio/minio/issues/20845#issuecomment-2604259537)
+
+
 ### Migration to OpenSearch 2.x (OpenSearch Service 1.x.x)
 
 There are the following breaking changes:
