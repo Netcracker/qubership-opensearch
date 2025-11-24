@@ -1958,7 +1958,6 @@ There are the following breaking changes:
 
 **Important**: A minio version from 2025-01-20 is required.(https://github.com/minio/minio/issues/20845#issuecomment-2604259537)
 
-
 ### Migration to OpenSearch 2.x (OpenSearch Service 1.x.x)
 
 There are the following breaking changes:
