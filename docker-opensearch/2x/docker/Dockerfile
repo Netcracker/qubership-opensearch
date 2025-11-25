@@ -27,7 +27,7 @@ RUN echo "Download OpenSearch plugins..." \
     -o ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.4.zip \
     && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/2.19.4/repository-gcs-2.19.4.zip" \
     -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.4.zip \
-    && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.4.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.3.zip ]; then \
+    && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.4.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.4.zip ]; then \
         echo "Plugins downloaded successfully."; \
     else \
         echo "Plugin download failed"; \
