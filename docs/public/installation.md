@@ -1950,31 +1950,28 @@ Automatic CRD upgrade requires the following cluster rights for the deployment u
 
 ### Migration to OpenSearch 3.x (OpenSearch Service 2.x.x)
 
+**Important**: The Opensearch recommends upgrading from version 2.19 for more stable operation.
+
 There are the following breaking changes:
 
-1. The Opensearch recommends upgrade to Opensearch recommends upgrading from version 2.19 for more stable operation.
-2. The performance-analyzer-rca agent has been removed.
-3. compatibility.override_main_response_version has been removed.
-4. The document ID length limit of 512 bytes is now consistently enforced across all APIs, including the Bulk API. (https://github.com/opensearch-project/OpenSearch/issues/6595)
-5. total_indexing_buffer_in_bytes now displays raw byte.
-6. total_indexing_buffer now displays human-readable format (for example, 51.1mb). 
-7. knn.plugin.enabled, index.knn.algo_param.ef_construction index, index.knn.algo_param.m index, index.knn.space_type index settings have been removed from the k-NN plugin.
-8. Legacy notebooks (previously stored in the .opensearch-observability index) are no longer supported.
-9. Nodes that handle searchable snapshot shards must be assigned the warm role. You must update node role configurations before upgrading to version 3.0 if your cluster uses searchable snapshots.
-10. Nodes that handle searchable snapshot shards must be assigned the warm role.
-    You must update node role configurations before upgrading to version 3.0 if your cluster uses searchable snapshots.
-11. Nodes that handle searchable snapshot shards must be assigned the warm role.
-    You must update node role configurations before upgrading to version 3.0 if your cluster uses searchable snapshots.
-12. The API responds with a workloadGroupID instead of a queryGroupID.
-13. All workload management cluster settings are now prepended with wlm.workload_group
+| Change                                                     | Description                                                                                                                                                                                                   |
+|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Removal of deprecated non-inclusive terminology**        | Terms like `whitelist` / `blacklist`, `master`, etc., were fully removed. They are now replaced with `allow_list` / `deny_list`, `cluster_manager`, and other modern terminology.                             |
+| **Strict document `_id` length limit — 512 bytes**         | All REST API operations (including Bulk API) now reject documents whose `_id` exceeds **512 bytes**. Previously, some bulk operations allowed longer IDs.                                                     |
+| **JSON processing limits — depth and field name length**   | OpenSearch 3.x introduces new default limits on JSON **nesting depth** and **maximum field name length**. This affects any REST API request containing JSON (indexing, update, bulk, search body, templates). |
+| **Nested query/mapping depth limit**                       | New setting: `index.query.max_nested_depth` (default: **20**). Deeply nested queries or object mappings may now fail with a validation error.                                                                 |
+| **Changes in output format of some `/_nodes` API metrics** | Example: `total_indexing_buffer_in_bytes` now returns raw bytes, while `total_indexing_buffer` returns a human-readable value. Scripts or monitoring tools relying on old formats may break.                  |
+| **Removal of deprecated index/cluster settings**           | Many old settings (e.g., `index.store.hybrid.mmap.extensions`) were fully removed. REST API will return an error if they are used.                                                                            |
 
 ### OpenSearch Dashboards
 There are the following breaking changes:
 
-1. The discover:newExperience setting has been removed.
-2. The DataGrid table feature has been removed.
-3. Visualizations: The dashboards-visualizations plugin (including Gantt chart visualization) has been removed.
-4. Legacy notebooks (previously stored in the .opensearch-observability index) are no longer supported.
+| Change                               | Description                                                                            |
+|--------------------------------------|----------------------------------------------------------------------------------------|
+| `discover:newExperience`             | This configuration setting has been **removed** in OpenSearch 3.x.                     |
+| **DataGrid table**                   | The DataGrid-based table view has been **removed** from Discover.                      |
+| **Dashboards Visualizations plugin** | The entire plugin, including **Gantt chart visualization**, has been **removed**.      |
+| **Legacy Notebooks**                 | Notebooks stored in the `.opensearch-observability` index are **no longer supported**. |
 
 **Important**: A minio version from 2025-01-20 is required.(https://github.com/minio/minio/issues/20845#issuecomment-2604259537)
 
