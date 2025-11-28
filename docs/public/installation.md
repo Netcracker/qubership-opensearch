@@ -75,6 +75,7 @@ The following topics are covered in this chapter:
   * [CRD Upgrade](#crd-upgrade)
     * [Automatic CRD Upgrade](#automatic-crd-upgrade)
   * [Migration](#migration)
+    * [Migration to OpenSearch 3.x (OpenSearch Service 2.x.x)](#migration-to-opensearch-3x-opensearch-service-2xx)
     * [Migration to OpenSearch 2.x (OpenSearch Service 1.x.x)](#migration-to-opensearch-2x-opensearch-service-1xx)
     * [Migration From OpenDistro Elasticsearch](#migration-from-opendistro-elasticsearch)
       * [Manual Migration Steps](#manual-migration-steps)
