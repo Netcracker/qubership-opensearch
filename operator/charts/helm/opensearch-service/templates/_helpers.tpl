@@ -190,17 +190,6 @@ Provider used to generate TLS certificates
 {{- end -}}
 
 {{/*
-Whether Enhanced Security Plugin for OpenSearch is enabled
-*/}}
-{{- define "opensearch.enhancedSecurityPluginEnabled" -}}
-  {{- if and (not .Values.global.externalOpensearch.enabled) .Values.opensearch.securityConfig.enhancedSecurityPlugin.enabled -}}
-    {{- printf "true" -}}
-  {{- else -}}
-    {{- printf "false" -}}
-  {{- end -}}
-{{- end -}}
-
-{{/*
 Whether TLS for OpenSearch is enabled
 */}}
 {{- define "opensearch.tlsEnabled" -}}
@@ -930,9 +919,18 @@ Find a kubectl image in various places.
 Find an OpenSearch Dashboards image in various places.
 */}}
 {{- define "dashboards.image" -}}
+    {{- $desiredVar := include "opensearch.imageVariant" . }}
+    {{ if eq $desiredVar "3"}}
+    opensearchproject/opensearch-dashboards:3.2.0
+    {{- else }}
     {{- printf "%s" .Values.dashboards.dockerImage -}}
+    {{- end }}
 {{- end -}}
 
+{{- define "opensearch.imageVariant"}}
+    {{- $image := include "opensearch.image" . }}
+    {{- if eq (regexFind "opensearch-[0-9]+" $image) "opensearch-3" }}3{{- else }}2{{- end }}
+{{- end -}}
 {{/*
 Find an OpenSearch image in various places.
 */}}

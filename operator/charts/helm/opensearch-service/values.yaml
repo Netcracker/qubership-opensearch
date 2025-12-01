@@ -246,7 +246,7 @@ opensearch:
   discoveryOverride: ""
   compatibilityModeEnabled: false
   gcLoggingEnabled: false
-  performanceAnalyzerEnabled: true
+  performanceAnalyzerEnabled: false
   rollingUpdate: false
   readinessTimeout: "800s"
   securityConfig:
@@ -696,6 +696,8 @@ opensearch:
       region: ""
       sslSecretName: ""
       sslCert: ""
+      chunkedEncoding: false
+      disableSslVerification: false
       gcs:
         secretName: ""
         secretKey: ""
@@ -1110,6 +1112,15 @@ updateResourcesJob:
       memory: "150Mi"
       cpu: "150m"
   securityContext: {}
+
+validateOpensearchUpgrade:
+  resources:
+    requests:
+      memory: "75Mi"
+      cpu: "75m"
+    limits:
+      memory: "150Mi"
+      cpu: "150m"
 
 integrationTests:
   enabled: false
