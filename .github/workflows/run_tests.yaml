@@ -10,34 +10,26 @@ on:
    #   branches: [main]
 
 jobs:
-  start-self-hosted-runner:
-    uses: Netcracker/qubership-terraform-hub/.github/workflows/ec2-control.yml@main
-    with:
-      instance_id: ${{ vars.AWS_GITHUB_RUNNER_ID }}
-      action: 'start'
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
+  Wait-for-images:
+    runs-on: ubuntu-latest
+    outputs:
+      conclusion: ${{ steps.wait.outputs.conclusion }}
+    steps:
+      - name: Wait for push.yml to complete
+        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@v2.0.3
+        id: wait
+        with:
+          workflow: push.yml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          poll-interval: 20
   Opensearch-Pipeline:
-    needs: start-self-hosted-runner
+    needs: Wait-for-images
     uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@main
     with:
       service_branch: '${{ github.head_ref || github.ref_name }}'
       versions_file: '.github/versions.yaml'
       pipeline_branch: 'main' #this value must match the value after '@' in 'uses'
-      runner_type: 'self-hosted'
+      runner_type: 'ubuntu-latest'
     secrets:
       AWS_S3_ACCESS_KEY_ID: ${{secrets.AWS_S3_ACCESS_KEY_ID}}
       AWS_S3_ACCESS_KEY_SECRET: ${{secrets.AWS_S3_ACCESS_KEY_SECRET}}
-
-  stop-self-hosted-runner:
-    needs: Opensearch-Pipeline
-    if: always()
-    uses: Netcracker/qubership-terraform-hub/.github/workflows/ec2-control.yml@main
-    with:
-      instance_id: ${{ vars.AWS_GITHUB_RUNNER_ID }}
-      action: 'stop'
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
