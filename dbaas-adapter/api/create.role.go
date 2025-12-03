@@ -23,6 +23,7 @@ import (
 	"strings"
 )
 
+// nolint:unused // kept for backward compatibility
 func newCreateRoleFunc(t opensearchapi.Transport) CreateRole {
 	return func(role string, o ...func(request *CreateRoleRequest)) (*opensearchapi.Response, error) {
 		var r = CreateRoleRequest{Role: role}

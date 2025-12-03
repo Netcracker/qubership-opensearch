@@ -23,7 +23,7 @@ RUN set -x \
 
 RUN set -x \
     && for path in \
-         /docker-entrypoint.sh \
+        /docker-entrypoint.sh \
     ; do \
         chmod +x "$path"; \
         chgrp 0 "$path"; \
