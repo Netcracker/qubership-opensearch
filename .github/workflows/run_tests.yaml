@@ -15,7 +15,7 @@ jobs:
       conclusion: ${{ steps.wait.outputs.conclusion }}
     steps:
       - name: Wait for push.yml to complete
-        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@v2.0.2
+        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@7cde3261903089137a03d765fc857ab4e175c646 #v2.0.2
         id: wait
         with:
           workflow: push.yml
