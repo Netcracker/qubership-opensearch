@@ -16,7 +16,7 @@ RUN set -x \
 
 #Download jq
 RUN apk add --update --no-cache curl apk-tools \
-      && apk add --update wget \
+      && apk add --update --no-cache wget \
       && wget -O "jq-linux32" \
       "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux32" \
       && mv "jq-linux32" "/usr/local/bin/jq" \

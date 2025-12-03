@@ -6,21 +6,16 @@ ENV DISABLE_INSTALL_DEMO_CONFIG=true \
     OPENSEARCH_HOME=/usr/share/opensearch \
     OPENSEARCH_CONFIGS=/usr/share/opensearch/config
 
-#COPY docker/config/yum-repositories.repo /etc/yum.repos.d
 COPY 2x/docker/health.sh ${OPENSEARCH_HOME}/bin
 COPY 2x/docker/reconfiguration.sh ${OPENSEARCH_HOME}/bin
 COPY 2x/docker/relocate-shards.sh ${OPENSEARCH_HOME}/bin
 COPY 2x/docker/docker-entrypoint.sh /
 
 # Install the tools we need
-#RUN yum install --disablerepo=* --enablerepo=paas,os,openstack,nc_updates --nogpgcheck -y jq \
-#    && yum clean all \
-RUN yum install -y jq-1.7.1 \
-    && yum clean all
-
-# Upgrade all tools to avoid vulnerabilities
-#RUN yum update --disablerepo=* --enablerepo=os,nc_updates --nogpgcheck --assumeyes --skip-broken
-RUN yum update --assumeyes --skip-broken
+RUN yum update --assumeyes --skip-broken \
+    && yum install -y jq-1.7.1 \
+    && yum clean all \
+    && rm -rf /var/cache/yum/*
 
 RUN echo "Download OpenSearch plugins..." \
     && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/2.19.4/repository-s3-2.19.4.zip" \

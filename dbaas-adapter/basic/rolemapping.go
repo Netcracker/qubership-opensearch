@@ -47,7 +47,7 @@ func (bp BaseProvider) createRoleMapping(roleName string, roleMapping RoleMappin
 	if err != nil {
 		return fmt.Errorf("failed to create role mapping for '%s' role: %+v", roleName, err)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode != http.StatusOK && response.StatusCode != http.StatusCreated {
 		var message map[string]interface{}
 		err = common.ProcessBody(response.Body, &message)
@@ -89,7 +89,7 @@ func (bp BaseProvider) GetRoleMapping(roleName string) (*RoleMapping, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to receive role mapping for '%s' role: %+v", roleName, err)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusOK {
 		var roleMapping map[string]*RoleMapping
 		err = common.ProcessBody(response.Body, &roleMapping)
@@ -112,7 +112,7 @@ func (bp BaseProvider) GetRolesMapping() (map[string]RoleMapping, error) {
 	if err != nil {
 		return rolesMapping, fmt.Errorf("failed to receive roles mapping: %+v", err)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusOK {
 		err = common.ProcessBody(response.Body, &rolesMapping)
 		logger.Debug(fmt.Sprintf("The number of roles mapping is %d", len(rolesMapping)))

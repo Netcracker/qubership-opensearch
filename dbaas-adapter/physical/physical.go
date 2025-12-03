@@ -113,7 +113,7 @@ func getApiVersion(aggregatorAddress string, client *http.Client) string {
 		logger.Error(fmt.Sprintf("Failed to get API version. API %s is enabled by default.", apiVersion), slog.Any("error", err))
 		return apiVersion
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusOK {
 		var apiVersionInfo ApiVersionInfo
 		err = common.ProcessBody(response.Body, &apiVersionInfo)
@@ -235,7 +235,7 @@ func (rs *RegistrationProvider) doRegistrationRequest() {
 		panic(fmt.Errorf("the aggregator is available, but the adapter fails to register with '%d' code and error: %v",
 			response.StatusCode, err))
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if rs.ApiVersion == common.ApiV2 {
 		var physicalDatabaseRegistrationResponse dao.PhysicalDatabaseRegistrationResponse
 		if err = common.ProcessBody(response.Body, &physicalDatabaseRegistrationResponse); err != nil {
@@ -261,7 +261,7 @@ func (rs *RegistrationProvider) doHealthRequest() (int, error) {
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("failed to get aggregator's health: %v", err)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	return response.StatusCode, nil
 }
 
@@ -337,7 +337,7 @@ func (rs *RegistrationProvider) getAdditionalRoles(physicalDatabaseRegistrationR
 	if response == nil {
 		return physicalDatabaseRegistrationResponse.Instruction.AdditionalRoles, nil
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	var additionalRoles []dao.AdditionalRole
 	err := common.ProcessBody(response.Body, &additionalRoles)
 	return additionalRoles, err

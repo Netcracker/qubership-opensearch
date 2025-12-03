@@ -107,7 +107,7 @@ func (bp BaseProvider) CreateDatabaseHandler() func(w http.ResponseWriter, r *ht
 			common.ProcessResponseBody(ctx, w, []byte(err.Error()), http.StatusInternalServerError)
 			return
 		}
-		defer r.Body.Close()
+		defer func() { _ = r.Body.Close() }()
 		response, err := bp.createDatabase(dbCreateRequest, ctx)
 		if err != nil {
 			logger.ErrorContext(ctx, "Failed to create database", slog.Any("error", err))
@@ -157,7 +157,7 @@ func (bp BaseProvider) BulkDropResourceHandler() func(w http.ResponseWriter, r *
 			common.ProcessResponseBody(ctx, w, []byte(err.Error()), http.StatusInternalServerError)
 			return
 		}
-		defer r.Body.Close()
+		defer func() { _ = r.Body.Close() }()
 
 		deletedResources := bp.deleteResources(resources, ctx)
 		failedResources := getResourcesWithFailedStatus(deletedResources)
@@ -259,7 +259,7 @@ func (bp BaseProvider) EnsureAggregationIndex(ctx context.Context) error {
 		logger.ErrorContext(childCtx, fmt.Sprintf("failed to create '%s' index", DbaasMetadata), slog.Any("error", err))
 		return fmt.Errorf("failed to create '%s' index %w", DbaasMetadata, err)
 	}
-	defer createResponse.Body.Close()
+	defer func() { _ = createResponse.Body.Close() }()
 
 	if createResponse.StatusCode != http.StatusCreated && createResponse.StatusCode != http.StatusOK {
 		var body []byte
@@ -464,7 +464,7 @@ func (bp BaseProvider) getDatabase(name string) (interface{}, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to receive index with '%s' name: %+v", name, err)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusOK {
 		var indices map[string]interface{}
 		err = common.ProcessBody(response.Body, &indices)
@@ -492,7 +492,7 @@ func (bp BaseProvider) listDatabases() ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error occurred during retrieving indices list: %+v", err)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error occurred during retrieving indices list: %+v", err)
@@ -515,7 +515,7 @@ func (bp BaseProvider) deleteDatabase(name string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	logger.DebugContext(ctx, fmt.Sprintf("Index with name [%s] is removed: %+v", name, response.Body))
 	return nil
 }
@@ -558,7 +558,7 @@ func (bp BaseProvider) CreateMetadata(identifier string, metadata map[string]int
 	if err != nil {
 		return "", fmt.Errorf("error occurred during insert metadata for '%s' ID to '%s' index : %+v", identifier, DbaasMetadata, err)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	responseBody, err := io.ReadAll(response.Body)
 	if err != nil {
 		return "", err
@@ -584,7 +584,7 @@ func (bp BaseProvider) updateMetadata(indexName string, metadata map[string]inte
 			logger.ErrorContext(ctx, "Error occurred during update metadata", slog.Any("error", err))
 			return "", err
 		}
-		defer response.Body.Close()
+		defer func() { _ = response.Body.Close() }()
 		responseBody, err := io.ReadAll(response.Body)
 		if err != nil {
 			return "", err
@@ -616,7 +616,7 @@ func (bp BaseProvider) deleteMetadata(indexName string, ctx context.Context) err
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	logger.DebugContext(ctx, fmt.Sprintf("Metadata for index with name [%s] is removed: %+v", indexName, response.Body))
 	return nil
 }
@@ -629,7 +629,7 @@ func (bp BaseProvider) getTemplate(name string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusOK {
 		var templates map[string]interface{}
 		err = common.ProcessBody(response.Body, &templates)
@@ -656,7 +656,7 @@ func (bp BaseProvider) getIndexTemplate(name string) (*IndexTemplate, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusOK {
 		var templates map[string][]IndexTemplate
 		err = common.ProcessBody(response.Body, &templates)
@@ -679,7 +679,7 @@ func (bp BaseProvider) deleteTemplate(template string, ctx context.Context) erro
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	logger.DebugContext(ctx, fmt.Sprintf("Template with name [%s] is removed: %+v", template, response.Body))
 	return nil
 }
@@ -692,7 +692,7 @@ func (bp BaseProvider) deleteIndexTemplate(template string, ctx context.Context)
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	logger.DebugContext(ctx, fmt.Sprintf("Index Template with name [%s] is removed: %+v", template, response.Body))
 	return nil
 }
@@ -705,7 +705,7 @@ func (bp BaseProvider) getAlias(name string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusOK {
 		var aliases map[string]map[string]interface{}
 		err = common.ProcessBody(response.Body, &aliases)
@@ -733,7 +733,7 @@ func (bp BaseProvider) deleteAlias(alias string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	logger.DebugContext(ctx, fmt.Sprintf("Alias with name [%s] is removed: %+v", alias, response.Body))
 	return nil
 }

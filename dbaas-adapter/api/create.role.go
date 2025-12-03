@@ -96,7 +96,7 @@ func (r CreateRoleRequest) Do(ctx context.Context, transport opensearchapi.Trans
 	if err != nil {
 		return nil, err
 	}
-	defer req.Body.Close()
+	defer func() { _ = req.Body.Close() }()
 
 	if len(params) > 0 {
 		q := req.URL.Query()
