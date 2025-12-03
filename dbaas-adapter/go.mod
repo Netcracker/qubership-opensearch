@@ -1,6 +1,6 @@
 module github.com/Netcracker/dbaas-opensearch-adapter
 
-go 1.24.0
+go 1.25.2
 
 require (
 	github.com/Netcracker/qubership-dbaas-adapter-core v0.9.6
