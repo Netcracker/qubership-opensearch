@@ -135,50 +135,50 @@ func (r GetRoleMappingRequest) Do(ctx context.Context, transport opensearchapi.T
 }
 
 // WithRole sets the request role name.
-func (f GetRoleMapping) WithRole(v string) func(*GetRoleRequest) {
-	return func(r *GetRoleRequest) {
+func (f GetRoleMapping) WithRole(v string) func(*GetRoleMappingRequest) {
+	return func(r *GetRoleMappingRequest) {
 		r.Role = v
 	}
 }
 
 // WithContext sets the request context.
-func (f GetRoleMapping) WithContext(v context.Context) func(*GetRoleRequest) {
-	return func(r *GetRoleRequest) {
+func (f GetRoleMapping) WithContext(v context.Context) func(*GetRoleMappingRequest) {
+	return func(r *GetRoleMappingRequest) {
 		r.ctx = v
 	}
 }
 
 // WithPretty makes the response body pretty-printed.
-func (f GetRoleMapping) WithPretty() func(*GetRoleRequest) {
-	return func(r *GetRoleRequest) {
+func (f GetRoleMapping) WithPretty() func(*GetRoleMappingRequest) {
+	return func(r *GetRoleMappingRequest) {
 		r.Pretty = true
 	}
 }
 
 // WithHuman makes statistical values human-readable.
-func (f GetRoleMapping) WithHuman() func(*GetRoleRequest) {
-	return func(r *GetRoleRequest) {
+func (f GetRoleMapping) WithHuman() func(*GetRoleMappingRequest) {
+	return func(r *GetRoleMappingRequest) {
 		r.Human = true
 	}
 }
 
 // WithErrorTrace includes the stack trace for errors in the response body.
-func (f GetRoleMapping) WithErrorTrace() func(*GetRoleRequest) {
-	return func(r *GetRoleRequest) {
+func (f GetRoleMapping) WithErrorTrace() func(*GetRoleMappingRequest) {
+	return func(r *GetRoleMappingRequest) {
 		r.ErrorTrace = true
 	}
 }
 
 // WithFilterPath filters the properties of the response body.
-func (f GetRoleMapping) WithFilterPath(v ...string) func(*GetRoleRequest) {
-	return func(r *GetRoleRequest) {
+func (f GetRoleMapping) WithFilterPath(v ...string) func(*GetRoleMappingRequest) {
+	return func(r *GetRoleMappingRequest) {
 		r.FilterPath = v
 	}
 }
 
 // WithHeader adds the headers to the HTTP request.
-func (f GetRoleMapping) WithHeader(h map[string]string) func(*GetRoleRequest) {
-	return func(r *GetRoleRequest) {
+func (f GetRoleMapping) WithHeader(h map[string]string) func(*GetRoleMappingRequest) {
+	return func(r *GetRoleMappingRequest) {
 		if r.Header == nil {
 			r.Header = make(http.Header)
 		}
@@ -189,8 +189,8 @@ func (f GetRoleMapping) WithHeader(h map[string]string) func(*GetRoleRequest) {
 }
 
 // WithOpaqueID adds the X-Opaque-Id header to the HTTP request.
-func (f GetRoleMapping) WithOpaqueID(s string) func(*GetRoleRequest) {
-	return func(r *GetRoleRequest) {
+func (f GetRoleMapping) WithOpaqueID(s string) func(*GetRoleMappingRequest) {
+	return func(r *GetRoleMappingRequest) {
 		if r.Header == nil {
 			r.Header = make(http.Header)
 		}
