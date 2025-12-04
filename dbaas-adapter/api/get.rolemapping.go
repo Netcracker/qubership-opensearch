@@ -40,18 +40,14 @@ type GetRoleMapping func(role string, o ...func(request *GetRoleMappingRequest))
 
 // GetRoleMappingRequest configures the RoleMapping API request.
 type GetRoleMappingRequest struct {
-	Role string
-
+	Role              string
 	WaitForCompletion *bool
-
-	Pretty     bool
-	Human      bool
-	ErrorTrace bool
-	FilterPath []string
-
-	Header http.Header
-
-	ctx context.Context
+	Pretty            bool
+	Human             bool
+	ErrorTrace        bool
+	FilterPath        []string
+	Header            http.Header
+	ctx               context.Context
 }
 
 // Do function executes the request and returns response or error.
