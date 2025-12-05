@@ -150,7 +150,7 @@ func DoRequest(request opensearchapi.Request, client Client, result interface{},
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 
 	logger.DebugContext(ctx, fmt.Sprintf("Status code of request is %d", response.StatusCode))
 	return ProcessBody(response.Body, result)
@@ -260,7 +260,7 @@ func CheckPrefixUniqueness(prefix string, ctx context.Context, opensearchcli Cli
 	if err != nil {
 		return false, fmt.Errorf("failed to receive users: %+v", err)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusOK {
 		var users map[string]User
 		err = ProcessBody(response.Body, &users)

@@ -98,7 +98,7 @@ func (client AdapterClient) ReceiveHealth() string {
 		logger.Error("Failed to get health", slog.Any("error", err))
 		return "PROBLEM"
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 
 	var adapterHealth health.Health
 	err = common.ProcessBody(response.Body, &adapterHealth)
@@ -152,7 +152,7 @@ func (smoke Smoke) createDatabase() (CreatedDatabase, error) {
 		logger.Error("Failed to create database", slog.Any("error", err))
 		return CreatedDatabase{}, err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	logger.Debug(fmt.Sprintf("Received response status: %s", response.Status))
 	var created CreatedDatabase
 	err = common.ProcessBody(response.Body, &created)
@@ -185,7 +185,7 @@ func (smoke Smoke) dropDatabase() error {
 		logger.Error("Failed to drop database", slog.Any("error", err))
 		return err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		logger.Error("Failed to read response body", slog.Any("error", err))

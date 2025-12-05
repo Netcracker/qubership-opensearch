@@ -78,7 +78,7 @@ func (bp BaseProvider) CreateUserHandler() func(w http.ResponseWriter, r *http.R
 			common.ProcessResponseBody(ctx, w, []byte(err.Error()), http.StatusInternalServerError)
 			return
 		}
-		defer r.Body.Close()
+		defer func() { _ = r.Body.Close() }()
 
 		response, err := bp.ensureUser(username, userCreateRequest, ctx)
 		if err != nil {
@@ -201,7 +201,7 @@ func (bp BaseProvider) createUser(username string, password string, prefix strin
 			logger.ErrorContext(ctx, "Can't process create user request", slog.Any("error", err))
 			return false, err
 		}
-		defer response.Body.Close()
+		defer func() { _ = response.Body.Close() }()
 		responseBody, err := io.ReadAll(response.Body)
 		logger.DebugContext(ctx, fmt.Sprintf("User response body is %s", responseBody))
 		if err != nil {
@@ -256,7 +256,7 @@ func (bp BaseProvider) PatchUser(username string, password string, prefix string
 			return false, nil
 		}
 		responseBody, err := io.ReadAll(response.Body)
-		defer response.Body.Close()
+		defer func() { _ = response.Body.Close() }()
 		logger.DebugContext(ctx, fmt.Sprintf("User response body is %s", responseBody))
 		if err != nil {
 			return false, nil
@@ -295,7 +295,7 @@ func (bp BaseProvider) patchUsers(changes []Change, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusOK {
 		logger.InfoContext(ctx, "Batch of users is successfully created or updated")
 		return nil
@@ -316,7 +316,7 @@ func (bp BaseProvider) GetUser(username string) (*User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to receive user with '%s' name: %+v", username, err)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusOK {
 		var users map[string]User
 		err = common.ProcessBody(response.Body, &users)
@@ -341,7 +341,7 @@ func (bp BaseProvider) getUsersByPrefix(prefix string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to receive users: %+v", err)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusOK {
 		var users map[string]User
 		usersByPrefix := make([]string, 0)
@@ -369,7 +369,7 @@ func (bp BaseProvider) deleteUser(username string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	logger.InfoContext(ctx, fmt.Sprintf("User with name [%s] is removed: %+v", username, response.Body))
 	return nil
 }

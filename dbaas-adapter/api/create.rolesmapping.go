@@ -23,6 +23,7 @@ import (
 	"strings"
 )
 
+// nolint:unused // kept for backward compatibility
 func newCreateRolesMappingFunc(t opensearchapi.Transport) CreateRolesMapping {
 	return func(role string, o ...func(request *CreateRolesMappingRequest)) (*opensearchapi.Response, error) {
 		var r = CreateRolesMappingRequest{Role: role}
@@ -96,7 +97,7 @@ func (r CreateRolesMappingRequest) Do(ctx context.Context, transport opensearcha
 	if err != nil {
 		return nil, err
 	}
-	defer req.Body.Close()
+	defer func() { _ = req.Body.Close() }()
 
 	if len(params) > 0 {
 		q := req.URL.Query()

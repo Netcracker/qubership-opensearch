@@ -22,6 +22,7 @@ import (
 	"strings"
 )
 
+// nolint:unused // kept for backward compatibility
 func newDeleteUserFunc(t opensearchapi.Transport) DeleteUser {
 	return func(username string, o ...func(request *DeleteUserRequest)) (*opensearchapi.Response, error) {
 		var r = DeleteUserRequest{Username: username}

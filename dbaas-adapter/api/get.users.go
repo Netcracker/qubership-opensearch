@@ -22,6 +22,7 @@ import (
 	"strings"
 )
 
+// nolint:unused // kept for backward compatibility
 func newGetUsersFunc(t opensearchapi.Transport) GetUsers {
 	return func(o ...func(request *GetUsersRequest)) (*opensearchapi.Response, error) {
 		var r = GetUsersRequest{}

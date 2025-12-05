@@ -266,7 +266,7 @@ func (bp BackupProvider) RestoreBackupHandler(repo string, basePath string) func
 			common.ProcessResponseBody(ctx, w, []byte(err.Error()), http.StatusInternalServerError)
 			return
 		}
-		defer r.Body.Close()
+		defer func() { _ = r.Body.Close() }()
 
 		regenerateNames := r.URL.Query().Get("regenerateNames") == "true"
 		changedNameDb, err := bp.RestoreBackup(backupID, databases, repo, regenerateNames, ctx)

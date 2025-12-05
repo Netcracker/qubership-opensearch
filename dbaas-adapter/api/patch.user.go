@@ -23,6 +23,7 @@ import (
 	"strings"
 )
 
+// nolint:unused // kept for backward compatibility
 func newPatchUserFunc(t opensearchapi.Transport) PatchUser {
 	return func(username string, o ...func(request *PatchUserRequest)) (*opensearchapi.Response, error) {
 		var r = PatchUserRequest{Username: username}

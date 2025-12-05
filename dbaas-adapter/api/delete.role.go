@@ -22,6 +22,7 @@ import (
 	"strings"
 )
 
+// nolint:unused // kept for backward compatibility
 func newDeleteRoleFunc(t opensearchapi.Transport) DeleteRole {
 	return func(role string, o ...func(request *DeleteRoleRequest)) (*opensearchapi.Response, error) {
 		var r = DeleteRoleRequest{Role: role}
