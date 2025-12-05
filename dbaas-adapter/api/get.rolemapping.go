@@ -47,8 +47,7 @@ type GetRoleMappingRequest struct {
 	ErrorTrace        bool
 	FilterPath        []string
 	Header            http.Header
-	// nolint:unused // kept for backward compatibility
-	ctx context.Context
+	ctx               context.Context
 }
 
 // Do function executes the request and returns response or error.
