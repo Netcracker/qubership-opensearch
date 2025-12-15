@@ -4,28 +4,29 @@ permissions:
   packages: write
   actions: read
 on:
-  release:
-    types: [created]
-  push:
-    branches:
-      - '**'
-    paths-ignore:
-      - 'docs/**'
-      - 'CODE-OF-CONDUCT.md'
-      - 'CONTRIBUTING.md'
-      - 'LICENSE'
-      - 'README.md'
-      - 'SECURITY.md'
-  pull_request:
-    branches:
-      - '**'
-    paths-ignore:
-      - 'docs/**'
-      - 'CODE-OF-CONDUCT.md'
-      - 'CONTRIBUTING.md'
-      - 'LICENSE'
-      - 'README.md'
-      - 'SECURITY.md'
+  workflow_dispatch: {}
+  # release:
+  #   types: [created]
+  # push:
+  #   branches:
+  #     - '**'
+  #   paths-ignore:
+  #     - 'docs/**'
+  #     - 'CODE-OF-CONDUCT.md'
+  #     - 'CONTRIBUTING.md'
+  #     - 'LICENSE'
+  #     - 'README.md'
+  #     - 'SECURITY.md'
+  # pull_request:
+  #   branches:
+  #     - '**'
+  #   paths-ignore:
+  #     - 'docs/**'
+  #     - 'CODE-OF-CONDUCT.md'
+  #     - 'CONTRIBUTING.md'
+  #     - 'LICENSE'
+  #     - 'README.md'
+  #     - 'SECURITY.md'
 
 env:
   TAG_NAME: ${{ github.event.release.tag_name || github.ref }}
