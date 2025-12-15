@@ -34,6 +34,8 @@ jobs:
     outputs:
       component: ${{ steps.load_component.outputs.components }}
       platforms: ${{ steps.load_component.outputs.platforms }}
+    env:
+      CONFIG_FILE: .qubership/docker-build-config.cfg
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -41,7 +43,7 @@ jobs:
       - name: Load Docker Configuration
         id: load_component
         run:  |
-          verify=$(cat "$GITHUB_WORKSPACE/.github/docker-build-config.json" | jq '
+          verify=$(cat "$GITHUB_WORKSPACE/${CONFIG_FILE}" | jq '
           def verify_structure:
           .components as $components
           | .platforms as $platforms
@@ -52,12 +54,12 @@ jobs:
           | if . then true else false end
           ')
           if [ ${verify} == 'true' ]; then
-            echo "✅ $GITHUB_WORKSPACE/.github/docker-build-config.json file is valid"
-            components=$(jq -c ".components" "$GITHUB_WORKSPACE/.github/docker-build-config.json")
-            platforms=$(jq -c ".platforms" "$GITHUB_WORKSPACE/.github/docker-build-config.json")
+            echo "✅ $GITHUB_WORKSPACE/${CONFIG_FILE} file is valid"
+            components=$(jq -c ".components" "$GITHUB_WORKSPACE/${CONFIG_FILE}")
+            platforms=$(jq -c ".platforms" "$GITHUB_WORKSPACE/${CONFIG_FILE}")
           else
-            echo "❗ $GITHUB_WORKSPACE/.github/docker-build-config.json file is invalid"
-            echo "❗ $GITHUB_WORKSPACE/.github/docker-build-config.json file is invalid" >> $GITHUB_STEP_SUMMARY
+            echo "❗ $GITHUB_WORKSPACE/${CONFIG_FILE} file is invalid"
+            echo "❗ $GITHUB_WORKSPACE/${CONFIG_FILE} file is invalid" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
           echo "components=${components}" >> $GITHUB_OUTPUT
