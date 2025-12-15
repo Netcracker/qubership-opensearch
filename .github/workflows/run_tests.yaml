@@ -18,7 +18,7 @@ jobs:
         uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@3e428f45132119ce49d90f3770a45d4fe1d1078d  #v2.0.4
         id: wait
         with:
-          workflow: push.yml
+          workflow: dev_build.yml
           token: ${{ secrets.GITHUB_TOKEN }}
           poll-interval: 20
   Opensearch-Pipeline:
