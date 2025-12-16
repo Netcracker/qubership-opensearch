@@ -120,8 +120,10 @@ jobs:
           config-file: .github/charts-values-update-config.yaml
 
       - name: "Debug"
+        env:
+          IMAGES_VERSIONS: '${{ steps.update-versions.outputs.images-versions }}'
         run: |
-          echo "Images versions: ${{ steps.update-versions.outputs.images-versions }}"
+          echo "Images versions: ${IMAGES_VERSIONS}"
 
   docker-build:
     permissions:
@@ -136,8 +138,10 @@ jobs:
     steps:
       - name: Get version for current component
         id: get-version
+        env:
+          IMG_VER: '${{ fromJson(needs.chart-release-prepare.outputs.images-versions)[matrix.component.name] || inputs.release }}'
         run: |
-          echo "IMAGE_VERSION=${{ fromJson(needs.chart-release-prepare.outputs.images-versions)[matrix.component.name] || inputs.release }}" >> $GITHUB_ENV
+          echo "IMAGE_VERSION=${IMG_VER}" >> $GITHUB_ENV
 
       - name: Docker build
         uses: netcracker/qubership-workflow-hub/actions/docker-action@396774180000abdb825cbf150b56cc59c6913db8  # v2.0.5
@@ -163,6 +167,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: release-${{ inputs.release }}
+          persist-credentials: true
 
       - name: Configure Git
         run: |
