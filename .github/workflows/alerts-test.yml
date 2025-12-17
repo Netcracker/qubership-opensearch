@@ -1,0 +1,54 @@
+name: Alerts-test-opensearch-operator
+on:
+  workflow_run:
+    workflows: ["Build Artifacts"]
+    types:
+      - completed
+  pull_request:
+    branches:
+      - all
+
+env:
+  max_attempts: 30
+  delay: 10
+
+permissions:
+  contents: read
+
+jobs:
+  Run-Alerts-Test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Check yq version
+        run: yq --version
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Render rules file from helm chart
+        run: |
+          helm template opensearch-montemplate ./operator/charts/helm/opensearch-service/ --set monitoring.slowQueries.enabled=true --set global.disasterRecovery.mode="active" --set monitoring.thresholds.lagAlert="1" > ./operator/tests/alerts-tests/rules.yaml
+          sed -n '/prometheus-rules.yaml/,/---/p' -i ./operator/tests/alerts-tests/rules.yaml
+          sed '0,/spec:/d' -i ./operator/tests/alerts-tests/rules.yaml
+
+      - name: Check that all necessary tests exists
+        run: |
+          chmod +x ./operator/tests/alerts-tests/tests-checker.sh
+          cd ./operator/tests/alerts-tests/
+          ./tests-checker.sh
+        continue-on-error: true
+
+      - name: Install vmalert-tool
+        run: |
+          wget https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/v1.122.4/vmutils-linux-amd64-v1.122.4-enterprise.tar.gz
+          tar -xvf vmutils-linux-amd64-v1.122.4-enterprise.tar.gz
+          chmod +x vmalert-tool-prod
+
+      - name: Run test
+        run: |
+          ./vmalert-tool-prod unittest --files ./operator/tests/alerts-tests/test.yaml
