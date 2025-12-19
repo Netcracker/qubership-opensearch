@@ -14,15 +14,15 @@ on:
       included-tags:
         description: "Tags to include for deletion"
         required: false
-        default: ""
+        default: "*"
       excluded-tags:
         description: "Tags to exclude from deletion"
         required: false
-        default: "release*"
+        default: "release*,semver,main,latest"
       dry-run:
         description: "Enable dry-run mode"
         required: false
-        default: false
+        default: true
         type: boolean
       debug:
         description: "Enable debug mode"
@@ -34,18 +34,18 @@ permissions:
 
 jobs:
   cleanup:
+    env:
+      GITHUB_EVENT_NAME: ${{ github.event_name }}
+      GITHUB_ACTOR: ${{ github.actor }}
+      THRESHOLD_DAYS: ${{ github.event.inputs.threshold-days || 7 }}
+      INCLUDED_TAGS: ${{ github.event.inputs.included-tags || '*' }}
+      EXCLUDED_TAGS: ${{ github.event.inputs.excluded-tags || 'latest,release*,*.*,semver,main' }}
+      DRY_RUN: ${{ github.event.inputs.dry-run || 'false' }}
+      DEBUG: ${{ github.event.inputs.debug || 'false' }}
     name: "Cleanup Old Docker Container Versions"
     runs-on: ubuntu-latest
     steps:
       - name: "Summary"
-        env:
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_ACTOR: ${{ github.actor }}
-          THRESHOLD_DAYS: ${{ github.event.inputs.threshold-days || 7 }}
-          INCLUDED_TAGS: ${{ github.event.inputs.included-tags || '*' }}
-          EXCLUDED_TAGS: ${{ github.event.inputs.excluded-tags || 'latest,release*,*.*' }}
-          DRY_RUN: ${{ github.event.inputs.dry-run || 'false' }}
-          DEBUG: ${{ github.event.inputs.debug || 'false' }}
         run: |
           echo "**Event**: $GITHUB_EVENT_NAME"
           echo "**Actor**: $GITHUB_ACTOR"
@@ -58,10 +58,10 @@ jobs:
       - name: "Run Container Package Cleanup Action"
         uses: netcracker/qubership-workflow-hub/actions/container-package-cleanup@396774180000abdb825cbf150b56cc59c6913db8 #v2.0.5
         with:
-          threshold-days: ${{ github.event.inputs.threshold-days || 7 }}
-          included-tags: ${{ github.event.inputs.included-tags || 'dev*' }}
-          excluded-tags: ${{ github.event.inputs.excluded-tags || 'release*' }}
-          dry-run: ${{ github.event.inputs.dry-run || 'false' }}
-          debug: ${{ github.event.inputs.debug }}
+          threshold-days: ${{ env.THRESHOLD_DAYS }}
+          included-tags: ${{ env.INCLUDED_TAGS }}
+          excluded-tags: ${{ env.EXCLUDED_TAGS }}
+          dry-run: ${{ env.DRY_RUN }}
+          debug: ${{ env.DEBUG }}
         env:
           PACKAGE_TOKEN: ${{ secrets.GH_RWD_PACKAGE_TOKEN }}
