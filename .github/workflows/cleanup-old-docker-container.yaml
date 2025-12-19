@@ -62,5 +62,6 @@ jobs:
           included-tags: ${{ github.event.inputs.included-tags || 'dev*' }}
           excluded-tags: ${{ github.event.inputs.excluded-tags || 'release*' }}
           dry-run: ${{ github.event.inputs.dry-run || 'false' }}
+          debug: ${{ github.event.inputs.debug }}
         env:
           PACKAGE_TOKEN: ${{ secrets.GH_RWD_PACKAGE_TOKEN }}
