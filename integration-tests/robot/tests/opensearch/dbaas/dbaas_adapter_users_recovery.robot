@@ -50,16 +50,6 @@ Restore Original Secret
     Run Keyword If    ${original_body}    Patch Secret    ${secret_name}    ${OPENSEARCH_NAMESPACE}    ${original_body}
     Run Keyword If    ${original_body}    Restart OpenSearch Pod    ${OPENSEARCH_NAMESPACE}
 
-Restart OpenSearch Pod
-    [Arguments]    ${namespace}
-    ${pods}=    Get Pods    ${namespace}
-    FOR    ${pod}    IN    @{pods}
-        ${name}=    Set Variable    ${pod.metadata.name}
-        ${match}=    Run Keyword And Return Status    Should Start With    ${name}    opensearch-
-        Run Keyword If    ${match}    Delete Pod By Pod Name    ${name}    ${namespace}
-    END
-    Sleep    ${POD_RESTART_WAIT}
-
 Build Test Secret Body
     ${data}=    Create Dictionary    password=${TEST_PASS_B64}    username=${TEST_USER_B64}
     ${body}=    Create Dictionary    data=${data}
@@ -78,7 +68,7 @@ Change Password for User and Healthcheck Dbaas Pod
     Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret
     ${body}=  Build Test Secret Body
     ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
-    Restart OpenSearch Pod  ${OPENSEARCH_NAMESPACE}
+    Sleep  150s
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}  Check OpenSearch Health via Curl
     [Teardown]  Restore Original Secret
 
