@@ -2,16 +2,22 @@
 ${RETRY_TIME}                            60s
 ${RETRY_INTERVAL}                        5s
 ${SLEEP_TIME}                            5s
+${POD_RESTART_WAIT}                      60s
 ${secret_name}                           opensearch-secret
 ${secret_name_old}                       opensearch-secret-old
 ${status}                                {"status":"UP","opensearchHealth":{"status":"UP"},"dbaasAggregatorHealth":{"status":"OK"}}
 ${host}                                  ${OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}://${OPENSEARCH_DBAAS_ADAPTER_HOST}:${OPENSEARCH_DBAAS_ADAPTER_PORT}/health
+${BAD_PASS_B64}                          YWRtaW4=
+${DEFAULT_PASS_B64}                      Um9vdDEyMzQj
+${TEST_USER_B64}                         T3BlbnNlYXJjaC1hZG1pbjEhLUFU
+${TEST_PASS_B64}                         UUEtZ29vZC1wYXNzd29yZDEhLUFU
 
 *** Settings ***
-Library    Process
-Resource  ./keywords.robot
-Variables    variables.py
-Suite Setup  Prepare
+Library         Process
+Library         Collections
+Library         String
+Resource        ./keywords.robot
+Suite Setup     Prepare
 
 *** Keywords ***
 Run Users Recovery By Dbaas Agent
@@ -29,20 +35,52 @@ Check Users Recovery State
     ${state}=  Get Users Recovery State By Dbaas Agent
     Should Be Equal As Strings  ${state}  done
 
+Save Original Secret
+    ${response}=    Get Secret    ${secret_name}    ${OPENSEARCH_NAMESPACE}
+    ${current_data}=    Set Variable    ${response.data}
+    ${current_user}=    Get From Dictionary    ${current_data}    username
+    ${current_pass}=    Get From Dictionary    ${current_data}    password
+    ${is_bad_pass}=     Run Keyword And Return Status    Should Be Equal As Strings    ${current_pass}    ${BAD_PASS_B64}
+    ${restore_pass}=    Set Variable If    ${is_bad_pass}    ${DEFAULT_PASS_B64}    ${current_pass}
+    ${restore_data}=    Create Dictionary    username=${current_user}    password=${restore_pass}
+    ${original_body}=   Create Dictionary    data=${restore_data}
+    Set Suite Variable  ${original_body}
+
+Restore Original Secret
+    Run Keyword If    ${original_body}    Patch Secret    ${secret_name}    ${OPENSEARCH_NAMESPACE}    ${original_body}
+    Run Keyword If    ${original_body}    Restart OpenSearch Pod    ${OPENSEARCH_NAMESPACE}
+
+Restart OpenSearch Pod
+    [Arguments]    ${namespace}
+    ${pods}=    Get Pods    ${namespace}
+    FOR    ${pod}    IN    @{pods}
+        ${name}=    Set Variable    ${pod.metadata.name}
+        ${match}=    Run Keyword And Return Status    Should Start With    ${name}    opensearch-
+        Run Keyword If    ${match}    Delete Pod By Pod Name    ${name}    ${namespace}
+    END
+    Sleep    ${POD_RESTART_WAIT}
+
+Build Test Secret Body
+    ${data}=    Create Dictionary    password=${TEST_PASS_B64}    username=${TEST_USER_B64}
+    ${body}=    Create Dictionary    data=${data}
+    RETURN      ${body}
+
+Check OpenSearch Health via Curl
+    ${health}=    Run Process    curl    ${host}    shell=True
+    Log    Output: ${health.stdout}    console=yes
+    Should Be Equal As Strings    ${health.stdout}    ${status}
+
 *** Test Cases ***
 Change Password for User and Healthcheck Dbaas Pod
-    [Tags]   dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
-    ${response}=  Check Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
-    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret
-    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
-    ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
-    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
-    Sleep  150s
-    ${health}=  Run Process  curl  ${host}  shell=True
-    Log  \nOutput: ${health.stdout}   console=yes
-    Should Be Equal As Strings  ${health.stdout}  ${status}
-    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body_default}
-    Sleep  150s
+    [Tags]    dbaas    dbaas_opensearch    dbaas_recovery    dbaas_recover_users    dbaas_v2    credentials
+    [Setup]   Save Original Secret
+    ${response}=    Check Secret    ${secret_name}    ${OPENSEARCH_NAMESPACE}
+    Should Be Equal As Strings    ${response.metadata.name}    opensearch-secret
+    ${body}=    Build Test Secret Body
+    ${response}=    Change Secret    ${secret_name}    ${OPENSEARCH_NAMESPACE}    ${body}
+    Restart OpenSearch Pod    ${OPENSEARCH_NAMESPACE}
+    Wait Until Keyword Succeeds    ${RETRY_TIME}    ${RETRY_INTERVAL}    Check OpenSearch Health via Curl
+    [Teardown]    Restore Original Secret
 
 Recover Users In OpenSearch
     [Tags]  dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
