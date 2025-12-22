@@ -1,6 +1,6 @@
 dashboards:
   enabled: false
-  dockerImage: ghcr.io/netcracker/qubership-opensearch-dashboard-3:main
+  dockerImage: ghcr.io/netcracker/qubership-opensearch-dashboard-3:2.2.4
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
@@ -163,7 +163,7 @@ global:
     create: false
 
   disasterRecovery:
-    image: ghcr.io/netcracker/qubership-disaster-recovery-daemon:main
+    image: ghcr.io/netcracker/qubership-disaster-recovery-daemon:v0.4.9
     tls:
       enabled: false
       certificates:
@@ -205,7 +205,7 @@ global:
   securityContext: {}
 
 operator:
-  dockerImage: ghcr.io/netcracker/qubership-opensearch-operator:main
+  dockerImage: ghcr.io/netcracker/qubership-opensearch-operator:2.2.4
   replicas: 1
   reconcilePeriod: 60
 
@@ -800,8 +800,8 @@ opensearch:
 
   maxMapCount: 262144
 
-  dockerImage: ghcr.io/netcracker/qubership-docker-opensearch-3:main
-  dockerTlsInitImage: ghcr.io/netcracker/qubership-opensearch-tls-init:main
+  dockerImage: ghcr.io/netcracker/qubership-docker-opensearch-3:2.2.4
+  dockerTlsInitImage: ghcr.io/netcracker/qubership-opensearch-tls-init:2.2.4
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
@@ -845,7 +845,7 @@ podScheduler:
 
 monitoring:
   enabled: false
-  dockerImage: ghcr.io/netcracker/qubership-opensearch-monitoring:main
+  dockerImage: ghcr.io/netcracker/qubership-opensearch-monitoring:2.2.4
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
@@ -922,7 +922,7 @@ monitoring:
 # DBaaS adapter based on OpenSearch client
 dbaasAdapter:
   enabled: false
-  dockerImage: ghcr.io/netcracker/qubership-opensearch-dbaas-adapter:main
+  dockerImage: ghcr.io/netcracker/qubership-opensearch-dbaas-adapter:2.2.4
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
@@ -1009,8 +1009,8 @@ dbaasAdapter:
 
 curator:
   enabled: false
-  dockerImage: ghcr.io/netcracker/qubership-opensearch-curator:main
-  dockerIndicesCleanerImage: ghcr.io/netcracker/qubership-opensearch-indices-cleaner:main
+  dockerImage: ghcr.io/netcracker/qubership-opensearch-curator:2.2.4
+  dockerIndicesCleanerImage: ghcr.io/netcracker/qubership-opensearch-indices-cleaner:2.2.4
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
@@ -1088,7 +1088,7 @@ curator:
 
 statusProvisioner:
   enabled: true
-  dockerImage: ghcr.io/netcracker/qubership-deployment-status-provisioner:main
+  dockerImage: ghcr.io/netcracker/qubership-deployment-status-provisioner:0.2.4
   lifetimeAfterCompletion: 600
   podReadinessTimeout: 800
   crProcessingTimeout: 600
@@ -1124,7 +1124,7 @@ validateOpensearchUpgrade:
 
 integrationTests:
   enabled: false
-  dockerImage: ghcr.io/netcracker/qubership-opensearch-integration-tests:main
+  dockerImage: ghcr.io/netcracker/qubership-opensearch-integration-tests:2.2.4
   statusWritingEnabled: true
   isShortStatusMessage: true
   secrets:
