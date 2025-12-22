@@ -2,7 +2,6 @@
 ${RETRY_TIME}                            60s
 ${RETRY_INTERVAL}                        5s
 ${SLEEP_TIME}                            5s
-${POD_RESTART_WAIT}                      60s
 ${secret_name}                           opensearch-secret
 ${secret_name_old}                       opensearch-secret-old
 ${status}                                {"status":"UP","opensearchHealth":{"status":"UP"},"dbaasAggregatorHealth":{"status":"OK"}}
@@ -48,7 +47,7 @@ Save Original Secret
 
 Restore Original Secret
     Run Keyword If    ${original_body}    Patch Secret    ${secret_name}    ${OPENSEARCH_NAMESPACE}    ${original_body}
-    Run Keyword If    ${original_body}    Restart OpenSearch Pod    ${OPENSEARCH_NAMESPACE}
+    Sleep  150s
 
 Build Test Secret Body
     ${data}=    Create Dictionary    password=${TEST_PASS_B64}    username=${TEST_USER_B64}
