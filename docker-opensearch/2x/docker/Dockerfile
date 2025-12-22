@@ -1,4 +1,6 @@
-FROM opensearchproject/opensearch:2.19.4
+ARG OPENSEARCH_BASE='opensearchproject/opensearch:2.19.4'
+
+FROM $OPENSEARCH_BASE
 
 USER 0
 
