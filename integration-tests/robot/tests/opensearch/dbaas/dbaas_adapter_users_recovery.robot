@@ -72,15 +72,15 @@ Check OpenSearch Health via Curl
 
 *** Test Cases ***
 Change Password for User and Healthcheck Dbaas Pod
-    [Tags]    dbaas    dbaas_opensearch    dbaas_recovery    dbaas_recover_users    dbaas_v2    credentials
-    [Setup]   Save Original Secret
-    ${response}=    Check Secret    ${secret_name}    ${OPENSEARCH_NAMESPACE}
-    Should Be Equal As Strings    ${response.metadata.name}    opensearch-secret
-    ${body}=    Build Test Secret Body
-    ${response}=    Change Secret    ${secret_name}    ${OPENSEARCH_NAMESPACE}    ${body}
-    Restart OpenSearch Pod    ${OPENSEARCH_NAMESPACE}
-    Wait Until Keyword Succeeds    ${RETRY_TIME}    ${RETRY_INTERVAL}    Check OpenSearch Health via Curl
-    [Teardown]    Restore Original Secret
+    [Tags]  dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2  credentials
+    [Setup]  Save Original Secret
+    ${response}=  Check Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
+    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret
+    ${body}=  Build Test Secret Body
+    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
+    Restart OpenSearch Pod  ${OPENSEARCH_NAMESPACE}
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}  Check OpenSearch Health via Curl
+    [Teardown]  Restore Original Secret
 
 Recover Users In OpenSearch
     [Tags]  dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
