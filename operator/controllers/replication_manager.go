@@ -239,7 +239,7 @@ func (rm ReplicationManager) Start() error {
 func (rm ReplicationManager) RemoveReplicationRule() error {
 	rule, err := rm.GetAutoFollowRuleStats()
 	if err != nil {
-		return fmt.Errorf(fmt.Sprintf("failed to get replication rule, reason: %e", err))
+		return fmt.Errorf("failed to get replication rule: %w", err)
 	}
 	if rule == nil {
 		rm.logger.Info("Skipping replication rule removal since its does not exist")
