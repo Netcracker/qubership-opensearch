@@ -14,20 +14,20 @@ jobs:
     outputs:
       conclusion: ${{ steps.wait.outputs.conclusion }}
     steps:
-      - name: Wait for push.yml to complete
+      - name: Wait for dev_build.yml to complete
         uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@3e428f45132119ce49d90f3770a45d4fe1d1078d  #v2.0.4
         id: wait
         with:
-          workflow: push.yml
+          workflow: dev_build.yml
           token: ${{ secrets.GITHUB_TOKEN }}
           poll-interval: 20
   Opensearch-Pipeline:
     needs: Wait-for-images
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@d035050ec322700c3df9a7ec62efc0220abe4243  #v1.1.0
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@cee02b3e1a049e1c2b28f8566d4362247240fa5f  #v1.1.2
     with:
       service_branch: '${{ github.head_ref || github.ref_name }}'
       versions_file: '.github/versions.yaml'
-      pipeline_branch: 'd035050ec322700c3df9a7ec62efc0220abe4243' #this value must match the value after '@' in 'uses'
+      pipeline_branch: 'cee02b3e1a049e1c2b28f8566d4362247240fa5f' #this value must match the value after '@' in 'uses'
       runner_type: 'ubuntu-latest'
     secrets:
       AWS_S3_ACCESS_KEY_ID: ${{secrets.AWS_S3_ACCESS_KEY_ID}}

@@ -1,16 +1,22 @@
 version: 2
 updates:
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
   # Go modules
   - package-ecosystem: "gomod"
-    directories: 
+    directories:
       - "/operator"
       - "/dbaas-adapter"
     schedule:
       interval: "weekly"
-    
+
   # Python dependencies (pip)
   - package-ecosystem: "pip"
-    directories: 
+    directories:
       - "/integration-tests/docker"
       - "/monitoring/docker/config"
       - "/curator/opensearch_indices_cleaner/docker"
@@ -22,10 +28,10 @@ updates:
     directory: "/docker-opensearch/opensearch-filter-plugin"
     schedule:
       interval: "weekly"
-  
+
   # Docker images
   - package-ecosystem: "docker"
-    directories: 
+    directories:
       - "/operator"
       - "/docker-transfer"
       - "/tls-init/docker"
