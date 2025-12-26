@@ -9,8 +9,8 @@ require (
 	github.com/opensearch-project/opensearch-go v1.1.0
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
 	github.com/sethvargo/go-password v0.3.1
-	github.com/stretchr/testify v1.10.0
-	k8s.io/apimachinery v0.33.2
+	github.com/stretchr/testify v1.11.1
+	k8s.io/apimachinery v0.35.0
 )
 
 require (
@@ -19,7 +19,7 @@ require (
 	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
-	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -42,5 +42,5 @@ require (
 	golang.org/x/time v0.9.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
-	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738 // indirect
+	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4 // indirect
 )
