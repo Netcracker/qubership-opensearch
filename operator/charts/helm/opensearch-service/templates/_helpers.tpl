@@ -190,17 +190,6 @@ Provider used to generate TLS certificates
 {{- end -}}
 
 {{/*
-Whether Enhanced Security Plugin for OpenSearch is enabled
-*/}}
-{{- define "opensearch.enhancedSecurityPluginEnabled" -}}
-  {{- if and (not .Values.global.externalOpensearch.enabled) .Values.opensearch.securityConfig.enhancedSecurityPlugin.enabled -}}
-    {{- printf "true" -}}
-  {{- else -}}
-    {{- printf "false" -}}
-  {{- end -}}
-{{- end -}}
-
-{{/*
 Whether TLS for OpenSearch is enabled
 */}}
 {{- define "opensearch.tlsEnabled" -}}
@@ -933,6 +922,10 @@ Find an OpenSearch Dashboards image in various places.
     {{- printf "%s" .Values.dashboards.dockerImage -}}
 {{- end -}}
 
+{{- define "opensearch.imageVariant"}}
+    {{- $image := include "opensearch.image" . }}
+    {{- if eq (regexFind "opensearch-[0-9]+" $image) "opensearch-3" }}3{{- else }}2{{- end }}
+{{- end -}}
 {{/*
 Find an OpenSearch image in various places.
 */}}

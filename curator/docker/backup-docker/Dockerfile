@@ -16,13 +16,13 @@ RUN set -x \
 
 #Download jq
 RUN apk add --update --no-cache curl apk-tools \
-      && apk add --update wget \
-      && wget -O "jq-linux32" \
-      "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux32" \
-      && mv "jq-linux32" "/usr/local/bin/jq" \
-      && chmod +x /docker-entrypoint.sh \
-      && chmod -R 777 ${ELASTICSEARCH_CURATOR_HOME} \
-      && chmod +x "/usr/local/bin/jq"
+    && apk add --update --no-cache wget \
+    && wget -O "jq-linux32" \
+    "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux32" \
+    && mv "jq-linux32" "/usr/local/bin/jq" \
+    && chmod +x /docker-entrypoint.sh \
+    && chmod -R 777 ${ELASTICSEARCH_CURATOR_HOME} \
+    && chmod +x "/usr/local/bin/jq"
 
 
 RUN set -x \

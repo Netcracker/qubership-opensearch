@@ -157,11 +157,17 @@ spec:
                               type: string
                             url:
                               type: string
+                            chunkedEncoding:
+                              type: boolean
+                            disableSslVerification:
+                              type: boolean
                           type: object
                       required:
                         - repositoryName
                       type: object
                     statefulSetNames:
+                      type: string
+                    imageVariant:
                       type: string
                   required:
                     - dedicatedClientPod
