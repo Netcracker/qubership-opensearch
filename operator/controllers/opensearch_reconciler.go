@@ -16,10 +16,14 @@ package controllers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"net/http"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"time"
 
@@ -47,6 +51,7 @@ const (
 	clusterHealthPath              = "_cluster/health"
 	clusterSettingsPath            = "_cluster/settings"
 	allAccess                      = "all_access"
+	claimTemplateName              = "pvc"
 )
 
 type OpenSearchHealth struct {
@@ -154,6 +159,13 @@ func (r OpenSearchReconciler) Reconcile() error {
 		return err
 	}
 
+	desired, err := resource.ParseQuantity(r.cr.Spec.OpenSearch.StorageSize)
+	if err != nil {
+		return err
+	}
+	if err = r.reconcileOpenSearchPVCSize(context.Background(), desired); err != nil {
+		return err
+	}
 	r.logger.Info("End OpenSearch Reconcile procedure")
 	return nil
 }
@@ -1050,4 +1062,81 @@ func (r OpenSearchReconciler) getSnapshotsRepositoryBody() string {
 		}
 	}
 	return `{"type": "fs", "settings": {"location": "/usr/share/opensearch/snapshots", "compress": true}}`
+}
+
+func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, desired resource.Quantity) error {
+	stsName := strings.TrimSpace(r.cr.Spec.OpenSearch.MasterStsName)
+	if stsName == "" {
+		return nil
+	}
+	sts, err := r.reconciler.watchStatefulSet(stsName, r.cr, r.logger)
+	if err != nil {
+		return err
+	}
+	if sts == nil {
+		return nil
+	}
+
+	prefix := claimTemplateName + "-" + sts.Name + "-"
+
+	wantReplicas := *sts.Spec.Replicas
+	if sts.Spec.Replicas == nil {
+		wantReplicas = 1
+	}
+
+	var pvcList corev1.PersistentVolumeClaimList
+	if err := r.reconciler.Client.List(ctx, &pvcList, client.InNamespace(sts.Namespace)); err != nil {
+		return err
+	}
+
+	pvcs := make([]*corev1.PersistentVolumeClaim, 0, wantReplicas)
+	sizeMismatch := false
+
+	for i := range pvcList.Items {
+		pvc := &pvcList.Items[i]
+		if !strings.HasPrefix(pvc.Name, prefix) {
+			continue
+		}
+		pvcs = append(pvcs, pvc)
+		cur := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
+		if cur.Cmp(desired) != 0 {
+			sizeMismatch = true
+		}
+	}
+
+	if !sizeMismatch {
+		return nil
+	}
+
+	for _, pvc := range pvcs {
+		cur := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
+		if desired.Cmp(cur) < 0 {
+			r.logger.Info("Skipping PVC shrink (not supported)",
+				"pvc", pvc.Name,
+				"current", cur.String(),
+				"desired", desired.String(),
+			)
+			continue
+		}
+		old := pvc.DeepCopy()
+		if pvc.Spec.Resources.Requests == nil {
+			pvc.Spec.Resources.Requests = corev1.ResourceList{}
+		}
+		pvc.Spec.Resources.Requests[corev1.ResourceStorage] = desired
+		if err := r.reconciler.Client.Patch(ctx, pvc, client.MergeFrom(old)); err != nil {
+			return err
+		}
+		r.logger.Info("PVC resize request applied",
+			"pvc", pvc.Name,
+			"size", desired.String(),
+		)
+	}
+	if int32(len(pvcs)) < wantReplicas {
+		r.logger.Info("Not all PVCs exist yet; will retry next reconcile",
+			"expected", wantReplicas,
+			"found", len(pvcs),
+			"prefix", prefix,
+		)
+	}
+	return nil
 }

@@ -167,7 +167,11 @@ spec:
                       type: object
                     statefulSetNames:
                       type: string
+                    masterStsName:
+                      type: string
                     imageVariant:
+                      type: string
+                    storageSize:
                       type: string
                   required:
                     - dedicatedClientPod
