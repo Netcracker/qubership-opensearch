@@ -116,6 +116,7 @@ func NewOpenSearchReconciler(r *OpenSearchServiceReconciler, cr *opensearchservi
 }
 
 func (r OpenSearchReconciler) Reconcile() error {
+	r.logger.Info("Begin OpenSearch Reconcile procedure.")
 	desired, err := resource.ParseQuantity(r.cr.Spec.OpenSearch.StorageSize)
 	if err != nil {
 		return err
@@ -128,8 +129,6 @@ func (r OpenSearchReconciler) Reconcile() error {
 		r.logger.Info("Rolling Update is disabled, so skip reconcile procedure")
 		return nil
 	}
-
-	r.logger.Info("Begin OpenSearch Reconcile procedure.")
 
 	client, err := r.createRestClientWithOldCreds()
 	if err != nil {
@@ -1108,6 +1107,8 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 	if !sizeMismatch {
 		return nil
 	}
+
+	r.logger.Info("Resizing PVCs as desired")
 
 	for _, pvc := range pvcs {
 		cur := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
