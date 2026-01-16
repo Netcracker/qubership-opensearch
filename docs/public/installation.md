@@ -1965,6 +1965,7 @@ There are the following breaking changes:
 | **Removal of deprecated index/cluster settings**           | Many old settings (e.g., `index.store.hybrid.mmap.extensions`) were fully removed. REST API will return an error if they are used.                                                                            |
 
 ### OpenSearch Dashboards
+
 There are the following breaking changes:
 
 | Change                               | Description                                                                            |
@@ -1974,7 +1975,7 @@ There are the following breaking changes:
 | **Dashboards Visualizations plugin** | The entire plugin, including **Gantt chart visualization**, has been **removed**.      |
 | **Legacy Notebooks**                 | Notebooks stored in the `.opensearch-observability` index are **no longer supported**. |
 
-**Important**: A minio version from 2025-01-20 is required.(https://github.com/minio/minio/issues/20845#issuecomment-2604259537)
+**Important**: A minio version from 2025-01-20 is required. [Support AWS S3 new checksums](https://github.com/minio/minio/issues/20845#issuecomment-2604259537)
 
 ### Migration to OpenSearch 2.x (OpenSearch Service 1.x.x)
 
