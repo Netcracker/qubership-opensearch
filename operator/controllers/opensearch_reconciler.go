@@ -1085,7 +1085,7 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 	}
 
 	var pvcList corev1.PersistentVolumeClaimList
-	if err := r.reconciler.Client.List(ctx, &pvcList, client.InNamespace(sts.Namespace)); err != nil {
+	if err = r.reconciler.Client.List(ctx, &pvcList, client.InNamespace(sts.Namespace)); err != nil {
 		return err
 	}
 
@@ -1125,7 +1125,7 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 			pvc.Spec.Resources.Requests = corev1.ResourceList{}
 		}
 		pvc.Spec.Resources.Requests[corev1.ResourceStorage] = desired
-		if err := r.reconciler.Client.Patch(ctx, pvc, client.MergeFrom(old)); err != nil {
+		if err = r.reconciler.Client.Patch(ctx, pvc, client.MergeFrom(old)); err != nil {
 			return err
 		}
 		r.logger.Info("PVC resize request applied",
