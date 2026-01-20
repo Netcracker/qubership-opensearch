@@ -116,19 +116,24 @@ func NewOpenSearchReconciler(r *OpenSearchServiceReconciler, cr *opensearchservi
 }
 
 func (r OpenSearchReconciler) Reconcile() error {
-	r.logger.Info("Begin OpenSearch Reconcile procedure.")
-	desired, err := resource.ParseQuantity(r.cr.Spec.OpenSearch.StorageSize)
-	if err != nil {
-		return err
-	}
-	if err = r.reconcileOpenSearchPVCSize(context.Background(), desired); err != nil {
-		return err
+	if len(r.cr.Spec.OpenSearch.StorageSize) > 0 {
+		r.logger.Info("Trying to change opensearch storage size")
+		desired, err := resource.ParseQuantity(r.cr.Spec.OpenSearch.StorageSize)
+		if err != nil {
+			return err
+		}
+		if err = r.reconcileOpenSearchPVCSize(context.Background(), desired); err != nil {
+			return err
+		}
+		r.logger.Info("Storage size successfully changed")
 	}
 
 	if !r.cr.Spec.OpenSearch.RollingUpdate {
 		r.logger.Info("Rolling Update is disabled, so skip reconcile procedure")
 		return nil
 	}
+
+	r.logger.Info("Begin OpenSearch Reconcile procedure.")
 
 	client, err := r.createRestClientWithOldCreds()
 	if err != nil {
@@ -1111,15 +1116,6 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 	r.logger.Info("Resizing PVCs as desired")
 
 	for _, pvc := range pvcs {
-		cur := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
-		if desired.Cmp(cur) < 0 {
-			r.logger.Info("Skipping PVC shrink (not supported)",
-				"pvc", pvc.Name,
-				"current", cur.String(),
-				"desired", desired.String(),
-			)
-			continue
-		}
 		old := pvc.DeepCopy()
 		if pvc.Spec.Resources.Requests == nil {
 			pvc.Spec.Resources.Requests = corev1.ResourceList{}
