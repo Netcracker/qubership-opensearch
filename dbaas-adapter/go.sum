@@ -1,5 +1,5 @@
-github.com/Netcracker/qubership-dbaas-adapter-core v0.9.6 h1:q4e8ssalfyu/+kp5RvLfLU7UsxTWgxSi7STs7rQxWys=
-github.com/Netcracker/qubership-dbaas-adapter-core v0.9.6/go.mod h1:dEXm/aZmbDHVkkMqmcU901I1akukhL+3y4bPoTWBWFQ=
+github.com/Netcracker/qubership-dbaas-adapter-core v0.11.1 h1:h8/lbtIKWuvQCiWMz3MuWDpoJ3rdJQaVAgzPaT3M+j4=
+github.com/Netcracker/qubership-dbaas-adapter-core v0.11.1/go.mod h1:WwqayO1puRMdzoB6EbIpHWqhkYi4JT7v4pCVM6h15D8=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/aws/aws-sdk-go v1.42.27/go.mod h1:OGr6lGMAKGlG9CVrYnWYDKIyb829c6EVBRjxqjmPepc=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
