@@ -36,6 +36,7 @@ spec:
     {{- if .Values.opensearch.rollingUpdate }}
     statefulSetNames: "{{ trim (include "opensearch.statefulsetNames" .) }}"
     {{ end }}
+    masterStsName: "{{ (include "master-nodes" .) }}"
     imageVariant: "{{ include "opensearch.imageVariant" . }}"
     {{- if .Values.opensearch.snapshots.enabled }}
     snapshots:
@@ -55,6 +56,9 @@ spec:
         chunkedEncoding: {{ .Values.opensearch.snapshots.s3.chunkedEncoding }}
         disableSslVerification: {{ .Values.opensearch.snapshots.s3.disableSslVerification }}
       {{- end }}
+    {{- end }}
+    {{- if .Values.opensearch.master.persistence.enabled }}
+    storageSize: {{ .Values.opensearch.master.persistence.size }}
     {{- end }}
     {{- if and .Values.opensearch.securityConfig.config.securityConfigSecret .Values.opensearch.securityConfig.config.data }}
     securityConfigurationName: {{ .Values.opensearch.securityConfig.config.securityConfigSecret }}

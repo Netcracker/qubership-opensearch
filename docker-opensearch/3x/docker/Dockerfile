@@ -1,4 +1,4 @@
-FROM opensearchproject/opensearch:3.2.0
+FROM opensearchproject/opensearch:3.4.0
 
 USER 0
 
@@ -18,11 +18,11 @@ RUN yum update --assumeyes --skip-broken \
     && rm -rf /var/cache/yum/*
 
 RUN echo "Download OpenSearch plugins..." \
-&& curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/3.2.0/repository-s3-3.2.0.zip" \
-    -o ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-3.2.0.zip \
-&& curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/3.2.0/repository-gcs-3.2.0.zip" \
-    -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-3.2.0.zip \
-&& if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-3.2.0.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-3.2.0.zip ]; then \
+&& curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/3.4.0/repository-s3-3.4.0.zip" \
+    -o ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-3.4.0.zip \
+&& curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/3.4.0/repository-gcs-3.4.0.zip" \
+    -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-3.4.0.zip \
+&& if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-3.4.0.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-3.4.0.zip ]; then \
     echo "Plugins downloaded successfully."; \
 else \
     echo "Plugin download failed"; \
