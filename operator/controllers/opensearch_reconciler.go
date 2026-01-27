@@ -121,7 +121,7 @@ func NewOpenSearchReconciler(r *OpenSearchServiceReconciler, cr *opensearchservi
 
 func (r OpenSearchReconciler) Reconcile() error {
 	if len(r.cr.Spec.OpenSearch.StorageSize) > 0 {
-		r.logger.Info("Trying to change opensearch storage size")
+		r.logger.Info("Trying to process opensearch storage size")
 		desired, err := resource.ParseQuantity(r.cr.Spec.OpenSearch.StorageSize)
 		if err != nil {
 			return err
@@ -129,7 +129,7 @@ func (r OpenSearchReconciler) Reconcile() error {
 		if err = r.reconcileOpenSearchPVCSize(context.Background(), desired); err != nil {
 			return err
 		}
-		r.logger.Info("Storage size successfully changed")
+		r.logger.Info("Storage size successfully processed")
 	}
 
 	if !r.cr.Spec.OpenSearch.RollingUpdate {
