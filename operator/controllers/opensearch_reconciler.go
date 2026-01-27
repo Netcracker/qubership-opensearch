@@ -55,7 +55,7 @@ const (
 	allAccess                      = "all_access"
 	claimTemplateName              = "pvc"
 	maxResizeAttempts              = 3
-	sleepBetweenResizes            = 30 * time.Second
+	sleepBetweenResizes            = 60 * time.Second
 )
 
 type OpenSearchHealth struct {
@@ -1135,6 +1135,13 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 	}
 
 	for attempt := 1; attempt <= maxResizeAttempts; attempt++ {
+		if attempt < maxResizeAttempts {
+			select {
+			case <-time.After(sleepBetweenResizes):
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
 		stsStatus, err := r.findStatefulSetStatus(sts)
 		if err != nil {
 			return err
@@ -1152,13 +1159,6 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 		)
 		if err := r.restartOpenSearchPod(sts, stsStatus); err != nil {
 			return err
-		}
-		if attempt < maxResizeAttempts {
-			select {
-			case <-time.After(sleepBetweenResizes):
-			case <-ctx.Done():
-				return ctx.Err()
-			}
 		}
 	}
 
@@ -1180,7 +1180,7 @@ func (r OpenSearchReconciler) needRestartAfterPVCResize(ctx context.Context, sta
 		if capacity.Cmp(desired) >= 0 {
 			continue
 		}
-		if ok, msg := pvcHasFSResizePending(&pvc); ok {
+		if ok, msg := pvcHasResizePending(&pvc); ok {
 			r.logger.Info("PVC has FileSystemResizePending state; rolling restart required",
 				"pvc", pvc.Name,
 				"capacity", capacity.String(),
@@ -1198,7 +1198,7 @@ func (r OpenSearchReconciler) needRestartAfterPVCResize(ctx context.Context, sta
 	return false, nil
 }
 
-func pvcHasFSResizePending(pvc *corev1.PersistentVolumeClaim) (bool, string) {
+func pvcHasResizePending(pvc *corev1.PersistentVolumeClaim) (bool, string) {
 	for _, c := range pvc.Status.Conditions {
 		if c.Type == corev1.PersistentVolumeClaimFileSystemResizePending && c.Status == corev1.ConditionTrue {
 			return true, c.Message
