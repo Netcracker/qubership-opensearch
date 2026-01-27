@@ -21,7 +21,9 @@ import (
 	"fmt"
 	"io"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/types"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
@@ -52,6 +54,8 @@ const (
 	clusterSettingsPath            = "_cluster/settings"
 	allAccess                      = "all_access"
 	claimTemplateName              = "pvc"
+	maxResizeAttempts              = 3
+	sleepBetweenResizes            = 30 * time.Second
 )
 
 type OpenSearchHealth struct {
@@ -1129,12 +1133,76 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 			"size", desired.String(),
 		)
 	}
-	if int32(len(pvcs)) < wantReplicas {
-		r.logger.Info("Not all PVCs exist yet; will retry next reconcile",
-			"expected", wantReplicas,
-			"found", len(pvcs),
-			"prefix", prefix,
+
+	for attempt := 1; attempt <= maxResizeAttempts; attempt++ {
+		stsStatus, err := r.findStatefulSetStatus(sts)
+		if err != nil {
+			return err
+		}
+		needRestart, err := r.needRestartAfterPVCResize(ctx, sts, desired, int(wantReplicas))
+		if err != nil {
+			return err
+		}
+		if !needRestart {
+			return nil
+		}
+		r.logger.Info("Rolling restart required to finish filesystem resize",
+			"attempt", attempt,
+			"maxAttempts", maxResizeAttempts,
+		)
+		if err := r.restartOpenSearchPod(sts, stsStatus); err != nil {
+			return err
+		}
+		if attempt < maxResizeAttempts {
+			select {
+			case <-time.After(sleepBetweenResizes):
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+	}
+
+	return fmt.Errorf("filesystem resize still pending after %d restart attempts", maxResizeAttempts)
+}
+
+func (r OpenSearchReconciler) needRestartAfterPVCResize(ctx context.Context, statefulSet *v1.StatefulSet, desired resource.Quantity, wantReplicas int) (bool, error) {
+	prefix := claimTemplateName + "-" + statefulSet.Name + "-"
+	for ordinal := 0; ordinal < wantReplicas; ordinal++ {
+		pvcName := fmt.Sprintf("%s%d", prefix, ordinal)
+		var pvc corev1.PersistentVolumeClaim
+		if err := r.reconciler.Client.Get(ctx, types.NamespacedName{Namespace: statefulSet.Namespace, Name: pvcName}, &pvc); err != nil {
+			if apierrors.IsNotFound(err) {
+				continue
+			}
+			return false, err
+		}
+		capacity := pvc.Status.Capacity[corev1.ResourceStorage]
+		if capacity.Cmp(desired) >= 0 {
+			continue
+		}
+		if ok, msg := pvcHasFSResizePending(&pvc); ok {
+			r.logger.Info("PVC has FileSystemResizePending state; rolling restart required",
+				"pvc", pvc.Name,
+				"capacity", capacity.String(),
+				"desired", desired.String(),
+				"message", msg,
+			)
+			return true, nil
+		}
+
+		return false, fmt.Errorf(
+			"PVC %s capacity is below desired but FileSystemResizePending is not set (capacity=%s desired=%s)",
+			pvc.Name, capacity.String(), desired.String(),
 		)
 	}
-	return nil
+	return false, nil
+}
+
+func pvcHasFSResizePending(pvc *corev1.PersistentVolumeClaim) (bool, string) {
+	for _, c := range pvc.Status.Conditions {
+		if c.Type == corev1.PersistentVolumeClaimFileSystemResizePending && c.Status == corev1.ConditionTrue {
+			return true, c.Message
+		}
+	}
+	return false, ""
 }
