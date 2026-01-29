@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"io"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/types"
 	"net/http"
@@ -55,7 +54,7 @@ const (
 	allAccess                      = "all_access"
 	claimTemplateName              = "pvc"
 	maxResizeAttempts              = 3
-	sleepBetweenResizes            = 60 * time.Second
+	sleepBetweenResizes            = 30 * time.Second
 )
 
 type OpenSearchHealth struct {
@@ -1099,7 +1098,6 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 	}
 
 	pvcs := make([]*corev1.PersistentVolumeClaim, 0, wantReplicas)
-	sizeMismatch := false
 
 	for i := range pvcList.Items {
 		pvc := &pvcList.Items[i]
@@ -1108,13 +1106,13 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 		}
 		pvcs = append(pvcs, pvc)
 		cur := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
-		if cur.Cmp(desired) != 0 {
-			sizeMismatch = true
+		if desired.Cmp(cur) < 0 {
+			return fmt.Errorf("PVC shrinking is forbidden, current PVC size is %s, desired is %s", cur.String(), desired.String())
 		}
-	}
-
-	if !sizeMismatch {
-		return nil
+		if desired.Cmp(cur) == 0 {
+			r.logger.Info("PVC size didn't change")
+			return nil
+		}
 	}
 
 	r.logger.Info("Resizing PVCs as desired")
@@ -1136,11 +1134,7 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 
 	for attempt := 1; attempt <= maxResizeAttempts; attempt++ {
 		if attempt < maxResizeAttempts {
-			select {
-			case <-time.After(sleepBetweenResizes):
-			case <-ctx.Done():
-				return ctx.Err()
-			}
+			<-time.After(sleepBetweenResizes)
 		}
 		stsStatus, err := r.findStatefulSetStatus(sts)
 		if err != nil {
@@ -1171,9 +1165,6 @@ func (r OpenSearchReconciler) needRestartAfterPVCResize(ctx context.Context, sta
 		pvcName := fmt.Sprintf("%s%d", prefix, ordinal)
 		var pvc corev1.PersistentVolumeClaim
 		if err := r.reconciler.Client.Get(ctx, types.NamespacedName{Namespace: statefulSet.Namespace, Name: pvcName}, &pvc); err != nil {
-			if apierrors.IsNotFound(err) {
-				continue
-			}
 			return false, err
 		}
 		capacity := pvc.Status.Capacity[corev1.ResourceStorage]
