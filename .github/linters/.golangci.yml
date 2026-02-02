@@ -1,0 +1,12 @@
+version: 2
+
+run:
+  tests: false
+
+linters:
+  settings:
+    staticcheck:
+      checks:
+        - -QF1008
+        - -ST1008
+        - -QF1003

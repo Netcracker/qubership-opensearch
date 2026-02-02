@@ -1,0 +1,33 @@
+# MD013/line-length - Line length
+MD013:
+  line_length: 200
+  heading_line_length: 120
+  code_block_line_length: 120
+  code_blocks: false
+  tables: false
+  headings: true
+  strict: false
+  stern: false
+# MD024/no-duplicate-header - Multiple headers with the same content
+MD024:
+  siblings_only: true
+# MD041/first-line-heading - First line in a file should be a top-level heading
+MD041: false
+# MD033/no-inline-html - Inline HTML
+MD033: false
+# MD036/no-emphasis-as-heading - Emphasis used instead of a heading
+MD036: false
+# MD011/no-reversed-links - Reversed link syntax
+MD011: false
+# MD037/no-space-in-emphasis - Spaces inside emphasis markers
+MD037: false
+# MD004/ul-style - Unordered list style [Expected: dash; Actual: asterisk]
+MD004: false
+# MD007/ul-indent Unordered list indentation
+MD007: false
+# MD009/no-trailing-spaces Trailing spaces [Expected: 0 or 2; Actual: <?>]
+MD009: false
+# MD010/no-hard-tabs Hard tabs
+MD010: false
+# MD051/Link fragments should be valid
+MD051: false

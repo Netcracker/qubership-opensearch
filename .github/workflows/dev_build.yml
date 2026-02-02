@@ -1,0 +1,121 @@
+name: "CI: Dev Build"
+run-name: "Dev image for ${{ github.event.repository.name }}: ${{ github.run_number }} - ${{ github.actor }}"
+on:
+  release:
+    types: [created]
+  push:
+    branches:
+      - "**"
+    paths-ignore:
+      - "docs/**"
+      - "CODE-OF-CONDUCT.md"
+      - "CONTRIBUTING.md"
+      - "LICENSE"
+      - "README.md"
+      - "SECURITY.md"
+  pull_request:
+    branches:
+      - "**"
+    paths-ignore:
+      - "docs/**"
+      - "CODE-OF-CONDUCT.md"
+      - "CONTRIBUTING.md"
+      - "LICENSE"
+      - "README.md"
+      - "SECURITY.md"
+  workflow_dispatch:
+    inputs:
+      tags:
+        required: false
+        type: string
+        default: ""
+        description: "Tags"
+      dry-run:
+        required: true
+        type: boolean
+        default: false
+        description: "Dry run mode"
+      replace-symbol:
+        required: false
+        type: string
+        default: "_"
+        description: "Symbol to replace in tags"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.ref_type == 'branch' && format('build-branch-{0}', github.ref_name) || format('build-{0}', github.sha) }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    name: "Prepare Images and Metadata"
+    runs-on: ubuntu-latest
+    env:
+      CONFIG_FILE: .qubership/docker-build-config.cfg
+    outputs:
+      components: ${{ steps.load.outputs.components }}
+      platforms: ${{ steps.load.outputs.platforms }}
+      tags: "${{ steps.meta.outputs.result }}"
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Changed Files
+        if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
+        id: changed-files
+        uses: tj-actions/changed-files@e0021407031f5be11a464abee9a0776171c79891  # v47.0.1
+        with:
+          json: true
+          write_output_files: true # .github/outputs/all_changed_files.json
+
+      - id: load
+        name: Load Components and Platforms
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "release" || "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            components=$(jq -c '.components' ${CONFIG_FILE})
+          fi
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" || "$GITHUB_EVENT_NAME" == "push" ]]; then
+            all_changed_files=$(jq -c '.' .github/outputs/all_changed_files.json)
+            if [ "$all_changed_files" != "null" ]; then
+                chmod +x .github/scripts/matrix.sh
+                components=$(./.github/scripts/matrix.sh "${CONFIG_FILE}" ".github/outputs/all_changed_files.json")
+            fi
+          fi
+          echo "components=${components}" >> "$GITHUB_OUTPUT"
+          echo "platforms=$(jq -c '.platforms' ${CONFIG_FILE})" >> "$GITHUB_OUTPUT"
+
+      - name: Create tags for images
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@396774180000abdb825cbf150b56cc59c6913db8  # v2.0.5
+        id: meta
+        with:
+          default-template: "{{ref-name}}"
+          extra-tags: ${{ github.event.inputs.tags || '' }}
+          replace-symbol: ${{ github.event.inputs.replace-symbol || '_'}}
+
+  build:
+    name: ${{ matrix.component.name }} Image Build
+    needs: [prepare]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        component: ${{ fromJson(needs.prepare.outputs.components) }}
+    steps:
+      - name: Docker
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@396774180000abdb825cbf150b56cc59c6913db8  # v2.0.5
+        with:
+          ref: ${{ github.ref }}
+          dry-run: ${{ github.event.inputs.dry-run || github.event_name == 'pull_request' }}
+          download-artifact: false
+          component: ${{ toJson(matrix.component) }}
+          platforms: ${{ needs.prepare.outputs.platforms }}
+          tags: ${{ needs.prepare.outputs.tags }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

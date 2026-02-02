@@ -84,19 +84,17 @@ func (bp BaseProvider) GetBackendRoles(roleType string) []string {
 	return []string{fmt.Sprintf(BackendRolePattern, roleType)}
 }
 
-func (bp BaseProvider) CreateRoleWithISMPermissions(enhancedSecurityPluginEnabled bool) error {
+func (bp BaseProvider) CreateRoleWithISMPermissions() error {
 	clusterPermissions := []string{
 		ClusterAdminIsmPermissions,
 	}
 	indexGlobalPermissions := []string{
 		IndicesIsmManagedIndexPermission,
 	}
-	if !enhancedSecurityPluginEnabled {
-		indexGlobalPermissions = append(indexGlobalPermissions,
-			IndicesMonitorStatsPermission,
-			IndicesRolloverPermission,
-			IndicesDeletePermission)
-	}
+	indexGlobalPermissions = append(indexGlobalPermissions,
+		IndicesMonitorStatsPermission,
+		IndicesRolloverPermission,
+		IndicesDeletePermission)
 	return bp.createRole(clusterPermissions, []string{}, indexGlobalPermissions, IsmRoleType)
 }
 
@@ -203,7 +201,7 @@ func (bp BaseProvider) createRole(clusterPermissions []string, indexPermissions 
 	if err != nil {
 		return fmt.Errorf("error occurred during [%s] role creation: %+v", name, err)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 
 	if response.StatusCode == http.StatusOK || response.StatusCode == http.StatusCreated {
 		logger.Info(fmt.Sprintf("'%s' role is successfully created or updated", name))
@@ -222,7 +220,7 @@ func (bp BaseProvider) GetRole(name string) (*Role, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to receive role with '%s' name: %+v", name, err)
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusOK {
 		var roles map[string]*Role
 		err = common.ProcessBody(response.Body, &roles)

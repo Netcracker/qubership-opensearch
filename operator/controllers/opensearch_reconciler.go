@@ -16,11 +16,14 @@ package controllers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"net/http"
-	"strconv"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"time"
 
@@ -48,6 +51,7 @@ const (
 	clusterHealthPath              = "_cluster/health"
 	clusterSettingsPath            = "_cluster/settings"
 	allAccess                      = "all_access"
+	claimTemplateName              = "pvc"
 )
 
 type OpenSearchHealth struct {
@@ -112,6 +116,18 @@ func NewOpenSearchReconciler(r *OpenSearchServiceReconciler, cr *opensearchservi
 }
 
 func (r OpenSearchReconciler) Reconcile() error {
+	if len(r.cr.Spec.OpenSearch.StorageSize) > 0 {
+		r.logger.Info("Trying to change opensearch storage size")
+		desired, err := resource.ParseQuantity(r.cr.Spec.OpenSearch.StorageSize)
+		if err != nil {
+			return err
+		}
+		if err = r.reconcileOpenSearchPVCSize(context.Background(), desired); err != nil {
+			return err
+		}
+		r.logger.Info("Storage size successfully changed")
+	}
+
 	if !r.cr.Spec.OpenSearch.RollingUpdate {
 		r.logger.Info("Rolling Update is disabled, so skip reconcile procedure")
 		return nil
@@ -1009,13 +1025,16 @@ func (r OpenSearchReconciler) deleteSnapshotsRepository(restClient *util.RestCli
 }
 
 func (r OpenSearchReconciler) updateCompatibilityMode(restClient *util.RestClient) error {
-	value := "null"
-	if r.cr.Spec.OpenSearch.CompatibilityModeEnabled {
-		value = "true"
+	if r.cr.Spec.OpenSearch.ImageVariant == "2" {
+		value := "null"
+		if r.cr.Spec.OpenSearch.CompatibilityModeEnabled {
+			value = "true"
+		}
+		r.logger.Info(fmt.Sprintf("Update compatibility mode with '%s' value", value))
+		requestBody := fmt.Sprintf(`{"persistent": {"compatibility.override_main_response_version": %s}}`, value)
+		return r.updateSettings(restClient, strings.NewReader(requestBody))
 	}
-	r.logger.Info(fmt.Sprintf("Update compatibility mode with '%s' value", value))
-	requestBody := fmt.Sprintf(`{"persistent": {"compatibility.override_main_response_version": %s}}`, value)
-	return r.updateSettings(restClient, strings.NewReader(requestBody))
+	return nil
 }
 
 func (r OpenSearchReconciler) getS3Credentials() (string, string) {
@@ -1043,9 +1062,79 @@ func (r OpenSearchReconciler) getSnapshotsRepositoryBody() string {
 			s3Url := r.cr.Spec.OpenSearch.Snapshots.S3.Url
 			s3BasePath := r.cr.Spec.OpenSearch.Snapshots.S3.BasePath
 			s3Region := r.cr.Spec.OpenSearch.Snapshots.S3.Region
-			s3PathStyleAccess := strconv.FormatBool(r.cr.Spec.OpenSearch.Snapshots.S3.PathStyleAccess)
-			return fmt.Sprintf(`{"type": "s3", "settings": {"base_path": "%s", "bucket": "%s", "region": "%s", "endpoint": "%s", "protocol": "http", "access_key": "%s", "secret_key": "%s", "compress": true, "path_style_access": "%s"}}`, s3BasePath, s3Bucket, s3Region, s3Url, s3KeyId, s3KeySecret, s3PathStyleAccess)
+			s3PathStyleAccess := r.cr.Spec.OpenSearch.Snapshots.S3.PathStyleAccess
+			return fmt.Sprintf(`{"type": "s3", "settings": {"base_path": "%s", "bucket": "%s", "region": "%s", "endpoint": "%s", "protocol": "http", "access_key": "%s", "secret_key": "%s", "compress": true, "path_style_access": %v}}`, s3BasePath, s3Bucket, s3Region, s3Url, s3KeyId, s3KeySecret, s3PathStyleAccess)
 		}
 	}
 	return `{"type": "fs", "settings": {"location": "/usr/share/opensearch/snapshots", "compress": true}}`
+}
+
+func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, desired resource.Quantity) error {
+	stsName := strings.TrimSpace(r.cr.Spec.OpenSearch.MasterStsName)
+	if stsName == "" {
+		return nil
+	}
+	sts, err := r.reconciler.watchStatefulSet(stsName, r.cr, r.logger)
+	if err != nil {
+		return err
+	}
+	if sts == nil {
+		return nil
+	}
+
+	prefix := claimTemplateName + "-" + sts.Name + "-"
+
+	wantReplicas := *sts.Spec.Replicas
+	if sts.Spec.Replicas == nil {
+		wantReplicas = 1
+	}
+
+	var pvcList corev1.PersistentVolumeClaimList
+	if err = r.reconciler.Client.List(ctx, &pvcList, client.InNamespace(sts.Namespace)); err != nil {
+		return err
+	}
+
+	pvcs := make([]*corev1.PersistentVolumeClaim, 0, wantReplicas)
+	sizeMismatch := false
+
+	for i := range pvcList.Items {
+		pvc := &pvcList.Items[i]
+		if !strings.HasPrefix(pvc.Name, prefix) {
+			continue
+		}
+		pvcs = append(pvcs, pvc)
+		cur := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
+		if cur.Cmp(desired) != 0 {
+			sizeMismatch = true
+		}
+	}
+
+	if !sizeMismatch {
+		return nil
+	}
+
+	r.logger.Info("Resizing PVCs as desired")
+
+	for _, pvc := range pvcs {
+		old := pvc.DeepCopy()
+		if pvc.Spec.Resources.Requests == nil {
+			pvc.Spec.Resources.Requests = corev1.ResourceList{}
+		}
+		pvc.Spec.Resources.Requests[corev1.ResourceStorage] = desired
+		if err = r.reconciler.Client.Patch(ctx, pvc, client.MergeFrom(old)); err != nil {
+			return err
+		}
+		r.logger.Info("PVC resize request applied",
+			"pvc", pvc.Name,
+			"size", desired.String(),
+		)
+	}
+	if int32(len(pvcs)) < wantReplicas {
+		r.logger.Info("Not all PVCs exist yet; will retry next reconcile",
+			"expected", wantReplicas,
+			"found", len(pvcs),
+			"prefix", prefix,
+		)
+	}
+	return nil
 }

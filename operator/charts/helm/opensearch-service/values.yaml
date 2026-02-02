@@ -1,6 +1,6 @@
 dashboards:
   enabled: false
-  dockerImage: opensearchproject/opensearch-dashboards:2.19.2
+  dockerImage: ghcr.io/netcracker/qubership-opensearch-dashboard-3:main
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
@@ -186,7 +186,7 @@ global:
     indicesPattern: "*"
     remoteCluster: ""
     siteManagerEnabled: true
-    siteManagerApiGroup: "qubership.org"
+    siteManagerApiGroup: "netcracker.com"
     timeout: 600
     afterServices: []
     replicationWatcherEnabled: false
@@ -246,7 +246,7 @@ opensearch:
   discoveryOverride: ""
   compatibilityModeEnabled: false
   gcLoggingEnabled: false
-  performanceAnalyzerEnabled: true
+  performanceAnalyzerEnabled: false
   rollingUpdate: false
   readinessTimeout: "800s"
   securityConfig:
@@ -696,6 +696,8 @@ opensearch:
       region: ""
       sslSecretName: ""
       sslCert: ""
+      chunkedEncoding: false
+      disableSslVerification: false
       gcs:
         secretName: ""
         secretKey: ""
@@ -798,7 +800,8 @@ opensearch:
 
   maxMapCount: 262144
 
-  dockerImage: ghcr.io/netcracker/qubership-docker-opensearch:main
+  dockerImage: ghcr.io/netcracker/qubership-docker-opensearch-3:main
+  opensearch2dockerImage: ghcr.io/netcracker/qubership-docker-opensearch-2:main
   dockerTlsInitImage: ghcr.io/netcracker/qubership-opensearch-tls-init:main
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
@@ -824,7 +827,7 @@ opensearch:
 
 podScheduler:
   enabled: true
-  dockerImage: bitnami/kubectl:1.30.6
+  dockerImage: ghcr.io/netcracker/qubership-docker-kubectl:main
   affinity: {}
   nodeSelector: {}
   resources:
@@ -1111,6 +1114,15 @@ updateResourcesJob:
       cpu: "150m"
   securityContext: {}
 
+validateOpensearchUpgrade:
+  resources:
+    requests:
+      memory: "75Mi"
+      cpu: "75m"
+    limits:
+      memory: "150Mi"
+      cpu: "150m"
+
 integrationTests:
   enabled: false
   dockerImage: ghcr.io/netcracker/qubership-opensearch-integration-tests:main
@@ -1157,6 +1169,22 @@ integrationTests:
   # used to assign priority to the OpenSearch integration tests pod
   # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
   priorityClassName: ""
+
+groupMigration:
+  enabled: true
+  oldGroupPrefix: "qubership.org/"
+  # labelSelector: "app.kubernetes.io/part-of=app-name"
+  labelSelector: ""
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 20m
+    limits:
+      memory: 256Mi
+      cpu: 100m
+  image: "ghcr.io/netcracker/qubership-docker-kubectl:main"
+  imagePullPolicy: Always
+  runAsNonRoot: true
 
 nameOverride: "opensearch"
 fullnameOverride: "opensearch"

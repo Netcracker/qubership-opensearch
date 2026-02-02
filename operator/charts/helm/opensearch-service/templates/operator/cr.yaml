@@ -4,7 +4,7 @@
 {{- if and .Values.deployDescriptor .Values.dockerOpensearch (ne (.Values.DEPLOY_W_HELM | toString) "true") }}
   {{- fail "OpenSearch requires `DEPLOY_W_HELM` parameter to be set to `true` for App Deployer" }}
 {{- end }}
-apiVersion: qubership.org/v1
+apiVersion: netcracker.com/v1
 kind: OpenSearchService
 metadata:
   name: {{ template "opensearch.fullname" . }}
@@ -36,6 +36,8 @@ spec:
     {{- if .Values.opensearch.rollingUpdate }}
     statefulSetNames: "{{ trim (include "opensearch.statefulsetNames" .) }}"
     {{ end }}
+    masterStsName: "{{ (include "master-nodes" .) }}"
+    imageVariant: "{{ include "opensearch.imageVariant" . }}"
     {{- if .Values.opensearch.snapshots.enabled }}
     snapshots:
       repositoryName: {{ coalesce .Values.opensearch.snapshots.repositoryName .Values.curator.snapshotRepositoryName | default "snapshots" }}
@@ -51,7 +53,12 @@ spec:
         basePath: {{ default "" .Values.opensearch.snapshots.s3.basePath | quote }}
         region: {{ default "default" .Values.opensearch.snapshots.s3.region | quote }}
         secretName: {{ template "opensearch.fullname" . }}-s3-secret
+        chunkedEncoding: {{ .Values.opensearch.snapshots.s3.chunkedEncoding }}
+        disableSslVerification: {{ .Values.opensearch.snapshots.s3.disableSslVerification }}
       {{- end }}
+    {{- end }}
+    {{- if .Values.opensearch.master.persistence.enabled }}
+    storageSize: {{ .Values.opensearch.master.persistence.size }}
     {{- end }}
     {{- if and .Values.opensearch.securityConfig.config.securityConfigSecret .Values.opensearch.securityConfig.config.data }}
     securityConfigurationName: {{ .Values.opensearch.securityConfig.config.securityConfigSecret }}

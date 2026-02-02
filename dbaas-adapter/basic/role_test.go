@@ -106,7 +106,7 @@ func TestGetRoleWithReadOnlyPermission(t *testing.T) {
 }
 
 func TestCreateRoleWithISMPermissionAndSecurityPlugin(t *testing.T) {
-	err := baseProvider.CreateRoleWithISMPermissions(true)
+	err := baseProvider.CreateRoleWithISMPermissions()
 	assert.Empty(t, err)
 }
 
@@ -128,7 +128,7 @@ func TestGetRoleWithISMPermissionAndSecurityPlugin(t *testing.T) {
 }
 
 func TestCreateRoleWithISMPermissionAndWithoutSecurityPlugin(t *testing.T) {
-	err := baseProvider.CreateRoleWithISMPermissions(false)
+	err := baseProvider.CreateRoleWithISMPermissions()
 	assert.Empty(t, err)
 }
 

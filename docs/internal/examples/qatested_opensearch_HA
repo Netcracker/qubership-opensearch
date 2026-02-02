@@ -52,18 +52,20 @@ opensearch:
     s3:
       enabled: true
       pathStyleAccess: true
-      url: http://test-minio.qubership.org/
+      url: http://test-minio.netcracker.com/
       bucket: opensearch
       keyId: example
       keySecret: example
       basePath: ""
       region: ""
+      disableSslVerification: true
+      chunkedEncoding: true
   client:
     enabled: true
     ingress:
       enabled: true
       hosts:
-        - opensearch-opensearch-service.qubership.org
+        - opensearch-opensearch-service.netcracker.com
 dbaasAdapter:
   enabled: false
 integrationTests:
@@ -86,7 +88,7 @@ dashboards:
   ingress:
     enabled: true
     hosts:
-      - host: dashboards-opensearch-service.qubership.org
+      - host: dashboards-opensearch-service.netcracker.com
         paths:
           - path: /
 curator:
