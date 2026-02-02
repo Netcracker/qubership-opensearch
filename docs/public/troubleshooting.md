@@ -645,7 +645,7 @@ OpenSearch uses replica shards to provide failover capabilities, as well as to s
 
 ```text
 /go/pkg/mod/sigs.k8s.io/controller-runtime@v0.10.0/pkg/internal/controller/controller.go:227
-2022-08-17T10:54:48.543Z        ERROR   controller.opensearchservice    Reconciler error        {"reconciler group": "qubership.org", "reconciler kind": "OpenSearchService", "name": "opensearch", "namespace": "platform-opensearch", "error": "some replication indicies are failed"}
+2022-08-17T10:54:48.543Z        ERROR   controller.opensearchservice    Reconciler error        {"reconciler group": "netcracker.com", "reconciler kind": "OpenSearchService", "name": "opensearch", "namespace": "platform-opensearch", "error": "some replication indicies are failed"}
 ```
 
 ### How to solve
@@ -906,13 +906,13 @@ Not applicable
 ### Stack trace
 
 ```text
-The CustomResourceDefinition "opensearchservices.qubership.org" is invalid: spec.validation.openAPIV3Schema: Invalid value:....
+The CustomResourceDefinition "opensearchservices.netcracker.com" is invalid: spec.validation.openAPIV3Schema: Invalid value:....
 : must only have "properties", "required" or "description" at the root if the status subresource is enabled
 ```
 
 ### How to solve
 
-To fix the issue, you need to find the following section in the CRD (`config/crd/old/qubership.org_opensearchservices.yaml`):
+To fix the issue, you need to find the following section in the CRD (`config/crd/old/netcracker.com_opensearchservices.yaml`):
 
 ```yaml
 #Comment it if you deploy to Kubernetes 1.11 (e.g OpenShift 3.11)
@@ -943,7 +943,7 @@ Not applicable
 ### Stack trace
 
 ```text
-29T11:14:36.569Z ERROR controller.opensearchservice Reconciler error {"reconciler group": "qubership.org", "reconciler kind": "OpenSearchService", "name": "opensearch", "namespace": "opensearch-security", "error": "OpenSearch is not ready yet! Status code - [401]."}
+29T11:14:36.569Z ERROR controller.opensearchservice Reconciler error {"reconciler group": "netcracker.com", "reconciler kind": "OpenSearchService", "name": "opensearch", "namespace": "opensearch-security", "error": "OpenSearch is not ready yet! Status code - [401]."}
 sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).Start.func2.2
  /go/pkg/mod/sigs.k8s.io/controller-runtime@v0.10.0/pkg/internal/controller/controller.go:227
 ```

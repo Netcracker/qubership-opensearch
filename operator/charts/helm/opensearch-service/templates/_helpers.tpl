@@ -47,6 +47,7 @@ Core OpenSearch resources labels with backend component label
 {{- define "opensearch-service.defaultLabels" -}}
 {{ include "opensearch-service.coreLabels" . }}
 app.kubernetes.io/component: 'backend'
+app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
 {{/*
@@ -186,17 +187,6 @@ Provider used to generate TLS certificates
 */}}
 {{- define "certProvider" -}}
   {{- .Values.global.tls.enabled | ternary (default "dev" .Values.global.tls.generateCerts.certProvider) "dev" }}
-{{- end -}}
-
-{{/*
-Whether Enhanced Security Plugin for OpenSearch is enabled
-*/}}
-{{- define "opensearch.enhancedSecurityPluginEnabled" -}}
-  {{- if and (not .Values.global.externalOpensearch.enabled) .Values.opensearch.securityConfig.enhancedSecurityPlugin.enabled -}}
-    {{- printf "true" -}}
-  {{- else -}}
-    {{- printf "false" -}}
-  {{- end -}}
 {{- end -}}
 
 {{/*
@@ -932,6 +922,10 @@ Find an OpenSearch Dashboards image in various places.
     {{- printf "%s" .Values.dashboards.dockerImage -}}
 {{- end -}}
 
+{{- define "opensearch.imageVariant"}}
+    {{- $image := include "opensearch.image" . }}
+    {{- if eq (regexFind "opensearch-[0-9]+" $image) "opensearch-3" }}3{{- else }}2{{- end }}
+{{- end -}}
 {{/*
 Find an OpenSearch image in various places.
 */}}
@@ -1429,5 +1423,16 @@ Restricted environment.
     {{- .Values.INFRA_RESTRICTED_ENVIRONMENT }}
   {{- else -}}
     {{- .Values.global.restrictedEnvironment -}}
+  {{- end -}}
+{{- end -}}
+
+{{- define "opensearch.stsStorage" -}}
+  {{- $ns := .Release.Namespace -}}
+  {{- $stsName := (include "master-nodes" .) -}}
+  {{- $existing := (lookup "apps/v1" "StatefulSet" $ns $stsName) -}}
+  {{- if $existing -}}
+    {{- (index (index $existing "spec") "volumeClaimTemplates" 0).spec.resources.requests.storage | toString -}}
+  {{- else -}}
+    {{- .Values.opensearch.master.persistence.size | default "1Gi" | toString -}}
   {{- end -}}
 {{- end -}}

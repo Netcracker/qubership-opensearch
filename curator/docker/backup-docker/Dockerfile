@@ -9,19 +9,20 @@ COPY docker/backup-docker/actions ${ELASTICSEARCH_CURATOR_HOME}/actions
 COPY docker/backup-docker/docker-entrypoint.sh /docker-entrypoint.sh
 
 RUN set -x \
-    && pip3 install -U opensearch-py==2.5.0 elasticsearch==7.13.0 curator-opensearch==0.0.12 \
-    && pip3 install --upgrade urllib3 click \
+    && pip3 install --upgrade pip setuptools wheel \
+    && pip3 install -U opensearch-py==2.5.0 elasticsearch==7.17.12 curator-opensearch==0.0.13 \
+    && pip3 install --upgrade pip urllib3 click \
     && rm -rf /var/cache/apk/*
 
 #Download jq
 RUN apk add --update --no-cache curl apk-tools \
-      && apk add --update wget \
-      && wget -O "jq-linux32" \
-      "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux32" \
-      && mv "jq-linux32" "/usr/local/bin/jq" \
-      && chmod +x /docker-entrypoint.sh \
-      && chmod -R 777 ${ELASTICSEARCH_CURATOR_HOME} \
-      && chmod +x "/usr/local/bin/jq"
+    && apk add --update --no-cache wget \
+    && wget -O "jq-linux32" \
+    "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux32" \
+    && mv "jq-linux32" "/usr/local/bin/jq" \
+    && chmod +x /docker-entrypoint.sh \
+    && chmod -R 777 ${ELASTICSEARCH_CURATOR_HOME} \
+    && chmod +x "/usr/local/bin/jq"
 
 
 RUN set -x \
@@ -33,7 +34,7 @@ RUN chmod +x ${ELASTICSEARCH_CURATOR_HOME}/*
 RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
     && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
     && apk add --update --upgrade --no-cache \
-        pcre2
+        pcre2 libcurl curl
 
 USER 1000:0
 

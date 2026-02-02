@@ -6,7 +6,7 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 rules:
   - apiGroups:
-      - qubership.org
+      - netcracker.com
     resources:
       - "*"
     verbs:
@@ -25,6 +25,7 @@ rules:
       - configmaps
       - secrets
       - serviceaccounts
+      - persistentvolumeclaims
     verbs:
       - create
       - get

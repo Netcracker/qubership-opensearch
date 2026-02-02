@@ -31,6 +31,9 @@ type OpenSearch struct {
 	StatefulSetNames          string     `json:"statefulSetNames,omitempty"`
 	ReadinessTimeout          string     `json:"readinessTimeout,omitempty"`
 	DisabledRestCategories    []string   `json:"disabledRestCategories,omitempty"`
+	ImageVariant              string     `json:"imageVariant,omitempty"`
+	StorageSize               string     `json:"storageSize,omitempty"`
+	MasterStsName             string     `json:"masterStsName,omitempty"`
 }
 
 type ExternalOpenSearch struct {

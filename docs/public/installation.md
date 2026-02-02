@@ -75,6 +75,7 @@ The following topics are covered in this chapter:
   * [CRD Upgrade](#crd-upgrade)
     * [Automatic CRD Upgrade](#automatic-crd-upgrade)
   * [Migration](#migration)
+    * [Migration to OpenSearch 3.x (OpenSearch Service 2.x.x)](#migration-to-opensearch-3x-opensearch-service-2xx)
     * [Migration to OpenSearch 2.x (OpenSearch Service 1.x.x)](#migration-to-opensearch-2x-opensearch-service-1xx)
     * [Migration From OpenDistro Elasticsearch](#migration-from-opendistro-elasticsearch)
       * [Manual Migration Steps](#manual-migration-steps)
@@ -120,7 +121,7 @@ The following Custom Resource Definitions should be installed to the cloud befor
 **Important**: To create CRDs, you must have cloud rights for `CustomResourceDefinitions`.
 If the deployment user does not have the necessary rights, you need to perform the steps described in the [Deployment Permissions](#deployment-permissions) section before the installation.
 
-**Note**: If you deploy OpenSearch service to Kubernetes version less than 1.16, you have to manually install CRD from `config/crd/old/qubership.org_opensearchservices.yaml`
+**Note**: If you deploy OpenSearch service to Kubernetes version less than 1.16, you have to manually install CRD from `config/crd/old/netcracker.com_opensearchservices.yaml`
 and disable automatic CRD creation by Helm in the following way:
 
 ### Deployment Permissions
@@ -136,7 +137,7 @@ To avoid using `cluster-wide` rights during the deployment, the following condit
     ```yaml
     rules:
       - apiGroups:
-          - qubership.org
+          - netcracker.com
         resources:
           - "*"
         verbs:
@@ -1187,7 +1188,7 @@ Where:
 | `opensearch.master.persistence.persistentVolumes`      | list    | no        | []                                                                                                          | The list of predefined persistent volumes for OpenSearch master nodes. The number of persistent volumes should be equal to `opensearch.master.replicas` parameter. If `hostPath` PVs are used, the `nodes` parameters is also should be specified.                                                                                                                                                                                                                            |
 | `opensearch.master.persistence.nodes`                  | list    | no        | []                                                                                                          | The list of Kubernetes node names to assign OpenSearch master nodes. The number of nodes should be equal to `opensearch.master.replicas` parameter. It should not be used with `storageClass` pod assignment.                                                                                                                                                                                                                                                                 |
 | `opensearch.master.persistence.accessModes`            | list    | no        | ["ReadWriteOnce"]                                                                                           | The list of access modes of persistent volumes for OpenSearch master nodes.                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `opensearch.master.persistence.size`                   | string  | no        | 5Gi                                                                                                         | The size of persistent volumes for OpenSearch master nodes.                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `opensearch.master.persistence.size`                   | string  | no        | 5Gi                                                                                                         | The size of persistent volumes for OpenSearch master nodes. Storage can be automatically resizable in case storageClass supports it, for instance following parameter is mandatory for storageClass to be resizable - `allowVolumeExpansion: true`                                                                                                                                                                                                                            |
 | `opensearch.master.persistence.annotations`            | object  | no        | {}                                                                                                          | The annotations of persistent volumes for OpenSearch master nodes.                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `opensearch.master.resources.requests.cpu`             | string  | no        | 250m                                                                                                        | The minimum number of CPUs the OpenSearch master node container should use.                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `opensearch.master.resources.requests.memory`          | string  | no        | 2Gi                                                                                                         | The minimum number of memory the OpenSearch master node container should use.                                                                                                                                                                                                                                                                                                                                                                                                 |
@@ -1947,6 +1948,34 @@ Automatic CRD upgrade requires the following cluster rights for the deployment u
 ```
 
 ## Migration
+
+### Migration to OpenSearch 3.x (OpenSearch Service 2.x.x)
+
+**Important**: The Opensearch recommends upgrading from version 2.19 for more stable operation.
+
+There are the following breaking changes:
+
+| Change                                                     | Description                                                                                                                                                                                                   |
+|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Removal of deprecated non-inclusive terminology**        | Terms like `whitelist` / `blacklist`, `master`, etc., were fully removed. They are now replaced with `allow_list` / `deny_list`, `cluster_manager`, and other modern terminology.                             |
+| **Strict document `_id` length limit — 512 bytes**         | All REST API operations (including Bulk API) now reject documents whose `_id` exceeds **512 bytes**. Previously, some bulk operations allowed longer IDs.                                                     |
+| **JSON processing limits — depth and field name length**   | OpenSearch 3.x introduces new default limits on JSON **nesting depth** and **maximum field name length**. This affects any REST API request containing JSON (indexing, update, bulk, search body, templates). |
+| **Nested query/mapping depth limit**                       | New setting: `index.query.max_nested_depth` (default: **20**). Deeply nested queries or object mappings may now fail with a validation error.                                                                 |
+| **Changes in output format of some `/_nodes` API metrics** | Example: `total_indexing_buffer_in_bytes` now returns raw bytes, while `total_indexing_buffer` returns a human-readable value. Scripts or monitoring tools relying on old formats may break.                  |
+| **Removal of deprecated index/cluster settings**           | Many old settings (e.g., `index.store.hybrid.mmap.extensions`) were fully removed. REST API will return an error if they are used.                                                                            |
+
+### OpenSearch Dashboards
+
+There are the following breaking changes:
+
+| Change                               | Description                                                                            |
+|--------------------------------------|----------------------------------------------------------------------------------------|
+| `discover:newExperience`             | This configuration setting has been **removed** in OpenSearch 3.x.                     |
+| **DataGrid table**                   | The DataGrid-based table view has been **removed** from Discover.                      |
+| **Dashboards Visualizations plugin** | The entire plugin, including **Gantt chart visualization**, has been **removed**.      |
+| **Legacy Notebooks**                 | Notebooks stored in the `.opensearch-observability` index are **no longer supported**. |
+
+**Important**: A minio version from 2025-01-20 is required. [Support AWS S3 new checksums](https://github.com/minio/minio/issues/20845#issuecomment-2604259537)
 
 ### Migration to OpenSearch 2.x (OpenSearch Service 1.x.x)
 

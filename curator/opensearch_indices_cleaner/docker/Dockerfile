@@ -1,4 +1,4 @@
-FROM python:3.13-alpine3.22
+FROM python:3.14-alpine3.23
 
 ENV ELASTICSEARCH_INDICES_CLEANER_HOME=/opt/elasticsearch-indices-cleaner
 
@@ -9,7 +9,7 @@ COPY scripts/indices_cleaner_tests.py ${ELASTICSEARCH_INDICES_CLEANER_HOME}/indi
 
 # Return back 5.8.1 version for 'elasticsearch-curator' in requirements when 'botocore' version is compatible with 5.8.1 version of 'elasticsearch-curator'
 RUN set -x \
-    && apk add --upgrade build-base apk-tools \
+    && apk add --upgrade --no-cache build-base apk-tools \
     && pip3 install --upgrade pip setuptools \
     && pip3 install -r ${ELASTICSEARCH_INDICES_CLEANER_HOME}/requirements.txt \
     && pip3 install --upgrade urllib3 \
@@ -23,7 +23,7 @@ RUN set -x \
 
 RUN set -x \
     && for path in \
-         /docker-entrypoint.sh \
+        /docker-entrypoint.sh \
     ; do \
         chmod +x "$path"; \
         chgrp 0 "$path"; \

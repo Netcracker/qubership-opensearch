@@ -1,6 +1,6 @@
 # Build the manager binary
 # Note: this uses host platform for the build, and we ask go build to target the needed platform, so we do not spend time on qemu emulation when running "go build"
-FROM --platform=$BUILDPLATFORM golang:1.24-alpine3.22 as builder
+FROM --platform=$BUILDPLATFORM golang:1.25.6-alpine3.23 as builder
 ARG BUILDPLATFORM
 ARG TARGETOS
 ARG TARGETARCH
@@ -27,7 +27,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GO111MODULE=on go build 
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM alpine:3.22
+FROM alpine:3.23
 
 ENV USER_UID=1001 \
     USER_NAME=opensearch-service-operator \
@@ -47,7 +47,7 @@ RUN set -x && apk upgrade --no-cache --available
 RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
     && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
     && apk add --update --upgrade --no-cache \
-        pcre2
+        pcre2 libcurl curl
 
 RUN addgroup ${GROUP_NAME} && adduser -D -G ${GROUP_NAME} -u ${USER_UID} ${USER_NAME}
 USER ${USER_UID}

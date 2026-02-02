@@ -28,6 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -71,9 +72,9 @@ func (nre NotReadyError) Error() string {
 	return message
 }
 
-//+kubebuilder:rbac:groups=qubership.org,resources=opensearchservices,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=qubership.org,resources=opensearchservices/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=qubership.org,resources=opensearchservices/finalizers,verbs=update
+//+kubebuilder:rbac:groups=netcracker.com,resources=opensearchservices,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=netcracker.com,resources=opensearchservices/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=netcracker.com,resources=opensearchservices/finalizers,verbs=update
 
 func (r *OpenSearchServiceReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
@@ -249,8 +250,10 @@ RateLimiter is used for calculating a delay before the next operator's reconcile
 Use ExponentialFailureRateLimiter which increases the delay exponentially until the delay is greater than the maximum.
 After that, the delay will be fixed and equal to the maximum delay (the maxDelay parameter).
 */
-func customRateLimiter() workqueue.RateLimiter {
+func customRateLimiter() workqueue.TypedRateLimiter[reconcile.Request] {
 	maxDelay, _ := util.GetIntEnvironmentVariable("RECONCILE_PERIOD", maxRateLimiterDelay)
-	return workqueue.NewItemExponentialFailureRateLimiter(minRateLimiterDelay*time.Second,
-		time.Duration(maxDelay)*time.Second)
+	return workqueue.NewTypedItemExponentialFailureRateLimiter[reconcile.Request](
+		minRateLimiterDelay*time.Second,
+		time.Duration(maxDelay)*time.Second,
+	)
 }
