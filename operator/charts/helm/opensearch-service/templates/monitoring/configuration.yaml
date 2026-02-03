@@ -253,7 +253,7 @@ data:
     [[inputs.elasticsearch]]
       # An array of glob pattern strings.
       # Fields with a field key matching one of the patterns will be discarded from the metric.
-      fieldexclude = ["status_code", "plugins_*", "__segments_segment_replication_*, "__get_getTime"]
+      fieldexclude = ["status_code", "plugins_*", "__segments_segment_replication_*", "__get_getTime"]
 
       ## specify a list of one or more OpenSearch servers
       # you can add username and password to your url to use basic authentication
