@@ -24,11 +24,10 @@ jobs:
           poll-interval: 20
   Opensearch-Pipeline:
     needs: Wait-for-images
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@4487afa083e5ba0cf64690d2e93e3d8ee94fab4f  #v1.3.0
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@feat/get_service_tag  #v1.3.0
     with:
       service_branch: '${{ github.head_ref || github.ref_name }}'
-      versions_file: '.github/versions.yaml'
-      pipeline_branch: '4487afa083e5ba0cf64690d2e93e3d8ee94fab4f' #this value must match the value after '@' in 'uses'
+      pipeline_branch: 'feat/get_service_tag' #this value must match the value after '@' in 'uses'
       runner_type: 'ubuntu-latest'
     secrets:
       AWS_S3_ACCESS_KEY_ID: ${{secrets.AWS_S3_ACCESS_KEY_ID}}
