@@ -28,6 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -249,8 +250,10 @@ RateLimiter is used for calculating a delay before the next operator's reconcile
 Use ExponentialFailureRateLimiter which increases the delay exponentially until the delay is greater than the maximum.
 After that, the delay will be fixed and equal to the maximum delay (the maxDelay parameter).
 */
-func customRateLimiter() workqueue.RateLimiter {
+func customRateLimiter() workqueue.TypedRateLimiter[reconcile.Request] {
 	maxDelay, _ := util.GetIntEnvironmentVariable("RECONCILE_PERIOD", maxRateLimiterDelay)
-	return workqueue.NewItemExponentialFailureRateLimiter(minRateLimiterDelay*time.Second,
-		time.Duration(maxDelay)*time.Second)
+	return workqueue.NewTypedItemExponentialFailureRateLimiter[reconcile.Request](
+		minRateLimiterDelay*time.Second,
+		time.Duration(maxDelay)*time.Second,
+	)
 }

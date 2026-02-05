@@ -97,6 +97,26 @@ spec:
             requests:
               cpu: {{ default "25m" .Values.operator.resources.requests.cpu }}
               memory: {{ default "128Mi" .Values.operator.resources.requests.memory }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+              scheme: HTTP
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 15
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+              scheme: HTTP
+            initialDelaySeconds: 40
+            timeoutSeconds: 15
+            periodSeconds: 15
+            successThreshold: 1
+            failureThreshold: 5
           securityContext:
             {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
         {{- if (eq (include "opensearch.enableDisasterRecovery" .) "true") }}

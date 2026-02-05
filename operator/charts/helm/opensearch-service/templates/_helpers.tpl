@@ -1425,3 +1425,14 @@ Restricted environment.
     {{- .Values.global.restrictedEnvironment -}}
   {{- end -}}
 {{- end -}}
+
+{{- define "opensearch.stsStorage" -}}
+  {{- $ns := .Release.Namespace -}}
+  {{- $stsName := (include "master-nodes" .) -}}
+  {{- $existing := (lookup "apps/v1" "StatefulSet" $ns $stsName) -}}
+  {{- if $existing -}}
+    {{- (index (index $existing "spec") "volumeClaimTemplates" 0).spec.resources.requests.storage | toString -}}
+  {{- else -}}
+    {{- .Values.opensearch.master.persistence.size | default "1Gi" | toString -}}
+  {{- end -}}
+{{- end -}}

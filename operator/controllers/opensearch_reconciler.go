@@ -16,10 +16,15 @@ package controllers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/types"
 	"net/http"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"time"
 
@@ -47,6 +52,9 @@ const (
 	clusterHealthPath              = "_cluster/health"
 	clusterSettingsPath            = "_cluster/settings"
 	allAccess                      = "all_access"
+	claimTemplateName              = "pvc"
+	maxResizeAttempts              = 3
+	sleepBetweenResizes            = 30 * time.Second
 )
 
 type OpenSearchHealth struct {
@@ -111,6 +119,18 @@ func NewOpenSearchReconciler(r *OpenSearchServiceReconciler, cr *opensearchservi
 }
 
 func (r OpenSearchReconciler) Reconcile() error {
+	if len(r.cr.Spec.OpenSearch.StorageSize) > 0 {
+		r.logger.Info("Trying to process opensearch storage size")
+		desired, err := resource.ParseQuantity(r.cr.Spec.OpenSearch.StorageSize)
+		if err != nil {
+			return err
+		}
+		if err = r.reconcileOpenSearchPVCSize(context.Background(), desired); err != nil {
+			return err
+		}
+		r.logger.Info("Storage size successfully processed")
+	}
+
 	if !r.cr.Spec.OpenSearch.RollingUpdate {
 		r.logger.Info("Rolling Update is disabled, so skip reconcile procedure")
 		return nil
@@ -1050,4 +1070,130 @@ func (r OpenSearchReconciler) getSnapshotsRepositoryBody() string {
 		}
 	}
 	return `{"type": "fs", "settings": {"location": "/usr/share/opensearch/snapshots", "compress": true}}`
+}
+
+func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, desired resource.Quantity) error {
+	stsName := strings.TrimSpace(r.cr.Spec.OpenSearch.MasterStsName)
+	if stsName == "" {
+		return nil
+	}
+	sts, err := r.reconciler.watchStatefulSet(stsName, r.cr, r.logger)
+	if err != nil {
+		return err
+	}
+	if sts == nil {
+		return nil
+	}
+
+	prefix := claimTemplateName + "-" + sts.Name + "-"
+
+	wantReplicas := *sts.Spec.Replicas
+	if sts.Spec.Replicas == nil {
+		wantReplicas = 1
+	}
+
+	var pvcList corev1.PersistentVolumeClaimList
+	if err = r.reconciler.Client.List(ctx, &pvcList, client.InNamespace(sts.Namespace)); err != nil {
+		return err
+	}
+
+	pvcs := make([]*corev1.PersistentVolumeClaim, 0, wantReplicas)
+
+	for i := range pvcList.Items {
+		pvc := &pvcList.Items[i]
+		if !strings.HasPrefix(pvc.Name, prefix) {
+			continue
+		}
+		pvcs = append(pvcs, pvc)
+		cur := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
+		if desired.Cmp(cur) < 0 {
+			return fmt.Errorf("PVC shrinking is forbidden, current PVC size is %s, desired is %s", cur.String(), desired.String())
+		}
+		if desired.Cmp(cur) == 0 {
+			r.logger.Info("PVC size didn't change")
+			return nil
+		}
+	}
+
+	r.logger.Info("Resizing PVCs as desired")
+
+	for _, pvc := range pvcs {
+		old := pvc.DeepCopy()
+		if pvc.Spec.Resources.Requests == nil {
+			pvc.Spec.Resources.Requests = corev1.ResourceList{}
+		}
+		pvc.Spec.Resources.Requests[corev1.ResourceStorage] = desired
+		if err = r.reconciler.Client.Patch(ctx, pvc, client.MergeFrom(old)); err != nil {
+			return err
+		}
+		r.logger.Info("PVC resize request applied",
+			"pvc", pvc.Name,
+			"size", desired.String(),
+		)
+	}
+
+	for attempt := 1; attempt <= maxResizeAttempts; attempt++ {
+		if attempt < maxResizeAttempts {
+			<-time.After(sleepBetweenResizes)
+		}
+		stsStatus, err := r.findStatefulSetStatus(sts)
+		if err != nil {
+			return err
+		}
+		needRestart, err := r.needRestartAfterPVCResize(ctx, sts, desired, int(wantReplicas))
+		if err != nil {
+			return err
+		}
+		if !needRestart {
+			return nil
+		}
+		r.logger.Info("Rolling restart required to finish filesystem resize",
+			"attempt", attempt,
+			"maxAttempts", maxResizeAttempts,
+		)
+		if err := r.restartOpenSearchPod(sts, stsStatus); err != nil {
+			return err
+		}
+	}
+
+	return fmt.Errorf("filesystem resize still pending after %d restart attempts", maxResizeAttempts)
+}
+
+func (r OpenSearchReconciler) needRestartAfterPVCResize(ctx context.Context, statefulSet *v1.StatefulSet, desired resource.Quantity, wantReplicas int) (bool, error) {
+	prefix := claimTemplateName + "-" + statefulSet.Name + "-"
+	for ordinal := 0; ordinal < wantReplicas; ordinal++ {
+		pvcName := fmt.Sprintf("%s%d", prefix, ordinal)
+		var pvc corev1.PersistentVolumeClaim
+		if err := r.reconciler.Client.Get(ctx, types.NamespacedName{Namespace: statefulSet.Namespace, Name: pvcName}, &pvc); err != nil {
+			return false, err
+		}
+		capacity := pvc.Status.Capacity[corev1.ResourceStorage]
+		if capacity.Cmp(desired) >= 0 {
+			continue
+		}
+		if ok, msg := pvcHasResizePending(&pvc); ok {
+			r.logger.Info("PVC has FileSystemResizePending state; rolling restart required",
+				"pvc", pvc.Name,
+				"capacity", capacity.String(),
+				"desired", desired.String(),
+				"message", msg,
+			)
+			return true, nil
+		}
+
+		return false, fmt.Errorf(
+			"PVC %s capacity is below desired but FileSystemResizePending is not set (capacity=%s desired=%s)",
+			pvc.Name, capacity.String(), desired.String(),
+		)
+	}
+	return false, nil
+}
+
+func pvcHasResizePending(pvc *corev1.PersistentVolumeClaim) (bool, string) {
+	for _, c := range pvc.Status.Conditions {
+		if c.Type == corev1.PersistentVolumeClaimFileSystemResizePending && c.Status == corev1.ConditionTrue {
+			return true, c.Message
+		}
+	}
+	return false, ""
 }
