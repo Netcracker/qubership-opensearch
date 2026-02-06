@@ -105,19 +105,24 @@ func (r *OpenSearchServiceReconciler) Reconcile(ctx context.Context, request ctr
 		return ctrl.Result{}, err
 	}
 	defer func() {
+		reqLogger.Info("WE'RE in DEFER")
 		var status opensearchservice.StatusCondition
 		if err != nil {
+			reqLogger.Info("WE'RE in DEFER - ERR STATUS")
 			status = NewCondition(statusFalse,
 				typeFailed,
 				opensearchServiceConditionReason,
 				fmt.Sprintf("Reconciliation cycle is failed: %s", err.Error()))
 		} else {
+			reqLogger.Info("WE'RE in DEFER - SUCCESS STATUS")
 			status = NewCondition(statusTrue,
 				typeSuccessful,
 				opensearchServiceConditionReason,
 				"Reconciliation cycle is successfully finished")
 		}
+		reqLogger.Info("WE'RE in DEFER - SETTING STATUS")
 		err = r.updateConditions(status)
+		reqLogger.Info("WE'RE in DEFER - STATUS SHOULD BE SET HERE")
 		if err != nil {
 			reqLogger.Error(err, "Unable to update custom resource conditions")
 		}
