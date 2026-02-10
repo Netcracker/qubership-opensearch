@@ -19,8 +19,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Netcracker/dbaas-opensearch-adapter/api"
-	"github.com/Netcracker/dbaas-opensearch-adapter/basic"
 	core "github.com/Netcracker/qubership-dbaas-adapter-core/pkg/utils"
 	"io"
 	"log/slog"
@@ -681,42 +679,43 @@ func (bp BackupProvider) TrackRestore(trackId string, ctx context.Context, chang
 
 func (bp BackupProvider) checkPrefixUniqueness(prefix string, ctx context.Context) (bool, error) {
 	logger.InfoContext(ctx, "Checking user prefix uniqueness during restoration with renaming")
-	getUsersRequest := api.GetUsersRequest{}
-	response, err := getUsersRequest.Do(ctx, bp.client)
-	if err != nil {
-		return false, fmt.Errorf("failed to receive users: %+v", err)
-	}
+	//getUsersRequest := api.GetUsersRequest{}
+	//response, err := getUsersRequest.Do(ctx, bp.client)
+	//if err != nil {
+	//	return false, fmt.Errorf("failed to receive users: %+v", err)
+	//}
+	//
+	//defer func(Body io.ReadCloser) {
+	//	err = Body.Close()
+	//	if err != nil {
+	//		logger.Error("failed to close http body", slog.String("error", err.Error()))
+	//	}
+	//}(response.Body)
 
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
-		if err != nil {
-			logger.Error("failed to close http body", slog.String("error", err.Error()))
+	//if response.StatusCode == http.StatusOK {
+	//	var users map[string]basic.User
+	//	err = common.ProcessBody(response.Body, &users)
+	//	if err != nil {
+	//		return false, err
+	//	}
+	//	for element, user := range users {
+	//		if strings.HasPrefix(element, prefix) {
+	if true {
+		logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
+		if common.CheckPrefixesUniqueEnabled {
+			return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
 		}
-	}(response.Body)
-
-	if response.StatusCode == http.StatusOK {
-		var users map[string]basic.User
-		err = common.ProcessBody(response.Body, &users)
-		if err != nil {
-			return false, err
-		}
-		for element, user := range users {
-			if strings.HasPrefix(element, prefix) {
-				logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
-				if common.CheckPrefixesUniqueEnabled {
-					return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
-				}
-			}
-			if user.Attributes[resourcePrefixAttributeName] != "" && strings.HasPrefix(user.Attributes[resourcePrefixAttributeName], prefix) {
-				logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
-				if common.CheckPrefixesUniqueEnabled {
-					return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
-				}
-			}
-		}
-	} else if response.StatusCode == http.StatusNotFound {
-		return true, nil
 	}
+	//		if user.Attributes[resourcePrefixAttributeName] != "" && strings.HasPrefix(user.Attributes[resourcePrefixAttributeName], prefix) {
+	//			logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
+	//			if common.CheckPrefixesUniqueEnabled {
+	//				return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
+	//			}
+	//		}
+	//	}
+	//} else if response.StatusCode == http.StatusNotFound {
+	//	return true, nil
+	//}
 	return true, nil
 }
 
