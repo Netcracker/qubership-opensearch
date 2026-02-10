@@ -1,6 +1,7 @@
 dashboards:
   enabled: false
   dockerImage: ghcr.io/netcracker/qubership-opensearch-dashboard-3:main
+  dockerImageDashboard2: ghcr.io/netcracker/qubership-opensearch-dashboard-2:main
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
