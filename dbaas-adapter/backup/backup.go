@@ -19,6 +19,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Netcracker/dbaas-opensearch-adapter/api"
+	"github.com/Netcracker/dbaas-opensearch-adapter/basic"
 	core "github.com/Netcracker/qubership-dbaas-adapter-core/pkg/utils"
 	"io"
 	"log/slog"
@@ -142,14 +144,6 @@ func NewBackupProvider(opensearchClient common.Client, curatorClient *http.Clien
 func (bp BackupProvider) CollectBackupHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := common.PrepareContext(r)
-		if common.CheckPrefixesUniqueEnabled {
-			logger.InfoContext(ctx, "ITS TRUE")
-			return
-		}
-		if !common.CheckPrefixesUniqueEnabled {
-			logger.InfoContext(ctx, "ITS NOT TRUE")
-			return
-		}
 		logger.InfoContext(ctx, fmt.Sprintf("Request to collect new backup in '%s' is received", r.URL.Path))
 		keys, ok := r.URL.Query()["allowEviction"]
 		if ok {
@@ -629,7 +623,7 @@ func (bp BackupProvider) ProcessRestorationRequest(backupId string, restorationR
 		dbs = append(dbs, fmt.Sprintf(`"%s"`, dabatase.Name))
 		if restorationRequest.RegenerateNames {
 			if dabatase.Prefix != "" {
-				if ok, err := bp.checkPrefixUniqueness(dabatase.Prefix, ctx); ok {
+				if ok, err := bp.checkPrefixUniqueness(dabatase.Prefix, ctx); !ok {
 					if err != nil {
 						return nil, err, ""
 					}
@@ -679,43 +673,40 @@ func (bp BackupProvider) TrackRestore(trackId string, ctx context.Context, chang
 
 func (bp BackupProvider) checkPrefixUniqueness(prefix string, ctx context.Context) (bool, error) {
 	logger.InfoContext(ctx, "Checking user prefix uniqueness during restoration with renaming")
-	//getUsersRequest := api.GetUsersRequest{}
-	//response, err := getUsersRequest.Do(ctx, bp.client)
-	//if err != nil {
-	//	return false, fmt.Errorf("failed to receive users: %+v", err)
-	//}
-	//
-	//defer func(Body io.ReadCloser) {
-	//	err = Body.Close()
-	//	if err != nil {
-	//		logger.Error("failed to close http body", slog.String("error", err.Error()))
-	//	}
-	//}(response.Body)
-
-	//if response.StatusCode == http.StatusOK {
-	//	var users map[string]basic.User
-	//	err = common.ProcessBody(response.Body, &users)
-	//	if err != nil {
-	//		return false, err
-	//	}
-	//	for element, user := range users {
-	//		if strings.HasPrefix(element, prefix) {
-	if true {
-		logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
-		if common.CheckPrefixesUniqueEnabled {
-			return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
-		}
+	getUsersRequest := api.GetUsersRequest{}
+	response, err := getUsersRequest.Do(ctx, bp.client)
+	if err != nil {
+		return false, fmt.Errorf("failed to receive users: %+v", err)
 	}
-	//		if user.Attributes[resourcePrefixAttributeName] != "" && strings.HasPrefix(user.Attributes[resourcePrefixAttributeName], prefix) {
-	//			logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
-	//			if common.CheckPrefixesUniqueEnabled {
-	//				return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
-	//			}
-	//		}
-	//	}
-	//} else if response.StatusCode == http.StatusNotFound {
-	//	return true, nil
-	//}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			logger.Error("failed to close http body", slog.String("error", err.Error()))
+		}
+	}(response.Body)
+	if response.StatusCode == http.StatusOK {
+		var users map[string]basic.User
+		err = common.ProcessBody(response.Body, &users)
+		if err != nil {
+			return false, err
+		}
+		for element, user := range users {
+			if strings.HasPrefix(element, prefix) {
+				logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
+				if common.CheckPrefixesUniqueEnabled {
+					return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
+				}
+			}
+			if user.Attributes[resourcePrefixAttributeName] != "" && strings.HasPrefix(user.Attributes[resourcePrefixAttributeName], prefix) {
+				logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
+				if common.CheckPrefixesUniqueEnabled {
+					return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
+				}
+			}
+		}
+	} else if response.StatusCode == http.StatusNotFound {
+		return true, nil
+	}
 	return true, nil
 }
 
