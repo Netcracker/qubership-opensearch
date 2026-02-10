@@ -144,6 +144,14 @@ func NewBackupProvider(opensearchClient common.Client, curatorClient *http.Clien
 func (bp BackupProvider) CollectBackupHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := common.PrepareContext(r)
+		if common.CheckPrefixesUniqueEnabled {
+			logger.InfoContext(ctx, "ITS TRUE")
+			return
+		}
+		if !common.CheckPrefixesUniqueEnabled {
+			logger.InfoContext(ctx, "ITS NOT TRUE")
+			return
+		}
 		logger.InfoContext(ctx, fmt.Sprintf("Request to collect new backup in '%s' is received", r.URL.Path))
 		keys, ok := r.URL.Query()["allowEviction"]
 		if ok {
