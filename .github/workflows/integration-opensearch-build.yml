@@ -57,10 +57,10 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-          echo "$(date): [IBuild] Updated ${INTEGRATION_BUILD_BRANCH} by ${TARGET_REF} to build qubership-opensearch images with patched opensearch from ${OPENSEARCH_CUSTOM_IMAGE}" >> patched-build.log
+          echo "$(date): [IBuild] Updated ${INTEGRATION_BUILD_BRANCH} by ${TARGET_REF} to build qubership-opensearch images with patched opensearch from ${OPENSEARCH_CUSTOM_IMAGE,,}" >> patched-build.log
 
           git add .
-          git commit -m "[IBuild] Updated ${INTEGRATION_BUILD_BRANCH} by ${TARGET_REF} to build qubership-opensearch images with patched opensearch from ${OPENSEARCH_CUSTOM_IMAGE}"
+          git commit -m "[IBuild] Updated ${INTEGRATION_BUILD_BRANCH} by ${TARGET_REF} to build qubership-opensearch images with patched opensearch from ${OPENSEARCH_CUSTOM_IMAGE,,}"
           git push -f -u origin "${INTEGRATION_BUILD_BRANCH}"
 
       - id: load
@@ -109,8 +109,8 @@ jobs:
             DOCKER_OPENSEARCH_VERSIONED_NAME: qubership-docker-opensearch-${{ needs.prepare.outputs.opensearch_major_version }}
         if: ${{ github.event_name == 'repository_dispatch' && github.event.action == 'opensearch-patched-build' && matrix.component.name == env.DOCKER_OPENSEARCH_VERSIONED_NAME }}
         run: |
-          echo "CUSTOM_BASE_IMAGE_ARG=OPENSEARCH_BASE=${OPENSEARCH_CUSTOM_IMAGE}" >> "$GITHUB_ENV"
-          IMAGE_TAG="${OPENSEARCH_CUSTOM_IMAGE}"
+          echo "CUSTOM_BASE_IMAGE_ARG=OPENSEARCH_BASE=${OPENSEARCH_CUSTOM_IMAGE,,}" >> "$GITHUB_ENV"
+          IMAGE_TAG="${OPENSEARCH_CUSTOM_IMAGE,,}"
           echo "IMAGE_TAG=${IMAGE_TAG#*:}" >> "$GITHUB_ENV"
       - name: Docker
         uses: netcracker/qubership-workflow-hub/actions/docker-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
@@ -124,5 +124,6 @@ jobs:
           build-args: ${{ env.CUSTOM_BASE_IMAGE_ARG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
 
