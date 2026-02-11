@@ -3,27 +3,9 @@ run-name: "Opensearch version: ${{ github.event.client_payload.opensearch_tag }}
 on:
   repository_dispatch:
     types: [opensearch-patched-build]
-  workflow_dispatch:
-    inputs:
-      tags:
-        required: false
-        type: string
-        default: ""
-        description: "Tags"
-      dry-run:
-        required: true
-        type: boolean
-        default: false
-        description: "Dry run mode"
-      replace-symbol:
-        required: false
-        type: string
-        default: "_"
-        description: "Symbol to replace in tags"
 
 permissions:
   contents: read
-  packages: read
 
 concurrency:
   group: ${{ github.ref_type == 'branch' && format('build-branch-{0}', github.ref_name) || format('build-{0}', github.sha) }}
@@ -34,12 +16,14 @@ env:
   OPENSEARCH_CUSTOM_IMAGE: ${{ github.event.client_payload.custom_opensearch_version }}
   OPENSEARCH_VERSION: ${{ github.event.client_payload.opensearch_tag }}
   REPLACE_SYMBOL: ${{ github.event.client_payload.replace-symbol || '_'}}
-  DOCKER_CONFIG_FILE: ".github/docker-build-config.cfg"
+  DOCKER_CONFIG_FILE: ".qubership/docker-build-config.cfg"
 
 jobs:
   prepare:
     name: "Prepare Images and Metadata"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       components: ${{ steps.load.outputs.components }}
       platforms: ${{ steps.load.outputs.platforms }}
@@ -57,7 +41,7 @@ jobs:
         with:
           ref: ${{ env.TARGET_REF }}
           fetch-depth: 0
-          persist-credentials: false
+          persist-credentials: true
 
       - name: Prepare ${{ env.INTEGRATION_BUILD_BRANCH }}
         run: |
@@ -73,10 +57,10 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-          echo "$(date): [IBuild] Updated ${INTEGRATION_BUILD_BRANCH} by ${TARGET_REF} to build qubership-opensearch images with patched opensearch from ${OPENSEARCH_CUSTOM_IMAGE}" >> patched-build.log
+          echo "$(date): [IBuild] Updated ${INTEGRATION_BUILD_BRANCH} by ${TARGET_REF} to build qubership-opensearch images with patched opensearch from ${OPENSEARCH_CUSTOM_IMAGE,,}" >> patched-build.log
 
           git add .
-          git commit -m "[IBuild] Updated ${INTEGRATION_BUILD_BRANCH} by ${TARGET_REF} to build qubership-opensearch images with patched opensearch from ${OPENSEARCH_CUSTOM_IMAGE}"
+          git commit -m "[IBuild] Updated ${INTEGRATION_BUILD_BRANCH} by ${TARGET_REF} to build qubership-opensearch images with patched opensearch from ${OPENSEARCH_CUSTOM_IMAGE,,}"
           git push -f -u origin "${INTEGRATION_BUILD_BRANCH}"
 
       - id: load
@@ -92,7 +76,7 @@ jobs:
           fi
 
       - name: Create tags for images
-        uses: netcracker/qubership-workflow-hub/actions/metadata-action@396774180000abdb825cbf150b56cc59c6913db8  # v2.0.5
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
         id: meta
         with:
           default-template: "{{ref-name}}"
@@ -103,7 +87,7 @@ jobs:
 
       - name: Set opensearch Major Version
         id: set-opensearch-major-version
-        uses: netcracker/qubership-workflow-hub/actions/metadata-action@396774180000abdb825cbf150b56cc59c6913db8  # v2.0.5
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
         with:
           ref: ${{ env.OPENSEARCH_VERSION }}
           default-template: "{{ref-name}}"
@@ -125,14 +109,14 @@ jobs:
             DOCKER_OPENSEARCH_VERSIONED_NAME: qubership-docker-opensearch-${{ needs.prepare.outputs.opensearch_major_version }}
         if: ${{ github.event_name == 'repository_dispatch' && github.event.action == 'opensearch-patched-build' && matrix.component.name == env.DOCKER_OPENSEARCH_VERSIONED_NAME }}
         run: |
-          echo "CUSTOM_BASE_IMAGE_ARG=OPENSEARCH_BASE=${OPENSEARCH_CUSTOM_IMAGE}" >> "$GITHUB_ENV"
-          IMAGE_TAG="${OPENSEARCH_CUSTOM_IMAGE}"
+          echo "CUSTOM_BASE_IMAGE_ARG=OPENSEARCH_BASE=${OPENSEARCH_CUSTOM_IMAGE,,}" >> "$GITHUB_ENV"
+          IMAGE_TAG="${OPENSEARCH_CUSTOM_IMAGE,,}"
           echo "IMAGE_TAG=${IMAGE_TAG#*:}" >> "$GITHUB_ENV"
       - name: Docker
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@396774180000abdb825cbf150b56cc59c6913db8  # v2.0.5
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
         with:
           ref: ${{ env.INTEGRATION_BUILD_BRANCH }}
-          dry-run: ${{ inputs.dry-run }}
+          dry-run: false
           download-artifact: false
           component: ${{ toJson(matrix.component) }}
           platforms: ${{ needs.prepare.outputs.platforms }}
@@ -140,3 +124,6 @@ jobs:
           build-args: ${{ env.CUSTOM_BASE_IMAGE_ARG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+
