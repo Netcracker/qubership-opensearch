@@ -116,7 +116,7 @@ jobs:
         uses: netcracker/qubership-workflow-hub/actions/docker-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
         with:
           ref: ${{ env.INTEGRATION_BUILD_BRANCH }}
-          dry-run: ${{ inputs.dry-run }}
+          dry-run: false
           download-artifact: false
           component: ${{ toJson(matrix.component) }}
           platforms: ${{ needs.prepare.outputs.platforms }}
@@ -124,4 +124,5 @@ jobs:
           build-args: ${{ env.CUSTOM_BASE_IMAGE_ARG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
