@@ -623,12 +623,10 @@ func (bp BackupProvider) ProcessRestorationRequest(backupId string, restorationR
 		dbs = append(dbs, fmt.Sprintf(`"%s"`, dabatase.Name))
 		if restorationRequest.RegenerateNames {
 			if dabatase.Prefix != "" {
-				if ok, err := bp.checkPrefixUniqueness(dabatase.Prefix, ctx); !ok {
-					if err != nil {
-						return nil, err, ""
-					}
-					renames = append(renames, fmt.Sprintf("%s:%s", dabatase.Name, dabatase.Prefix))
+				if err := bp.checkPrefixUniqueness(dabatase.Prefix, ctx); err != nil {
+					return nil, err, ""
 				}
+				renames = append(renames, fmt.Sprintf("%s:%s", dabatase.Name, dabatase.Prefix))
 			} else {
 				prefix, err := core.PrepareDatabaseName(dabatase.Namespace, dabatase.Microservice, 64)
 				if _, ok := prefixes[prefix]; ok {
@@ -671,12 +669,12 @@ func (bp BackupProvider) TrackRestore(trackId string, ctx context.Context, chang
 	return restoreTrack(trackId, jobStatus, changedNameDb), nil
 }
 
-func (bp BackupProvider) checkPrefixUniqueness(prefix string, ctx context.Context) (bool, error) {
+func (bp BackupProvider) checkPrefixUniqueness(prefix string, ctx context.Context) error {
 	logger.InfoContext(ctx, "Checking user prefix uniqueness during restoration with renaming")
 	getUsersRequest := api.GetUsersRequest{}
 	response, err := getUsersRequest.Do(ctx, bp.client)
 	if err != nil {
-		return false, fmt.Errorf("failed to receive users: %+v", err)
+		return fmt.Errorf("failed to receive users: %+v", err)
 	}
 	defer func(Body io.ReadCloser) {
 		err = Body.Close()
@@ -688,26 +686,26 @@ func (bp BackupProvider) checkPrefixUniqueness(prefix string, ctx context.Contex
 		var users map[string]basic.User
 		err = common.ProcessBody(response.Body, &users)
 		if err != nil {
-			return false, err
+			return err
 		}
 		for element, user := range users {
 			if strings.HasPrefix(element, prefix) {
 				logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
 				if common.CheckPrefixesUniqueEnabled {
-					return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
+					return fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
 				}
 			}
 			if user.Attributes[resourcePrefixAttributeName] != "" && strings.HasPrefix(user.Attributes[resourcePrefixAttributeName], prefix) {
 				logger.ErrorContext(ctx, fmt.Sprintf("provided prefix already exists or a part of another prefix: %+v", prefix))
 				if common.CheckPrefixesUniqueEnabled {
-					return false, fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
+					return fmt.Errorf("provided prefix already exists or a part of another prefix: %+v", prefix)
 				}
 			}
 		}
 	} else if response.StatusCode == http.StatusNotFound {
-		return true, nil
+		return nil
 	}
-	return true, nil
+	return nil
 }
 
 // TrackRestoreIndices We keep this logic, but first we need to fix the problem with users and regenerate names for indexes, until then it will not work incorrectly.
