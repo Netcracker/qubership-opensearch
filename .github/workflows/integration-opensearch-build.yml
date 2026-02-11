@@ -23,7 +23,7 @@ jobs:
     name: "Prepare Images and Metadata"
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     outputs:
       components: ${{ steps.load.outputs.components }}
       platforms: ${{ steps.load.outputs.platforms }}
@@ -124,6 +124,7 @@ jobs:
           build-args: ${{ env.CUSTOM_BASE_IMAGE_ARG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
 
 
