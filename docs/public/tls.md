@@ -30,6 +30,14 @@ and `dbaasAdapter.dbaasAggregatorRegistrationAddress` contains `https` address.
 **Note:** Full namespace backup and restore procedures are not supported with enabled TLS mode due to usage of namespaces
 in generated certificates. Copying of TLS certificates in a separate namespace as-is is unavailable.
 
+**CA certificate requirements:** OpenSearch requires specific Key Usage flags in CA certificates (including those issued by Cert Manager).
+Key Usage is typically mandatory for CA certificates and must include:
+- **keyCertSign** — so the certificate can sign other certificates
+- **cRLSign** — so it can sign CRLs (Certificate Revocation Lists)
+
+OpenSearch does not require Extended Key Usage (EKU) on the CA, but requires Key Usage: keyCertSign (and preferably cRLSign).
+Otherwise, the CA will be considered unsuitable.
+
 # SSL Configuration using CertManager
 
 ## Minimal example
