@@ -56,7 +56,7 @@ jobs:
           echo "**Debug**: $DEBUG"
 
       - name: "Run Container Package Cleanup Action"
-        uses: netcracker/qubership-workflow-hub/actions/container-package-cleanup@9538833017019ab6bbc2138d3034778dfe3a5d1f #v2.0.6
+        uses: netcracker/qubership-workflow-hub/actions/container-package-cleanup@8d542a426ce561c7dce745f6b9cee068d1d7e101 #v2.0.10
         with:
           threshold-days: ${{ env.THRESHOLD_DAYS }}
           included-tags: ${{ env.INCLUDED_TAGS }}
