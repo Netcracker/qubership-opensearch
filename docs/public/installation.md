@@ -12,6 +12,7 @@ The following topics are covered in this chapter:
     * [Storage Types](#storage-types)
       * [Dynamic Persistent Volume Provisioning](#dynamic-persistent-volume-provisioning)
       * [Predefined Persistent Volumes](#predefined-persistent-volumes)
+      * [Persistent Volume Extension and Reduction](#persistent-volume-extension-and-reduction)
     * [Installation Modes](#installation-modes)
       * [Joint](#joint)
       * [Separate](#separate)
@@ -390,6 +391,30 @@ chown -R 1000:1000 /mnt/data/<pv-name>
 
 You also need to specify node names through `opensearch.master.persistence.nodes`, `opensearch.arbiter.persistence.nodes`, or `opensearch.data.persistence.nodes` parameter in the same order
 in which the Persistent Volumes are specified so that OpenSearch pods are assigned to these nodes.
+
+#### Persistent Volume Extension and Reduction
+
+**Applicability**: PVC size extension is applicable only for the **joint** installation scheme, where master and data roles are on the same nodes. In the **separate** scheme (where master and data nodes use different StatefulSets and PVCs), the procedures in this section apply to the master PVCs used for cluster metadata; data node PVC expansion depends on your storage class and platform.
+
+**Persistent Volume extension**
+
+You can increase the size of a Persistent Volume Claim (PVC) when the underlying StorageClass supports volume expansion. Ensure the StorageClass has `allowVolumeExpansion: true`. Then:
+
+1. Update the size in your Helm values (for example, `opensearch.master.persistence.size`) to the desired larger value.
+2. Upgrade the release so the PVC spec is updated.
+3. The cluster may resize the volume in place; if the filesystem supports it, the new space becomes available without recreating the PVC or the pod. If your environment requires it, you may need to restart the pod so the mount reflects the new size.
+
+**Persistent Volume reduction is not supported**
+
+Reducing the size of an existing PVC (or the underlying Persistent Volume) is **not supported** by Kubernetes and by most storage providers. Once a volume is created or expanded, you cannot shrink it. Attempting to reduce the requested size in the PVC spec can lead to failed state or undefined behavior.
+
+**How to fix if you tried to do storage reduction**
+
+If you have already changed the Helm values (or the PVC spec) to a smaller size in an attempt to reduce storage:
+
+1. **Revert the size change**: Set the persistence size back to the previous (larger) value in your values and upgrade the release again, so the PVC spec matches the actual volume size.
+2. **Verify the PVC**: Check that the PVC's `spec.resources.requests.storage` again matches the capacity of the underlying volume (e.g. with `kubectl get pvc -n <namespace>` and your storage provider's tools).
+3. **If the PVC is stuck or the controller has applied a smaller size**: Consult your Kubernetes distribution and storage provider documentation. In many cases, manually editing the PVC to restore the correct larger `spec.resources.requests.storage` and ensuring the Persistent Volume capacity is unchanged can recover the state. Do not reduce the actual volume capacity on the storage backend.
 
 According to the specified parameters, the `Pod Scheduler` distributes pods to the necessary Kubernetes nodes. For more information, refer to [Pod Scheduler](#pod-scheduler) section.
 
@@ -1188,7 +1213,7 @@ Where:
 | `opensearch.master.persistence.persistentVolumes`      | list    | no        | []                                                                                                          | The list of predefined persistent volumes for OpenSearch master nodes. The number of persistent volumes should be equal to `opensearch.master.replicas` parameter. If `hostPath` PVs are used, the `nodes` parameters is also should be specified.                                                                                                                                                                                                                            |
 | `opensearch.master.persistence.nodes`                  | list    | no        | []                                                                                                          | The list of Kubernetes node names to assign OpenSearch master nodes. The number of nodes should be equal to `opensearch.master.replicas` parameter. It should not be used with `storageClass` pod assignment.                                                                                                                                                                                                                                                                 |
 | `opensearch.master.persistence.accessModes`            | list    | no        | ["ReadWriteOnce"]                                                                                           | The list of access modes of persistent volumes for OpenSearch master nodes.                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `opensearch.master.persistence.size`                   | string  | no        | 5Gi                                                                                                         | The size of persistent volumes for OpenSearch master nodes. Storage can be automatically resizable in case storageClass supports it, for instance following parameter is mandatory for storageClass to be resizable - `allowVolumeExpansion: true`                                                                                                                                                                                                                            |
+| `opensearch.master.persistence.size`                   | string  | no        | 5Gi                                                                                                         | The size of persistent volumes for OpenSearch master nodes. PVC size **extension** (increase) is supported only for the **joint** scheme (where master and data are on the same nodes), when the StorageClass has `allowVolumeExpansion: true`. Storage **reduction** is not supported. See [Persistent Volume Extension and Reduction](#persistent-volume-extension-and-reduction).                                                                                                                                                            |
 | `opensearch.master.persistence.annotations`            | object  | no        | {}                                                                                                          | The annotations of persistent volumes for OpenSearch master nodes.                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `opensearch.master.resources.requests.cpu`             | string  | no        | 250m                                                                                                        | The minimum number of CPUs the OpenSearch master node container should use.                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `opensearch.master.resources.requests.memory`          | string  | no        | 2Gi                                                                                                         | The minimum number of memory the OpenSearch master node container should use.                                                                                                                                                                                                                                                                                                                                                                                                 |
