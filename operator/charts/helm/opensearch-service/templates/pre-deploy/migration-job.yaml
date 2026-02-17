@@ -78,10 +78,6 @@ spec:
             - name: MIGRATION_MODE
               value: "migration"
             {{- end }}
-            - name: TARGET_OPENSEARCH_VERSION
-              value: {{ include "opensearch.targetVersion" . | quote }}
-            - name: CURRENT_OPENSEARCH_VERSION
-              value: {{ include "opensearch.currentVersion" . | quote }}
             {{- if eq (include "dbaas.enabled" .) "true" }}
             # DBaaS integration - use same env vars as curator
             - name: DBAAS_ADAPTER_ADDRESS

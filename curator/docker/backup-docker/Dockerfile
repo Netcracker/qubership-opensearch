@@ -1,5 +1,7 @@
 FROM ghcr.io/netcracker/qubership-backup-daemon:main_alpine
 
+ARG TARGETARCH
+
 ENV ELASTICSEARCH_CURATOR_HOME=/opt/elasticsearch-curator
 
 COPY backup-daemon.conf /etc/backup-daemon.conf
@@ -13,6 +15,15 @@ RUN set -x \
     && pip3 install -U opensearch-py==2.5.0 elasticsearch==7.17.12 curator-opensearch==0.0.13 \
     && pip3 install --upgrade pip urllib3 click \
     && rm -rf /var/cache/apk/*
+
+    #Download necessary tools
+RUN set -x \
+    && wget \
+        --no-check-certificate \
+        -nv \
+        -O /usr/bin/kubectl \
+        "https://dl.k8s.io/v1.35.1/bin/linux/${TARGETARCH}/kubectl" \
+    && chmod +x /usr/bin/kubectl
 
 #Download jq
 RUN apk add --update --no-cache curl apk-tools \

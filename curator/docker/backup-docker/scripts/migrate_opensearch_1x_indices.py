@@ -67,8 +67,6 @@ BACKUP_DAEMON_API_CREDENTIALS_PASSWORD = os.environ.get('BACKUP_DAEMON_API_CREDE
 
 # Pre-deploy job configuration
 MIGRATION_MODE = os.environ.get('MIGRATION_MODE', 'manual')  # 'manual', 'migration', or 'pre-deploy-check'
-TARGET_OPENSEARCH_VERSION = os.environ.get('TARGET_OPENSEARCH_VERSION', '')  # Target version for upgrade
-CURRENT_OPENSEARCH_VERSION = os.environ.get('CURRENT_OPENSEARCH_VERSION', '')  # Current version from StatefulSet
 OPENSEARCH_SECURITY_ADMIN_PATH = os.environ.get('OPENSEARCH_SECURITY_ADMIN_PATH', 
                                                 '/usr/share/opensearch/plugins/opensearch-security/tools/securityadmin.sh')
 OPENSEARCH_SECURITY_CONFIG_PATH = os.environ.get('OPENSEARCH_SECURITY_CONFIG_PATH',
@@ -147,30 +145,6 @@ class IndexMigrator:
     def __init__(self, client: OpenSearchClient):
         self.client = client
     
-    def get_cluster_info(self) -> Dict:
-        """Get cluster information"""
-        logger.info("Fetching cluster information...")
-        response = self.client.get('/')
-        return response.json()
-    
-    def get_current_opensearch_version(self) -> str:
-        """Get currently running OpenSearch version"""
-        try:
-            cluster_info = self.get_cluster_info()
-            version = cluster_info.get('version', {}).get('number', 'unknown')
-            logger.info(f"Current OpenSearch version: {version}")
-            return version
-        except Exception as e:
-            logger.error(f"Could not determine OpenSearch version: {str(e)}")
-            return 'unknown'
-    
-    def get_major_version(self, version_string: str) -> int:
-        """Extract major version number from version string (e.g., '2.11.0' -> 2)"""
-        try:
-            return int(version_string.split('.')[0])
-        except:
-            return 0
-    
     def get_all_indices(self) -> List[Dict]:
         """Get all indices in the cluster"""
         logger.info("Fetching all indices...")
@@ -188,7 +162,14 @@ class IndexMigrator:
         return response.json()
     
     def is_1x_index(self, index: str) -> bool:
-        """Check if an index was created in OpenSearch 1.x"""
+        """
+        Check if an index was created in OpenSearch 1.x.
+        
+        Uses XOR decoding approach from indices_version_metric.py:
+        - version.created is XOR'd with 0x08000000 to get the real version
+        - After decoding and removing suffix, format is XXYYZZ where XX is major version
+        - Version < 20000 means OpenSearch 1.x
+        """
         try:
             settings = self.get_index_settings(index)
             index_settings = settings.get(index, {}).get('settings', {}).get('index', {})
@@ -196,17 +177,23 @@ class IndexMigrator:
             # Check version in settings
             version_created = index_settings.get('version', {}).get('created', '')
             if version_created:
-                # Version format: 135217827 for 1.x, 136217827 for 2.x, 137xxxxxx for 3.x
-                # First digit(s) represent major version
-                version_str = str(version_created)
-                if len(version_str) >= 9:
-                    major_version = int(version_str[0:2]) if version_str[0] == '1' else int(version_str[0])
-                    if major_version <= 13 or (major_version >= 130 and major_version < 136):
-                        logger.info(f"Index '{index}' was created in OpenSearch 1.x (version: {version_created})")
-                        return True
-            
-            # Alternative: check creation date and OpenSearch version history
-            # If the cluster was upgraded from 1.x, indices from that time are 1.x indices
+                version_created_num = int(version_created)
+                
+                # XOR with 0x08000000 to decode the version
+                decoded = version_created_num ^ 0x08000000
+                
+                # Remove last 2 digits (99 suffix)
+                version_num = decoded // 100
+                
+                # Check if major version is 1.x (version_num < 20000)
+                if version_num < 20000:
+                    # Extract readable version for logging
+                    major = version_num // 10000
+                    minor = (version_num // 100) % 100
+                    patch = version_num % 100
+                    version_str = f"{major}.{minor}.{patch}"
+                    logger.info(f"Index '{index}' was created in OpenSearch 1.x (version: {version_str}, encoded: {version_created})")
+                    return True
             
             return False
         except Exception as e:
@@ -437,15 +424,18 @@ class IndexMigrator:
         Migrate a single index from 1.x to 2.x/3.x format
         
         For system indices: If migration fails, delete the index (it will be recreated)
-        For user indices: Fail immediately on error
+        For user indices: Fail immediately on error with cleanup
         
-        Process:
-        1. Close the index
-        2. Get mappings from original index
-        3. Reindex to temporary index with migration suffix
+        Correct Process:
+        1. Get mappings and settings from original index
+        2. Create migration index with those settings/mappings
+        3. Reindex original to migration index
         4. Delete original index
-        5. Reindex back to original name (creates with new format)
-        6. Delete temporary index
+        5. Create original index with migration settings/mappings
+        6. Reindex migration back to original
+        7. Delete migration index
+        
+        IMPORTANT: If any step fails, stop and restore state. Never delete data without successful reindex.
         """
         logger.info(f"=" * 80)
         logger.info(f"Starting migration for index: '{index}'")
@@ -454,10 +444,11 @@ class IndexMigrator:
         logger.info(f"=" * 80)
         
         migration_index = f"{index}{MIGRATION_SUFFIX}"
+        original_deleted = False  # Track if we deleted original index
         
         try:
-            # Step 1: Get mappings and settings before operations
-            logger.info(f"[1/9] Fetching mappings and settings for '{index}'...")
+            # Step 1: Get mappings and settings from original index
+            logger.info(f"[1/7] Fetching mappings and settings from '{index}'...")
             mappings_response = self.get_index_mappings(index)
             mappings = mappings_response.get(index, {}).get('mappings', {})
             
@@ -471,69 +462,86 @@ class IndexMigrator:
                     preserved_settings[key] = index_settings[key]
             
             logger.info(f"      Retrieved mappings and settings successfully")
+            logger.info(f"      Shards: {preserved_settings.get('number_of_shards', 'default')}, "
+                       f"Replicas: {preserved_settings.get('number_of_replicas', 'default')}")
             
-            # Step 2: Close original index BEFORE reindexing
-            logger.info(f"[2/9] Closing original index '{index}'...")
-            self.close_index(index)
+            # Step 2: Create migration index with original settings and mappings
+            logger.info(f"[2/7] Creating migration index '{migration_index}' with original settings/mappings...")
             
-            # Step 3: Reopen for reindexing (must be open for reindex source)
-            logger.info(f"[3/9] Reopening '{index}' for reindexing...")
-            self.open_index(index)
-            
-            # Step 4: Check if migration index already exists (idempotency)
+            # Check if migration index already exists (from previous failed run)
             if self.index_exists(migration_index):
-                logger.warning(f"[4/9] Migration index '{migration_index}' already exists - cleaning up from previous run")
+                logger.warning(f"      Migration index '{migration_index}' already exists - cleaning up from previous run")
                 self.delete_index(migration_index)
-            else:
-                logger.info(f"[4/9] Migration index '{migration_index}' does not exist (expected)")
             
-            # Step 5: Reindex to migration index
-            logger.info(f"[5/9] Reindexing '{index}' to temporary index '{migration_index}'...")
+            # Create migration index with clean mappings
+            clean_mappings = self._clean_mappings(mappings) if mappings else {}
+            if clean_mappings or preserved_settings:
+                self.create_index_with_mappings(
+                    migration_index, 
+                    clean_mappings,
+                    {'index': preserved_settings} if preserved_settings else None
+                )
+            else:
+                # Create empty index (will be created during reindex)
+                logger.info(f"      No mappings or settings to preserve, migration index will be auto-created")
+            
+            logger.info(f"      Migration index '{migration_index}' created successfully")
+            
+            # Step 3: Reindex original to migration index
+            logger.info(f"[3/7] Reindexing data from '{index}' to '{migration_index}'...")
             self.reindex(index, migration_index)
+            logger.info(f"      Data successfully copied to migration index")
             
-            # Step 6: Delete original index
-            logger.info(f"[6/9] Deleting original index '{index}'...")
-            self.close_index(index)  # Close before delete
+            # Step 4: Delete original index (ONLY after successful reindex)
+            logger.info(f"[4/7] Deleting original index '{index}'...")
             self.delete_index(index)
+            original_deleted = True
+            logger.info(f"      Original index deleted (data preserved in migration index)")
             
-            # Step 7: Create new index with proper mappings if they exist
-            if mappings:
-                logger.info(f"[7/9] Creating '{index}' with preserved mappings...")
-                # Remove any version-specific fields from mappings
-                clean_mappings = self._clean_mappings(mappings)
-                self.create_index_with_mappings(index, clean_mappings, {'index': preserved_settings} if preserved_settings else None)
+            # Step 5: Create original index with migrated settings/mappings
+            logger.info(f"[5/7] Creating new '{index}' with migrated format...")
+            if clean_mappings or preserved_settings:
+                self.create_index_with_mappings(
+                    index,
+                    clean_mappings,
+                    {'index': preserved_settings} if preserved_settings else None
+                )
             else:
-                logger.info(f"[7/9] No mappings to preserve, index will be created during reindex")
+                logger.info(f"      Index will be auto-created during reindex")
+            logger.info(f"      New index '{index}' created successfully")
             
-            # Step 8: Reindex back to original name
-            logger.info(f"[8/9] Reindexing from temporary index '{migration_index}' back to '{index}'...")
+            # Step 6: Reindex migration back to original
+            logger.info(f"[6/7] Reindexing data from '{migration_index}' back to '{index}'...")
             self.reindex(migration_index, index)
+            logger.info(f"      Data successfully restored to original index name")
             
-            # Step 9: Delete migration index
-            logger.info(f"[9/9] Deleting temporary migration index '{migration_index}'...")
+            # Step 7: Delete migration index (cleanup)
+            logger.info(f"[7/7] Deleting temporary migration index '{migration_index}'...")
             self.delete_index(migration_index)
+            logger.info(f"      Migration index cleaned up")
             
-            logger.info(f"SUCCESS: Index '{index}' migrated successfully")
+            logger.info(f"✓ SUCCESS: Index '{index}' migrated successfully")
             logger.info(f"=" * 80)
             
         except Exception as e:
-            logger.error(f"FAILED: Migration failed for index '{index}': {str(e)}")
+            logger.error(f"✗ FAILED: Migration failed for index '{index}': {str(e)}")
+            logger.error(f"=" * 80)
             
             if is_system_index:
                 # For system indices, delete and let OpenSearch recreate them
-                logger.warning(f"System index '{index}' cannot be migrated - deleting it")
+                logger.warning(f"System index '{index}' migration failed - will delete it")
                 logger.warning(f"OpenSearch or plugins will recreate this index automatically")
                 try:
-                    # Try to cleanup and delete the original index
-                    self._cleanup_and_delete_system_index(index, migration_index)
-                    logger.info(f"SUCCESS: System index '{index}' deleted (will be recreated)")
+                    self._cleanup_and_delete_system_index(index, migration_index, original_deleted)
+                    logger.info(f"✓ System index '{index}' deleted (will be recreated)")
                     logger.info(f"=" * 80)
                 except Exception as cleanup_error:
-                    logger.error(f"Failed to delete system index '{index}': {str(cleanup_error)}")
+                    logger.error(f"Failed to cleanup system index '{index}': {str(cleanup_error)}")
                     raise
             else:
-                # For user indices, attempt cleanup and fail
-                self._cleanup_failed_migration(index, migration_index)
+                # For user indices, attempt restore and fail
+                logger.error(f"Attempting to restore index '{index}' from backup...")
+                self._cleanup_failed_migration(index, migration_index, original_deleted)
                 raise
     
     def _clean_mappings(self, mappings: Dict) -> Dict:
@@ -552,34 +560,63 @@ class IndexMigrator:
         
         return clean
     
-    def _cleanup_failed_migration(self, original: str, migration: str):
-        """Attempt to cleanup after a failed migration"""
-        logger.info("Attempting cleanup after failed migration...")
+    def _cleanup_failed_migration(self, original: str, migration: str, original_deleted: bool):
+        """
+        Attempt to cleanup and restore after a failed migration.
+        
+        Args:
+            original: Original index name
+            migration: Migration index name
+            original_deleted: True if original index was already deleted
+        """
+        logger.info("Attempting cleanup and restore after failed migration...")
         
         try:
-            # If migration index exists, we can potentially restore
-            if self.index_exists(migration):
-                logger.info(f"Migration index '{migration}' exists")
+            # If original was deleted and migration exists, restore from migration
+            if original_deleted and self.index_exists(migration):
+                logger.info(f"Original index '{original}' was deleted - restoring from migration index")
                 
-                if not self.index_exists(original):
-                    logger.info(f"Original index '{original}' missing - restoring from migration index")
-                    # Restore from migration index
-                    self.reindex(migration, original)
-                    self.delete_index(migration)
-                    self.open_index(original)
-                    logger.info("✓ Restored original index from migration backup")
-                else:
-                    logger.info(f"Original index '{original}' exists - just cleaning up migration index")
-                    self.delete_index(migration)
+                # Reindex from migration back to original
+                logger.info(f"Restoring data from '{migration}' to '{original}'...")
+                self.reindex(migration, original)
+                
+                # Delete migration index
+                logger.info(f"Cleaning up migration index '{migration}'...")
+                self.delete_index(migration)
+                
+                logger.info(f"✓ Successfully restored original index '{original}' from migration backup")
+                
+            elif self.index_exists(migration):
+                # Original still exists, just cleanup migration index
+                logger.info(f"Original index '{original}' still exists - just cleaning up migration index")
+                self.delete_index(migration)
+                logger.info(f"✓ Migration index '{migration}' cleaned up")
+                
+            elif not self.index_exists(original):
+                # Both indices are gone - data loss!
+                logger.error(f"✗ CRITICAL: Both original and migration indices are missing!")
+                logger.error(f"Data for index '{original}' may be lost - restore from backup required")
+                
             else:
-                logger.warning("Migration index does not exist - cannot restore")
+                # Original exists, migration doesn't - normal state
+                logger.info(f"Original index '{original}' exists, no cleanup needed")
                 
         except Exception as e:
-            logger.error(f"Cleanup failed: {str(e)}")
+            logger.error(f"✗ Cleanup failed: {str(e)}")
             logger.error("Manual intervention may be required!")
+            if original_deleted:
+                logger.error(f"CRITICAL: Original index '{original}' was deleted during migration")
+                logger.error(f"Check if migration index '{migration}' exists and restore manually")
     
-    def _cleanup_and_delete_system_index(self, original: str, migration: str):
-        """Delete a system index that failed to migrate (it will be recreated automatically)"""
+    def _cleanup_and_delete_system_index(self, original: str, migration: str, original_deleted: bool):
+        """
+        Delete a system index that failed to migrate (it will be recreated automatically).
+        
+        Args:
+            original: Original index name
+            migration: Migration index name  
+            original_deleted: True if original index was already deleted
+        """
         logger.info(f"Cleaning up failed system index migration for '{original}'...")
         
         try:
@@ -588,8 +625,8 @@ class IndexMigrator:
                 logger.info(f"Deleting migration index '{migration}'...")
                 self.delete_index(migration)
             
-            # Delete original index if it exists
-            if self.index_exists(original):
+            # Delete original index if it still exists
+            if not original_deleted and self.index_exists(original):
                 logger.info(f"Deleting original index '{original}'...")
                 # Try to open it first in case it's closed
                 try:
@@ -598,10 +635,10 @@ class IndexMigrator:
                     pass
                 self.delete_index(original)
             
-            logger.info(f"System index '{original}' deleted successfully")
+            logger.info(f"✓ System index '{original}' deleted successfully")
             
         except Exception as e:
-            logger.error(f"Failed to delete system index '{original}': {str(e)}")
+            logger.error(f"✗ Failed to delete system index '{original}': {str(e)}")
             raise
 
 
@@ -689,6 +726,9 @@ class SecurityManager:
 class BackupManager:
     """Handles backup creation before migration"""
     
+    BACKUP_TIMEOUT = 1800  # 30 minutes in seconds
+    BACKUP_CHECK_INTERVAL = 10  # Check every 10 seconds
+    
     def __init__(self):
         self.backup_url = BACKUP_DAEMON_URL.rstrip('/') if BACKUP_DAEMON_URL else ''
         self.username = BACKUP_DAEMON_API_CREDENTIALS_USERNAME
@@ -701,7 +741,7 @@ class BackupManager:
     
     def create_backup(self) -> Optional[str]:
         """
-        Create a backup before migration.
+        Create a backup before migration and wait for completion.
         Returns backup ID if successful, None otherwise.
         """
         if not self.backup_url or self.backup_url == 'http://localhost:8080':
@@ -713,21 +753,29 @@ class BackupManager:
         logger.info("Creating backup before migration...")
         
         try:
+            # Step 1: Trigger backup creation
             url = f"{self.backup_url}/backup"
             
             logger.info(f"Sending backup request to: {url}")
-            response = self.session.post(url, json={}, timeout=300)
+            response = self.session.post(url, timeout=60)
             response.raise_for_status()
             
-            result = response.json()
-            backup_id = result.get('id') or result.get('backupId') or result.get('backup_id')
+            # Backup ID is returned as plain text
+            backup_id = response.text.strip()
             
-            if backup_id:
-                logger.info(f"Backup created successfully - Backup ID: {backup_id}")
-                return backup_id
-            else:
-                logger.warning(f"Backup created but no ID returned: {result}")
-                return "unknown"
+            if not backup_id:
+                logger.error("Backup request returned empty backup ID")
+                return None
+            
+            logger.info(f"Backup started - Backup ID: {backup_id}")
+            
+            # Step 2: Wait for backup to complete
+            if not self._wait_for_backup_completion(backup_id):
+                logger.error(f"Backup {backup_id} did not complete successfully")
+                return None
+            
+            logger.info(f"✓ Backup completed successfully - Backup ID: {backup_id}")
+            return backup_id
             
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to create backup: {str(e)}")
@@ -737,6 +785,79 @@ class BackupManager:
             return None
         except Exception as e:
             logger.error(f"Unexpected error during backup: {str(e)}")
+            return None
+    
+    def _wait_for_backup_completion(self, backup_id: str) -> bool:
+        """
+        Wait for backup to complete successfully.
+        Returns True if backup completed successfully, False otherwise.
+        """
+        logger.info(f"Waiting for backup {backup_id} to complete (timeout: {self.BACKUP_TIMEOUT}s)...")
+        
+        start_time = time.time()
+        check_count = 0
+        
+        while time.time() - start_time < self.BACKUP_TIMEOUT:
+            check_count += 1
+            elapsed = int(time.time() - start_time)
+            
+            try:
+                # Check backup status
+                status = self._get_backup_status(backup_id)
+                
+                if status is None:
+                    logger.warning(f"Could not get status for backup {backup_id} (check #{check_count})")
+                    time.sleep(self.BACKUP_CHECK_INTERVAL)
+                    continue
+                
+                # Check if backup is valid and not failed
+                is_valid = status.get('valid', False)
+                is_failed = status.get('failed', False)
+                exit_code = status.get('exit_code', -1)
+                spent_time = status.get('spent_time', 'unknown')
+                
+                logger.info(
+                    f"Backup status (check #{check_count}, elapsed {elapsed}s): "
+                    f"valid={is_valid}, failed={is_failed}, exit_code={exit_code}, spent_time={spent_time}"
+                )
+                
+                # Check completion conditions
+                if is_valid and not is_failed:
+                    logger.info(f"✓ Backup {backup_id} completed successfully after {elapsed}s")
+                    return True
+                
+                if is_failed:
+                    logger.error(f"✗ Backup {backup_id} failed: {status}")
+                    return False
+                
+                # Backup still in progress, wait before next check
+                time.sleep(self.BACKUP_CHECK_INTERVAL)
+                
+            except Exception as e:
+                logger.warning(f"Error checking backup status (check #{check_count}): {str(e)}")
+                time.sleep(self.BACKUP_CHECK_INTERVAL)
+        
+        # Timeout reached
+        logger.error(f"✗ Timeout waiting for backup {backup_id} to complete (>{self.BACKUP_TIMEOUT}s)")
+        return False
+    
+    def _get_backup_status(self, backup_id: str) -> Optional[Dict]:
+        """
+        Get backup status from daemon.
+        Returns status dict or None if request fails.
+        """
+        try:
+            url = f"{self.backup_url}/listbackups/{backup_id}"
+            response = self.session.get(url, timeout=10)
+            response.raise_for_status()
+            
+            return response.json()
+            
+        except requests.exceptions.RequestException as e:
+            logger.debug(f"Failed to get backup status: {str(e)}")
+            return None
+        except Exception as e:
+            logger.debug(f"Error parsing backup status: {str(e)}")
             return None
 
 
@@ -886,13 +1007,13 @@ def main():
         # Initialize migrator
         migrator = IndexMigrator(client)
         
-        # Get current major version
-        current_major = migrator.get_major_version(current_version)
-        target_major = migrator.get_major_version(TARGET_OPENSEARCH_VERSION) if TARGET_OPENSEARCH_VERSION else current_major
+        # Extract major version from current version string
+        try:
+            current_major = int(current_version.split('.')[0])
+        except:
+            current_major = 0
         
         logger.info(f"Current major version: {current_major}")
-        if TARGET_OPENSEARCH_VERSION:
-            logger.info(f"Target major version: {target_major}")
         
         # Step 1: Detect 1.x indices
         indices_to_migrate, security_needs_reinit = migrator.get_1x_indices()
@@ -908,16 +1029,14 @@ def main():
         if security_needs_reinit:
             logger.info("Security index (.opendistro_security) needs reinitialization")
         
-        # PRE-DEPLOY CHECK MODE: Check if upgrading from 2.x to 3.x with legacy indices
+        # PRE-DEPLOY CHECK MODE: Check if running on OpenSearch 3.x with legacy indices
         if MIGRATION_MODE == 'pre-deploy-check':
             logger.warning("=" * 80)
             logger.warning("PRE-DEPLOY MIGRATION CHECK MODE")
             logger.warning("=" * 80)
             
-            # Check if this is an upgrade from 2.x to 3.x
-            is_2x_to_3x_upgrade = (current_major == 2 and target_major == 3)
-            
-            if is_2x_to_3x_upgrade and (indices_to_migrate or security_needs_reinit):
+            # Check if this is OpenSearch 3.x with legacy 1.x indices
+            if current_major >= 3 and (indices_to_migrate or security_needs_reinit):
                 logger.error("=" * 80)
                 logger.error("MIGRATION REQUIRED BEFORE UPGRADE TO 3.x")
                 logger.error("=" * 80)
@@ -932,7 +1051,7 @@ def main():
                 logger.error("These indices MUST be migrated before upgrading to OpenSearch 3.x")
                 logger.error("")
                 logger.error("RECOMMENDED STEPS:")
-                logger.error("1. Install the latest OpenSearch 2.x version first")
+                logger.error("1. Rollback to OpenSearch 2.x")
                 logger.error("2. Perform manual migration of legacy indices:")
                 logger.error("   kubectl exec -it <curator-pod> -n <namespace> -- /bin/bash")
                 logger.error("   python3 /opt/elasticsearch-curator/migrate_opensearch_1x_indices.py")
@@ -947,10 +1066,16 @@ def main():
                 logger.error("For detailed instructions, see: docs/public/migration-indices.md")
                 logger.error("=" * 80)
                 return 3  # Exit code 3 = migration required before upgrade
+            elif current_major < 3:
+                logger.info(f"Running on OpenSearch {current_major}.x")
+                if indices_to_migrate or security_needs_reinit:
+                    logger.warning("Legacy 1.x indices detected but running on 2.x - migration recommended before upgrading to 3.x")
+                logger.info("Pre-deploy check passed")
+                return 0
             else:
-                logger.info(f"Not a 2.x -> 3.x upgrade (current: {current_major}, target: {target_major})")
-                logger.info("Legacy indices detected but upgrade path allows them")
-                logger.info("Pre-deploy check passed (upgrade can proceed)")
+                logger.info(f"Running on OpenSearch {current_major}.x")
+                logger.info("No legacy 1.x indices detected")
+                logger.info("Pre-deploy check passed")
                 return 0
         
         # NORMAL MIGRATION MODE (manual or automatic)
@@ -972,10 +1097,20 @@ def main():
             backup_mgr = BackupManager()
             backup_id = backup_mgr.create_backup()
             if backup_id is None:
-                logger.error("Backup creation failed - cannot proceed with migration")
-                logger.error("Use --skip-backup to bypass this check (not recommended)")
+                logger.error("=" * 80)
+                logger.error("Backup creation or validation failed - cannot proceed with migration")
+                logger.error("This ensures you have a recovery point if migration encounters issues")
+                logger.error("")
+                logger.error("Possible reasons:")
+                logger.error("  - Backup daemon is not accessible")
+                logger.error("  - Backup process failed or timed out (30 minute timeout)")
+                logger.error("  - Backup validation failed (valid=false or failed=true)")
+                logger.error("")
+                logger.error("To bypass this check (NOT RECOMMENDED):")
+                logger.error("  Use --skip-backup flag")
+                logger.error("=" * 80)
                 return 2
-            logger.info(f"Backup created successfully - ID: {backup_id}")
+            logger.info(f"✓ Backup validated successfully - ID: {backup_id}")
         else:
             logger.warning("Skipping backup creation (--skip-backup)")
         
