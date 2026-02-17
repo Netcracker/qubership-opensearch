@@ -59,6 +59,11 @@ DBAAS_ADAPTER_USERNAME = os.environ.get('DBAAS_ADAPTER_USERNAME', '')
 DBAAS_ADAPTER_PASSWORD = os.environ.get('DBAAS_ADAPTER_PASSWORD', '')
 # Note: DBAAS_ADAPTER_ADDRESS is only set when DBaaS is enabled in curator
 
+# Backup daemon integration (from curator variables)
+BACKUP_DAEMON_URL = os.environ.get('BACKUP_DAEMON_URL', '')
+BACKUP_DAEMON_API_CREDENTIALS_USERNAME = os.environ.get('BACKUP_DAEMON_API_CREDENTIALS_USERNAME', '')
+BACKUP_DAEMON_API_CREDENTIALS_PASSWORD = os.environ.get('BACKUP_DAEMON_API_CREDENTIALS_PASSWORD', '')
+
 # Pre-deploy job configuration
 MIGRATION_MODE = os.environ.get('MIGRATION_MODE', 'manual')  # 'manual', 'migration', or 'pre-deploy-check'
 TARGET_OPENSEARCH_VERSION = os.environ.get('TARGET_OPENSEARCH_VERSION', '')  # Target version for upgrade
@@ -399,7 +404,7 @@ class IndexMigrator:
                 created = result.get('created', 0)
                 failures = result.get('failures', [])
                 
-                logger.info(f"✓ Reindexing completed: {created}/{total} documents")
+                logger.info(f"Reindexing completed: {created}/{total} documents transferred")
                 
                 if failures:
                     logger.warning(f"Reindexing had {len(failures)} failures")
@@ -436,7 +441,7 @@ class IndexMigrator:
         
         try:
             # Step 1: Get mappings and settings before closing
-            logger.info(f"Step 1: Fetching mappings and settings for '{index}'...")
+            logger.info(f"[1/8] Fetching mappings and settings for '{index}'...")
             mappings_response = self.get_index_mappings(index)
             mappings = mappings_response.get(index, {}).get('mappings', {})
             
@@ -449,49 +454,49 @@ class IndexMigrator:
                 if key in index_settings:
                     preserved_settings[key] = index_settings[key]
             
-            logger.info(f"✓ Retrieved mappings and settings")
+            logger.info(f"      Retrieved mappings and settings successfully")
             
             # Step 2: Check if migration index already exists (idempotency)
             if self.index_exists(migration_index):
-                logger.warning(f"Migration index '{migration_index}' already exists - cleaning up from previous run")
+                logger.warning(f"      Migration index '{migration_index}' already exists - cleaning up from previous run")
                 self.delete_index(migration_index)
             
             # Step 3: Reindex to migration index
-            logger.info(f"Step 2: Reindexing '{index}' → '{migration_index}'...")
+            logger.info(f"[2/8] Reindexing '{index}' to temporary index '{migration_index}'...")
             self.reindex(index, migration_index)
             
             # Step 4: Close original index
-            logger.info(f"Step 3: Closing original index '{index}'...")
+            logger.info(f"[3/8] Closing original index '{index}'...")
             self.close_index(index)
             
             # Step 5: Delete original index
-            logger.info(f"Step 4: Deleting original index '{index}'...")
+            logger.info(f"[4/8] Deleting original index '{index}'...")
             self.delete_index(index)
             
             # Step 6: Create new index with proper mappings (if mappings exist)
             if mappings:
-                logger.info(f"Step 5: Creating '{index}' with preserved mappings...")
+                logger.info(f"[5/8] Creating '{index}' with preserved mappings...")
                 # Remove any version-specific fields from mappings
                 clean_mappings = self._clean_mappings(mappings)
                 self.create_index_with_mappings(index, clean_mappings, {'index': preserved_settings} if preserved_settings else None)
             
             # Step 7: Reindex back to original name
-            logger.info(f"Step 6: Reindexing '{migration_index}' → '{index}'...")
+            logger.info(f"[6/8] Reindexing from temporary index '{migration_index}' back to '{index}'...")
             self.reindex(migration_index, index)
             
             # Step 8: Delete migration index
-            logger.info(f"Step 7: Deleting migration index '{migration_index}'...")
+            logger.info(f"[7/8] Deleting temporary migration index '{migration_index}'...")
             self.delete_index(migration_index)
             
             # Step 9: Open the index
-            logger.info(f"Step 8: Opening migrated index '{index}'...")
+            logger.info(f"[8/8] Opening migrated index '{index}'...")
             self.open_index(index)
             
-            logger.info(f"✓ Successfully migrated index '{index}'")
+            logger.info(f"SUCCESS: Index '{index}' migrated successfully")
             logger.info(f"=" * 80)
             
         except Exception as e:
-            logger.error(f"✗ Migration failed for index '{index}': {str(e)}")
+            logger.error(f"FAILED: Migration failed for index '{index}': {str(e)}")
             # Attempt cleanup
             self._cleanup_failed_migration(index, migration_index)
             raise
@@ -620,6 +625,58 @@ class SecurityManager:
             return False
 
 
+class BackupManager:
+    """Handles backup creation before migration"""
+    
+    def __init__(self):
+        self.backup_url = BACKUP_DAEMON_URL.rstrip('/') if BACKUP_DAEMON_URL else ''
+        self.username = BACKUP_DAEMON_API_CREDENTIALS_USERNAME
+        self.password = BACKUP_DAEMON_API_CREDENTIALS_PASSWORD
+        self.session = requests.Session()
+        if self.username and self.password:
+            self.session.auth = HTTPBasicAuth(self.username, self.password)
+        self.session.verify = False
+        requests.packages.urllib3.disable_warnings()
+    
+    def create_backup(self) -> Optional[str]:
+        """
+        Create a backup before migration.
+        Returns backup ID if successful, None otherwise.
+        """
+        if not self.backup_url:
+            logger.info("Backup daemon not configured - skipping backup")
+            return None
+        
+        logger.info("Creating backup before migration...")
+        
+        try:
+            url = f"{self.backup_url}/backup"
+            
+            logger.info(f"Sending backup request to: {url}")
+            response = self.session.post(url, json={}, timeout=300)
+            response.raise_for_status()
+            
+            result = response.json()
+            backup_id = result.get('id') or result.get('backupId') or result.get('backup_id')
+            
+            if backup_id:
+                logger.info(f"Backup created successfully - Backup ID: {backup_id}")
+                return backup_id
+            else:
+                logger.warning(f"Backup created but no ID returned: {result}")
+                return "unknown"
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to create backup: {str(e)}")
+            if hasattr(e, 'response') and e.response is not None:
+                logger.error(f"Response status: {e.response.status_code}")
+                logger.error(f"Response body: {e.response.text}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error during backup: {str(e)}")
+            return None
+
+
 class DBaaSUserRestorer:
     """Handles DBaaS user password restoration"""
     
@@ -734,6 +791,11 @@ def main():
         action='store_true',
         help='Skip DBaaS user restoration'
     )
+    parser.add_argument(
+        '--skip-backup',
+        action='store_true',
+        help='Skip creating backup before migration'
+    )
     
     args = parser.parse_args()
     
@@ -774,10 +836,10 @@ def main():
         
         if not indices_to_migrate:
             logger.info("No OpenSearch 1.x indices found - migration not needed")
-            logger.info("✓ Migration completed successfully")
+            logger.info("Migration completed successfully")
             return 0
         
-        logger.info(f"Found {len(indices_to_migrate)} indices requiring migration")
+        logger.info(f"Found {len(indices_to_migrate)} indices requiring migration:")
         
         # PRE-DEPLOY CHECK MODE: Check if upgrading from 2.x to 3.x with legacy indices
         if MIGRATION_MODE == 'pre-deploy-check':
@@ -817,7 +879,7 @@ def main():
             else:
                 logger.info(f"Not a 2.x -> 3.x upgrade (current: {current_major}, target: {target_major})")
                 logger.info("Legacy indices detected but upgrade path allows them")
-                logger.info("✓ Pre-deploy check passed (upgrade can proceed)")
+                logger.info("Pre-deploy check passed (upgrade can proceed)")
                 return 0
         
         # NORMAL MIGRATION MODE (manual or automatic)
@@ -826,13 +888,38 @@ def main():
             logger.info(f"Indices that would be migrated: {indices_to_migrate}")
             return 0
         
+        # Step 1: Create backup before migration
+        backup_id = None
+        if not args.skip_backup:
+            logger.info("")
+            logger.info("=" * 80)
+            logger.info("STEP 1: CREATING BACKUP BEFORE MIGRATION")
+            logger.info("=" * 80)
+            backup_mgr = BackupManager()
+            backup_id = backup_mgr.create_backup()
+            if backup_id is None:
+                logger.error("Backup creation failed - cannot proceed with migration")
+                logger.error("Use --skip-backup to bypass this check (not recommended)")
+                return 2
+            logger.info(f"Backup created successfully - ID: {backup_id}")
+        else:
+            logger.warning("Skipping backup creation (--skip-backup)")
+        
         # Step 2: Validate disk space
+        logger.info("")
+        logger.info("=" * 80)
+        logger.info("STEP 2: VALIDATING DISK SPACE")
+        logger.info("=" * 80)
         if not args.skip_space_check:
             migrator.validate_disk_space(indices_to_migrate)
         else:
             logger.warning("Skipping disk space validation (--skip-space-check)")
         
         # Step 3: Backup security configuration
+        logger.info("")
+        logger.info("=" * 80)
+        logger.info("STEP 3: BACKING UP SECURITY CONFIGURATION")
+        logger.info("=" * 80)
         if not args.skip_security_backup:
             security_mgr = SecurityManager(client)
             security_mgr.backup_security_config()
@@ -840,11 +927,17 @@ def main():
             logger.warning("Skipping security backup (--skip-security-backup)")
         
         # Step 4: Migrate indices sequentially
-        logger.info(f"Starting sequential migration of {len(indices_to_migrate)} indices...")
+        logger.info("")
+        logger.info("=" * 80)
+        logger.info(f"STEP 4: MIGRATING {len(indices_to_migrate)} INDICES")
+        logger.info("=" * 80)
+        logger.info("")
         
         failed_indices = []
         for i, index in enumerate(indices_to_migrate, 1):
-            logger.info(f"\nMigrating index {i}/{len(indices_to_migrate)}: {index}")
+            logger.info(f"\n{'=' * 80}")
+            logger.info(f"MIGRATING INDEX {i}/{len(indices_to_migrate)}: {index}")
+            logger.info(f"{'=' * 80}")
             try:
                 migrator.migrate_index(index)
             except Exception as e:
@@ -853,35 +946,50 @@ def main():
                 # Continue with next index instead of failing completely
         
         # Step 5: Reinitialize security
+        logger.info("")
+        logger.info("=" * 80)
+        logger.info("STEP 5: REINITIALIZING SECURITY CONFIGURATION")
+        logger.info("=" * 80)
         if not args.skip_security_backup:
-            logger.info("\nReinitializing security configuration...")
             security_mgr = SecurityManager(client)
             if not security_mgr.reinitialize_security():
                 logger.warning("Security reinitialization failed - manual intervention may be required")
+            else:
+                logger.info("Security reinitialization completed successfully")
         
         # Step 6: Restore DBaaS users
+        logger.info("")
+        logger.info("=" * 80)
+        logger.info("STEP 6: RESTORING DBAAS USERS")
+        logger.info("=" * 80)
         if not args.skip_dbaas_restore:
-            logger.info("\nRestoring DBaaS users...")
             dbaas_restorer = DBaaSUserRestorer()
             if not dbaas_restorer.restore_users():
                 logger.warning("DBaaS user restoration failed - users may need to be recreated manually")
+            else:
+                logger.info("DBaaS user restoration completed successfully")
         else:
             logger.warning("Skipping DBaaS user restoration (--skip-dbaas-restore)")
         
         # Summary
-        logger.info("\n" + "=" * 80)
-        logger.info("Migration Summary")
+        logger.info("")
         logger.info("=" * 80)
+        logger.info("MIGRATION SUMMARY")
+        logger.info("=" * 80)
+        if backup_id:
+            logger.info(f"Backup ID: {backup_id}")
         logger.info(f"Total indices processed: {len(indices_to_migrate)}")
         logger.info(f"Successfully migrated: {len(indices_to_migrate) - len(failed_indices)}")
         logger.info(f"Failed: {len(failed_indices)}")
         
         if failed_indices:
-            logger.error(f"Failed indices: {failed_indices}")
-            logger.error("✗ Migration completed with errors")
+            logger.error(f"Failed indices: {', '.join(failed_indices)}")
+            logger.error("Migration completed with errors")
+            logger.info("=" * 80)
             return 1
         
-        logger.info("✓ Migration completed successfully")
+        logger.info("Migration completed successfully - all indices migrated")
+        logger.info("=" * 80)
         return 0
         
     except InsufficientSpaceError as e:

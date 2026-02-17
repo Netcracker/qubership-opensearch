@@ -108,6 +108,21 @@ spec:
               value: {{ printf "%s-0" (include "master-nodes" .) | quote }}
             - name: OPENSEARCH_NAMESPACE
               value: {{ .Release.Namespace | quote }}
+            {{- if .Values.curator.enabled }}
+            # Backup daemon integration (same as curator)
+            - name: BACKUP_DAEMON_URL
+              value: {{ include "curator.address" . | quote }}
+            - name: BACKUP_DAEMON_API_CREDENTIALS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  key: username
+            - name: BACKUP_DAEMON_API_CREDENTIALS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  key: password
+            {{- end }}
           resources:
             requests:
               memory: {{ default "256Mi" .Values.migration.resources.requests.memory }}
