@@ -211,31 +211,54 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Version 1.x (Legacy)"
+              "options": "Version"
             },
             "properties": [
               {
                 "id": "custom.cellOptions",
                 "value": {
-                  "mode": "gradient",
+                  "mode": "basic",
                   "type": "color-background"
                 }
               },
               {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": null
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "pattern": "1\\..*",
+                      "result": {
+                        "color": "red",
+                        "index": 0
+                      }
                     },
-                    {
-                      "color": "red",
-                      "value": 1
-                    }
-                  ]
-                }
+                    "type": "regex"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Count"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Version Number"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
               }
             ]
           }
@@ -268,60 +291,43 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "count by (version_created) (opensearch_indices_stats_index_settings_index_version_created{namespace=\"$namespace\",cluster=\"$cluster\"} < 136000000)",
+          "expr": "opensearch_indices_version_created_count{namespace=\"$namespace\",cluster=\"$cluster\"}",
           "format": "table",
           "instant": true,
-          "legendFormat": "Version 1.x",
+          "legendFormat": "{{version}}",
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "uid": "$datasource"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "count by (version_created) (opensearch_indices_stats_index_settings_index_version_created{namespace=\"$namespace\",cluster=\"$cluster\"} >= 136000000 and opensearch_indices_stats_index_settings_index_version_created{namespace=\"$namespace\",cluster=\"$cluster\"} < 137000000)",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "legendFormat": "Version 2.x",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "uid": "$datasource"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "count by (version_created) (opensearch_indices_stats_index_settings_index_version_created{namespace=\"$namespace\",cluster=\"$cluster\"} >= 137000000)",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "legendFormat": "Version 3.x",
-          "refId": "C"
         }
       ],
       "title": "Indices by OpenSearch Version",
       "transformations": [
         {
-          "id": "seriesToColumns",
-          "options": {
-            "byField": "version_created"
-          }
-        },
-        {
           "id": "organize",
           "options": {
             "excludeByName": {
               "Time": true,
-              "version_created": true
+              "version_num": false
             },
-            "indexByName": {},
+            "indexByName": {
+              "version": 0,
+              "Value": 1,
+              "version_num": 2
+            },
             "renameByName": {
-              "Value #A": "Version 1.x (Legacy)",
-              "Value #B": "Version 2.x",
-              "Value #C": "Version 3.x"
+              "Value": "Count",
+              "version": "Version",
+              "version_num": "Version Number"
             }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Version Number"
+              }
+            ]
           }
         }
       ],

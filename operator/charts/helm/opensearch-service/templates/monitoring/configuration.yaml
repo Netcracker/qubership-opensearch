@@ -305,7 +305,8 @@ data:
         {{- end }}
         "python3 /opt/elasticsearch-monitoring/exec-scripts/health_metric.py",
         "python3 /opt/elasticsearch-monitoring/exec-scripts/backup_metric.py",
-        "python3 /opt/elasticsearch-monitoring/exec-scripts/dbaas_health_metric.py"
+        "python3 /opt/elasticsearch-monitoring/exec-scripts/dbaas_health_metric.py",
+        "python3 /opt/elasticsearch-monitoring/exec-scripts/indices_version_metric.py"
       ]
 
       ## Timeout for each command to complete.

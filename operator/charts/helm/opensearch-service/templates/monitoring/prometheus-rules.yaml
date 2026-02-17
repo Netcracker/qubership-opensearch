@@ -98,7 +98,7 @@ spec:
           annotations:
             description: 'OpenSearch cluster contains indices created in version 1.x that should be migrated.'
             summary: Legacy OpenSearch 1.x indices detected
-          expr: count(opensearch_indices_stats_index_settings_index_version_created{namespace="{{ .Release.Namespace }}"} < 136000000) > 0
+          expr: sum(opensearch_indices_version_created_count{namespace="{{ .Release.Namespace }}",version_num<20000}) > 0
           for: 10m
           labels:
             severity: warning
