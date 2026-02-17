@@ -1,6 +1,11 @@
 # Migrating OpenSearch 1.x Indices
 
-When upgrading to OpenSearch 3.x, indices created in OpenSearch 1.x must be migrated. This guide explains how to check for legacy indices and perform the migration.
+When upgrading to OpenSearch 3.x, indices created in OpenSearch 1.x must be migrated. This includes both user indices and system indices (starting with `.`). 
+
+**Special handling:**
+- `.opendistro_security`: Never migrated, always reinitialized instead
+- **Other system indices**: Migration attempted; if it fails, the index is deleted (OpenSearch/plugins will recreate it automatically)
+- **User indices**: Migration failure stops the process (data preservation)
 
 ## Quick Start
 

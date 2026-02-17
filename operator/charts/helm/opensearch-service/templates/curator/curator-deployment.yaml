@@ -129,6 +129,10 @@ spec:
                 secretKeyRef:
                   name: {{ template "opensearch.fullname" . }}-curator-secret
                   key: password
+            - name: OPENSEARCH_POD_NAME
+              value: {{ printf "%s-0" (include "master-nodes" .) | quote }}
+            - name: OPENSEARCH_NAMESPACE
+              value: {{ .Release.Namespace | quote }}
           image: {{ template "curator.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
           livenessProbe:

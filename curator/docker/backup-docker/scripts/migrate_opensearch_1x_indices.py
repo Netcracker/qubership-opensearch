@@ -60,7 +60,8 @@ DBAAS_ADAPTER_PASSWORD = os.environ.get('DBAAS_ADAPTER_PASSWORD', '')
 # Note: DBAAS_ADAPTER_ADDRESS is only set when DBaaS is enabled in curator
 
 # Backup daemon integration (from curator variables)
-BACKUP_DAEMON_URL = os.environ.get('BACKUP_DAEMON_URL', '')
+# Default to localhost when running from curator pod
+BACKUP_DAEMON_URL = os.environ.get('BACKUP_DAEMON_URL', 'http://localhost:8080')
 BACKUP_DAEMON_API_CREDENTIALS_USERNAME = os.environ.get('BACKUP_DAEMON_API_CREDENTIALS_USERNAME', '')
 BACKUP_DAEMON_API_CREDENTIALS_PASSWORD = os.environ.get('BACKUP_DAEMON_API_CREDENTIALS_PASSWORD', '')
 
@@ -73,8 +74,8 @@ OPENSEARCH_SECURITY_ADMIN_PATH = os.environ.get('OPENSEARCH_SECURITY_ADMIN_PATH'
 OPENSEARCH_SECURITY_CONFIG_PATH = os.environ.get('OPENSEARCH_SECURITY_CONFIG_PATH',
                                                  '/usr/share/opensearch/config/opensearch-security')
 OPENSEARCH_CONFIG_PATH = os.environ.get('OPENSEARCH_CONFIG_PATH', '/usr/share/opensearch/config')
-OPENSEARCH_POD_NAME = os.environ.get('OPENSEARCH_POD_NAME', '')
-OPENSEARCH_NAMESPACE = os.environ.get('OPENSEARCH_NAMESPACE', 'default')
+OPENSEARCH_POD_NAME = os.environ.get('OPENSEARCH_POD_NAME', 'opensearch-0')  # Default to opensearch-0
+OPENSEARCH_NAMESPACE = os.environ.get('OPENSEARCH_NAMESPACE', os.environ.get('NAMESPACE'))
 
 # Constants
 MIGRATION_SUFFIX = '-migration'
@@ -213,27 +214,38 @@ class IndexMigrator:
             return False
     
     def get_1x_indices(self) -> List[str]:
-        """Get all indices created in OpenSearch 1.x"""
+        """Get all indices created in OpenSearch 1.x, including system indices except .opendistro_security"""
         logger.info("Detecting indices created in OpenSearch 1.x...")
         all_indices = self.get_all_indices()
         
         indices_1x = []
+        security_needs_reinit = False
+        
         for idx_info in all_indices:
             index = idx_info.get('index', '')
-            
-            # Skip system indices
-            if index.startswith('.'):
-                continue
             
             # Skip migration indices
             if index.endswith(MIGRATION_SUFFIX):
                 continue
             
+            # Special handling for .opendistro_security
+            if index == '.opendistro_security':
+                if self.is_1x_index(index):
+                    logger.warning(f"Security index '{index}' was created in OpenSearch 1.x (version check)")
+                    logger.warning(f"Security will be reinitialized after migration")
+                    security_needs_reinit = True
+                # Never migrate .opendistro_security - always reinit instead
+                continue
+            
+            # Include all other indices (including system indices starting with .)
             if self.is_1x_index(index):
                 indices_1x.append(index)
         
         logger.info(f"Found {len(indices_1x)} indices created in OpenSearch 1.x: {indices_1x}")
-        return indices_1x
+        if security_needs_reinit:
+            logger.info(f"Security index needs reinitialization (will be performed after migration)")
+        
+        return indices_1x, security_needs_reinit
     
     def get_cluster_stats(self) -> Dict:
         """Get cluster statistics including disk usage"""
@@ -420,9 +432,12 @@ class IndexMigrator:
         except Exception as e:
             raise MigrationError(f"Failed to reindex from '{source}' to '{dest}': {str(e)}")
     
-    def migrate_index(self, index: str):
+    def migrate_index(self, index: str, is_system_index: bool = False):
         """
         Migrate a single index from 1.x to 2.x/3.x format
+        
+        For system indices: If migration fails, delete the index (it will be recreated)
+        For user indices: Fail immediately on error
         
         Process:
         1. Close the index
@@ -431,17 +446,18 @@ class IndexMigrator:
         4. Delete original index
         5. Reindex back to original name (creates with new format)
         6. Delete temporary index
-        7. Open the index
         """
         logger.info(f"=" * 80)
         logger.info(f"Starting migration for index: '{index}'")
+        if is_system_index:
+            logger.info(f"Note: This is a system index (will be deleted if migration fails)")
         logger.info(f"=" * 80)
         
         migration_index = f"{index}{MIGRATION_SUFFIX}"
         
         try:
-            # Step 1: Get mappings and settings before closing
-            logger.info(f"[1/8] Fetching mappings and settings for '{index}'...")
+            # Step 1: Get mappings and settings before operations
+            logger.info(f"[1/9] Fetching mappings and settings for '{index}'...")
             mappings_response = self.get_index_mappings(index)
             mappings = mappings_response.get(index, {}).get('mappings', {})
             
@@ -456,50 +472,69 @@ class IndexMigrator:
             
             logger.info(f"      Retrieved mappings and settings successfully")
             
-            # Step 2: Check if migration index already exists (idempotency)
-            if self.index_exists(migration_index):
-                logger.warning(f"      Migration index '{migration_index}' already exists - cleaning up from previous run")
-                self.delete_index(migration_index)
-            
-            # Step 3: Reindex to migration index
-            logger.info(f"[2/8] Reindexing '{index}' to temporary index '{migration_index}'...")
-            self.reindex(index, migration_index)
-            
-            # Step 4: Close original index
-            logger.info(f"[3/8] Closing original index '{index}'...")
+            # Step 2: Close original index BEFORE reindexing
+            logger.info(f"[2/9] Closing original index '{index}'...")
             self.close_index(index)
             
-            # Step 5: Delete original index
-            logger.info(f"[4/8] Deleting original index '{index}'...")
+            # Step 3: Reopen for reindexing (must be open for reindex source)
+            logger.info(f"[3/9] Reopening '{index}' for reindexing...")
+            self.open_index(index)
+            
+            # Step 4: Check if migration index already exists (idempotency)
+            if self.index_exists(migration_index):
+                logger.warning(f"[4/9] Migration index '{migration_index}' already exists - cleaning up from previous run")
+                self.delete_index(migration_index)
+            else:
+                logger.info(f"[4/9] Migration index '{migration_index}' does not exist (expected)")
+            
+            # Step 5: Reindex to migration index
+            logger.info(f"[5/9] Reindexing '{index}' to temporary index '{migration_index}'...")
+            self.reindex(index, migration_index)
+            
+            # Step 6: Delete original index
+            logger.info(f"[6/9] Deleting original index '{index}'...")
+            self.close_index(index)  # Close before delete
             self.delete_index(index)
             
-            # Step 6: Create new index with proper mappings (if mappings exist)
+            # Step 7: Create new index with proper mappings if they exist
             if mappings:
-                logger.info(f"[5/8] Creating '{index}' with preserved mappings...")
+                logger.info(f"[7/9] Creating '{index}' with preserved mappings...")
                 # Remove any version-specific fields from mappings
                 clean_mappings = self._clean_mappings(mappings)
                 self.create_index_with_mappings(index, clean_mappings, {'index': preserved_settings} if preserved_settings else None)
+            else:
+                logger.info(f"[7/9] No mappings to preserve, index will be created during reindex")
             
-            # Step 7: Reindex back to original name
-            logger.info(f"[6/8] Reindexing from temporary index '{migration_index}' back to '{index}'...")
+            # Step 8: Reindex back to original name
+            logger.info(f"[8/9] Reindexing from temporary index '{migration_index}' back to '{index}'...")
             self.reindex(migration_index, index)
             
-            # Step 8: Delete migration index
-            logger.info(f"[7/8] Deleting temporary migration index '{migration_index}'...")
+            # Step 9: Delete migration index
+            logger.info(f"[9/9] Deleting temporary migration index '{migration_index}'...")
             self.delete_index(migration_index)
-            
-            # Step 9: Open the index
-            logger.info(f"[8/8] Opening migrated index '{index}'...")
-            self.open_index(index)
             
             logger.info(f"SUCCESS: Index '{index}' migrated successfully")
             logger.info(f"=" * 80)
             
         except Exception as e:
             logger.error(f"FAILED: Migration failed for index '{index}': {str(e)}")
-            # Attempt cleanup
-            self._cleanup_failed_migration(index, migration_index)
-            raise
+            
+            if is_system_index:
+                # For system indices, delete and let OpenSearch recreate them
+                logger.warning(f"System index '{index}' cannot be migrated - deleting it")
+                logger.warning(f"OpenSearch or plugins will recreate this index automatically")
+                try:
+                    # Try to cleanup and delete the original index
+                    self._cleanup_and_delete_system_index(index, migration_index)
+                    logger.info(f"SUCCESS: System index '{index}' deleted (will be recreated)")
+                    logger.info(f"=" * 80)
+                except Exception as cleanup_error:
+                    logger.error(f"Failed to delete system index '{index}': {str(cleanup_error)}")
+                    raise
+            else:
+                # For user indices, attempt cleanup and fail
+                self._cleanup_failed_migration(index, migration_index)
+                raise
     
     def _clean_mappings(self, mappings: Dict) -> Dict:
         """Remove version-specific fields from mappings"""
@@ -542,6 +577,32 @@ class IndexMigrator:
         except Exception as e:
             logger.error(f"Cleanup failed: {str(e)}")
             logger.error("Manual intervention may be required!")
+    
+    def _cleanup_and_delete_system_index(self, original: str, migration: str):
+        """Delete a system index that failed to migrate (it will be recreated automatically)"""
+        logger.info(f"Cleaning up failed system index migration for '{original}'...")
+        
+        try:
+            # Delete migration index if it exists
+            if self.index_exists(migration):
+                logger.info(f"Deleting migration index '{migration}'...")
+                self.delete_index(migration)
+            
+            # Delete original index if it exists
+            if self.index_exists(original):
+                logger.info(f"Deleting original index '{original}'...")
+                # Try to open it first in case it's closed
+                try:
+                    self.open_index(original)
+                except:
+                    pass
+                self.delete_index(original)
+            
+            logger.info(f"System index '{original}' deleted successfully")
+            
+        except Exception as e:
+            logger.error(f"Failed to delete system index '{original}': {str(e)}")
+            raise
 
 
 class SecurityManager:
@@ -643,9 +704,11 @@ class BackupManager:
         Create a backup before migration.
         Returns backup ID if successful, None otherwise.
         """
-        if not self.backup_url:
-            logger.info("Backup daemon not configured - skipping backup")
-            return None
+        if not self.backup_url or self.backup_url == 'http://localhost:8080':
+            # Check if we're actually running from curator pod (has credentials)
+            if not self.username or not self.password:
+                logger.info("Backup daemon not configured - skipping backup")
+                return None
         
         logger.info("Creating backup before migration...")
         
@@ -832,14 +895,18 @@ def main():
             logger.info(f"Target major version: {target_major}")
         
         # Step 1: Detect 1.x indices
-        indices_to_migrate = migrator.get_1x_indices()
+        indices_to_migrate, security_needs_reinit = migrator.get_1x_indices()
         
-        if not indices_to_migrate:
+        if not indices_to_migrate and not security_needs_reinit:
             logger.info("No OpenSearch 1.x indices found - migration not needed")
             logger.info("Migration completed successfully")
             return 0
         
-        logger.info(f"Found {len(indices_to_migrate)} indices requiring migration:")
+        if indices_to_migrate:
+            logger.info(f"Found {len(indices_to_migrate)} indices requiring migration:")
+        
+        if security_needs_reinit:
+            logger.info("Security index (.opendistro_security) needs reinitialization")
         
         # PRE-DEPLOY CHECK MODE: Check if upgrading from 2.x to 3.x with legacy indices
         if MIGRATION_MODE == 'pre-deploy-check':
@@ -850,13 +917,17 @@ def main():
             # Check if this is an upgrade from 2.x to 3.x
             is_2x_to_3x_upgrade = (current_major == 2 and target_major == 3)
             
-            if is_2x_to_3x_upgrade:
+            if is_2x_to_3x_upgrade and (indices_to_migrate or security_needs_reinit):
                 logger.error("=" * 80)
                 logger.error("MIGRATION REQUIRED BEFORE UPGRADE TO 3.x")
                 logger.error("=" * 80)
                 logger.error("")
-                logger.error(f"Found {len(indices_to_migrate)} legacy indices created in OpenSearch 1.x")
-                logger.error(f"Indices: {', '.join(indices_to_migrate)}")
+                if indices_to_migrate:
+                    logger.error(f"Found {len(indices_to_migrate)} legacy indices created in OpenSearch 1.x")
+                    logger.error(f"Indices: {', '.join(indices_to_migrate)}")
+                if security_needs_reinit:
+                    logger.error("Security index (.opendistro_security) was created in OpenSearch 1.x")
+                    logger.error("Security will be reinitialized automatically")
                 logger.error("")
                 logger.error("These indices MUST be migrated before upgrading to OpenSearch 3.x")
                 logger.error("")
@@ -885,7 +956,10 @@ def main():
         # NORMAL MIGRATION MODE (manual or automatic)
         if args.dry_run:
             logger.info("DRY RUN MODE - No changes will be made")
-            logger.info(f"Indices that would be migrated: {indices_to_migrate}")
+            if indices_to_migrate:
+                logger.info(f"Indices that would be migrated: {indices_to_migrate}")
+            if security_needs_reinit:
+                logger.info("Security would be reinitialized")
             return 0
         
         # Step 1: Create backup before migration
@@ -905,15 +979,16 @@ def main():
         else:
             logger.warning("Skipping backup creation (--skip-backup)")
         
-        # Step 2: Validate disk space
-        logger.info("")
-        logger.info("=" * 80)
-        logger.info("STEP 2: VALIDATING DISK SPACE")
-        logger.info("=" * 80)
-        if not args.skip_space_check:
-            migrator.validate_disk_space(indices_to_migrate)
-        else:
-            logger.warning("Skipping disk space validation (--skip-space-check)")
+        # Step 2: Validate disk space (only if there are indices to migrate)
+        if indices_to_migrate:
+            logger.info("")
+            logger.info("=" * 80)
+            logger.info("STEP 2: VALIDATING DISK SPACE")
+            logger.info("=" * 80)
+            if not args.skip_space_check:
+                migrator.validate_disk_space(indices_to_migrate)
+            else:
+                logger.warning("Skipping disk space validation (--skip-space-check)")
         
         # Step 3: Backup security configuration
         logger.info("")
@@ -926,36 +1001,49 @@ def main():
         else:
             logger.warning("Skipping security backup (--skip-security-backup)")
         
-        # Step 4: Migrate indices sequentially
-        logger.info("")
-        logger.info("=" * 80)
-        logger.info(f"STEP 4: MIGRATING {len(indices_to_migrate)} INDICES")
-        logger.info("=" * 80)
-        logger.info("")
+        # Step 4: Migrate indices sequentially (only if there are indices)
+        if indices_to_migrate:
+            logger.info("")
+            logger.info("=" * 80)
+            logger.info(f"STEP 4: MIGRATING {len(indices_to_migrate)} INDICES")
+            logger.info("=" * 80)
+            logger.info("")
+            
+            for i, index in enumerate(indices_to_migrate, 1):
+                logger.info(f"\n{'=' * 80}")
+                logger.info(f"MIGRATING INDEX {i}/{len(indices_to_migrate)}: {index}")
+                logger.info(f"{'=' * 80}")
+                is_system_index = index.startswith('.')
+                migrator.migrate_index(index, is_system_index=is_system_index)
+        else:
+            logger.info("")
+            logger.info("=" * 80)
+            logger.info("STEP 4: NO INDICES TO MIGRATE")
+            logger.info("=" * 80)
         
-        failed_indices = []
-        for i, index in enumerate(indices_to_migrate, 1):
-            logger.info(f"\n{'=' * 80}")
-            logger.info(f"MIGRATING INDEX {i}/{len(indices_to_migrate)}: {index}")
-            logger.info(f"{'=' * 80}")
-            try:
-                migrator.migrate_index(index)
-            except Exception as e:
-                logger.error(f"Failed to migrate index '{index}': {str(e)}")
-                failed_indices.append(index)
-                # Continue with next index instead of failing completely
-        
-        # Step 5: Reinitialize security
-        logger.info("")
-        logger.info("=" * 80)
-        logger.info("STEP 5: REINITIALIZING SECURITY CONFIGURATION")
-        logger.info("=" * 80)
-        if not args.skip_security_backup:
-            security_mgr = SecurityManager(client)
-            if not security_mgr.reinitialize_security():
-                logger.warning("Security reinitialization failed - manual intervention may be required")
+        # Step 5: Reinitialize security (always do this if security_needs_reinit OR if we migrated indices)
+        if security_needs_reinit or indices_to_migrate:
+            logger.info("")
+            logger.info("=" * 80)
+            logger.info("STEP 5: REINITIALIZING SECURITY CONFIGURATION")
+            logger.info("=" * 80)
+            if security_needs_reinit:
+                logger.info("Security index was created in 1.x - reinitialization REQUIRED")
+            if not args.skip_security_backup:
+                security_mgr = SecurityManager(client)
+                if not security_mgr.reinitialize_security():
+                    logger.error("Security reinitialization failed - this is a critical error!")
+                    if security_needs_reinit:
+                        logger.error("Security index MUST be reinitialized for OpenSearch 3.x compatibility")
+                        return 4  # Exit code 4 = security reinit failed
+                    else:
+                        logger.warning("Manual intervention may be required")
+                else:
+                    logger.info("Security reinitialization completed successfully")
             else:
-                logger.info("Security reinitialization completed successfully")
+                logger.warning("Skipping security reinitialization (--skip-security-backup)")
+                if security_needs_reinit:
+                    logger.error("WARNING: Security index needs reinitialization but it was skipped!")
         
         # Step 6: Restore DBaaS users
         logger.info("")
@@ -978,17 +1066,11 @@ def main():
         logger.info("=" * 80)
         if backup_id:
             logger.info(f"Backup ID: {backup_id}")
-        logger.info(f"Total indices processed: {len(indices_to_migrate)}")
-        logger.info(f"Successfully migrated: {len(indices_to_migrate) - len(failed_indices)}")
-        logger.info(f"Failed: {len(failed_indices)}")
-        
-        if failed_indices:
-            logger.error(f"Failed indices: {', '.join(failed_indices)}")
-            logger.error("Migration completed with errors")
-            logger.info("=" * 80)
-            return 1
-        
-        logger.info("Migration completed successfully - all indices migrated")
+        if indices_to_migrate:
+            logger.info(f"Total indices migrated: {len(indices_to_migrate)}")
+        if security_needs_reinit:
+            logger.info("Security reinitialized: YES (required for 1.x security index)")
+        logger.info("Migration completed successfully")
         logger.info("=" * 80)
         return 0
         
