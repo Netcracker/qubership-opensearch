@@ -59,7 +59,7 @@ Check OpenSearch Health via Curl
     Log    Output: ${health.stdout}    console=yes
     Should Be Equal As Strings    ${health.stdout}    ${status}
 
-*** Test Cases ***
+*** Test Cases *** 
 Change Password for User and Healthcheck Dbaas Pod
     [Tags]  dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2  credentials
     [Setup]  Save Original Secret
