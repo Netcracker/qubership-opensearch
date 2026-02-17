@@ -1436,3 +1436,55 @@ Restricted environment.
     {{- .Values.opensearch.master.persistence.size | default "1Gi" | toString -}}
   {{- end -}}
 {{- end -}}
+
+{{/*
+Get current OpenSearch version from StatefulSet.
+Returns version string (e.g., "2.18.0") or empty string if not found.
+*/}}
+{{- define "opensearch.currentVersion" -}}
+  {{- $currentStatefulSet := lookup "apps/v1" "StatefulSet" .Release.Namespace (include "master-nodes" .) -}}
+  {{- $currentImage := "" -}}
+  {{- if $currentStatefulSet -}}
+    {{- range $currentStatefulSet.spec.template.spec.containers -}}
+      {{- if or (eq .name "opensearch") (eq .name "opensearch-master") -}}
+        {{- $currentImage = .image -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- regexFind "[0-9]+\\.[0-9]+\\.[0-9]+" $currentImage -}}
+{{- end -}}
+
+{{/*
+Get target OpenSearch version from values.
+Returns version string (e.g., "3.1.0").
+*/}}
+{{- define "opensearch.targetVersion" -}}
+  {{- regexFind "[0-9]+\\.[0-9]+\\.[0-9]+" (include "opensearch.image" .) -}}
+{{- end -}}
+
+{{/*
+Check if migration should run based on current and target OpenSearch versions.
+Returns "true" if migration should run, empty string otherwise.
+Migration runs ONLY for upgrades when:
+- Current StatefulSet exists (not a fresh install)
+- Target version is 3.x
+- Current version is 2.x (docker-opensearch-2) OR has no digit (docker-opensearch)
+- Current version is NOT 3.x (docker-opensearch-3)
+*/}}
+{{- define "opensearch.shouldRunMigration" -}}
+  {{- $currentStatefulSet := lookup "apps/v1" "StatefulSet" .Release.Namespace (include "master-nodes" .) -}}
+  {{- if $currentStatefulSet -}}
+    {{- $currentVersion := include "opensearch.currentVersion" . -}}
+    {{- $currentMajor := 0 -}}
+    {{- if $currentVersion -}}
+      {{- $currentMajor = int (regexFind "^[0-9]+" $currentVersion) -}}
+    {{- end -}}
+    {{- $targetVersion := include "opensearch.targetVersion" . -}}
+    {{- $targetMajor := int (regexFind "^[0-9]+" $targetVersion) -}}
+    {{- if eq $targetMajor 3 -}}
+      {{- if and (ne $currentMajor 3) (or (eq $currentMajor 0) (eq $currentMajor 2)) -}}
+        {{- printf "true" -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}

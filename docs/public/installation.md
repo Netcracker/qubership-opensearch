@@ -2002,6 +2002,82 @@ There are the following breaking changes:
 
 **Important**: A minio version from 2025-01-20 is required. [Support AWS S3 new checksums](https://github.com/minio/minio/issues/20845#issuecomment-2604259537)
 
+### Migrating Legacy Indices
+
+If you have indices that were created in OpenSearch 1.x, they need to be reindexed after upgrading to OpenSearch 2.x or 3.x. These legacy indices may cause compatibility issues or performance degradation.
+
+#### Detection
+
+Legacy indices are automatically detected by:
+
+1. **Prometheus Alert**: `OpenSearchLegacyIndicesDetected` - fires when indices with version 1.x are found (see [Alerts](alerts.md#opensearchlegacyindicesdetectedalert))
+2. **Grafana Dashboard**: **OpenSearch Indices** dashboard shows a panel with indices grouped by OpenSearch version
+
+#### Migration Options
+
+You can migrate legacy indices in two ways:
+
+##### Option 1: Manual Migration (Recommended)
+
+**Recommended for production environments** - provides better control over timing and monitoring.
+
+1. **Access the curator pod**:
+   ```bash
+   kubectl exec -it <curator-pod-name> -n opensearch -- /bin/bash
+   ```
+
+2. **Run the migration script**:
+   ```bash
+   # Dry run first to see what will be migrated
+   python3 /opt/elasticsearch-curator/migrate_opensearch_1x_indices.py --dry-run
+   
+   # Run actual migration
+   python3 /opt/elasticsearch-curator/migrate_opensearch_1x_indices.py
+   ```
+
+##### Option 2: Automatic Migration via Helm Hook
+
+Enable automatic migration in your values file:
+
+```yaml
+migration:
+  enabled: true  # Automatically migrate during upgrade
+```
+
+Then upgrade to OpenSearch 3.x:
+
+```bash
+helm upgrade opensearch ./opensearch-service -f values.yaml -n opensearch --wait
+```
+
+**Important Notes**:
+- **Pre-deploy check always runs** for OpenSearch 3.x deployments
+- With `migration.enabled: false` (default): The pre-deploy job checks for legacy indices and **FAILS the upgrade** if upgrading from 2.x→3.x with legacy indices present
+- With `migration.enabled: true`: The pre-deploy job performs automatic migration
+- Manual migration is recommended for production environments
+
+##### Upgrade Protection
+
+By default (`migration.enabled: false`), the pre-deploy job acts as a safety check:
+- The migration job **only runs when upgrading to OpenSearch 3.x** (not for fresh installations)
+- Detects current version from existing StatefulSet image
+- If upgrading from OpenSearch 2.x (or older) to 3.x with legacy indices: **Upgrade fails** with clear instructions to migrate manually first
+- This prevents accidentally upgrading with incompatible indices
+- To bypass: Either migrate manually first OR set `migration.enabled: true`
+
+> **Note**: The migration job will NOT run for fresh installations of OpenSearch 3.x, only for upgrades from 2.x or earlier versions.
+
+For detailed instructions, troubleshooting, and best practices, refer to [Migrating Legacy Indices](migration-indices.md).
+
+#### Prerequisites for Migration
+
+Before running the migration:
+
+- Verify sufficient disk space (requires 2x the size of the largest index)
+- Plan for a maintenance window (migration time depends on index size)
+- Take a snapshot of your data as a backup
+- Check the Grafana dashboard to see which indices need migration
+
 ### Migration to OpenSearch 2.x (OpenSearch Service 1.x.x)
 
 There are the following breaking changes:

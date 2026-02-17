@@ -30,6 +30,9 @@ RUN set -x \
 
 RUN chmod +x ${ELASTICSEARCH_CURATOR_HOME}/*
 
+# Make migration script executable
+RUN chmod +x ${ELASTICSEARCH_CURATOR_HOME}/migrate_opensearch_1x_indices.py
+
 # Upgrade tools from edge to avoid vulnerabilities
 RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
     && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \

@@ -1,0 +1,120 @@
+{{ if and (not .Values.global.externalOpensearch.enabled) (eq (include "opensearch.shouldRunMigration" .) "true") }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "opensearch.fullname" . }}-migration-1x
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    name: {{ template "opensearch.fullname" . }}-migration-1x
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-migration-1x
+    app.kubernetes.io/instance: {{ cat (printf "%s-migration-1x"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+    component: migration
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      name: {{ template "opensearch.fullname" . }}-migration-1x
+      labels:
+{{ include "opensearch.labels.standard" . | indent 8 }}
+        name: {{ template "opensearch.fullname" . }}-migration-1x
+        app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-migration-1x
+        component: migration
+    spec:
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+      {{ toYaml .Values.global.imagePullSecrets | indent 8 }}
+      {{- end }}
+      restartPolicy: Never
+      serviceAccountName: {{ template "opensearch.fullname" . }}-migration
+      securityContext:
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+      containers:
+        - name: migration
+          image: {{ template "curator.image" . }}
+          imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
+          command:
+            - "python3"
+            - "/opt/elasticsearch-curator/migrate_opensearch_1x_indices.py"
+          {{- if not .Values.migration.enabled }}
+          # migration.enabled is false - run in check mode only
+          # This will fail if upgrading from 2.x to 3.x with legacy indices
+          args: []
+          {{- else if .Values.migration.args }}
+          # migration.enabled is true - run with user-specified args
+          args:
+            {{- toYaml .Values.migration.args | nindent 12 }}
+          {{- else }}
+          # migration.enabled is true - run migration (no extra args)
+          args: []
+          {{- end }}
+          env:
+            # Use same env vars as curator deployment
+            - name: ES_HOST
+              value: {{ default (printf "%s-internal:9200" (include "opensearch.fullname" .)) (.Values.global.externalOpensearch.enabled | ternary (printf "%s:%s" (include "external.opensearch-host" .) (include "external.opensearch-port" .)) .Values.curator.opensearchHost) }}
+            - name: ES_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-secret
+                  key: username
+            - name: ES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-secret
+                  key: password
+            - name: TLS_HTTP_ENABLED
+              value: "{{ or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}"
+            {{- if not .Values.migration.enabled }}
+            # Run in check mode if migration.enabled is false
+            - name: MIGRATION_MODE
+              value: "pre-deploy-check"
+            {{- else }}
+            # Run in migration mode if migration.enabled is true
+            - name: MIGRATION_MODE
+              value: "migration"
+            {{- end }}
+            - name: TARGET_OPENSEARCH_VERSION
+              value: {{ include "opensearch.targetVersion" . | quote }}
+            - name: CURRENT_OPENSEARCH_VERSION
+              value: {{ include "opensearch.currentVersion" . | quote }}
+            {{- if eq (include "dbaas.enabled" .) "true" }}
+            # DBaaS integration - use same env vars as curator
+            - name: DBAAS_ADAPTER_ADDRESS
+              value: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (include "dbaas-adapter.address" .) }}
+            - name: DBAAS_ADAPTER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+            - name: DBAAS_ADAPTER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+            {{- end }}
+            # Kubernetes context for security operations
+            - name: OPENSEARCH_SECURITY_ADMIN_PATH
+              value: "/usr/share/opensearch/plugins/opensearch-security/tools/securityadmin.sh"
+            - name: OPENSEARCH_SECURITY_CONFIG_PATH
+              value: "/usr/share/opensearch/config/opensearch-security"
+            - name: OPENSEARCH_CONFIG_PATH
+              value: "/usr/share/opensearch/config"
+            - name: OPENSEARCH_POD_NAME
+              value: {{ printf "%s-0" (include "master-nodes" .) | quote }}
+            - name: OPENSEARCH_NAMESPACE
+              value: {{ .Release.Namespace | quote }}
+          resources:
+            requests:
+              memory: {{ default "256Mi" .Values.migration.resources.requests.memory }}
+              cpu: {{ default "100m" .Values.migration.resources.requests.cpu }}
+            limits:
+              memory: {{ default "512Mi" .Values.migration.resources.limits.memory }}
+              cpu: {{ default "500m" .Values.migration.resources.limits.cpu }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
+{{- end }}

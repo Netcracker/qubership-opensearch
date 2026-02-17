@@ -1203,3 +1203,30 @@ ARTIFACT_DESCRIPTOR_VERSION: ""  # TO_BE_REPLACED
 INFRA_RESTRICTED_ENVIRONMENT: "false"
 
 DEPLOY_W_HELM: "true"
+
+# Migration settings for OpenSearch 1.x indices (OpenSearch 3.x only)
+# The migration job ALWAYS runs as a pre-deploy hook to check for legacy indices
+migration:
+  # When enabled: Automatically migrates legacy indices during upgrade
+  # When disabled: Only checks for legacy indices and FAILS upgrade if found during 2.x -> 3.x upgrade
+  #               (forces manual migration first)
+  enabled: false
+  
+  # Migration command-line arguments (only used when enabled=true)
+  args: []
+  # Example:
+  # args:
+  #   - "--dry-run"  # Test without making changes
+  #   - "--skip-space-check"  # Skip disk space validation (not recommended)
+  #   - "--skip-security-backup"  # Skip security backup
+  #   - "--skip-dbaas-restore"  # Skip DBaaS user restoration
+  
+  # Resource limits for migration job
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+

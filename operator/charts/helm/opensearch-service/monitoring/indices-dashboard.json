@@ -176,6 +176,158 @@
       "type": "table"
     },
     {
+      "datasource": {
+        "uid": "$datasource"
+      },
+      "description": "Count of indices grouped by OpenSearch version. Indices created in OpenSearch 1.x should be migrated.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Version 1.x (Legacy)"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "id": 12,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "11.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "count by (version_created) (opensearch_indices_stats_index_settings_index_version_created{namespace=\"$namespace\",cluster=\"$cluster\"} < 136000000)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "Version 1.x",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "count by (version_created) (opensearch_indices_stats_index_settings_index_version_created{namespace=\"$namespace\",cluster=\"$cluster\"} >= 136000000 and opensearch_indices_stats_index_settings_index_version_created{namespace=\"$namespace\",cluster=\"$cluster\"} < 137000000)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "Version 2.x",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "count by (version_created) (opensearch_indices_stats_index_settings_index_version_created{namespace=\"$namespace\",cluster=\"$cluster\"} >= 137000000)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "Version 3.x",
+          "refId": "C"
+        }
+      ],
+      "title": "Indices by OpenSearch Version",
+      "transformations": [
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "version_created"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "version_created": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "Value #A": "Version 1.x (Legacy)",
+              "Value #B": "Version 2.x",
+              "Value #C": "Version 3.x"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
       "collapsed": false,
       "datasource": {
         "uid": "$datasource"
@@ -184,7 +336,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 14
       },
       "id": 10,
       "panels": [],
@@ -265,7 +417,7 @@
         "h": 5,
         "w": 12,
         "x": 0,
-        "y": 12
+        "y": 15
       },
       "id": 11,
       "interval": "$inter",

@@ -271,6 +271,63 @@ OpenSearch DBaaS adapter is not working.
 1. Correct the OpenSearch DBaaS adapter configuration parameters.
 2. Investigate problems with the OpenSearch.
 
+## OpenSearchLegacyIndicesDetectedAlert
+
+### Description
+
+OpenSearch cluster contains indices that were created in OpenSearch 1.x version. These legacy indices should be migrated to ensure compatibility and optimal performance with OpenSearch 2.x/3.x.
+
+For more information, refer to [Migrating Legacy Indices](migration-indices.md).
+
+### Possible Causes
+
+- Cluster was upgraded from OpenSearch 1.x to 2.x or 3.x
+- Indices created before upgrade have not been reindexed
+- Migration script has not been executed
+
+### Impact
+
+- Legacy indices may have compatibility issues
+- Potential performance degradation
+- Some features may not work correctly with 1.x format indices
+
+### Actions for Investigation
+
+1. Check which indices are affected in the **OpenSearch Indices** Grafana dashboard:
+   - Look at the **Indices by OpenSearch Version** panel
+   - Identify indices marked as "Version 1.x (Legacy)"
+
+2. Verify index versions using OpenSearch API:
+   ```sh
+   curl -X GET 'http://localhost:9200/_cat/indices?v&h=index,creation.date.string'
+   ```
+
+3. Check available disk space before migration (requires 2x largest index size):
+   ```sh
+   curl -X GET 'http://localhost:9200/_cat/allocation?v'
+   ```
+
+### Recommended Actions to Resolve Issue
+
+1. **Plan Migration Window**: Schedule migration during low-traffic period
+2. **Backup Data**: Take a snapshot before starting migration
+3. **Run Migration**: Execute the migration script from curator pod:
+   ```sh
+   # Access curator pod
+   kubectl exec -it <curator-pod-name> -n opensearch -- /bin/bash
+   
+   # Test with dry-run first
+   python3 /opt/elasticsearch-curator/migrate_opensearch_1x_indices.py --dry-run
+   
+   # Run actual migration
+   python3 /opt/elasticsearch-curator/migrate_opensearch_1x_indices.py
+   ```
+
+4. **Monitor Progress**: Watch migration logs and cluster health
+5. **Verify Results**: Check Grafana dashboard to confirm indices are migrated
+
+For detailed migration instructions, troubleshooting, and best practices, refer to [Migrating Legacy Indices](migration-indices.md).
+
 ## OpenSearchLastBackupHasFailedAlert
 
 ### Description

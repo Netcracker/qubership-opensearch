@@ -36,6 +36,7 @@ spec:
       imagePullSecrets:
       {{ toYaml .Values.global.imagePullSecrets | indent 8 }}
       {{- end }}
+      serviceAccountName: {{ template "opensearch.fullname" . }}-curator
       containers:
         - env:
             - name: NAMESPACE
