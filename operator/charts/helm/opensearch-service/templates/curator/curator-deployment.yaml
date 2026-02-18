@@ -129,10 +129,19 @@ spec:
                 secretKeyRef:
                   name: {{ template "opensearch.fullname" . }}-curator-secret
                   key: password
-            - name: OPENSEARCH_POD_NAME
-              value: {{ printf "%s-0" (include "master-nodes" .) | quote }}
             - name: OPENSEARCH_NAMESPACE
               value: {{ .Release.Namespace | quote }}
+            # Security reinit via plugins.security.disabled (no TLS / securityadmin required)
+            - name: OPENSEARCH_CONFIG_SECRET_NAME
+              value: {{ printf "%s-config" (include "opensearch.fullname" .) | quote }}
+            - name: OPENSEARCH_STATEFULSET_NAMES
+              value: {{ include "opensearch.statefulsetNames" . | quote }}
+            - name: OPENSEARCH_DEPLOYMENT_NAMES
+              {{- if and .Values.opensearch.client.enabled .Values.opensearch.client.dedicatedPod.enabled }}
+              value: {{ printf "%s-client" (include "opensearch.fullname" .) | quote }}
+              {{- else }}
+              value: ""
+              {{- end }}
           image: {{ template "curator.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
           livenessProbe:

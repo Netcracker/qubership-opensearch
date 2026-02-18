@@ -10,14 +10,11 @@ metadata:
     app.kubernetes.io/instance: {{ cat (printf "%s-curator"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
   name: {{ template "opensearch.fullname" . }}-curator
 rules:
-  # Required for migration script to run securityadmin.sh
-  - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["get", "list"]
-  - apiGroups: [""]
-    resources: ["pods/exec"]
-    verbs: ["create"]
+  # Required for security reinitialization via plugins.security.disabled
   - apiGroups: [""]
     resources: ["secrets"]
-    verbs: ["get"]
+    verbs: ["get", "patch", "update"]
+  - apiGroups: ["apps"]
+    resources: ["statefulsets", "deployments"]
+    verbs: ["get", "patch", "update"]
 {{- end }}

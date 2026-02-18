@@ -94,16 +94,19 @@ spec:
                   name: {{ template "dbaas-adapter.name" . }}-secret
             {{- end }}
             # Kubernetes context for security operations
-            - name: OPENSEARCH_SECURITY_ADMIN_PATH
-              value: "/usr/share/opensearch/plugins/opensearch-security/tools/securityadmin.sh"
-            - name: OPENSEARCH_SECURITY_CONFIG_PATH
-              value: "/usr/share/opensearch/config/opensearch-security"
-            - name: OPENSEARCH_CONFIG_PATH
-              value: "/usr/share/opensearch/config"
-            - name: OPENSEARCH_POD_NAME
-              value: {{ printf "%s-0" (include "master-nodes" .) | quote }}
             - name: OPENSEARCH_NAMESPACE
               value: {{ .Release.Namespace | quote }}
+            # Security reinit via plugins.security.disabled (no TLS / securityadmin required)
+            - name: OPENSEARCH_CONFIG_SECRET_NAME
+              value: {{ printf "%s-config" (include "opensearch.fullname" .) | quote }}
+            - name: OPENSEARCH_STATEFULSET_NAMES
+              value: {{ include "opensearch.statefulsetNames" . | quote }}
+            - name: OPENSEARCH_DEPLOYMENT_NAMES
+              {{- if and .Values.opensearch.client.enabled .Values.opensearch.client.dedicatedPod.enabled }}
+              value: {{ printf "%s-client" (include "opensearch.fullname" .) | quote }}
+              {{- else }}
+              value: ""
+              {{- end }}
             {{- if .Values.curator.enabled }}
             # Backup daemon integration (same as curator)
             - name: BACKUP_DAEMON_URL

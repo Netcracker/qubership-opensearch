@@ -29,12 +29,13 @@ Features:
 """
 
 import argparse
+import base64
 import json
 import logging
 import os
 import sys
 import time
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional, Tuple
 import subprocess
 import requests
 from requests.auth import HTTPBasicAuth
@@ -67,13 +68,11 @@ BACKUP_DAEMON_API_CREDENTIALS_PASSWORD = os.environ.get('BACKUP_DAEMON_API_CREDE
 
 # Pre-deploy job configuration
 MIGRATION_MODE = os.environ.get('MIGRATION_MODE', 'manual')  # 'manual', 'migration', or 'pre-deploy-check'
-OPENSEARCH_SECURITY_ADMIN_PATH = os.environ.get('OPENSEARCH_SECURITY_ADMIN_PATH', 
-                                                '/usr/share/opensearch/plugins/opensearch-security/tools/securityadmin.sh')
-OPENSEARCH_SECURITY_CONFIG_PATH = os.environ.get('OPENSEARCH_SECURITY_CONFIG_PATH',
-                                                 '/usr/share/opensearch/config/opensearch-security')
-OPENSEARCH_CONFIG_PATH = os.environ.get('OPENSEARCH_CONFIG_PATH', '/usr/share/opensearch/config')
-OPENSEARCH_POD_NAME = os.environ.get('OPENSEARCH_POD_NAME', 'opensearch-0')  # Default to opensearch-0
 OPENSEARCH_NAMESPACE = os.environ.get('OPENSEARCH_NAMESPACE', os.environ.get('NAMESPACE'))
+# For security reinit via plugins.security.disabled (does not require TLS / securityadmin.sh)
+OPENSEARCH_CONFIG_SECRET_NAME = os.environ.get('OPENSEARCH_CONFIG_SECRET_NAME', '')
+OPENSEARCH_STATEFULSET_NAMES = os.environ.get('OPENSEARCH_STATEFULSET_NAMES', '')   # comma-separated
+OPENSEARCH_DEPLOYMENT_NAMES = os.environ.get('OPENSEARCH_DEPLOYMENT_NAMES', '')     # comma-separated
 
 # Constants
 MIGRATION_SUFFIX = '-migration'
@@ -83,6 +82,10 @@ USERS_RECOVERY_RUNNING_STATE = 'running'
 USERS_RECOVERY_IDLE_STATE = 'idle'
 DBAAS_TIMEOUT = 240
 DBAAS_INTERVAL = 10
+CLUSTER_READY_TIMEOUT = 600   # seconds to wait for cluster green + API
+CLUSTER_READY_INTERVAL = 15   # poll interval
+SECURITY_DISABLED_LINE = 'plugins.security.disabled: true'
+OPENDISTRO_SECURITY_INDEX = '.opendistro_security'
 
 # Configure logging
 logging.basicConfig(
@@ -642,85 +645,264 @@ class IndexMigrator:
             raise
 
 
-class SecurityManager:
-    """Manages OpenSearch security configuration"""
-    
+class SecurityReinitViaDisable:
+    """
+    Reinitialize the OpenSearch security plugin without securityadmin.sh / TLS.
+
+    Full flow
+    ---------
+    1. Append ``plugins.security.disabled: true`` to opensearch.yml in the
+       opensearch-config Kubernetes Secret.
+    2. Rolling-restart every OpenSearch StatefulSet and Deployment so all pods
+       pick up the new config (security plugin is now bypassed).
+    3. Wait until the cluster reports green status and the REST API is reachable
+       (no authentication required while security is disabled).
+    4. DELETE the ``.opendistro_security`` index so it will be freshly created
+       on the next boot.
+    5. Remove ``plugins.security.disabled: true`` from the secret.
+    6. Rolling-restart all pods again so they come up with security enabled.
+    7. Wait until the cluster is green and the REST API is reachable *with*
+       authentication (security plugin initialised a fresh security index).
+    """
+
     def __init__(self, client: OpenSearchClient):
         self.client = client
-    
-    def backup_security_config(self) -> bool:
-        """Backup security configuration using securityadmin tool via kubectl exec"""
-        logger.info("Backing up OpenSearch security configuration...")
-        
-        if not OPENSEARCH_POD_NAME:
-            logger.warning("OPENSEARCH_POD_NAME not set - skipping security backup")
-            return False
-        
+
+    # ------------------------------------------------------------------
+    # Low-level kubectl helpers
+    # ------------------------------------------------------------------
+
+    def _kubectl(self, args: List[str], check: bool = True) -> subprocess.CompletedProcess:
+        ns = OPENSEARCH_NAMESPACE or 'default'
+        cmd = ['kubectl', '-n', ns] + args
+        return subprocess.run(cmd, capture_output=True, text=True, check=check)
+
+    # ------------------------------------------------------------------
+    # Secret helpers
+    # ------------------------------------------------------------------
+
+    def _get_opensearch_yml(self) -> Optional[str]:
+        """Read and base64-decode the opensearch.yml key from the config secret."""
+        if not OPENSEARCH_CONFIG_SECRET_NAME or not OPENSEARCH_NAMESPACE:
+            logger.error("OPENSEARCH_CONFIG_SECRET_NAME / OPENSEARCH_NAMESPACE must be set")
+            return None
         try:
-            backup_dir = f"{OPENSEARCH_SECURITY_CONFIG_PATH}/migration-backup"
-            
-            # Create backup directory
-            cmd_mkdir = [
-                'kubectl', 'exec', '-n', OPENSEARCH_NAMESPACE, OPENSEARCH_POD_NAME, 
-                '--', 'mkdir', '-p', backup_dir
-            ]
-            subprocess.run(cmd_mkdir, check=True, capture_output=True)
-            
-            # Run securityadmin backup
-            cmd_backup = [
-                'kubectl', 'exec', '-n', OPENSEARCH_NAMESPACE, OPENSEARCH_POD_NAME, '--',
-                OPENSEARCH_SECURITY_ADMIN_PATH,
-                '-backup', backup_dir,
-                '-cert', f'{OPENSEARCH_CONFIG_PATH}/admin-crt.pem',
-                '-cacert', f'{OPENSEARCH_CONFIG_PATH}/admin-root-ca.pem',
-                '-key', f'{OPENSEARCH_CONFIG_PATH}/admin-key.pem',
-                '-h', 'localhost'
-            ]
-            
-            result = subprocess.run(cmd_backup, check=True, capture_output=True, text=True)
-            logger.info(f"✓ Security configuration backed up to {backup_dir}")
-            logger.debug(f"Backup output: {result.stdout}")
+            result = self._kubectl([
+                'get', 'secret', OPENSEARCH_CONFIG_SECRET_NAME,
+                '-o', r'jsonpath={.data.opensearch\.yml}'
+            ])
+            if result.returncode != 0 or not result.stdout.strip():
+                logger.error(f"Cannot read opensearch.yml from secret: {result.stderr}")
+                return None
+            return base64.b64decode(result.stdout.strip()).decode('utf-8', errors='replace')
+        except Exception as e:
+            logger.error(f"Failed to read opensearch.yml from secret: {e}")
+            return None
+
+    def _patch_opensearch_yml(self, content: str) -> bool:
+        """Base64-encode *content* and write it back to the config secret."""
+        if not OPENSEARCH_CONFIG_SECRET_NAME or not OPENSEARCH_NAMESPACE:
+            return False
+        try:
+            b64 = base64.b64encode(content.encode('utf-8')).decode('ascii')
+            patch = json.dumps({'data': {'opensearch.yml': b64}})
+            result = self._kubectl([
+                'patch', 'secret', OPENSEARCH_CONFIG_SECRET_NAME,
+                '--type', 'merge', '-p', patch,
+            ])
+            if result.returncode != 0:
+                logger.error(f"Failed to patch secret: {result.stderr}")
+                return False
             return True
-            
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to backup security configuration: {e.stderr}")
+        except Exception as e:
+            logger.error(f"Failed to patch secret: {e}")
+            return False
+
+    def _add_security_disabled(self) -> bool:
+        """Append ``plugins.security.disabled: true`` to opensearch.yml in the secret."""
+        content = self._get_opensearch_yml()
+        if content is None:
+            return False
+        if SECURITY_DISABLED_LINE in content:
+            logger.info("plugins.security.disabled: true already present — nothing to add")
+            return True
+        new_content = content.rstrip('\n') + '\n' + SECURITY_DISABLED_LINE + '\n'
+        logger.info(f"Adding '{SECURITY_DISABLED_LINE}' to opensearch.yml in secret "
+                    f"'{OPENSEARCH_CONFIG_SECRET_NAME}'")
+        return self._patch_opensearch_yml(new_content)
+
+    def _remove_security_disabled(self) -> bool:
+        """Remove ``plugins.security.disabled: true`` from opensearch.yml in the secret."""
+        content = self._get_opensearch_yml()
+        if content is None:
+            return False
+        lines = [ln for ln in content.splitlines() if ln.strip() != SECURITY_DISABLED_LINE]
+        new_content = '\n'.join(lines)
+        if new_content and not new_content.endswith('\n'):
+            new_content += '\n'
+        logger.info(f"Removing '{SECURITY_DISABLED_LINE}' from opensearch.yml in secret "
+                    f"'{OPENSEARCH_CONFIG_SECRET_NAME}'")
+        return self._patch_opensearch_yml(new_content)
+
+    # ------------------------------------------------------------------
+    # Pod restart helpers
+    # ------------------------------------------------------------------
+
+    def _restart_opensearch_workloads(self) -> bool:
+        """Issue ``kubectl rollout restart`` for every configured workload."""
+        ok = True
+        sts_names = [n.strip() for n in OPENSEARCH_STATEFULSET_NAMES.split(',') if n.strip()]
+        dep_names = [n.strip() for n in OPENSEARCH_DEPLOYMENT_NAMES.split(',') if n.strip()]
+        if not sts_names and not dep_names:
+            logger.error(
+                "Neither OPENSEARCH_STATEFULSET_NAMES nor OPENSEARCH_DEPLOYMENT_NAMES is set; "
+                "cannot restart pods"
+            )
+            return False
+        for name in sts_names:
+            try:
+                result = self._kubectl(['rollout', 'restart', f'statefulset/{name}'])
+                if result.returncode != 0:
+                    logger.error(f"Failed to restart statefulset/{name}: {result.stderr}")
+                    ok = False
+                else:
+                    logger.info(f"✓ rollout restart triggered for statefulset/{name}")
+            except Exception as e:
+                logger.error(f"Error restarting statefulset/{name}: {e}")
+                ok = False
+        for name in dep_names:
+            try:
+                result = self._kubectl(['rollout', 'restart', f'deployment/{name}'])
+                if result.returncode != 0:
+                    logger.error(f"Failed to restart deployment/{name}: {result.stderr}")
+                    ok = False
+                else:
+                    logger.info(f"✓ rollout restart triggered for deployment/{name}")
+            except Exception as e:
+                logger.error(f"Error restarting deployment/{name}: {e}")
+                ok = False
+        return ok
+
+    # ------------------------------------------------------------------
+    # Cluster readiness helpers
+    # ------------------------------------------------------------------
+
+    def _wait_for_cluster_ready(self, use_auth: bool,
+                                timeout: int = CLUSTER_READY_TIMEOUT) -> bool:
+        """
+        Poll until the cluster reports green health AND the root API responds.
+        When *use_auth* is False the security plugin is disabled and no
+        credentials are required.  When True, authenticate with the configured
+        admin user.
+        """
+        session = requests.Session()
+        session.verify = False
+        requests.packages.urllib3.disable_warnings()
+        if use_auth:
+            session.auth = HTTPBasicAuth(ES_USERNAME, ES_PASSWORD)
+
+        auth_label = "with auth" if use_auth else "no auth (security disabled)"
+        logger.info(f"Waiting for cluster green + API ready ({auth_label}), "
+                    f"timeout={timeout}s …")
+
+        deadline = time.time() + timeout
+        attempt = 0
+        while time.time() < deadline:
+            attempt += 1
+            try:
+                # Wait up to 5 s on the server side for green before returning
+                health_url = (f"{OPENSEARCH_ENDPOINT}/_cluster/health"
+                              f"?wait_for_status=green&timeout=5s")
+                r = session.get(health_url, timeout=15)
+                if r.status_code == 200 and r.json().get('status') == 'green':
+                    # Additionally verify the root endpoint
+                    r2 = session.get(OPENSEARCH_ENDPOINT, timeout=10)
+                    if r2.status_code == 200:
+                        logger.info(f"✓ Cluster is green and API is reachable "
+                                    f"(attempt {attempt})")
+                        return True
+            except Exception as e:
+                logger.debug(f"Cluster not ready yet (attempt {attempt}): {e}")
+            time.sleep(CLUSTER_READY_INTERVAL)
+
+        logger.error(f"Timeout ({timeout}s) waiting for cluster to become ready")
+        return False
+
+    # ------------------------------------------------------------------
+    # Index delete (without auth — called while security is disabled)
+    # ------------------------------------------------------------------
+
+    def _delete_security_index(self) -> bool:
+        """DELETE .opendistro_security index while the security plugin is disabled."""
+        session = requests.Session()
+        session.verify = False
+        requests.packages.urllib3.disable_warnings()
+        url = f"{OPENSEARCH_ENDPOINT}/{OPENDISTRO_SECURITY_INDEX}"
+        try:
+            r = session.delete(url, timeout=60)
+            if r.status_code in (200, 404):
+                logger.info(f"✓ Index '{OPENDISTRO_SECURITY_INDEX}' deleted "
+                            f"(HTTP {r.status_code})")
+                return True
+            logger.error(f"Failed to delete '{OPENDISTRO_SECURITY_INDEX}': "
+                         f"HTTP {r.status_code} — {r.text}")
             return False
         except Exception as e:
-            logger.error(f"Failed to backup security configuration: {str(e)}")
+            logger.error(f"Failed to delete '{OPENDISTRO_SECURITY_INDEX}': {e}")
             return False
-    
-    def reinitialize_security(self) -> bool:
-        """Reinitialize security configuration using securityadmin tool"""
-        logger.info("Reinitializing OpenSearch security...")
-        
-        if not OPENSEARCH_POD_NAME:
-            logger.warning("OPENSEARCH_POD_NAME not set - skipping security reinitialization")
+
+    # ------------------------------------------------------------------
+    # Main orchestrator
+    # ------------------------------------------------------------------
+
+    def reinitialize(self) -> bool:
+        """Execute the full 7-step security reinitialization flow."""
+        if not OPENSEARCH_CONFIG_SECRET_NAME or not OPENSEARCH_NAMESPACE:
+            logger.error(
+                "OPENSEARCH_CONFIG_SECRET_NAME and OPENSEARCH_NAMESPACE are required "
+                "for security reinitialization via disable"
+            )
             return False
-        
-        try:
-            # Run securityadmin to reinitialize
-            cmd = [
-                'kubectl', 'exec', '-n', OPENSEARCH_NAMESPACE, OPENSEARCH_POD_NAME, '--',
-                OPENSEARCH_SECURITY_ADMIN_PATH,
-                '-cd', OPENSEARCH_SECURITY_CONFIG_PATH,
-                '-cert', f'{OPENSEARCH_CONFIG_PATH}/admin-crt.pem',
-                '-cacert', f'{OPENSEARCH_CONFIG_PATH}/admin-root-ca.pem',
-                '-key', f'{OPENSEARCH_CONFIG_PATH}/admin-key.pem',
-                '-h', 'localhost',
-                '-icl', '-nhnv'
-            ]
-            
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-            logger.info("✓ Security configuration reinitialized")
-            logger.debug(f"Reinitialization output: {result.stdout}")
-            return True
-            
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to reinitialize security: {e.stderr}")
+
+        logger.info("Starting security reinitialization (via plugins.security.disabled)")
+
+        # 1 ── disable security plugin in config secret
+        logger.info("[1/7] Adding plugins.security.disabled: true to opensearch-config secret")
+        if not self._add_security_disabled():
             return False
-        except Exception as e:
-            logger.error(f"Failed to reinitialize security: {str(e)}")
+
+        # 2 ── restart all pods so they pick up the new config
+        logger.info("[2/7] Restarting OpenSearch pods (security disabled)")
+        if not self._restart_opensearch_workloads():
             return False
+
+        # 3 ── wait for cluster green (no auth needed while security is off)
+        logger.info("[3/7] Waiting for cluster green + API (no auth)")
+        if not self._wait_for_cluster_ready(use_auth=False):
+            return False
+
+        # 4 ── delete the stale security index
+        logger.info(f"[4/7] Deleting '{OPENDISTRO_SECURITY_INDEX}' index")
+        if not self._delete_security_index():
+            return False
+
+        # 5 ── re-enable security plugin
+        logger.info("[5/7] Removing plugins.security.disabled from opensearch-config secret")
+        if not self._remove_security_disabled():
+            return False
+
+        # 6 ── restart again so pods come up with security enabled
+        logger.info("[6/7] Restarting OpenSearch pods (security re-enabled)")
+        if not self._restart_opensearch_workloads():
+            return False
+
+        # 7 ── wait for cluster green (now with auth)
+        logger.info("[7/7] Waiting for cluster green + API (with auth)")
+        if not self._wait_for_cluster_ready(use_auth=True):
+            return False
+
+        logger.info("✓ Security reinitialization completed successfully")
+        return True
 
 
 class BackupManager:
@@ -966,9 +1148,9 @@ def main():
         help='Skip disk space validation (not recommended)'
     )
     parser.add_argument(
-        '--skip-security-backup',
+        '--skip-security-reinit',
         action='store_true',
-        help='Skip security configuration backup'
+        help='Skip security reinitialization (disable plugin, delete index, re-enable)'
     )
     parser.add_argument(
         '--skip-dbaas-restore',
@@ -1125,22 +1307,11 @@ def main():
             else:
                 logger.warning("Skipping disk space validation (--skip-space-check)")
         
-        # Step 3: Backup security configuration
-        logger.info("")
-        logger.info("=" * 80)
-        logger.info("STEP 3: BACKING UP SECURITY CONFIGURATION")
-        logger.info("=" * 80)
-        if not args.skip_security_backup:
-            security_mgr = SecurityManager(client)
-            security_mgr.backup_security_config()
-        else:
-            logger.warning("Skipping security backup (--skip-security-backup)")
-        
-        # Step 4: Migrate indices sequentially (only if there are indices)
+        # Step 3: Migrate indices sequentially (only if there are indices)
         if indices_to_migrate:
             logger.info("")
             logger.info("=" * 80)
-            logger.info(f"STEP 4: MIGRATING {len(indices_to_migrate)} INDICES")
+            logger.info(f"STEP 3: MIGRATING {len(indices_to_migrate)} INDICES")
             logger.info("=" * 80)
             logger.info("")
             
@@ -1153,20 +1324,20 @@ def main():
         else:
             logger.info("")
             logger.info("=" * 80)
-            logger.info("STEP 4: NO INDICES TO MIGRATE")
+            logger.info("STEP 3: NO INDICES TO MIGRATE")
             logger.info("=" * 80)
         
-        # Step 5: Reinitialize security (always do this if security_needs_reinit OR if we migrated indices)
+        # Step 4: Reinitialize security (always do this if security_needs_reinit OR if we migrated indices)
         if security_needs_reinit or indices_to_migrate:
             logger.info("")
             logger.info("=" * 80)
-            logger.info("STEP 5: REINITIALIZING SECURITY CONFIGURATION")
+            logger.info("STEP 4: REINITIALIZING SECURITY CONFIGURATION")
             logger.info("=" * 80)
             if security_needs_reinit:
                 logger.info("Security index was created in 1.x - reinitialization REQUIRED")
-            if not args.skip_security_backup:
-                security_mgr = SecurityManager(client)
-                if not security_mgr.reinitialize_security():
+            if not args.skip_security_reinit:
+                reinit_mgr = SecurityReinitViaDisable(client)
+                if not reinit_mgr.reinitialize():
                     logger.error("Security reinitialization failed - this is a critical error!")
                     if security_needs_reinit:
                         logger.error("Security index MUST be reinitialized for OpenSearch 3.x compatibility")
@@ -1176,14 +1347,14 @@ def main():
                 else:
                     logger.info("Security reinitialization completed successfully")
             else:
-                logger.warning("Skipping security reinitialization (--skip-security-backup)")
+                logger.warning("Skipping security reinitialization (--skip-security-reinit)")
                 if security_needs_reinit:
                     logger.error("WARNING: Security index needs reinitialization but it was skipped!")
         
-        # Step 6: Restore DBaaS users
+        # Step 5: Restore DBaaS users
         logger.info("")
         logger.info("=" * 80)
-        logger.info("STEP 6: RESTORING DBAAS USERS")
+        logger.info("STEP 5: RESTORING DBAAS USERS")
         logger.info("=" * 80)
         if not args.skip_dbaas_restore:
             dbaas_restorer = DBaaSUserRestorer()
