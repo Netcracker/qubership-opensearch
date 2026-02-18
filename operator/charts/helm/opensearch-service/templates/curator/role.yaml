@@ -1,0 +1,20 @@
+{{- if .Values.curator.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    name: {{ template "opensearch.fullname" . }}-curator
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-curator
+    app.kubernetes.io/instance: {{ cat (printf "%s-curator"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+  name: {{ template "opensearch.fullname" . }}-curator
+rules:
+  # Required for security reinitialization via plugins.security.disabled
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "patch", "update"]
+  - apiGroups: ["apps"]
+    resources: ["statefulsets", "deployments"]
+    verbs: ["get", "patch", "update"]
+{{- end }}

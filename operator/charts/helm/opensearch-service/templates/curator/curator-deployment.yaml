@@ -36,6 +36,7 @@ spec:
       imagePullSecrets:
       {{ toYaml .Values.global.imagePullSecrets | indent 8 }}
       {{- end }}
+      serviceAccountName: {{ template "opensearch.fullname" . }}-curator
       containers:
         - env:
             - name: NAMESPACE
@@ -128,6 +129,23 @@ spec:
                 secretKeyRef:
                   name: {{ template "opensearch.fullname" . }}-curator-secret
                   key: password
+            - name: OPENSEARCH_NAMESPACE
+              value: {{ .Release.Namespace | quote }}
+            # Security reinit via plugins.security.disabled (no TLS / securityadmin required)
+            - name: OPENSEARCH_CONFIG_SECRET_NAME
+              value: {{ printf "%s-config" (include "opensearch.fullname" .) | quote }}
+            - name: OPENSEARCH_STATEFULSET_NAMES
+              value: {{ include "opensearch.statefulsetNames" . | quote }}
+            - name: OPENSEARCH_DEPLOYMENT_NAMES
+              {{- if and .Values.opensearch.client.enabled .Values.opensearch.client.dedicatedPod.enabled }}
+              value: {{ printf "%s-client" (include "opensearch.fullname" .) | quote }}
+              {{- else }}
+              value: ""
+              {{- end }}
+            - name: CURATOR_ADDRESS
+              value: {{ (include "curator.address" .) }}
+            - name: OPENSEARCH_CLIENT_SERVICE_NAME
+              value: {{ template "opensearch.fullname" . }}
           image: {{ template "curator.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
           livenessProbe:
