@@ -812,10 +812,8 @@ func getStringSetting(idx map[string]any, key string) *string {
 func applyReindexPerfTweaksWithSnapshot(idx map[string]any) PerfSnapshot {
 	snap := PerfSnapshot{
 		NumberOfReplicas: getStringSetting(idx, "number_of_replicas"),
-		RefreshInterval:  getStringSetting(idx, "refresh_interval"),
 	}
 	idx["number_of_replicas"] = "0"
-	idx["refresh_interval"] = "-1"
 	return snap
 }
 
@@ -824,10 +822,6 @@ func (m *Migrator) restorePerfSettings(ctx context.Context, index string, snap P
 	changed := false
 	if snap.NumberOfReplicas != nil {
 		settings["number_of_replicas"] = *snap.NumberOfReplicas
-		changed = true
-	}
-	if snap.RefreshInterval != nil {
-		settings["refresh_interval"] = *snap.RefreshInterval
 		changed = true
 	}
 	if !changed {
