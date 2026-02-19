@@ -161,23 +161,21 @@ func main() {
 		log.Error(fmt.Sprintf("OpenSearch 1.x index migration preparation failed: %v", err))
 		os.Exit(2)
 	}
-	if len(indices) == 0 {
-		log.Info("Nothing to migrate")
-		return
-	}
 	log.Info(fmt.Sprintf("Indices after cycle: %#v (count=%d)", indices, len(indices)))
 	log.Info(fmt.Sprintf("Security needs reinit %v", migrator.securityNeedsReInit))
-
-	if backupID, berr := migrator.CollectAndWaitBackup(ctx, indices); berr != nil {
-		log.Error(fmt.Sprintf("OpenSearch 1.x index migration failed: %v", berr))
-		os.Exit(2)
+	if len(indices) == 0 {
+		log.Info("Nothing to migrate")
 	} else {
-		migrator.backupID = backupID
-	}
-
-	if err = migrator.Step2MigrateAll1x(ctx, indices); err != nil {
-		log.Error(fmt.Sprintf("Step2 failed: %v", err))
-		os.Exit(2)
+		if backupID, berr := migrator.CollectAndWaitBackup(ctx, indices); berr != nil {
+			log.Error(fmt.Sprintf("OpenSearch 1.x index migration failed: %v", berr))
+			os.Exit(2)
+		} else {
+			migrator.backupID = backupID
+		}
+		if err = migrator.Step2MigrateAll1x(ctx, indices); err != nil {
+			log.Error(fmt.Sprintf("Step2 failed: %v", err))
+			os.Exit(2)
+		}
 	}
 
 	if migrator.securityNeedsReInit {

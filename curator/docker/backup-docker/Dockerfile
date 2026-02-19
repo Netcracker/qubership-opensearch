@@ -36,6 +36,15 @@ RUN set -x \
     && pip3 install --upgrade pip urllib3 click \
     && rm -rf /var/cache/apk/*
 
+#Download necessary tools
+RUN set -x \
+    && wget \
+        --no-check-certificate \
+        -nv \
+        -O /usr/bin/kubectl \
+        "https://dl.k8s.io/v1.35.1/bin/linux/${TARGETARCH}/kubectl" \
+    && chmod +x /usr/bin/kubectl
+
 #Download jq
 RUN apk add --update --no-cache curl apk-tools \
     && apk add --update --no-cache wget \
