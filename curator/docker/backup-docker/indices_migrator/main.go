@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"github.com/Netcracker/dbaas-opensearch-adapter/backup"
 	cl "github.com/Netcracker/dbaas-opensearch-adapter/client"
@@ -139,6 +140,15 @@ type clusterHealthResp struct {
 func main() {
 	log.Info("Starting migration 1.x -> 2.x(created) for upgrade 2.x -> 3.x")
 
+	var dryRun bool
+	flag.BoolVar(&dryRun, "dry-run", false, "Run in dry mode (no changes applied)")
+	if dryRun {
+		log.Info("===================================")
+		log.Info(" DRY RUN MODE ENABLED")
+		log.Info(" No changes will be applied")
+		log.Info("===================================")
+	}
+
 	osCluster, err := newOpenSearchClient()
 	if err != nil {
 		log.Error("OpenSearch client creation failed")
@@ -161,8 +171,13 @@ func main() {
 		log.Error(fmt.Sprintf("OpenSearch 1.x index migration preparation failed: %v", err))
 		os.Exit(2)
 	}
-	log.Info(fmt.Sprintf("Indices after cycle: %#v (count=%d)", indices, len(indices)))
-	log.Info(fmt.Sprintf("Security needs reinit %v", migrator.securityNeedsReInit))
+	log.Info(fmt.Sprintf("Indices need migration: %#v (count=%d)", indices, len(indices)))
+	log.Info(fmt.Sprintf("Security needs reinit: %v", migrator.securityNeedsReInit))
+
+	if dryRun {
+		return
+	}
+
 	if len(indices) == 0 {
 		log.Info("Nothing to migrate")
 	} else {
