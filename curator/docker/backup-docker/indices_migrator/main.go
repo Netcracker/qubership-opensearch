@@ -158,7 +158,7 @@ func main() {
 
 	indices, err := migrator.Step1Select1xIndicesAndPrecheck(ctx)
 	if err != nil {
-		log.Error("OpenSearch 1.x index migration preparation failed: ", err)
+		log.Error(fmt.Sprintf("OpenSearch 1.x index migration preparation failed: %v", err))
 		os.Exit(2)
 	}
 	if len(indices) == 0 {
@@ -168,33 +168,33 @@ func main() {
 	log.Info(fmt.Sprintf("Indices after cycle: %#v (count=%d)", indices, len(indices)))
 	log.Info(fmt.Sprintf("Security needs reinit %v", migrator.securityNeedsReInit))
 
-	if backupID, err := migrator.CollectAndWaitBackup(ctx, indices); err != nil {
-		log.Error("OpenSearch 1.x index migration failed: ", err)
+	if backupID, berr := migrator.CollectAndWaitBackup(ctx, indices); berr != nil {
+		log.Error(fmt.Sprintf("OpenSearch 1.x index migration failed: %v", berr))
 		os.Exit(2)
 	} else {
 		migrator.backupID = backupID
 	}
 
 	if err = migrator.Step2MigrateAll1x(ctx, indices); err != nil {
-		log.Error("Step2 failed: ", err)
+		log.Error(fmt.Sprintf("Step2 failed: %v", err))
 		os.Exit(2)
 	}
 
 	if migrator.securityNeedsReInit {
 		if err = migrator.ReinitSecurity(ctx); err != nil {
-			log.Error("Security reinitialization failed: ", err)
+			log.Error(fmt.Sprintf("Security reinitialization failed: %v", err))
 			os.Exit(2)
 		}
 	}
 
 	migrator.adapterClient = NewAdapterClient()
 	if err = migrator.RestoreUsers(ctx); err != nil {
-		log.Error("User recovery failed: ", err)
+		log.Error(fmt.Sprintf("User recovery failed: %v", err))
 		os.Exit(2)
 	}
 
 	if err = RestartOperator(ctx); err != nil {
-		log.Error("Operator restart failed: ", err)
+		log.Error(fmt.Sprintf("Operator restart failed: %v", err))
 		os.Exit(2)
 	}
 
@@ -262,25 +262,25 @@ func (m *Migrator) Step1Select1xIndicesAndPrecheck(ctx context.Context) ([]strin
 
 func (m *Migrator) Step2MigrateAll1x(ctx context.Context, indices []string) error {
 	for i, name := range indices {
-		log.Info("---- Migrating index: ", name)
-		err := m.migrateOneIndex(ctx, name)
-		if err == nil {
-			log.Info("Migration DONE: ", name)
+		log.Info(fmt.Sprintf("---- Migrating index: %s", name))
+		errMain := m.migrateOneIndex(ctx, name)
+		if errMain == nil {
+			log.Info(fmt.Sprintf("Migration DONE: %s", name))
 			continue
 		}
 
-		log.Error("Index migration failed, will delete and continue. index=", name, " err=", err)
-		if err = m.cleanupIndices(ctx, name); err != nil {
+		if err := m.cleanupIndices(ctx, name); err != nil {
 			return err
 		}
 		if strings.HasPrefix(name, ".") {
+			log.Error(fmt.Sprintf("Index migration failed, will delete and continue. index=%s", name))
 			continue
 		}
-		_, err = m.backupProvider.RestoreBackup(m.backupID, indices[i:], "", false, ctx)
+		_, err := m.backupProvider.RestoreBackup(m.backupID, indices[i:], "", false, ctx)
 		if err != nil {
 			return err
 		}
-		return err
+		return errMain
 	}
 	log.Info("Step2 DONE: migrated all 1.x indices")
 	return nil
@@ -289,37 +289,49 @@ func (m *Migrator) Step2MigrateAll1x(ctx context.Context, indices []string) erro
 func (m *Migrator) migrateOneIndex(ctx context.Context, indexName string) error {
 	tmp := indexName + migrationSuffix
 
+	log.Info(fmt.Sprintf("[migrateOneIndex] start index=%s tmp=%s", indexName, tmp))
+
+	log.Info(fmt.Sprintf("[migrateOneIndex] set write block ON index=%s", indexName))
 	if err := m.setWriteBlock(ctx, indexName, true); err != nil {
 		return err
 	}
 	defer func() {
+		log.Info(fmt.Sprintf("[migrateOneIndex] set write block OFF index=%s", indexName))
 		_ = m.setWriteBlock(context.Background(), indexName, false)
 	}()
 
+	log.Info(fmt.Sprintf("[migrateOneIndex] get settings index=%s", indexName))
 	settings, err := m.getIndexSettingsIndexObject(ctx, indexName)
 	if err != nil {
 		return err
 	}
+
+	log.Info(fmt.Sprintf("[migrateOneIndex] get mappings index=%s", indexName))
 	mappings, err := m.getIndexMappings(ctx, indexName)
 	if err != nil {
 		return err
 	}
 
+	log.Info(fmt.Sprintf("[migrateOneIndex] sanitize settings + apply perf tweaks index=%s", indexName))
 	sanitized := sanitizeIndexSettings(settings)
 	snap := applyReindexPerfTweaksWithSnapshot(sanitized)
 
+	log.Info(fmt.Sprintf("[migrateOneIndex] delete tmp index if exists tmp=%s", tmp))
 	if err := m.deleteIndex(ctx, tmp); err != nil {
 		return err
 	}
 
+	log.Info(fmt.Sprintf("[migrateOneIndex] create tmp index tmp=%s", tmp))
 	if err := m.createIndex(ctx, tmp, sanitized, mappings); err != nil {
 		return err
 	}
 
+	log.Info(fmt.Sprintf("[migrateOneIndex] reindex src=%s -> dst=%s", indexName, tmp))
 	if err := m.reindexWait(ctx, indexName, tmp); err != nil {
 		return err
 	}
 
+	log.Info(fmt.Sprintf("[migrateOneIndex] count check after first reindex src=%s tmp=%s", indexName, tmp))
 	srcCount, err := m.getCount(ctx, indexName)
 	if err != nil {
 		return err
@@ -328,42 +340,55 @@ func (m *Migrator) migrateOneIndex(ctx context.Context, indexName string) error 
 	if err != nil {
 		return err
 	}
+	log.Info(fmt.Sprintf("[migrateOneIndex] counts after first reindex src=%s(%d) tmp=%s(%d)", indexName, srcCount, tmp, tmpCount))
 	if srcCount != tmpCount {
-		return errors.New("count mismatch after first reindex for " + indexName +
-			": src=" + strconv.FormatUint(srcCount, 10) +
-			" tmp=" + strconv.FormatUint(tmpCount, 10))
+		return errors.New(
+			"count mismatch after first reindex for " + indexName +
+				": src=" + strconv.FormatUint(srcCount, 10) +
+				" tmp=" + strconv.FormatUint(tmpCount, 10),
+		)
 	}
 
+	log.Info(fmt.Sprintf("[migrateOneIndex] delete original index index=%s", indexName))
 	if err := m.deleteIndex(ctx, indexName); err != nil {
 		return err
 	}
 
+	log.Info(fmt.Sprintf("[migrateOneIndex] create original index again index=%s", indexName))
 	if err := m.createIndex(ctx, indexName, sanitized, mappings); err != nil {
 		return err
 	}
 
+	log.Info(fmt.Sprintf("[migrateOneIndex] reindex back src=%s -> dst=%s", tmp, indexName))
 	if err := m.reindexWait(ctx, tmp, indexName); err != nil {
 		return err
 	}
 
+	log.Info(fmt.Sprintf("[migrateOneIndex] count check after second reindex index=%s tmp=%s", indexName, tmp))
 	finalCount, err := m.getCount(ctx, indexName)
 	if err != nil {
 		return err
 	}
+	log.Info(fmt.Sprintf("[migrateOneIndex] counts after second reindex final=%s(%d) tmp=%s(%d)", indexName, finalCount, tmp, tmpCount))
 	if finalCount != tmpCount {
-		return errors.New("count mismatch after second reindex for " + indexName +
-			": final=" + strconv.FormatUint(finalCount, 10) +
-			" tmp=" + strconv.FormatUint(tmpCount, 10))
+		return errors.New(
+			"count mismatch after second reindex for " + indexName +
+				": final=" + strconv.FormatUint(finalCount, 10) +
+				" tmp=" + strconv.FormatUint(tmpCount, 10),
+		)
 	}
 
+	log.Info(fmt.Sprintf("[migrateOneIndex] delete tmp index tmp=%s", tmp))
 	if err := m.deleteIndex(ctx, tmp); err != nil {
 		return err
 	}
 
+	log.Info(fmt.Sprintf("[migrateOneIndex] restore perf settings index=%s", indexName))
 	if err := m.restorePerfSettings(ctx, indexName, snap); err != nil {
 		return err
 	}
 
+	log.Info(fmt.Sprintf("[migrateOneIndex] done index=%s", indexName))
 	return nil
 }
 
@@ -531,8 +556,6 @@ func (m *Migrator) getIndexSettingsIndexObject(ctx context.Context, index string
 
 	v, ok := parsed[index]
 	if !ok {
-		// иногда ключ может отличаться (если alias?), но обычно ровно indexName
-		// можно попробовать взять единственный элемент:
 		for _, vv := range parsed {
 			return vv.Settings.Index, nil
 		}
@@ -669,7 +692,7 @@ func (m *Migrator) reindexWait(ctx context.Context, src, dst string) error {
 		return errors.New("reindex did not return task id for " + src + " -> " + dst)
 	}
 
-	log.Info("Reindex task started: ", r.Task, " (", src, " -> ", dst, ")")
+	log.Info(fmt.Sprintf("Reindex task started: %s (%s -> %s)", r.Task, src, dst))
 	return m.waitTask(ctx, r.Task)
 }
 
@@ -688,7 +711,7 @@ func (m *Migrator) waitTask(ctx context.Context, taskID string) error {
 				return err
 			}
 			raw, _ := io.ReadAll(resp.Body)
-			resp.Body.Close()
+			_ = resp.Body.Close()
 
 			if resp.StatusCode >= 400 {
 				return errors.New("task get failed: " + strings.TrimSpace(string(raw)))
@@ -701,10 +724,9 @@ func (m *Migrator) waitTask(ctx context.Context, taskID string) error {
 
 			if tr.Completed {
 				if tr.Error != nil {
-					// можно сделать красивее и распарсить error структуру
 					return errors.New("task failed: " + taskID)
 				}
-				log.Info("Task completed: ", taskID)
+				log.Info(fmt.Sprintf("Task completed: %s", taskID))
 				return nil
 			}
 		}
@@ -848,16 +870,18 @@ func (m *Migrator) CollectAndWaitBackup(ctx context.Context, dbs []string) (stri
 	if strings.TrimSpace(backupID) == "" {
 		return "", errors.New("backup id is empty")
 	}
-	log.Info("Backup started. TrackID: ", backupID)
+	log.Info(fmt.Sprintf("Backup started. TrackID: %s", backupID))
+
 	interval := 10 * time.Second
 	err = wait.PollUntilContextCancel(ctx, interval, true, func(ctx context.Context) (bool, error) {
 		track, trErr := m.backupProvider.TrackBackup(backupID, ctx)
 		if trErr != nil {
-			log.Error("TrackBackup error (will retry): ", trErr)
+			log.Error(fmt.Sprintf("TrackBackup error (will retry): %v", trErr))
 			return false, nil
 		}
 		st := strings.ToUpper(strings.TrimSpace(track.Status))
-		log.Info("Backup status: ", st, " trackId=", track.TrackID)
+		log.Info(fmt.Sprintf("Backup status: %s trackId=%s", st, track.TrackID))
+		log.Info(fmt.Sprintf("Backup started. TrackID: %s", backupID))
 		switch st {
 		case "SUCCESS":
 			return true, nil
@@ -870,7 +894,7 @@ func (m *Migrator) CollectAndWaitBackup(ctx context.Context, dbs []string) (stri
 	if err != nil {
 		return "", err
 	}
-	log.Info("Backup completed successfully. TrackID: ", backupID)
+	log.Info(fmt.Sprintf("Backup completed successfully. TrackID: %s", backupID))
 	return backupID, nil
 }
 
@@ -890,15 +914,16 @@ func (m *Migrator) indexExists(ctx context.Context, index string) (bool, error) 
 	raw, _ := io.ReadAll(resp.Body)
 	return false, errors.New("indices exists unexpected status for " + index + ": " + strings.TrimSpace(string(raw)))
 }
+
 func (m *Migrator) cleanupIndices(ctx context.Context, name string) error {
 	ok, err := m.indexExists(ctx, name)
 	if err != nil {
 		return err
 	}
 	if ok {
-		err := m.deleteIndex(ctx, name)
-		if err != nil {
-			return err
+		dErr := m.deleteIndex(ctx, name)
+		if dErr != nil {
+			return dErr
 		}
 	}
 	ok, err = m.indexExists(ctx, name+migrationSuffix)
@@ -906,39 +931,27 @@ func (m *Migrator) cleanupIndices(ctx context.Context, name string) error {
 		return err
 	}
 	if ok {
-		err := m.deleteIndex(ctx, name)
-		if err != nil {
-			return err
+		// NOTE: у тебя тут был баг: удалялся name, а не name+migrationSuffix
+		dErr := m.deleteIndex(ctx, name+migrationSuffix)
+		if dErr != nil {
+			return dErr
 		}
 	}
-	return err
+	return nil
 }
 
 func runKubectl(ctx context.Context, args ...string) (string, error) {
 	fullArgs := append([]string{"-n", opensearchNamespace}, args...)
-	log.Info("Executing kubectl ", strings.Join(fullArgs, " "))
+	log.Info(fmt.Sprintf("Executing kubectl %s", strings.Join(fullArgs, " ")))
 	cmd := exec.CommandContext(ctx, "kubectl", fullArgs...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Error("kubectl failed: ", string(out))
+		log.Error(fmt.Sprintf("kubectl failed: %s", string(out)))
 		return "", fmt.Errorf("kubectl error: %w", err)
 	}
 
 	return strings.TrimSpace(string(out)), nil
 }
-
-//func newKubeClient() (*kubernetes.Clientset, error) {
-//	cfg, err := rest.InClusterConfig()
-//	if err != nil {
-//		// fallback на kubeconfig
-//		kubeconfig := filepath.Join(os.Getenv("HOME"), ".kube", "config")
-//		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-//		if err != nil {
-//			return nil, err
-//		}
-//	}
-//	return kubernetes.NewForConfig(cfg)
-//}
 
 func getOpenSearchYmlFromSecret(ctx context.Context) (string, error) {
 	secretName := strings.TrimSpace(os.Getenv("OPENSEARCH_CONFIG_SECRET_NAME"))
@@ -950,7 +963,7 @@ func getOpenSearchYmlFromSecret(ctx context.Context) (string, error) {
 		"-o", `jsonpath={.data.opensearch\.yml}`,
 	)
 	if err != nil {
-		log.Error("Cannot read opensearch.yml from secret: ", out)
+		log.Error(fmt.Sprintf("Cannot read opensearch.yml from secret: %s", out))
 		return "", err
 	}
 	b64 := strings.TrimSpace(out)
@@ -974,7 +987,7 @@ func disableSecurityInSecret(ctx context.Context) (bool, error) {
 		return true, nil
 	}
 	newContent := strings.TrimRight(content, "\n") + "\n" + securityDisabled + "\n"
-	log.Info("Adding '", securityDisabled, "' to opensearch.yml in secret '", os.Getenv("OPENSEARCH_CONFIG_SECRET_NAME"), "'")
+	log.Info(fmt.Sprintf("Adding '%s' to opensearch.yml in secret '%s'", securityDisabled, os.Getenv("OPENSEARCH_CONFIG_SECRET_NAME")))
 	if err := setOpenSearchYmlInSecret(ctx, newContent); err != nil {
 		return false, err
 	}
@@ -1001,10 +1014,10 @@ func setOpenSearchYmlInSecret(ctx context.Context, newYml string) error {
 		"-p", string(patchBytes),
 	)
 	if err != nil {
-		log.Error("Failed to patch secret ", opensearchConfigSecretName)
+		log.Error(fmt.Sprintf("Failed to patch secret %s", opensearchConfigSecretName))
 		return err
 	}
-	log.Info("Secret updated: ", opensearchConfigSecretName, " key=opensearch.yml")
+	log.Info(fmt.Sprintf("Secret updated: %s key=opensearch.yml", opensearchConfigSecretName))
 	return nil
 }
 
@@ -1031,8 +1044,7 @@ func enableSecurityInSecret(ctx context.Context) error {
 	if newContent != "" && !strings.HasSuffix(newContent, "\n") {
 		newContent += "\n"
 	}
-	log.Info("Removing '", securityDisabled, "' from opensearch.yml in secret '",
-		os.Getenv("OPENSEARCH_CONFIG_SECRET_NAME"), "'")
+	log.Info(fmt.Sprintf("Removing '%s' from opensearch.yml in secret '%s'", securityDisabled, os.Getenv("OPENSEARCH_CONFIG_SECRET_NAME")))
 	if err := setOpenSearchYmlInSecret(ctx, newContent); err != nil {
 		return err
 	}
@@ -1064,20 +1076,20 @@ func restartOpenSearchWorkloads(ctx context.Context) error {
 		target := "statefulset/" + name
 		_, err := runKubectl(ctx, "rollout", "restart", target)
 		if err != nil {
-			log.Error("Failed to restart ", target)
+			log.Error(fmt.Sprintf("Failed to restart %s", target))
 			return err
 		} else {
-			log.Info("✓ rollout restart triggered for ", target)
+			log.Info(fmt.Sprintf("✓ rollout restart triggered for %s", target))
 		}
 	}
 	for _, name := range depNames {
 		target := "deployment/" + name
 		_, err := runKubectl(ctx, "rollout", "restart", target)
 		if err != nil {
-			log.Error("Failed to restart ", target)
+			log.Error(fmt.Sprintf("Failed to restart %s", target))
 			return err
 		} else {
-			log.Info("✓ rollout restart triggered for ", target)
+			log.Info(fmt.Sprintf("✓ rollout restart triggered for %s", target))
 		}
 	}
 	return nil
@@ -1089,22 +1101,23 @@ func (m *Migrator) waitForClusterReadyHTTP(ctx context.Context, useAuth bool) bo
 	timeout := time.Duration(clusterReadyTimeout) * time.Second
 	deadlineCtx, cancel := context.WithTimeout(ctx, time.Duration(clusterReadyTimeout)*time.Second)
 	defer cancel()
+
 	httpClient := cl.ConfigureClient()
 	httpClient.Timeout = 15 * time.Second
+
 	attempt := 0
 	for {
 		if deadlineCtx.Err() != nil {
-			log.Error("Timeout (", timeout.String(), ") waiting for cluster to become ready")
+			log.Error(fmt.Sprintf("Timeout (%s) waiting for cluster to become ready", timeout.String()))
 			return false
 		}
 		attempt++
 		if isGreen(deadlineCtx, httpClient, healthURL, useAuth, opensearchUsername, opensearchPassword) {
-			log.Info("✓ Cluster is green and API is reachable (attempt ", attempt, ")")
+			log.Info(fmt.Sprintf("✓ Cluster is green and API is reachable (attempt %d)", attempt))
 			return true
 		}
 		time.Sleep(interval)
 	}
-
 }
 
 func isGreen(ctx context.Context, c *http.Client, url string, useAuth bool, user, pass string) bool {
@@ -1140,38 +1153,31 @@ func (m *Migrator) ReinitSecurity(ctx context.Context) error {
 		_ = enableClientServiceKubectl(context.Background())
 	}()
 
-	// 1) disable security
 	ok, err := disableSecurityInSecret(ctx)
 	if err != nil || !ok {
 		return fmt.Errorf("disable security failed: %w", err)
 	}
 
-	// 2) restart workloads
 	if err = restartOpenSearchWorkloads(ctx); err != nil {
 		return errors.New("failed to restart OpenSearch workloads after disabling security")
 	}
 
-	// 3) wait green (no auth)
 	if !m.waitForClusterReadyHTTP(ctx, false) {
 		return errors.New("cluster is not ready (green) after restart with security disabled")
 	}
 
-	// 4) delete security index
 	if err = m.deleteIndex(ctx, securityIndex); err != nil {
 		return err
 	}
 
-	// 5) enable security
 	if err = enableSecurityInSecret(ctx); err != nil {
 		return fmt.Errorf("enable security failed: %w", err)
 	}
 
-	// 6) restart workloads
 	if err = restartOpenSearchWorkloads(ctx); err != nil {
 		return errors.New("failed to restart OpenSearch workloads after enabling security")
 	}
 
-	// 7) wait green (with auth)
 	if !m.waitForClusterReadyHTTP(ctx, true) {
 		return errors.New("cluster is not ready (green) after restart with security enabled")
 	}
@@ -1202,13 +1208,16 @@ func (m *Migrator) RestoreUsers(ctx context.Context) error {
 		return nil
 	}
 	log.Info("Starting DBaaS user restoration...")
+
 	deadlineCtx, cancel := context.WithTimeout(ctx, adapterReadyTimeout)
 	defer cancel()
+
 	state := m.getRestoreState(deadlineCtx)
 	if state != RecoveryRunningState {
 		state = RecoveryIdleState
 	}
 	restoreFailed := false
+
 	for state != RecoveryDoneState && state != RecoveryFailedState {
 		if deadlineCtx.Err() != nil {
 			log.Error("Timeout reached during user restoration")
@@ -1223,11 +1232,12 @@ func (m *Migrator) RestoreUsers(ctx context.Context) error {
 		time.Sleep(adapterReadyInterval)
 		state = m.getRestoreState(deadlineCtx)
 	}
+
 	if state == RecoveryFailedState || restoreFailed {
-		log.Error("User restoration failed with state: ", state)
+		log.Error(fmt.Sprintf("User restoration failed with state: %s", state))
 		return errors.New("user restoration failed")
 	}
-	log.Info("✓ User restoration completed successfully (state: ", state, ")")
+	log.Info(fmt.Sprintf("✓ User restoration completed successfully (state: %s)", state))
 	return nil
 }
 
@@ -1236,7 +1246,7 @@ func (m *Migrator) getRestoreState(ctx context.Context) string {
 		"/dbaas/adapter/opensearch/users/restore-password/state"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
-		log.Info("Could not build restore state request: ", err)
+		log.Info(fmt.Sprintf("Could not build restore state request: %v", err))
 		return RecoveryIdleState
 	}
 	if m.adapterClient.username != "" && m.adapterClient.password != "" {
@@ -1244,14 +1254,13 @@ func (m *Migrator) getRestoreState(ctx context.Context) string {
 	}
 	resp, err := m.adapterClient.httpClient.Do(req)
 	if err != nil {
-		log.Info("Could not get restore state: ", err)
+		log.Info(fmt.Sprintf("Could not get restore state: %v", err))
 		return RecoveryIdleState
 	}
 	defer resp.Body.Close()
 	raw, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 300 {
-		log.Info("Could not get restore state: status=", resp.StatusCode,
-			" body=", strings.TrimSpace(string(raw)))
+		log.Info(fmt.Sprintf("Could not get restore state: status=%d body=%s", resp.StatusCode, strings.TrimSpace(string(raw))))
 		return RecoveryIdleState
 	}
 	return strings.TrimSpace(string(raw))
@@ -1262,7 +1271,7 @@ func (m *Migrator) triggerRestore(ctx context.Context) bool {
 		"/dbaas/adapter/opensearch/users/restore-password"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader([]byte(`{}`)))
 	if err != nil {
-		log.Error("Failed to build trigger restore request: ", err)
+		log.Error(fmt.Sprintf("Failed to build trigger restore request: %v", err))
 		return false
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -1271,14 +1280,13 @@ func (m *Migrator) triggerRestore(ctx context.Context) bool {
 	}
 	resp, err := m.adapterClient.httpClient.Do(req)
 	if err != nil {
-		log.Error("Failed to trigger user restoration: ", err)
+		log.Error(fmt.Sprintf("Failed to trigger user restoration: %v", err))
 		return false
 	}
 	defer resp.Body.Close()
 	raw, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 300 {
-		log.Error("Failed to trigger user restoration: status=", resp.StatusCode,
-			" body=", strings.TrimSpace(string(raw)))
+		log.Error(fmt.Sprintf("Failed to trigger user restoration: status=%d body=%s", resp.StatusCode, strings.TrimSpace(string(raw))))
 		return false
 	}
 	log.Info("User restoration triggered successfully")
@@ -1295,7 +1303,7 @@ func RestartOperator(ctx context.Context) error {
 	if err != nil {
 		return errors.New("failed to restart operator")
 	}
-	log.Info("rollout restart triggered for ", target)
+	log.Info(fmt.Sprintf("rollout restart triggered for %s", target))
 	_, err = runKubectl(ctx, "rollout", "status", target)
 	if err != nil {
 		return errors.New("operator rollout did not complete successfully")
@@ -1314,10 +1322,10 @@ func disableClientServiceKubectl(ctx context.Context) error {
 		"-p", `[{"op":"add","path":"/spec/selector/none","value":"true"}]`,
 	)
 	if err != nil {
-		log.Error("Failed to disable client service: ", opensearchClientServiceName, " out=", out)
+		log.Error(fmt.Sprintf("Failed to disable client service: %s out=%s", opensearchClientServiceName, out))
 		return err
 	}
-	log.Info("Client service disabled: ", opensearchClientServiceName)
+	log.Info(fmt.Sprintf("Client service disabled: %s", opensearchClientServiceName))
 	return nil
 }
 
@@ -1335,13 +1343,13 @@ func enableClientServiceKubectl(ctx context.Context) error {
 		if strings.Contains(low, "missing path") ||
 			strings.Contains(low, "not found") ||
 			strings.Contains(low, "does not apply") {
-			log.Info("Client service already enabled (selector none absent): ", opensearchClientServiceName)
+			log.Info(fmt.Sprintf("Client service already enabled (selector none absent): %s", opensearchClientServiceName))
 			return nil
 		}
 
-		log.Error("Failed to enable client service: ", opensearchClientServiceName, " out=", out)
+		log.Error(fmt.Sprintf("Failed to enable client service: %s out=%s", opensearchClientServiceName, out))
 		return err
 	}
-	log.Info("✓ Client service enabled: ", opensearchClientServiceName)
+	log.Info(fmt.Sprintf("✓ Client service enabled: %s", opensearchClientServiceName))
 	return nil
 }

@@ -2,9 +2,6 @@
 
 set -e
 
-export CURATOR_USERNAME=${BACKUP_DAEMON_API_CREDENTIALS_USERNAME}
-export CURATOR_PASSWORD=${BACKUP_DAEMON_API_CREDENTIALS_PASSWORD}
-
 if [[ ${TLS_HTTP_ENABLED} == "true" ]]; then
   ROOT_CA_CERTIFICATE=/trusted-certs/root-ca.pem
   if [[ -f ${ROOT_CA_CERTIFICATE} ]]; then

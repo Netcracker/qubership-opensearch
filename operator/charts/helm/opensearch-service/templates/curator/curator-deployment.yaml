@@ -146,6 +146,16 @@ spec:
               value: {{ (include "curator.address" .) }}
             - name: OPENSEARCH_CLIENT_SERVICE_NAME
               value: {{ template "opensearch.fullname" . }}
+            - name: CURATOR_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  key: username
+            - name: CURATOR_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  key: password
           image: {{ template "curator.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
           livenessProbe:
