@@ -331,6 +331,10 @@ func (m *Migrator) migrateOneIndex(ctx context.Context, indexName string) error 
 		return err
 	}
 
+	if err := m.refreshIndex(ctx, tmp); err != nil {
+		return err
+	}
+
 	log.Info(fmt.Sprintf("[migrateOneIndex] count check after first reindex src=%s tmp=%s", indexName, tmp))
 	srcCount, err := m.getCount(ctx, indexName)
 	if err != nil {
@@ -361,6 +365,10 @@ func (m *Migrator) migrateOneIndex(ctx context.Context, indexName string) error 
 
 	log.Info(fmt.Sprintf("[migrateOneIndex] reindex back src=%s -> dst=%s", tmp, indexName))
 	if err := m.reindexWait(ctx, tmp, indexName); err != nil {
+		return err
+	}
+
+	if err := m.refreshIndex(ctx, indexName); err != nil {
 		return err
 	}
 
@@ -916,26 +924,13 @@ func (m *Migrator) indexExists(ctx context.Context, index string) (bool, error) 
 }
 
 func (m *Migrator) cleanupIndices(ctx context.Context, name string) error {
-	ok, err := m.indexExists(ctx, name)
-	if err != nil {
-		return err
+	dErr := m.deleteIndex(ctx, name)
+	if dErr != nil {
+		return dErr
 	}
-	if ok {
-		dErr := m.deleteIndex(ctx, name)
-		if dErr != nil {
-			return dErr
-		}
-	}
-	ok, err = m.indexExists(ctx, name+migrationSuffix)
-	if err != nil {
-		return err
-	}
-	if ok {
-		// NOTE: у тебя тут был баг: удалялся name, а не name+migrationSuffix
-		dErr := m.deleteIndex(ctx, name+migrationSuffix)
-		if dErr != nil {
-			return dErr
-		}
+	dErr = m.deleteIndex(ctx, name+migrationSuffix)
+	if dErr != nil {
+		return dErr
 	}
 	return nil
 }
@@ -1351,5 +1346,22 @@ func enableClientServiceKubectl(ctx context.Context) error {
 		return err
 	}
 	log.Info(fmt.Sprintf("✓ Client service enabled: %s", opensearchClientServiceName))
+	return nil
+}
+
+func (m *Migrator) refreshIndex(ctx context.Context, index string) error {
+	req := opensearchapi.IndicesRefreshRequest{
+		Index: []string{index},
+	}
+	resp, err := req.Do(ctx, m.osCluster.Client)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("refresh failed for %s: %s", index, strings.TrimSpace(string(body)))
+	}
+	log.Info("Index refreshed: ", index)
 	return nil
 }
