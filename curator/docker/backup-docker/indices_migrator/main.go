@@ -211,6 +211,8 @@ func (m *Migrator) Step1Select1xIndicesAndPrecheck(ctx context.Context) ([]strin
 		return nil, err
 	}
 
+	log.Info("INices from OS: ", createdMap)
+
 	var oneX []string
 	for idx, raw := range createdMap {
 		if idx == ".opendistro_security" || idx == ".opensearch-security" {
@@ -226,6 +228,8 @@ func (m *Migrator) Step1Select1xIndicesAndPrecheck(ctx context.Context) ([]strin
 		log.Info("No indices created on OpenSearch 1.x found (excluding security index)")
 		return nil, nil
 	}
+
+	log.Info("INdices after cycle", oneX)
 
 	sort.Strings(oneX)
 
