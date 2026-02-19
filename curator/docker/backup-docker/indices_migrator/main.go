@@ -165,6 +165,8 @@ func main() {
 		log.Info("Nothing to migrate")
 		return
 	}
+	log.Info("Indices to migrate: ", indices)
+	log.Info("Security need to be migrated ", migrator.securityNeedsReInit)
 
 	if backupID, err := migrator.CollectAndWaitBackup(ctx, indices); err != nil {
 		log.Error("OpenSearch 1.x index migration failed: ", err)
