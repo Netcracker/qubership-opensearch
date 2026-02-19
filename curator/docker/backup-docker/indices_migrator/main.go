@@ -167,7 +167,7 @@ func main() {
 	}
 	log.Info(fmt.Sprintf("Indices after cycle: %#v (count=%d)", indices, len(indices)))
 	log.Info(fmt.Sprintf("Security needs reinit %v", migrator.securityNeedsReInit))
-	return
+
 	if backupID, err := migrator.CollectAndWaitBackup(ctx, indices); err != nil {
 		log.Error("OpenSearch 1.x index migration failed: ", err)
 		os.Exit(2)
