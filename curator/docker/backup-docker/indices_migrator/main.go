@@ -291,15 +291,6 @@ func (m *Migrator) migrateOneIndex(ctx context.Context, indexName string) error 
 
 	log.Info(fmt.Sprintf("[migrateOneIndex] start index=%s tmp=%s", indexName, tmp))
 
-	log.Info(fmt.Sprintf("[migrateOneIndex] set write block ON index=%s", indexName))
-	if err := m.setWriteBlock(ctx, indexName, true); err != nil {
-		return err
-	}
-	defer func() {
-		log.Info(fmt.Sprintf("[migrateOneIndex] set write block OFF index=%s", indexName))
-		_ = m.setWriteBlock(context.Background(), indexName, false)
-	}()
-
 	log.Info(fmt.Sprintf("[migrateOneIndex] get settings index=%s", indexName))
 	settings, err := m.getIndexSettingsIndexObject(ctx, indexName)
 	if err != nil {
@@ -315,6 +306,15 @@ func (m *Migrator) migrateOneIndex(ctx context.Context, indexName string) error 
 	log.Info(fmt.Sprintf("[migrateOneIndex] sanitize settings + apply perf tweaks index=%s", indexName))
 	sanitized := sanitizeIndexSettings(settings)
 	snap := applyReindexPerfTweaksWithSnapshot(sanitized)
+
+	log.Info(fmt.Sprintf("[migrateOneIndex] set write block ON index=%s", indexName))
+	if err := m.setWriteBlock(ctx, indexName, true); err != nil {
+		return err
+	}
+	defer func() {
+		log.Info(fmt.Sprintf("[migrateOneIndex] set write block OFF index=%s", indexName))
+		_ = m.setWriteBlock(context.Background(), indexName, false)
+	}()
 
 	log.Info(fmt.Sprintf("[migrateOneIndex] delete tmp index if exists tmp=%s", tmp))
 	if err := m.deleteIndex(ctx, tmp); err != nil {
