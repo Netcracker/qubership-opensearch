@@ -165,9 +165,9 @@ func main() {
 		log.Info("Nothing to migrate")
 		return
 	}
-	log.Info("Indices to migrate: ", indices)
-	log.Info("Security need to be migrated ", migrator.securityNeedsReInit)
-
+	log.Info(fmt.Sprintf("Indices after cycle: %#v (count=%d)", indices, len(indices)))
+	log.Info(fmt.Sprintf("Security needs reinit %v", migrator.securityNeedsReInit))
+	return
 	if backupID, err := migrator.CollectAndWaitBackup(ctx, indices); err != nil {
 		log.Error("OpenSearch 1.x index migration failed: ", err)
 		os.Exit(2)
@@ -211,7 +211,7 @@ func (m *Migrator) Step1Select1xIndicesAndPrecheck(ctx context.Context) ([]strin
 		return nil, err
 	}
 
-	log.Info("INices from OS: ", createdMap)
+	log.Info(fmt.Sprintf("Indices from OS: %#v (count=%d)", createdMap, len(createdMap)))
 
 	var oneX []string
 	for idx, raw := range createdMap {
@@ -229,7 +229,7 @@ func (m *Migrator) Step1Select1xIndicesAndPrecheck(ctx context.Context) ([]strin
 		return nil, nil
 	}
 
-	log.Info("INdices after cycle", oneX)
+	log.Info(fmt.Sprintf("Indices after cycle: %#v (count=%d)", oneX, len(oneX)))
 
 	sort.Strings(oneX)
 
