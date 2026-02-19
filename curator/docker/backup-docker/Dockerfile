@@ -20,6 +20,9 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GO111MODULE=on go build 
 
 FROM ghcr.io/netcracker/qubership-backup-daemon:main_alpine
 
+ARG TARGETOS
+ARG TARGETARCH
+
 WORKDIR /
 ENV ELASTICSEARCH_CURATOR_HOME=/opt/elasticsearch-curator
 
