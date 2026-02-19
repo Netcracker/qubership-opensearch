@@ -490,11 +490,9 @@ func (m *Migrator) getClusterMinAvailableBytes(ctx context.Context) (uint64, err
 }
 
 func decodeCreated(raw uint64) uint64 {
-	if raw%100 == 99 {
-		return raw
-	}
 	decoded := raw ^ mask
-	if decoded%100 == 99 {
+	major := decoded / 1_000_000
+	if major == 1 || major == 2 {
 		return decoded
 	}
 	return raw
