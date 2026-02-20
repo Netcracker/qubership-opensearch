@@ -14,6 +14,7 @@ import (
 	"github.com/Netcracker/dbaas-opensearch-adapter/cluster"
 	"github.com/Netcracker/dbaas-opensearch-adapter/common"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
+	"golang.org/x/sync/errgroup"
 	"io"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"net"
@@ -1089,7 +1090,7 @@ func restartOpenSearchWorkloads(ctx context.Context) error {
 	}
 	for _, name := range stsNames {
 		target := "statefulset/" + name
-		_, err := runKubectl(ctx, "rollout", "restart", target)
+		err := deleteAllPodsOfSTS(ctx, opensearchNamespace, name)
 		if err != nil {
 			log.Error(fmt.Sprintf("Failed to restart %s", target))
 			return err
@@ -1108,6 +1109,48 @@ func restartOpenSearchWorkloads(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+func deleteAllPodsOfSTS(ctx context.Context, namespace, stsName string) error {
+	out, err := runKubectl(ctx,
+		"-n", namespace,
+		"get", "pods",
+		"-o", "json",
+	)
+	if err != nil {
+		return err
+	}
+	var podList struct {
+		Items []struct {
+			Metadata struct {
+				Name            string `json:"name"`
+				OwnerReferences []struct {
+					Kind string `json:"kind"`
+					Name string `json:"name"`
+				} `json:"ownerReferences"`
+			} `json:"metadata"`
+		} `json:"items"`
+	}
+	if err := json.Unmarshal([]byte(out), &podList); err != nil {
+		return err
+	}
+	var g errgroup.Group
+	for _, pod := range podList.Items {
+		for _, owner := range pod.Metadata.OwnerReferences {
+			if owner.Kind == "StatefulSet" && owner.Name == stsName {
+				podName := pod.Metadata.Name
+				g.Go(func() error {
+					_, err := runKubectl(ctx,
+						"-n", namespace,
+						"delete", "pod", podName,
+						"--wait=false",
+					)
+					return err
+				})
+			}
+		}
+	}
+	return g.Wait()
 }
 
 func (m *Migrator) waitForClusterReadyHTTP(ctx context.Context, useAuth bool) bool {
