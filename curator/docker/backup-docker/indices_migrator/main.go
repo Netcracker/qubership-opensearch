@@ -51,7 +51,7 @@ const (
 	migrationSuffix      = "-migration"
 	securityIndex        = ".opendistro_security"
 	securityDisabled     = "plugins.security.disabled: true"
-	clusterReadyTimeout  = 600
+	clusterReadyTimeout  = 1200
 	clusterReadyInterval = 15
 	adapterReadyTimeout  = 240
 	adapterReadyInterval = 10
