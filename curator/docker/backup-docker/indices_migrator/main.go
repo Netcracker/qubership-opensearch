@@ -1165,6 +1165,7 @@ func (m *Migrator) waitForClusterReadyHTTP(ctx context.Context, useAuth bool) bo
 
 	attempt := 0
 	for {
+		time.Sleep(interval)
 		if deadlineCtx.Err() != nil {
 			log.Error(fmt.Sprintf("Timeout (%s) waiting for cluster to become ready", timeout.String()))
 			return false
@@ -1174,7 +1175,6 @@ func (m *Migrator) waitForClusterReadyHTTP(ctx context.Context, useAuth bool) bo
 			log.Info(fmt.Sprintf("✓ Cluster is green and API is reachable (attempt %d)", attempt))
 			return true
 		}
-		time.Sleep(interval)
 	}
 }
 
