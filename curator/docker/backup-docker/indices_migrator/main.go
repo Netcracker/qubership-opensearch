@@ -1181,7 +1181,7 @@ func (m *Migrator) waitForClusterReadyHTTP(ctx context.Context, useAuth bool) bo
 func isGreen(ctx context.Context, c *http.Client, url string, useAuth bool, user, pass string) bool {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		log.Error("isGreen: NewRequest error: ", err)
+		log.Info(fmt.Sprintf("isGreen: NewRequest error: %e", err))
 		return false
 	}
 
@@ -1193,7 +1193,7 @@ func isGreen(ctx context.Context, c *http.Client, url string, useAuth bool, user
 
 	resp, err := c.Do(req)
 	if err != nil {
-		log.Error("isGreen: Do error: ", err)
+		log.Error(fmt.Sprintf("isGreen: Do error: %e", err))
 		return false
 	}
 	defer resp.Body.Close()
