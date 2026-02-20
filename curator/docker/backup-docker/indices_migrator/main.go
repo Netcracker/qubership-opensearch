@@ -1154,7 +1154,7 @@ func deleteAllPodsOfSTS(ctx context.Context, namespace, stsName string) error {
 }
 
 func (m *Migrator) waitForClusterReadyHTTP(ctx context.Context, useAuth bool) bool {
-	healthURL := m.osCluster.Protocol + "://" + m.osCluster.Host + "/_cluster/health?wait_for_status=green&timeout=5s"
+	healthURL := fmt.Sprintf("%s://%s:%d/%s", m.osCluster.Protocol, m.osCluster.Host, m.osCluster.Port, "/_cluster/health?wait_for_status=green&timeout=5s")
 	interval := time.Duration(clusterReadyInterval) * time.Second
 	timeout := time.Duration(clusterReadyTimeout) * time.Second
 	deadlineCtx, cancel := context.WithTimeout(ctx, time.Duration(clusterReadyTimeout)*time.Second)
