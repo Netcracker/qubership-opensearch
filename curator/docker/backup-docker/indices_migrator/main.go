@@ -142,6 +142,7 @@ func main() {
 
 	var dryRun bool
 	flag.BoolVar(&dryRun, "dry-run", false, "Run in dry mode (no changes applied)")
+	flag.Parse()
 	if dryRun {
 		log.Info("===================================")
 		log.Info(" DRY RUN MODE ENABLED")
