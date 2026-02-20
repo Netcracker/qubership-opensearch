@@ -24,6 +24,7 @@ const (
 	statusTrue     = "True"
 	typeInProgress = "In progress"
 	typeFailed     = "Failed"
+	typeReady      = "Ready"
 	typeSuccessful = "Successful"
 )
 
