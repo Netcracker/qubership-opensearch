@@ -1181,37 +1181,43 @@ func (m *Migrator) waitForClusterReadyHTTP(ctx context.Context, useAuth bool) bo
 func isGreen(ctx context.Context, c *http.Client, url string, useAuth bool, user, pass string) bool {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		log.Info(fmt.Sprintf("isGreen: NewRequest error: %e", err))
+		log.Error(fmt.Sprintf("isGreen: NewRequest error: %v", err))
 		return false
 	}
 
 	if useAuth {
-		log.Error("Auth not used", err)
+		log.Info(fmt.Sprintf("isGreen: using basic auth user=%s", user))
 		req.SetBasicAuth(user, pass)
+	} else {
+		log.Info("isGreen: auth NOT used")
 	}
+
 	req.Header.Set("Accept", "application/json")
 
 	resp, err := c.Do(req)
 	if err != nil {
-		log.Error(fmt.Sprintf("isGreen: Do error: %e", err))
+		log.Error(fmt.Sprintf("isGreen: Do error: %v", err))
 		return false
 	}
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
 
+	log.Info(fmt.Sprintf("isGreen: HTTP %d body=%s", resp.StatusCode, string(body)))
+
 	if resp.StatusCode != 200 {
-		log.Error("isGreen: status != 200: ", resp.StatusCode, " body=", string(body))
+		log.Error(fmt.Sprintf("isGreen: status != 200: %d", resp.StatusCode))
 		return false
 	}
 
 	var parsed clusterHealthResp
 	if err := json.Unmarshal(body, &parsed); err != nil {
-		log.Error("isGreen: decode error: ", err, " body=", string(body))
+		log.Error(fmt.Sprintf("isGreen: decode error: %v body=%s", err, string(body)))
 		return false
 	}
 
-	log.Info("isGreen: parsed status=", parsed.Status)
+	log.Info(fmt.Sprintf("isGreen: parsed status='%s'", parsed.Status))
+
 	return strings.TrimSpace(parsed.Status) == "green"
 }
 
