@@ -1181,24 +1181,38 @@ func (m *Migrator) waitForClusterReadyHTTP(ctx context.Context, useAuth bool) bo
 func isGreen(ctx context.Context, c *http.Client, url string, useAuth bool, user, pass string) bool {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
+		log.Error("isGreen: NewRequest error: ", err)
 		return false
 	}
+
 	if useAuth {
+		log.Error("Auth not used", err)
 		req.SetBasicAuth(user, pass)
 	}
+	req.Header.Set("Accept", "application/json")
+
 	resp, err := c.Do(req)
 	if err != nil {
+		log.Error("isGreen: Do error: ", err)
 		return false
 	}
 	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+
 	if resp.StatusCode != 200 {
+		log.Error("isGreen: status != 200: ", resp.StatusCode, " body=", string(body))
 		return false
 	}
+
 	var parsed clusterHealthResp
-	if err := json.NewDecoder(resp.Body).Decode(&parsed); err != nil {
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		log.Error("isGreen: decode error: ", err, " body=", string(body))
 		return false
 	}
-	return parsed.Status == "green"
+
+	log.Info("isGreen: parsed status=", parsed.Status)
+	return strings.TrimSpace(parsed.Status) == "green"
 }
 
 func (m *Migrator) ReinitSecurity(ctx context.Context) error {

@@ -12,8 +12,8 @@ metadata:
 rules:
   # Required for security reinitialization via plugins.security.disabled
   - apiGroups: [""]
-    resources: ["secrets", "services"]
-    verbs: ["get", "patch", "update"]
+    resources: ["secrets", "services", "pods"]
+    verbs: ["get", "patch", "update", "delete", "list"]
   - apiGroups: ["apps"]
     resources: ["statefulsets", "deployments"]
     verbs: ["get", "patch", "update"]
