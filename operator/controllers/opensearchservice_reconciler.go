@@ -28,6 +28,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -523,4 +524,34 @@ func (r *OpenSearchServiceReconciler) deletePodByName(podName string, namespace 
 	}
 
 	return nil
+}
+
+func (r *OpenSearchServiceReconciler) FindDeploymentList(namespace string, deploymentLabels map[string]string) (*appsv1.DeploymentList, error) {
+	foundDeploymentList := &appsv1.DeploymentList{}
+	err := r.Client.List(context.TODO(), foundDeploymentList, &client.ListOptions{
+		Namespace:     namespace,
+		LabelSelector: labels.SelectorFromSet(deploymentLabels),
+	})
+	return foundDeploymentList, err
+}
+
+func IsDeploymentReady(deployment appsv1.Deployment) bool {
+	availableReplicas := util.Min(deployment.Status.ReadyReplicas, deployment.Status.UpdatedReplicas)
+	return *deployment.Spec.Replicas == availableReplicas
+}
+
+func (r *OpenSearchServiceReconciler) AreDeploymentsReady(deploymentLabels map[string]string, namespace string, logger logr.Logger) bool {
+	deployments, err := r.FindDeploymentList(namespace, deploymentLabels)
+	if err != nil {
+		logger.Error(err, "Cannot check deployments status")
+		return false
+	}
+
+	for _, deployment := range deployments.Items {
+		if !IsDeploymentReady(deployment) {
+			logger.Info(fmt.Sprintf("%s deployment is not ready yet", deployment.Name))
+			return false
+		}
+	}
+	return true
 }
