@@ -166,28 +166,28 @@ func main() {
 
 	migrator.backupProvider = backup.NewBackupProvider(osCluster.Client, cl.ConfigureCuratorClient(), snapshotRepoName)
 
-	indices, err := migrator.Step1Select1xIndicesAndPrecheck(ctx)
+	oneXAll, oneXBackup, err := migrator.Step1Select1xIndicesAndPrecheck(ctx)
 	if err != nil {
 		log.Error(fmt.Sprintf("OpenSearch 1.x index migration preparation failed: %v", err))
 		os.Exit(2)
 	}
-	log.Info(fmt.Sprintf("Indices need migration: %#v (count=%d)", indices, len(indices)))
+	log.Info(fmt.Sprintf("Indices need migration: %#v (count=%d)", oneXAll, len(oneXAll)))
 	log.Info(fmt.Sprintf("Security needs reinit: %v", migrator.securityNeedsReInit))
 
 	if dryRun {
 		return
 	}
 
-	if len(indices) == 0 {
+	if len(oneXAll) == 0 {
 		log.Info("Nothing to migrate")
 	} else {
-		if backupID, berr := migrator.CollectAndWaitBackup(ctx, indices); berr != nil {
+		if backupID, berr := migrator.CollectAndWaitBackup(ctx, oneXBackup); berr != nil {
 			log.Error(fmt.Sprintf("OpenSearch 1.x index migration failed: %v", berr))
 			os.Exit(2)
 		} else {
 			migrator.backupID = backupID
 		}
-		if err = migrator.Step2MigrateAll1x(ctx, indices); err != nil {
+		if err = migrator.Step2MigrateAll1x(ctx, oneXAll); err != nil {
 			log.Error(fmt.Sprintf("Step2 failed: %v", err))
 			os.Exit(2)
 		}
@@ -214,42 +214,52 @@ func main() {
 	log.Info("All done. Step3 security later.")
 }
 
-func (m *Migrator) Step1Select1xIndicesAndPrecheck(ctx context.Context) ([]string, error) {
+func (m *Migrator) Step1Select1xIndicesAndPrecheck(ctx context.Context) ([]string, []string, error) {
 	createdMap, err := m.fetchAllCreatedVersions(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	sizesMap, err := m.fetchAllIndexSizesBytes(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	log.Info(fmt.Sprintf("Indices from OS: %#v (count=%d)", createdMap, len(createdMap)))
 
-	var oneX []string
+	var oneXAll []string
+	var oneXBackup []string
+
 	for idx, raw := range createdMap {
 		if idx == ".opendistro_security" || idx == ".opensearch-security" {
 			m.securityNeedsReInit = true
 			continue
 		}
 		dec := decodeCreated(raw)
-		if majorOf(dec) == 1 {
-			oneX = append(oneX, idx)
+		if majorOf(dec) != 1 {
+			continue
+		}
+		oneXAll = append(oneXAll, idx)
+		if !strings.HasPrefix(idx, ".") {
+			oneXBackup = append(oneXBackup, idx)
 		}
 	}
-	if len(oneX) == 0 {
+
+	if len(oneXAll) == 0 {
 		log.Info("No indices created on OpenSearch 1.x found (excluding security index)")
-		return nil, nil
+		return nil, nil, nil
 	}
 
-	log.Info(fmt.Sprintf("Indices after cycle: %#v (count=%d)", oneX, len(oneX)))
+	sort.Strings(oneXAll)
+	sort.Strings(oneXBackup)
 
-	sort.Strings(oneX)
+	log.Info(fmt.Sprintf("1.x indices (all): %#v (count=%d)", oneXAll, len(oneXAll)))
+	log.Info(fmt.Sprintf("1.x indices for backup (no dot-prefixed): %#v (count=%d)", oneXBackup, len(oneXBackup)))
 
+	// heaviest 1.x (по тем, что реально будем мигрировать)
 	var heaviestName string
 	var heaviestSize uint64
-	for _, name := range oneX {
-		size := sizesMap[name]
+	for _, name := range oneXAll {
+		size := sizesMap[name] // если нет — будет 0
 		if heaviestName == "" || size > heaviestSize {
 			heaviestName = name
 			heaviestSize = size
@@ -258,11 +268,12 @@ func (m *Migrator) Step1Select1xIndicesAndPrecheck(ctx context.Context) ([]strin
 
 	minAvail, err := m.getClusterMinAvailableBytes(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
 	need := heaviestSize * 2
 	if minAvail < need {
-		return nil, errors.New(
+		return nil, nil, errors.New(
 			"Disk precheck FAILED. " +
 				"Min node available=" + strconv.FormatUint(minAvail, 10) +
 				" bytes, need=" + strconv.FormatUint(need, 10) +
@@ -270,7 +281,8 @@ func (m *Migrator) Step1Select1xIndicesAndPrecheck(ctx context.Context) ([]strin
 				", size=" + strconv.FormatUint(heaviestSize, 10) + ").",
 		)
 	}
-	return oneX, nil
+
+	return oneXAll, oneXBackup, nil
 }
 
 func (m *Migrator) Step2MigrateAll1x(ctx context.Context, indices []string) error {
