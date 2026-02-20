@@ -116,6 +116,7 @@ type OpenSearchServiceSpec struct {
 	ElasticsearchDbaasAdapter *ElasticsearchDbaasAdapter `json:"elasticsearchDbaasAdapter,omitempty"`
 	Curator                   *Curator                   `json:"curator,omitempty"`
 	DisasterRecovery          *DisasterRecovery          `json:"disasterRecovery,omitempty"`
+	IntegrationTests          *IntegrationTests          `json:"integrationTests,omitempty"`
 }
 
 type DisasterRecoveryStatus struct {
@@ -180,6 +181,13 @@ type OpenSearchServiceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []OpenSearchService `json:"items"`
+}
+
+type IntegrationTests struct {
+	ServiceName      string `json:"serviceName"`
+	WaitForResult    bool   `json:"waitForResult"`
+	Timeout          int    `json:"timeout"`
+	RandomRunTrigger string `json:"randomRunTrigger,omitempty"`
 }
 
 func init() {
