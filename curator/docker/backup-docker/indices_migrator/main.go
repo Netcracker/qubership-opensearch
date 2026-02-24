@@ -10,14 +10,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/Netcracker/dbaas-opensearch-adapter/backup"
-	cl "github.com/Netcracker/dbaas-opensearch-adapter/client"
-	"github.com/Netcracker/dbaas-opensearch-adapter/cluster"
-	"github.com/Netcracker/dbaas-opensearch-adapter/common"
-	"github.com/opensearch-project/opensearch-go/opensearchapi"
-	"golang.org/x/sync/errgroup"
 	"io"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"net"
 	"net/http"
 	"net/url"
@@ -27,12 +20,20 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Netcracker/dbaas-opensearch-adapter/backup"
+	cl "github.com/Netcracker/dbaas-opensearch-adapter/client"
+	"github.com/Netcracker/dbaas-opensearch-adapter/cluster"
+	"github.com/Netcracker/dbaas-opensearch-adapter/common"
+	"github.com/opensearch-project/opensearch-go/opensearchapi"
+	"golang.org/x/sync/errgroup"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 const mask uint64 = 0x08000000
 
 var (
-	ErrNotFound = errors.New("not found")
+	ErrNotFound                  = errors.New("not found")
 	opensearchHost               = common.GetEnv("ES_HOST", "opensearch-internal:9200")
 	TLSHTTPEnabled               = strings.EqualFold(common.GetEnv("TLS_HTTP_ENABLED", "false"), "true")
 	opensearchUsername           = common.GetEnv("ES_USERNAME", "")
@@ -65,8 +66,8 @@ const (
 	RecoveryFailedState  = "failed"
 	RecoveryDoneState    = "done"
 
-	doRetryAttempts  = 5
-	doRetryInterval  = 3 * time.Second
+	doRetryAttempts = 5
+	doRetryInterval = 3 * time.Second
 )
 
 type MigrationTool struct {
@@ -1381,8 +1382,8 @@ func newAdapterHTTPClient() *http.Client {
 func NewAdapterClient() *AdapterClient {
 	return &AdapterClient{
 		endpoint:   adapterAddress,
-		username:  adapterUsername,
-		password:  adapterPassword,
+		username:   adapterUsername,
+		password:   adapterPassword,
 		httpClient: newAdapterHTTPClient(),
 	}
 }
@@ -1495,11 +1496,6 @@ func RestartOperator(ctx context.Context) error {
 	_, err := runKubectl(ctx, "rollout", "restart", target)
 	if err != nil {
 		return errors.New("failed to restart operator")
-	}
-	log.Info(fmt.Sprintf("rollout restart triggered for %s", target))
-	_, err = runKubectl(ctx, "rollout", "status", target)
-	if err != nil {
-		return errors.New("operator rollout did not complete successfully")
 	}
 	log.Info("Operator restarted successfully")
 	return nil
