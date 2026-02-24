@@ -5,18 +5,15 @@ ARG TARGETARCH
 
 ENV GOSUMDB=off
 
+# Build context must be repo root (see .qubership/docker-build-config.cfg: context ".").
+# Layout matches go.mod replace ../../../../dbaas-adapter => /workspace/dbaas-adapter
 WORKDIR /workspace
-COPY ../dbaas-adapter /workspace/dbaas-adapter
-# Copy the Go Modules manifests
-COPY docker/backup-docker/indices_migrator/go.mod docker/backup-docker/indices_migrator/go.sum /workspace/curator/docker/backup-docker/indices_migrator/
+COPY dbaas-adapter /workspace/dbaas-adapter
+COPY curator/docker/backup-docker/indices_migrator/go.mod curator/docker/backup-docker/indices_migrator/go.sum /workspace/curator/docker/backup-docker/indices_migrator/
 WORKDIR /workspace/curator/docker/backup-docker/indices_migrator
-# cache deps before building and copying source so that we don't need to re-download as much
-# and so that source changes don't invalidate our downloaded layer
 RUN go mod download
 
-# Copy the go source
-COPY docker/backup-docker/indices_migrator/main.go main.go
-# Build
+COPY curator/docker/backup-docker/indices_migrator/main.go main.go
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o migrator main.go
 
 FROM ghcr.io/netcracker/qubership-backup-daemon:main_alpine
@@ -27,12 +24,12 @@ ARG TARGETARCH
 WORKDIR /
 ENV ELASTICSEARCH_CURATOR_HOME=/opt/elasticsearch-curator
 
-COPY backup-daemon.conf /etc/backup-daemon.conf
-COPY docker/backup-docker/scripts ${ELASTICSEARCH_CURATOR_HOME}
-COPY docker/backup-docker/config/curator.yml ${ELASTICSEARCH_CURATOR_HOME}/config/curator.yml
-COPY docker/backup-docker/actions ${ELASTICSEARCH_CURATOR_HOME}/actions
-COPY docker/backup-docker/docker-entrypoint.sh /docker-entrypoint.sh
-COPY --from=builder --chown=${USER_UID} /workspace/migrator ${ELASTICSEARCH_CURATOR_HOME}
+COPY curator/backup-daemon.conf /etc/backup-daemon.conf
+COPY curator/docker/backup-docker/scripts ${ELASTICSEARCH_CURATOR_HOME}
+COPY curator/docker/backup-docker/config/curator.yml ${ELASTICSEARCH_CURATOR_HOME}/config/curator.yml
+COPY curator/docker/backup-docker/actions ${ELASTICSEARCH_CURATOR_HOME}/actions
+COPY curator/docker/backup-docker/docker-entrypoint.sh /docker-entrypoint.sh
+COPY --from=builder --chown=${USER_UID} /workspace/curator/docker/backup-docker/indices_migrator/migrator ${ELASTICSEARCH_CURATOR_HOME}
 
 RUN set -x \
     && pip3 install --upgrade pip setuptools wheel \
