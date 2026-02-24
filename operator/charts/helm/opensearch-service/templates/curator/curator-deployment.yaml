@@ -57,6 +57,8 @@ spec:
               value: "$(ES_USERNAME):$(ES_PASSWORD)"
             - name: TLS_HTTP_ENABLED
               value: "{{ or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}"
+            - name: OPENSEARCH_OPERATOR_DEPLOYMENT_NAME
+              value: {{ template "opensearch.fullname" . }}-service-operator
             - name: TLS_ENABLED
               value: "{{ template "curator.tlsEnabled" . }}"
             - name: SNAPSHOT_REPOSITORY_NAME
