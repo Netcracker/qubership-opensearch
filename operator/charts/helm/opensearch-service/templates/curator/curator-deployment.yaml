@@ -198,6 +198,10 @@ spec:
             - mountPath: /tls
               name: certs
             {{- end }}
+            {{- if eq (include "dbaas-adapter.tlsEnabled" .) "true" }}
+            - mountPath: /tls/dbaas
+              name: dbaas-adapter-certs
+            {{- end }}
             {{- if and .Values.opensearch.snapshots.s3.enabled .Values.opensearch.snapshots.s3.gcs.secretName .Values.opensearch.snapshots.s3.gcs.secretKey }}
             - name: gcs
               mountPath: /usr/share/opensearch/gcs

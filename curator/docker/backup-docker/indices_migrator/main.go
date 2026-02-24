@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -31,12 +32,13 @@ import (
 const mask uint64 = 0x08000000
 
 var (
+	ErrNotFound = errors.New("not found")
 	opensearchHost               = common.GetEnv("ES_HOST", "opensearch-internal:9200")
 	TLSHTTPEnabled               = strings.EqualFold(common.GetEnv("TLS_HTTP_ENABLED", "false"), "true")
-	opensearchUsername           = common.GetEnv("ES_USERNAME", "opensearch")
-	opensearchPassword           = common.GetEnv("ES_PASSWORD", "change")
-	adapterUsername              = common.GetEnv("DBAAS_ADAPTER_USERNAME", "dbaas-aggregator")
-	adapterPassword              = common.GetEnv("DBAAS_ADAPTER_PASSWORD", "dbaas-aggregator")
+	opensearchUsername           = common.GetEnv("ES_USERNAME", "")
+	opensearchPassword           = common.GetEnv("ES_PASSWORD", "")
+	adapterUsername              = common.GetEnv("DBAAS_ADAPTER_USERNAME", "")
+	adapterPassword              = common.GetEnv("DBAAS_ADAPTER_PASSWORD", "")
 	adapterAddress               = common.GetEnv("DBAAS_ADAPTER_ADDRESS", "")
 	snapshotRepoName             = common.GetEnv("SNAPSHOT_REPOSITORY_NAME", "")
 	opensearchNamespace          = common.GetEnv("OPENSEARCH_NAMESPACE", "default")
@@ -62,9 +64,12 @@ const (
 	RecoveryRunningState = "running"
 	RecoveryFailedState  = "failed"
 	RecoveryDoneState    = "done"
+
+	doRetryAttempts  = 5
+	doRetryInterval  = 3 * time.Second
 )
 
-type Migrator struct {
+type MigrationTool struct {
 	osCluster           *cluster.Opensearch
 	backupProvider      *backup.BackupProvider
 	adapterClient       *AdapterClient
@@ -124,14 +129,13 @@ type reindexAsyncResp struct {
 }
 
 type taskGetResp struct {
-	Completed bool `json:"completed"`
-	Error     any  `json:"error,omitempty"`
-	Response  any  `json:"response,omitempty"`
+	Completed bool   `json:"completed"`
+	Error     string `json:"error,omitempty"`
+	Response  any    `json:"response,omitempty"`
 }
 
 type PerfSnapshot struct {
 	NumberOfReplicas *string
-	RefreshInterval  *string
 }
 
 type clusterHealthResp struct {
@@ -151,72 +155,80 @@ func main() {
 		log.Info("===================================")
 	}
 
+	if err := run(dryRun); err != nil {
+		log.Error(fmt.Sprintf("OpenSearch 1.x index migration failed: %v", err))
+		os.Exit(2)
+	}
+}
+
+func run(dryRun bool) error {
 	osCluster, err := newOpenSearchClient()
 	if err != nil {
 		log.Error("OpenSearch client creation failed")
-		os.Exit(2)
+		return err
 	}
 	if osCluster == nil || osCluster.Client == nil {
 		log.Error("OpenSearch client is nil")
-		os.Exit(2)
+		return fmt.Errorf("OpenSearch client is nil")
 	}
 
-	migrator := &Migrator{osCluster: osCluster}
+	m := &MigrationTool{osCluster: osCluster}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 180*time.Minute)
 	defer cancel()
 
-	migrator.backupProvider = backup.NewBackupProvider(osCluster.Client, cl.ConfigureCuratorClient(), snapshotRepoName)
+	m.backupProvider = backup.NewBackupProvider(osCluster.Client, cl.ConfigureCuratorClient(), snapshotRepoName)
 
-	oneXAll, oneXBackup, err := migrator.Step1Select1xIndicesAndPrecheck(ctx)
+	oneXAll, oneXBackup, err := m.CollectInappropriateIndices(ctx)
 	if err != nil {
 		log.Error(fmt.Sprintf("OpenSearch 1.x index migration preparation failed: %v", err))
-		os.Exit(2)
+		return err
 	}
 	log.Info(fmt.Sprintf("Indices need migration: %#v (count=%d)", oneXAll, len(oneXAll)))
-	log.Info(fmt.Sprintf("Security needs reinit: %v", migrator.securityNeedsReInit))
+	log.Info(fmt.Sprintf("Security needs reinit: %v", m.securityNeedsReInit))
 
 	if dryRun {
-		return
+		return nil
 	}
 
 	if len(oneXAll) == 0 {
 		log.Info("Nothing to migrate")
 	} else {
-		if backupID, berr := migrator.CollectAndWaitBackup(ctx, oneXBackup); berr != nil {
+		backupID, berr := m.CollectAndWaitBackup(ctx, oneXBackup)
+		if berr != nil {
 			log.Error(fmt.Sprintf("OpenSearch 1.x index migration failed: %v", berr))
-			os.Exit(2)
-		} else {
-			migrator.backupID = backupID
+			return berr
 		}
-		if err = migrator.Step2MigrateAll1x(ctx, oneXAll); err != nil {
+		m.backupID = backupID
+		if err = m.MigrateAll(ctx, oneXAll); err != nil {
 			log.Error(fmt.Sprintf("Step2 failed: %v", err))
-			os.Exit(2)
+			return err
 		}
 	}
 
-	if migrator.securityNeedsReInit {
-		if err = migrator.ReinitSecurity(ctx); err != nil {
+	if m.securityNeedsReInit {
+		if err = m.ReinitSecurity(ctx); err != nil {
 			log.Error(fmt.Sprintf("Security reinitialization failed: %v", err))
-			os.Exit(2)
+			return err
 		}
 	}
 
-	migrator.adapterClient = NewAdapterClient()
-	if err = migrator.RestoreUsers(ctx); err != nil {
+	m.adapterClient = NewAdapterClient()
+	if err = m.RestoreUsers(ctx); err != nil {
 		log.Error(fmt.Sprintf("User recovery failed: %v", err))
-		os.Exit(2)
+		return err
 	}
 
 	if err = RestartOperator(ctx); err != nil {
 		log.Error(fmt.Sprintf("Operator restart failed: %v", err))
-		os.Exit(2)
+		return err
 	}
 
 	log.Info("All done. Step3 security later.")
+	return nil
 }
 
-func (m *Migrator) Step1Select1xIndicesAndPrecheck(ctx context.Context) ([]string, []string, error) {
+func (m *MigrationTool) CollectInappropriateIndices(ctx context.Context) ([]string, []string, error) {
 	createdMap, err := m.fetchAllCreatedVersions(ctx)
 	if err != nil {
 		return nil, nil, err
@@ -232,12 +244,12 @@ func (m *Migrator) Step1Select1xIndicesAndPrecheck(ctx context.Context) ([]strin
 	var oneXBackup []string
 
 	for idx, raw := range createdMap {
-		if idx == ".opendistro_security" || idx == ".opensearch-security" {
-			m.securityNeedsReInit = true
-			continue
-		}
 		dec := decodeCreated(raw)
 		if majorOf(dec) != 1 {
+			continue
+		}
+		if isSecurityIndex(idx) {
+			m.securityNeedsReInit = true
 			continue
 		}
 		oneXAll = append(oneXAll, idx)
@@ -257,11 +269,10 @@ func (m *Migrator) Step1Select1xIndicesAndPrecheck(ctx context.Context) ([]strin
 	log.Info(fmt.Sprintf("1.x indices (all): %#v (count=%d)", oneXAll, len(oneXAll)))
 	log.Info(fmt.Sprintf("1.x indices for backup (no dot-prefixed): %#v (count=%d)", oneXBackup, len(oneXBackup)))
 
-	// heaviest 1.x (по тем, что реально будем мигрировать)
 	var heaviestName string
 	var heaviestSize uint64
 	for _, name := range oneXAll {
-		size := sizesMap[name] // если нет — будет 0
+		size := sizesMap[name]
 		if heaviestName == "" || size > heaviestSize {
 			heaviestName = name
 			heaviestSize = size
@@ -287,8 +298,8 @@ func (m *Migrator) Step1Select1xIndicesAndPrecheck(ctx context.Context) ([]strin
 	return oneXAll, oneXBackup, nil
 }
 
-func (m *Migrator) Step2MigrateAll1x(ctx context.Context, indices []string) error {
-	for i, name := range indices {
+func (m *MigrationTool) MigrateAll(ctx context.Context, indices []string) error {
+	for _, name := range indices {
 		log.Info(fmt.Sprintf("---- Migrating index: %s", name))
 		errMain := m.migrateOneIndex(ctx, name)
 		if errMain == nil {
@@ -303,7 +314,7 @@ func (m *Migrator) Step2MigrateAll1x(ctx context.Context, indices []string) erro
 			log.Error(fmt.Sprintf("Index migration failed, will delete and continue. index=%s", name))
 			continue
 		}
-		_, err := m.backupProvider.RestoreBackup(m.backupID, indices[i:], "", false, ctx)
+		_, err := m.backupProvider.RestoreBackup(m.backupID, []string{name}, "", false, ctx)
 		if err != nil {
 			return err
 		}
@@ -313,7 +324,7 @@ func (m *Migrator) Step2MigrateAll1x(ctx context.Context, indices []string) erro
 	return nil
 }
 
-func (m *Migrator) migrateOneIndex(ctx context.Context, indexName string) error {
+func (m *MigrationTool) migrateOneIndex(ctx context.Context, indexName string) error {
 	tmp := indexName + migrationSuffix
 
 	log.Info(fmt.Sprintf("[migrateOneIndex] start index=%s tmp=%s", indexName, tmp))
@@ -327,7 +338,11 @@ func (m *Migrator) migrateOneIndex(ctx context.Context, indexName string) error 
 	log.Info(fmt.Sprintf("[migrateOneIndex] get mappings index=%s", indexName))
 	mappings, err := m.getIndexMappings(ctx, indexName)
 	if err != nil {
-		return err
+		if errors.Is(err, ErrNotFound) {
+			mappings = nil
+		} else {
+			return err
+		}
 	}
 
 	log.Info(fmt.Sprintf("[migrateOneIndex] sanitize settings + apply perf tweaks index=%s", indexName))
@@ -427,7 +442,7 @@ func (m *Migrator) migrateOneIndex(ctx context.Context, indexName string) error 
 	return nil
 }
 
-func (m *Migrator) fetchAllCreatedVersions(ctx context.Context) (map[string]uint64, error) {
+func (m *MigrationTool) fetchAllCreatedVersions(ctx context.Context) (map[string]uint64, error) {
 	q := url.Values{}
 	q.Set("filter_path", "*.settings.index.version.created")
 	q.Set("expand_wildcards", "all")
@@ -440,7 +455,10 @@ func (m *Migrator) fetchAllCreatedVersions(ctx context.Context) (map[string]uint
 	}
 	defer resp.Body.Close()
 
-	raw, _ := io.ReadAll(resp.Body)
+	raw, err := readResponseBody(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read response body: %w", err)
+	}
 	if resp.StatusCode >= 400 {
 		return nil, errors.New("GET " + path + " failed: " + strings.TrimSpace(string(raw)))
 	}
@@ -469,7 +487,7 @@ func (m *Migrator) fetchAllCreatedVersions(ctx context.Context) (map[string]uint
 	return out, nil
 }
 
-func (m *Migrator) fetchAllIndexSizesBytes(ctx context.Context) (map[string]uint64, error) {
+func (m *MigrationTool) fetchAllIndexSizesBytes(ctx context.Context) (map[string]uint64, error) {
 	q := url.Values{}
 	q.Set("expand_wildcards", "all")
 	q.Set("bytes", "b")
@@ -485,7 +503,10 @@ func (m *Migrator) fetchAllIndexSizesBytes(ctx context.Context) (map[string]uint
 	}
 	defer resp.Body.Close()
 
-	data, _ := io.ReadAll(resp.Body)
+	data, err := readResponseBody(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read response body: %w", err)
+	}
 	if resp.StatusCode >= 400 {
 		return nil, errors.New("GET " + path + " failed: " + strings.TrimSpace(string(data)))
 	}
@@ -512,7 +533,7 @@ func (m *Migrator) fetchAllIndexSizesBytes(ctx context.Context) (map[string]uint
 	return out, nil
 }
 
-func (m *Migrator) getClusterMinAvailableBytes(ctx context.Context) (uint64, error) {
+func (m *MigrationTool) getClusterMinAvailableBytes(ctx context.Context) (uint64, error) {
 	q := url.Values{}
 	q.Set("filter_path", "nodes.*.fs.total.available_in_bytes")
 	path := "/_nodes/stats/fs?" + q.Encode()
@@ -521,7 +542,10 @@ func (m *Migrator) getClusterMinAvailableBytes(ctx context.Context) (uint64, err
 		return 0, err
 	}
 	defer resp.Body.Close()
-	raw, _ := io.ReadAll(resp.Body)
+	raw, err := readResponseBody(resp.Body)
+	if err != nil {
+		return 0, fmt.Errorf("read response body: %w", err)
+	}
 	if resp.StatusCode >= 400 {
 		return 0, errors.New("GET " + path + " failed: " + strings.TrimSpace(string(raw)))
 	}
@@ -568,7 +592,15 @@ func majorOf(versionID uint64) uint64 {
 	return versionID / 1_000_000
 }
 
-func (m *Migrator) getIndexSettingsIndexObject(ctx context.Context, index string) (map[string]any, error) {
+func isSecurityIndex(name string) bool {
+	return name == ".opendistro_security" || name == ".opensearch-security" || name == ".plugins-security"
+}
+
+func readResponseBody(r io.Reader) ([]byte, error) {
+	return io.ReadAll(r)
+}
+
+func (m *MigrationTool) getIndexSettingsIndexObject(ctx context.Context, index string) (map[string]any, error) {
 	path := "/" + url.PathEscape(index) + "/_settings"
 	resp, err := m.Do(ctx, http.MethodGet, path, nil, "")
 	if err != nil {
@@ -576,7 +608,10 @@ func (m *Migrator) getIndexSettingsIndexObject(ctx context.Context, index string
 	}
 	defer resp.Body.Close()
 
-	raw, _ := io.ReadAll(resp.Body)
+	raw, err := readResponseBody(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read response body: %w", err)
+	}
 	if resp.StatusCode >= 400 {
 		return nil, errors.New("GET " + path + " failed: " + strings.TrimSpace(string(raw)))
 	}
@@ -599,7 +634,7 @@ func (m *Migrator) getIndexSettingsIndexObject(ctx context.Context, index string
 	return v.Settings.Index, nil
 }
 
-func (m *Migrator) getIndexMappings(ctx context.Context, index string) (json.RawMessage, error) {
+func (m *MigrationTool) getIndexMappings(ctx context.Context, index string) (json.RawMessage, error) {
 	path := "/" + url.PathEscape(index) + "/_mapping"
 	resp, err := m.Do(ctx, http.MethodGet, path, nil, "")
 	if err != nil {
@@ -607,7 +642,13 @@ func (m *Migrator) getIndexMappings(ctx context.Context, index string) (json.Raw
 	}
 	defer resp.Body.Close()
 
-	raw, _ := io.ReadAll(resp.Body)
+	raw, err := readResponseBody(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read response body: %w", err)
+	}
+	if resp.StatusCode == 404 {
+		return nil, ErrNotFound
+	}
 	if resp.StatusCode >= 400 {
 		return nil, errors.New("GET " + path + " failed: " + strings.TrimSpace(string(raw)))
 	}
@@ -625,10 +666,10 @@ func (m *Migrator) getIndexMappings(ctx context.Context, index string) (json.Raw
 			return vv.Mappings, nil
 		}
 	}
-	return nil, errors.New("mapping not found for " + index)
+	return nil, ErrNotFound
 }
 
-func (m *Migrator) createIndex(ctx context.Context, index string, settings map[string]any, mappings json.RawMessage) error {
+func (m *MigrationTool) createIndex(ctx context.Context, index string, settings map[string]any, mappings json.RawMessage) error {
 	body := map[string]any{
 		"settings": settings,
 	}
@@ -650,14 +691,17 @@ func (m *Migrator) createIndex(ctx context.Context, index string, settings map[s
 		return err
 	}
 	defer resp.Body.Close()
-	raw, _ := io.ReadAll(resp.Body)
+	raw, err := readResponseBody(resp.Body)
+	if err != nil {
+		return fmt.Errorf("read response body: %w", err)
+	}
 	if resp.StatusCode >= 400 {
 		return errors.New("create index " + index + " failed: " + strings.TrimSpace(string(raw)))
 	}
 	return nil
 }
 
-func (m *Migrator) deleteIndex(ctx context.Context, index string) error {
+func (m *MigrationTool) deleteIndex(ctx context.Context, index string) error {
 	req := opensearchapi.IndicesDeleteRequest{Index: []string{index}}
 	resp, err := req.Do(ctx, m.osCluster.Client)
 	if err != nil {
@@ -667,14 +711,17 @@ func (m *Migrator) deleteIndex(ctx context.Context, index string) error {
 	if resp.StatusCode == 404 {
 		return nil
 	}
-	raw, _ := io.ReadAll(resp.Body)
+	raw, err := readResponseBody(resp.Body)
+	if err != nil {
+		return fmt.Errorf("read response body: %w", err)
+	}
 	if resp.StatusCode >= 400 {
 		return errors.New("delete index " + index + " failed: " + strings.TrimSpace(string(raw)))
 	}
 	return nil
 }
 
-func (m *Migrator) getCount(ctx context.Context, index string) (uint64, error) {
+func (m *MigrationTool) getCount(ctx context.Context, index string) (uint64, error) {
 	path := "/" + url.PathEscape(index) + "/_count"
 	resp, err := m.Do(ctx, http.MethodGet, path, nil, "")
 	if err != nil {
@@ -682,7 +729,10 @@ func (m *Migrator) getCount(ctx context.Context, index string) (uint64, error) {
 	}
 	defer resp.Body.Close()
 
-	raw, _ := io.ReadAll(resp.Body)
+	raw, err := readResponseBody(resp.Body)
+	if err != nil {
+		return 0, fmt.Errorf("read response body: %w", err)
+	}
 	if resp.StatusCode >= 400 {
 		return 0, errors.New("GET " + path + " failed: " + strings.TrimSpace(string(raw)))
 	}
@@ -700,7 +750,7 @@ func (m *Migrator) getCount(ctx context.Context, index string) (uint64, error) {
 	return n, nil
 }
 
-func (m *Migrator) reindexWait(ctx context.Context, src, dst string) error {
+func (m *MigrationTool) reindexWait(ctx context.Context, src, dst string) error {
 	body := map[string]any{
 		"source": map[string]any{"index": src},
 		"dest":   map[string]any{"index": dst},
@@ -717,7 +767,10 @@ func (m *Migrator) reindexWait(ctx context.Context, src, dst string) error {
 	}
 	defer resp.Body.Close()
 
-	raw, _ := io.ReadAll(resp.Body)
+	raw, err := readResponseBody(resp.Body)
+	if err != nil {
+		return fmt.Errorf("read response body: %w", err)
+	}
 	if resp.StatusCode >= 400 {
 		return errors.New("reindex " + src + " -> " + dst + " failed: " + strings.TrimSpace(string(raw)))
 	}
@@ -731,7 +784,7 @@ func (m *Migrator) reindexWait(ctx context.Context, src, dst string) error {
 	return m.waitTask(ctx, r.Task)
 }
 
-func (m *Migrator) waitTask(ctx context.Context, taskID string) error {
+func (m *MigrationTool) waitTask(ctx context.Context, taskID string) error {
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 
@@ -745,9 +798,11 @@ func (m *Migrator) waitTask(ctx context.Context, taskID string) error {
 			if err != nil {
 				return err
 			}
-			raw, _ := io.ReadAll(resp.Body)
+			raw, err := readResponseBody(resp.Body)
 			_ = resp.Body.Close()
-
+			if err != nil {
+				return fmt.Errorf("read response body: %w", err)
+			}
 			if resp.StatusCode >= 400 {
 				return errors.New("task get failed: " + strings.TrimSpace(string(raw)))
 			}
@@ -758,8 +813,8 @@ func (m *Migrator) waitTask(ctx context.Context, taskID string) error {
 			}
 
 			if tr.Completed {
-				if tr.Error != nil {
-					return errors.New("task failed: " + taskID)
+				if tr.Error != "" {
+					return fmt.Errorf("task failed: %s: %s", taskID, tr.Error)
 				}
 				log.Info(fmt.Sprintf("Task completed: %s", taskID))
 				return nil
@@ -768,7 +823,7 @@ func (m *Migrator) waitTask(ctx context.Context, taskID string) error {
 	}
 }
 
-func (m *Migrator) setWriteBlock(ctx context.Context, index string, on bool) error {
+func (m *MigrationTool) setWriteBlock(ctx context.Context, index string, on bool) error {
 	body := map[string]any{
 		"index": map[string]any{
 			"blocks": map[string]any{
@@ -785,7 +840,10 @@ func (m *Migrator) setWriteBlock(ctx context.Context, index string, on bool) err
 	}
 	defer resp.Body.Close()
 
-	raw, _ := io.ReadAll(resp.Body)
+	raw, err := readResponseBody(resp.Body)
+	if err != nil {
+		return fmt.Errorf("read response body: %w", err)
+	}
 	if resp.StatusCode >= 400 {
 		return errors.New("set write block failed for " + index + ": " + strings.TrimSpace(string(raw)))
 	}
@@ -807,15 +865,52 @@ func sanitizeIndexSettings(idx map[string]any) map[string]any {
 	return out
 }
 
-func (m *Migrator) Do(ctx context.Context, method, path string, body io.Reader, contentType string) (*http.Response, error) {
-	req, err := http.NewRequestWithContext(ctx, method, path, body)
+func (m *MigrationTool) Do(ctx context.Context, method, path string, body io.Reader, contentType string) (*http.Response, error) {
+	var bodyBytes []byte
+	if body != nil {
+		var err error
+		bodyBytes, err = readResponseBody(body)
+		if err != nil {
+			return nil, fmt.Errorf("read request body: %w", err)
+		}
+	}
+
+	var resultResp *http.Response
+	attempt := 0
+	err := wait.PollUntilContextCancel(ctx, doRetryInterval, true, func(ctx context.Context) (bool, error) {
+		attempt++
+		var reqBody io.Reader
+		if len(bodyBytes) > 0 {
+			reqBody = bytes.NewReader(bodyBytes)
+		}
+		req, err := http.NewRequestWithContext(ctx, method, path, reqBody)
+		if err != nil {
+			return true, err
+		}
+		if contentType != "" {
+			req.Header.Set("Content-Type", contentType)
+		}
+
+		resp, err := m.osCluster.Client.Perform(req)
+		if err != nil {
+			return true, err
+		}
+
+		if resp.StatusCode < 500 {
+			resultResp = resp
+			return true, nil
+		}
+
+		_ = resp.Body.Close()
+		if attempt >= doRetryAttempts {
+			return true, fmt.Errorf("HTTP %d after %d attempts (5xx retries exhausted)", resp.StatusCode, doRetryAttempts)
+		}
+		return false, nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	if body != nil && contentType != "" {
-		req.Header.Set("Content-Type", contentType)
-	}
-	return m.osCluster.Client.Perform(req)
+	return resultResp, nil
 }
 
 func getStringSetting(idx map[string]any, key string) *string {
@@ -846,7 +941,7 @@ func applyReindexPerfTweaksWithSnapshot(idx map[string]any) PerfSnapshot {
 	return snap
 }
 
-func (m *Migrator) restorePerfSettings(ctx context.Context, index string, snap PerfSnapshot) error {
+func (m *MigrationTool) restorePerfSettings(ctx context.Context, index string, snap PerfSnapshot) error {
 	settings := map[string]any{}
 	changed := false
 	if snap.NumberOfReplicas != nil {
@@ -866,7 +961,10 @@ func (m *Migrator) restorePerfSettings(ctx context.Context, index string, snap P
 		return err
 	}
 	defer resp.Body.Close()
-	raw, _ := io.ReadAll(resp.Body)
+	raw, err := readResponseBody(resp.Body)
+	if err != nil {
+		return fmt.Errorf("read response body: %w", err)
+	}
 	if resp.StatusCode >= 400 {
 		return errors.New("restore perf settings failed for " + index + ": " + strings.TrimSpace(string(raw)))
 	}
@@ -881,7 +979,7 @@ func newOpenSearchClient() (*cluster.Opensearch, error) {
 	}
 	host, port, err := net.SplitHostPort(opensearchHost)
 	if err != nil {
-		panic(fmt.Errorf("invalid ES_HOST format: %w", err))
+		return nil, fmt.Errorf("invalid ES_HOST format: %w", err)
 	}
 	portConverted, err := strconv.Atoi(port)
 	if err != nil {
@@ -890,7 +988,7 @@ func newOpenSearchClient() (*cluster.Opensearch, error) {
 	return cluster.NewOpensearch(host, portConverted, scheme, opensearchUsername, opensearchPassword), nil
 }
 
-func (m *Migrator) CollectAndWaitBackup(ctx context.Context, dbs []string) (string, error) {
+func (m *MigrationTool) CollectAndWaitBackup(ctx context.Context, dbs []string) (string, error) {
 	log.Info("Collecting Backup")
 	backupID, err := m.backupProvider.CollectBackup(dbs, ctx)
 	if err != nil {
@@ -910,7 +1008,6 @@ func (m *Migrator) CollectAndWaitBackup(ctx context.Context, dbs []string) (stri
 		}
 		st := strings.ToUpper(strings.TrimSpace(track.Status))
 		log.Info(fmt.Sprintf("Backup status: %s trackId=%s", st, track.TrackID))
-		log.Info(fmt.Sprintf("Backup started. TrackID: %s", backupID))
 		switch st {
 		case "SUCCESS":
 			return true, nil
@@ -927,7 +1024,7 @@ func (m *Migrator) CollectAndWaitBackup(ctx context.Context, dbs []string) (stri
 	return backupID, nil
 }
 
-func (m *Migrator) indexExists(ctx context.Context, index string) (bool, error) {
+func (m *MigrationTool) indexExists(ctx context.Context, index string) (bool, error) {
 	req := opensearchapi.IndicesExistsRequest{Index: []string{index}}
 	resp, err := req.Do(ctx, m.osCluster.Client)
 	if err != nil {
@@ -940,11 +1037,14 @@ func (m *Migrator) indexExists(ctx context.Context, index string) (bool, error) 
 	if resp.StatusCode == 404 {
 		return false, nil
 	}
-	raw, _ := io.ReadAll(resp.Body)
+	raw, err := readResponseBody(resp.Body)
+	if err != nil {
+		return false, fmt.Errorf("read response body: %w", err)
+	}
 	return false, errors.New("indices exists unexpected status for " + index + ": " + strings.TrimSpace(string(raw)))
 }
 
-func (m *Migrator) cleanupIndices(ctx context.Context, name string) error {
+func (m *MigrationTool) cleanupIndices(ctx context.Context, name string) error {
 	dErr := m.deleteIndex(ctx, name)
 	if dErr != nil {
 		return dErr
@@ -1090,7 +1190,7 @@ func restartOpenSearchWorkloads(ctx context.Context) error {
 	}
 	for _, name := range stsNames {
 		target := "statefulset/" + name
-		err := deleteAllPodsOfSTS(ctx, opensearchNamespace, name)
+		err := deleteAllPodsOfSTS(ctx, name)
 		if err != nil {
 			log.Error(fmt.Sprintf("Failed to restart %s", target))
 			return err
@@ -1111,9 +1211,8 @@ func restartOpenSearchWorkloads(ctx context.Context) error {
 	return nil
 }
 
-func deleteAllPodsOfSTS(ctx context.Context, namespace, stsName string) error {
+func deleteAllPodsOfSTS(ctx context.Context, stsName string) error {
 	out, err := runKubectl(ctx,
-		"-n", namespace,
 		"get", "pods",
 		"-o", "json",
 	)
@@ -1141,7 +1240,6 @@ func deleteAllPodsOfSTS(ctx context.Context, namespace, stsName string) error {
 				podName := pod.Metadata.Name
 				g.Go(func() error {
 					_, err := runKubectl(ctx,
-						"-n", namespace,
 						"delete", "pod", podName,
 						"--wait=false",
 					)
@@ -1153,7 +1251,7 @@ func deleteAllPodsOfSTS(ctx context.Context, namespace, stsName string) error {
 	return g.Wait()
 }
 
-func (m *Migrator) waitForClusterReadyHTTP(ctx context.Context, useAuth bool) bool {
+func (m *MigrationTool) waitForClusterReadyHTTP(ctx context.Context, useAuth bool) bool {
 	healthURL := fmt.Sprintf("%s://%s:%d/%s", m.osCluster.Protocol, m.osCluster.Host, m.osCluster.Port, "_cluster/health?wait_for_status=green&timeout=5s")
 	interval := time.Duration(clusterReadyInterval) * time.Second
 	timeout := time.Duration(clusterReadyTimeout) * time.Second
@@ -1186,10 +1284,7 @@ func isGreen(ctx context.Context, c *http.Client, url string, useAuth bool, user
 	}
 
 	if useAuth {
-		log.Info(fmt.Sprintf("isGreen: using basic auth user=%s", user))
 		req.SetBasicAuth(user, pass)
-	} else {
-		log.Info("isGreen: auth NOT used")
 	}
 
 	req.Header.Set("Accept", "application/json")
@@ -1201,12 +1296,13 @@ func isGreen(ctx context.Context, c *http.Client, url string, useAuth bool, user
 	}
 	defer resp.Body.Close()
 
-	body, _ := io.ReadAll(resp.Body)
-
-	log.Info(fmt.Sprintf("isGreen: HTTP %d body=%s", resp.StatusCode, string(body)))
+	body, err := readResponseBody(resp.Body)
+	if err != nil {
+		log.Error(fmt.Sprintf("isGreen: read response body: %v", err))
+		return false
+	}
 
 	if resp.StatusCode != 200 {
-		log.Error(fmt.Sprintf("isGreen: status != 200: %d", resp.StatusCode))
 		return false
 	}
 
@@ -1216,12 +1312,10 @@ func isGreen(ctx context.Context, c *http.Client, url string, useAuth bool, user
 		return false
 	}
 
-	log.Info(fmt.Sprintf("isGreen: parsed status='%s'", parsed.Status))
-
 	return strings.TrimSpace(parsed.Status) == "green"
 }
 
-func (m *Migrator) ReinitSecurity(ctx context.Context) error {
+func (m *MigrationTool) ReinitSecurity(ctx context.Context) error {
 	log.Info("Starting security reinitialization")
 
 	if err := disableClientServiceKubectl(ctx); err != nil {
@@ -1264,30 +1358,43 @@ func (m *Migrator) ReinitSecurity(ctx context.Context) error {
 	return nil
 }
 
+const adapterCACertPath = "/tls/dbaas/ca.crt"
+
+func newAdapterHTTPClient() *http.Client {
+	client := &http.Client{Timeout: 30 * time.Second}
+	caCert, err := os.ReadFile(adapterCACertPath)
+	if err != nil {
+		log.Info(fmt.Sprintf("Adapter CA cert not found at %s, using default TLS verification", adapterCACertPath))
+		return client
+	}
+	pool := x509.NewCertPool()
+	if !pool.AppendCertsFromPEM(caCert) {
+		log.Info(fmt.Sprintf("Adapter CA cert at %s invalid, using default TLS verification", adapterCACertPath))
+		return client
+	}
+	client.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{RootCAs: pool},
+	}
+	return client
+}
+
 func NewAdapterClient() *AdapterClient {
 	return &AdapterClient{
-		endpoint: adapterAddress,
-		username: adapterUsername,
-		password: adapterPassword,
-		httpClient: &http.Client{
-			Timeout: 30 * time.Second,
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true,
-				},
-			},
-		},
+		endpoint:   adapterAddress,
+		username:  adapterUsername,
+		password:  adapterPassword,
+		httpClient: newAdapterHTTPClient(),
 	}
 }
 
-func (m *Migrator) RestoreUsers(ctx context.Context) error {
+func (m *MigrationTool) RestoreUsers(ctx context.Context) error {
 	if m.adapterClient.endpoint == "" {
 		log.Info("DBaaS adapter not configured - skipping user restoration")
 		return nil
 	}
 	log.Info("Starting DBaaS user restoration...")
 
-	deadlineCtx, cancel := context.WithTimeout(ctx, adapterReadyTimeout)
+	deadlineCtx, cancel := context.WithTimeout(ctx, adapterReadyTimeout*time.Second)
 	defer cancel()
 
 	state := m.getRestoreState(deadlineCtx)
@@ -1307,7 +1414,7 @@ func (m *Migrator) RestoreUsers(ctx context.Context) error {
 				break
 			}
 		}
-		time.Sleep(adapterReadyInterval)
+		time.Sleep(adapterReadyInterval * time.Second)
 		state = m.getRestoreState(deadlineCtx)
 	}
 
@@ -1319,7 +1426,7 @@ func (m *Migrator) RestoreUsers(ctx context.Context) error {
 	return nil
 }
 
-func (m *Migrator) getRestoreState(ctx context.Context) string {
+func (m *MigrationTool) getRestoreState(ctx context.Context) string {
 	u := m.adapterClient.endpoint + "/api/" + dbaasAPIVersion +
 		"/dbaas/adapter/opensearch/users/restore-password/state"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
@@ -1336,7 +1443,11 @@ func (m *Migrator) getRestoreState(ctx context.Context) string {
 		return RecoveryIdleState
 	}
 	defer resp.Body.Close()
-	raw, _ := io.ReadAll(resp.Body)
+	raw, err := readResponseBody(resp.Body)
+	if err != nil {
+		log.Info(fmt.Sprintf("Could not read restore state response: %v", err))
+		return RecoveryIdleState
+	}
 	if resp.StatusCode >= 300 {
 		log.Info(fmt.Sprintf("Could not get restore state: status=%d body=%s", resp.StatusCode, strings.TrimSpace(string(raw))))
 		return RecoveryIdleState
@@ -1344,7 +1455,7 @@ func (m *Migrator) getRestoreState(ctx context.Context) string {
 	return strings.TrimSpace(string(raw))
 }
 
-func (m *Migrator) triggerRestore(ctx context.Context) bool {
+func (m *MigrationTool) triggerRestore(ctx context.Context) bool {
 	u := m.adapterClient.endpoint + "/api/" + dbaasAPIVersion +
 		"/dbaas/adapter/opensearch/users/restore-password"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader([]byte(`{}`)))
@@ -1362,7 +1473,11 @@ func (m *Migrator) triggerRestore(ctx context.Context) bool {
 		return false
 	}
 	defer resp.Body.Close()
-	raw, _ := io.ReadAll(resp.Body)
+	raw, err := readResponseBody(resp.Body)
+	if err != nil {
+		log.Error(fmt.Sprintf("Failed to read trigger restore response: %v", err))
+		return false
+	}
 	if resp.StatusCode >= 300 {
 		log.Error(fmt.Sprintf("Failed to trigger user restoration: status=%d body=%s", resp.StatusCode, strings.TrimSpace(string(raw))))
 		return false
@@ -1432,7 +1547,7 @@ func enableClientServiceKubectl(ctx context.Context) error {
 	return nil
 }
 
-func (m *Migrator) refreshIndex(ctx context.Context, index string) error {
+func (m *MigrationTool) refreshIndex(ctx context.Context, index string) error {
 	req := opensearchapi.IndicesRefreshRequest{
 		Index: []string{index},
 	}
@@ -1442,9 +1557,12 @@ func (m *Migrator) refreshIndex(ctx context.Context, index string) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := readResponseBody(resp.Body)
+		if err != nil {
+			return fmt.Errorf("refresh failed for %s: read body: %w", index, err)
+		}
 		return fmt.Errorf("refresh failed for %s: %s", index, strings.TrimSpace(string(body)))
 	}
-	log.Info("Index refreshed: ", index)
+	log.Info(fmt.Sprintf("Index refreshed: %s", index))
 	return nil
 }
