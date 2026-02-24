@@ -6,9 +6,10 @@ ARG TARGETARCH
 ENV GOSUMDB=off
 
 WORKDIR /workspace
+COPY ../dbaas-adapter /workspace/dbaas-adapter
 # Copy the Go Modules manifests
-COPY docker/backup-docker/indices_migrator/go.mod go.mod
-COPY docker/backup-docker/indices_migrator/go.sum go.sum
+COPY docker/backup-docker/indices_migrator/go.mod docker/backup-docker/indices_migrator/go.sum /workspace/curator/docker/backup-docker/indices_migrator/
+WORKDIR /workspace/curator/docker/backup-docker/indices_migrator
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
