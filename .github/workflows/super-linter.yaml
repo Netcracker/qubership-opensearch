@@ -81,6 +81,8 @@ jobs:
       uses: super-linter/super-linter/slim@12562e48d7059cf666c43a4ecb0d3b5a2b31bd9e # v8.4.0
       env:
         VALIDATE_ALL_CODEBASE: ${{ inputs.full_scan || false }}
+        # Disable kubeconform: we use Helm templates (not raw K8s YAML), so validate after helm template
+        DISABLE_LINTERS: KUBERNETES_KUBECONFORM
         # To report GitHub Actions status checks
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DEFAULT_BRANCH: ${{ github.event.pull_request.base.ref || github.event.push.ref }}
