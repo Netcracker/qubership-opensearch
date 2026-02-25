@@ -830,7 +830,7 @@ DBaaS Adapter address
 {{- end -}}
 
 {{/*
-DNS names used to generate TLS certificate with "Subject Alternative Name" field for OpenSearch DBaaS Addapter
+DNS names used to generate TLS certificate with "Subject Alternative Name" field for OpenSearch DBaaS Adapter
 */}}
 {{- define "dbaas-adapter.certDnsNames" -}}
   {{- $dnsNames := list "localhost" (include "dbaas-adapter.name" .) (printf "%s.%s" (include "dbaas-adapter.name" .) .Release.Namespace) (printf "%s.%s.svc" (include "dbaas-adapter.name" .) .Release.Namespace) -}}
@@ -839,7 +839,7 @@ DNS names used to generate TLS certificate with "Subject Alternative Name" field
 {{- end -}}
 
 {{/*
-IP addresses used to generate TLS certificate with "Subject Alternative Name" field for OpenSearch DBaaS Addapter
+IP addresses used to generate TLS certificate with "Subject Alternative Name" field for OpenSearch DBaaS Adapter
 */}}
 {{- define "dbaas-adapter.certIpAddresses" -}}
   {{- $ipAddresses := list "127.0.0.1" -}}
@@ -848,7 +848,7 @@ IP addresses used to generate TLS certificate with "Subject Alternative Name" fi
 {{- end -}}
 
 {{/*
-Generate certificates for OpenSearch DBaaS Addapter
+Generate certificates for OpenSearch DBaaS Adapter
 */}}
 {{- define "dbaas-adapter.generateCerts" -}}
 {{- $dnsNames := include "dbaas-adapter.certDnsNames" . | fromYamlArray -}}
@@ -1366,7 +1366,7 @@ Ingress host for OpenSearch
   {{- $restCorrect :=       or (eq $rest "")      (eq ($rest | toString) "<nil>")      (eq $rest $correctPath) -}}
   {{- $adminCorrect :=      or (eq $admin "")     (eq ($admin | toString) "<nil>")     (eq $admin $correctPath) -}}
   {{- if not (and $transportCorrect $restCorrect $adminCorrect) }}
-    {{- fail "Overriden opensearch.tls.*.existingCertSecretCertSubPath parameters are not supported" -}}
+    {{- fail "Overridden opensearch.tls.*.existingCertSecretCertSubPath parameters are not supported" -}}
   {{- end -}}
 {{- end -}}
 
@@ -1379,7 +1379,7 @@ Ingress host for OpenSearch
   {{- $restCorrect :=       or (eq $rest "")      (eq $rest "<nil>")      (eq $rest $correctPath) -}}
   {{- $adminCorrect :=      or (eq $admin "")     (eq $admin "<nil>")     (eq $admin $correctPath) -}}
   {{- if not (and $transportCorrect $restCorrect $adminCorrect) }}
-    {{- fail "Overriden opensearch.tls.*.existingCertSecretKeySubPath parameters are not supported" -}}
+    {{- fail "Overridden opensearch.tls.*.existingCertSecretKeySubPath parameters are not supported" -}}
   {{- end -}}
 {{- end -}}
 
@@ -1392,7 +1392,7 @@ Ingress host for OpenSearch
   {{- $restCorrect :=       or (eq $rest "")      (eq $rest "<nil>")      (eq $rest $correctPath) -}}
   {{- $adminCorrect :=      or (eq $admin "")     (eq $admin "<nil>")     (eq $admin $correctPath) -}}
   {{- if not (and $transportCorrect $restCorrect $adminCorrect) }}
-    {{- fail "Overriden opensearch.tls.*.existingCertSecretRootCASubPath parameters are not supported" -}}
+    {{- fail "Overridden opensearch.tls.*.existingCertSecretRootCASubPath parameters are not supported" -}}
   {{- end -}}
 {{- end -}}
 

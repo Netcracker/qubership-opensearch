@@ -454,7 +454,7 @@ func (m *MigrationTool) fetchAllCreatedVersions(ctx context.Context) (map[string
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	raw, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -502,7 +502,7 @@ func (m *MigrationTool) fetchAllIndexSizesBytes(ctx context.Context) (map[string
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	data, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -542,7 +542,7 @@ func (m *MigrationTool) getClusterMinAvailableBytes(ctx context.Context) (uint64
 	if err != nil {
 		return 0, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	raw, err := readResponseBody(resp.Body)
 	if err != nil {
 		return 0, fmt.Errorf("read response body: %w", err)
@@ -607,7 +607,7 @@ func (m *MigrationTool) getIndexSettingsIndexObject(ctx context.Context, index s
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	raw, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -641,7 +641,7 @@ func (m *MigrationTool) getIndexMappings(ctx context.Context, index string) (jso
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	raw, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -691,7 +691,7 @@ func (m *MigrationTool) createIndex(ctx context.Context, index string, settings 
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	raw, err := readResponseBody(resp.Body)
 	if err != nil {
 		return fmt.Errorf("read response body: %w", err)
@@ -708,7 +708,7 @@ func (m *MigrationTool) deleteIndex(ctx context.Context, index string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode == 404 {
 		return nil
 	}
@@ -728,7 +728,7 @@ func (m *MigrationTool) getCount(ctx context.Context, index string) (uint64, err
 	if err != nil {
 		return 0, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	raw, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -766,7 +766,7 @@ func (m *MigrationTool) reindexWait(ctx context.Context, src, dst string) error 
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	raw, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -839,7 +839,7 @@ func (m *MigrationTool) setWriteBlock(ctx context.Context, index string, on bool
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	raw, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -961,7 +961,7 @@ func (m *MigrationTool) restorePerfSettings(ctx context.Context, index string, s
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	raw, err := readResponseBody(resp.Body)
 	if err != nil {
 		return fmt.Errorf("read response body: %w", err)
@@ -1275,7 +1275,7 @@ func isGreen(ctx context.Context, c *http.Client, url string, useAuth bool, user
 		log.Error(fmt.Sprintf("isGreen: Do error: %v", err))
 		return false
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := readResponseBody(resp.Body)
 	if err != nil {
@@ -1423,7 +1423,7 @@ func (m *MigrationTool) getRestoreState(ctx context.Context) string {
 		log.Info(fmt.Sprintf("Could not get restore state: %v", err))
 		return RecoveryIdleState
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	raw, err := readResponseBody(resp.Body)
 	if err != nil {
 		log.Info(fmt.Sprintf("Could not read restore state response: %v", err))
@@ -1453,7 +1453,7 @@ func (m *MigrationTool) triggerRestore(ctx context.Context) bool {
 		log.Error(fmt.Sprintf("Failed to trigger user restoration: %v", err))
 		return false
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	raw, err := readResponseBody(resp.Body)
 	if err != nil {
 		log.Error(fmt.Sprintf("Failed to read trigger restore response: %v", err))
@@ -1531,7 +1531,7 @@ func (m *MigrationTool) refreshIndex(ctx context.Context, index string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode >= 300 {
 		body, err := readResponseBody(resp.Body)
 		if err != nil {

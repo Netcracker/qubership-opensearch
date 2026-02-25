@@ -394,19 +394,27 @@ in which the Persistent Volumes are specified so that OpenSearch pods are assign
 
 #### Persistent Volume Extension and Reduction
 
-**Applicability**: PVC size extension is applicable only for the **joint** installation scheme, where master and data roles are on the same nodes. In the **separate** scheme (where master and data nodes use different StatefulSets and PVCs), the procedures in this section apply to the master PVCs used for cluster metadata; data node PVC expansion depends on your storage class and platform.
+**Applicability**: PVC size extension is applicable only for the **joint** installation scheme, where master and data roles are on the same nodes.
+In the **separate** scheme (where master and data nodes use different StatefulSets and PVCs), the procedures in this section apply to the master PVCs used for cluster metadata;
+Data node PVC expansion depends on your storage class and platform.
+
 
 **Persistent Volume extension**
 
-You can increase the size of a Persistent Volume Claim (PVC) when the underlying StorageClass supports volume expansion. Ensure the StorageClass has `allowVolumeExpansion: true`. Then:
+You can increase the size of a Persistent Volume Claim (PVC) when the underlying StorageClass supports volume expansion.
+Ensure the StorageClass has `allowVolumeExpansion: true`. Then:
 
 1. Update the size in your Helm values (for example, `opensearch.master.persistence.size`) to the desired larger value.
 2. Upgrade the release so the PVC spec is updated.
-3. The cluster may resize the volume in place; if the filesystem supports it, the new space becomes available without recreating the PVC or the pod. If your environment requires it, you may need to restart the pod so the mount reflects the new size.
+3. The cluster may resize the volume in place: 
+    if the filesystem supports it, the new space becomes available without recreating the PVC or the pod. 
+    If your environment requires it, you may need to restart the pod so the mount reflects the new size.
 
 **Persistent Volume reduction is not supported**
 
-Reducing the size of an existing PVC (or the underlying Persistent Volume) is **not supported** by Kubernetes and by most storage providers. Once a volume is created or expanded, you cannot shrink it. Attempting to reduce the requested size in the PVC spec can lead to failed state or undefined behavior.
+Reducing the size of an existing PVC (or the underlying Persistent Volume) is **not supported** by Kubernetes and by most storage providers.
+Once a volume is created or expanded, you cannot shrink it.
+Attempting to reduce the requested size in the PVC spec can lead to failed state or undefined behavior.
 
 **How to fix if you tried to do storage reduction**
 
@@ -572,7 +580,7 @@ The full recommendations you can find in [Size your shards](https://www.elastic.
 
 OpenSearch provides API for manage [Index Templates](https://opensearch.org/docs/latest/im-plugin/index-templates/), and it still provides API for [legacy elasticsearch templates](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates-v1.html).
 
-Both API, new composable index templates (`/_index_template`) and legacy templates (`/_template`) are avaialble now and can be used by applications,
+Both API, new composable index templates (`/_index_template`) and legacy templates (`/_template`) are available now and can be used by applications,
 but composable index templates have more features and more priority than legacy.
 
 New OpenSearch index templates offer enhanced modularity, improved prioritization for layered configurations, and a more user-friendly API, ensuring better management and future-proofing
