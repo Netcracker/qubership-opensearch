@@ -398,7 +398,6 @@ in which the Persistent Volumes are specified so that OpenSearch pods are assign
 In the **separate** scheme (where master and data nodes use different StatefulSets and PVCs), the procedures in this section apply to the master PVCs used for cluster metadata;
 Data node PVC expansion depends on your storage class and platform.
 
-
 **Persistent Volume extension**
 
 You can increase the size of a Persistent Volume Claim (PVC) when the underlying StorageClass supports volume expansion.
@@ -420,9 +419,14 @@ Attempting to reduce the requested size in the PVC spec can lead to failed state
 
 If you have already changed the Helm values (or the PVC spec) to a smaller size in an attempt to reduce storage:
 
-1. **Revert the size change**: Set the persistence size back to the previous (larger) value in your values and upgrade the release again, so the PVC spec matches the actual volume size.
-2. **Verify the PVC**: Check that the PVC's `spec.resources.requests.storage` again matches the capacity of the underlying volume (e.g. with `kubectl get pvc -n <namespace>` and your storage provider's tools).
-3. **If the PVC is stuck or the controller has applied a smaller size**: Consult your Kubernetes distribution and storage provider documentation. In many cases, manually editing the PVC to restore the correct larger `spec.resources.requests.storage` and ensuring the Persistent Volume capacity is unchanged can recover the state. Do not reduce the actual volume capacity on the storage backend.
+1. **Revert the size change**: Set the persistence size back to the previous (larger) value in your values and
+   upgrade the release again, so the PVC spec matches the actual volume size.
+2. **Verify the PVC**: Check that the PVC's `spec.resources.requests.storage` again matches the capacity of the
+   underlying volume (e.g. with `kubectl get pvc -n <namespace>` and your storage provider's tools).
+3. **If the PVC is stuck or the controller has applied a smaller size**: Consult your Kubernetes distribution and
+   storage provider documentation. In many cases, manually editing the PVC to restore the correct larger
+   `spec.resources.requests.storage` and ensuring the Persistent Volume capacity is unchanged can recover the
+   state. Do not reduce the actual volume capacity on the storage backend.
 
 According to the specified parameters, the `Pod Scheduler` distributes pods to the necessary Kubernetes nodes. For more information, refer to [Pod Scheduler](#pod-scheduler) section.
 
@@ -434,8 +438,9 @@ The OpenSearch `joint` installation mode implies that each node has `master`, `d
 
 #### Separate
 
-The OpenSearch `separate` installation mode implies that each node either has one of the `master`, `data`, and `client` roles or a combination of the two.
-For example, OpenSearch installation has 3 `master` nodes, 2 `data` nodes and 2 `client` nodes, or 3 nodes with `data` and `master` roles and 2 `client` nodes.
+The OpenSearch `separate` installation mode implies that each node either has one of the `master`, `data`, and
+`client` roles or a combination of the two. For example, OpenSearch installation has 3 `master` nodes, 2 `data` nodes
+and 2 `client` nodes, or 3 nodes with `data` and `master` roles and 2 `client` nodes.
 
 If `data` and `master` nodes are separated, it is important to specify persistent storages not only for `data` nodes but also for `master` nodes.
 The size of persistent storage for a `master` node should be small. For example, `1Gi`.
@@ -1219,9 +1224,9 @@ Where:
 | `opensearch.master.persistence.subPath`                | string  | no        | ""                                                                                                          | The subdirectory of the volume to mount to.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `opensearch.master.persistence.storageClass`           | string  | yes       | -                                                                                                           | The storage class name that is used for OpenSearch master nodes. If it is set to `-`, dynamic provisioning is disabled. If it is empty or set to `null`, the default provisioner is chosen.                                                                                                                                                                                                                                                                                   |
 | `opensearch.master.persistence.persistentVolumes`      | list    | no        | []                                                                                                          | The list of predefined persistent volumes for OpenSearch master nodes. The number of persistent volumes should be equal to `opensearch.master.replicas` parameter. If `hostPath` PVs are used, the `nodes` parameters is also should be specified.                                                                                                                                                                                                                            |
-| `opensearch.master.persistence.nodes`                  | list    | no        | []                                                                                                          | The list of Kubernetes node names to assign OpenSearch master nodes. The number of nodes should be equal to `opensearch.master.replicas` parameter. It should not be used with `storageClass` pod assignment.                                                                                                                                                                                                                                                                 |
+| `opensearch.master.persistence.nodes`                    | list    | no        | []                                                                                                          | The list of Kubernetes node names to assign OpenSearch master nodes. The number of nodes should be equal to `opensearch.master.replicas` parameter. It should not be used with `storageClass` pod assignment.                                                                                                                                                                                                                                                                 |
 | `opensearch.master.persistence.accessModes`            | list    | no        | ["ReadWriteOnce"]                                                                                           | The list of access modes of persistent volumes for OpenSearch master nodes.                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `opensearch.master.persistence.size`                   | string  | no        | 5Gi                                                                                                         | The size of persistent volumes for OpenSearch master nodes. PVC size **extension** (increase) is supported only for the **joint** scheme (where master and data are on the same nodes), when the StorageClass has `allowVolumeExpansion: true`. Storage **reduction** is not supported. See [Persistent Volume Extension and Reduction](#persistent-volume-extension-and-reduction).                                                                                                                                                            |
+| `opensearch.master.persistence.size`                   | string  | no        | 5Gi                                                                                                         | The size of persistent volumes for OpenSearch master nodes. PVC **extension** is supported for the **joint** scheme when StorageClass has `allowVolumeExpansion: true`. **Reduction** is not supported. See [Persistent Volume Extension and Reduction](#persistent-volume-extension-and-reduction).                                                                                                                                                                                                                                                      |
 | `opensearch.master.persistence.annotations`            | object  | no        | {}                                                                                                          | The annotations of persistent volumes for OpenSearch master nodes.                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `opensearch.master.resources.requests.cpu`             | string  | no        | 250m                                                                                                        | The minimum number of CPUs the OpenSearch master node container should use.                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `opensearch.master.resources.requests.memory`          | string  | no        | 2Gi                                                                                                         | The minimum number of memory the OpenSearch master node container should use.                                                                                                                                                                                                                                                                                                                                                                                                 |
@@ -1986,7 +1991,10 @@ Automatic CRD upgrade requires the following cluster rights for the deployment u
 
 **Important**: The Opensearch recommends upgrading from version 2.19 for more stable operation.
 
-If your cluster has indices that were **created on OpenSearch 1.x**, they must be migrated (reindexed) before or during the upgrade to 3.x; otherwise they can cause compatibility issues. A pre-upgrade/pre-install Helm hook can run the migration automatically when `migration.enabled: true`. For details, prerequisites, and troubleshooting, see [Indices migration (1.x to 2.x for 3.x upgrade)](/docs/public/indices-migration.md).
+If your cluster has indices **created on OpenSearch 1.x**, they must be migrated (reindexed) before or during the
+upgrade to 3.x; otherwise they can cause compatibility issues. A pre-upgrade/pre-install Helm hook can run the
+migration automatically when `migration.enabled: true`. For details, prerequisites, and troubleshooting, see
+[Indices migration (1.x to 2.x for 3.x upgrade)](/docs/public/indices-migration.md).
 
 There are the following breaking changes:
 

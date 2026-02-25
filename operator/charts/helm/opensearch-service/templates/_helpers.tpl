@@ -1468,7 +1468,7 @@ Migration runs ONLY for upgrades when:
       {{- $currentMajor = int (regexFind "^[0-9]+" $currentVersion) -}}
     {{- end -}}
     {{- $targetVersion := include "opensearch.imageVariant" . -}}
-    {{- if eq $targetVersion 3 -}}
+    {{- if eq $targetVersion "3" -}}
       {{- if and (ne $currentMajor 3) (or (eq $currentMajor 0) (eq $currentMajor 2)) -}}
         {{- printf "true" -}}
       {{- end -}}
