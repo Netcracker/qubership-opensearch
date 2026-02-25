@@ -213,11 +213,14 @@ plugins.security.ssl.http.enabled_ciphers:
 DNS names used to generate TLS certificate with "Subject Alternative Name" field
 */}}
 {{- define "opensearch.certDnsNames" -}}
-  {{- $opensearchName := include "opensearch.fullname" . -}}
-  {{- $dnsNames := list "localhost" $opensearchName (printf "%s.%s" $opensearchName .Release.Namespace) (printf "%s.%s.svc" $opensearchName .Release.Namespace) (printf "%s-internal" $opensearchName) (printf "%s-internal.%s" $opensearchName .Release.Namespace) (printf "%s-internal.%s.svc" $opensearchName .Release.Namespace) -}}
-  {{- $dnsNames = concat $dnsNames .Values.opensearch.client.ingress.hosts }}
-  {{- $dnsNames = concat $dnsNames .Values.opensearch.tls.subjectAlternativeName.additionalDnsNames -}}
-  {{- $dnsNames | toYaml -}}
+{{- $opensearchName := include "opensearch.fullname" . -}}
+{{- $dnsNames := list "localhost" $opensearchName (printf "%s.%s" $opensearchName .Release.Namespace) (printf "%s.%s.svc" $opensearchName .Release.Namespace) (printf "%s-internal" $opensearchName) (printf "%s-internal.%s" $opensearchName .Release.Namespace) (printf "%s-internal.%s.svc" $opensearchName .Release.Namespace) -}}
+{{- $dnsNames = concat $dnsNames .Values.opensearch.client.ingress.hosts }}
+{{- if .Values.opensearch.client.envoyGateway.host }}
+{{- $dnsNames = append $dnsNames .Values.opensearch.client.envoyGateway.host }}
+{{- end }}
+{{- $dnsNames = concat $dnsNames .Values.opensearch.tls.subjectAlternativeName.additionalDnsNames }}
+{{- $dnsNames | toYaml -}}
 {{- end -}}
 
 {{/*
@@ -1424,6 +1427,22 @@ Restricted environment.
   {{- else -}}
     {{- .Values.global.restrictedEnvironment -}}
   {{- end -}}
+{{- end -}}
+
+{{- define "gateway.parentRefs" -}}
+{{- $refs := index . 0 | default list -}}
+{{- $port := index . 1 -}}
+{{- if and .Values.GATEWAY_SYSTEM_NAME .Values.GATEWAY_SYSTEM_NAMESPACE }}
+- name: {{ .Values.GATEWAY_SYSTEM_NAME }}
+  namespace: {{ .Values.GATEWAY_SYSTEM_NAMESPACE }}
+  port: {{ $port }}
+{{- else if gt (len $refs) 0 }}
+{{- range $refs }}
+- name: {{ .name }}
+  namespace: {{ .namespace }}
+  port: {{ $port }}
+{{- end }}
+{{- end }}
 {{- end -}}
 
 {{- define "opensearch.stsStorage" -}}

@@ -13,8 +13,8 @@ kind: Ingress
 metadata:
   name: {{ template "opensearch.fullname" . }}-dashboards
   labels:
-{{ include "opensearch.labels.standard" . | indent 4 }}
-{{ include "opensearch-service.defaultLabels" . | indent 4 }}
+    {{- include "opensearch.labels.standard" . | nindent 4 }}
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
     deployment.netcracker.com/ingress-type: 'private-network'
     deployment.netcracker.com/ingress-audience-type: 'ops-user'
   annotations:
@@ -24,6 +24,7 @@ metadata:
     {{- with .Values.dashboards.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+    gateway-api-converter.netcracker.com/ignore: "true"
 spec:
   {{- if .Values.dashboards.ingress.tls }}
   tls:
