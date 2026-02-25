@@ -1978,6 +1978,8 @@ Automatic CRD upgrade requires the following cluster rights for the deployment u
 
 **Important**: The Opensearch recommends upgrading from version 2.19 for more stable operation.
 
+If your cluster has indices that were **created on OpenSearch 1.x**, they must be migrated (reindexed) before or during the upgrade to 3.x; otherwise they can cause compatibility issues. A pre-upgrade/pre-install Helm hook can run the migration automatically when `migration.enabled: true`. For details, prerequisites, and troubleshooting, see [Indices migration (1.x to 2.x for 3.x upgrade)](/docs/public/indices-migration.md).
+
 There are the following breaking changes:
 
 | Change                                                     | Description                                                                                                                                                                                                   |
