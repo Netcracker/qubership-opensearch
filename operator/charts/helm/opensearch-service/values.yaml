@@ -1,3 +1,6 @@
+migration:
+  enabled: false
+
 dashboards:
   enabled: false
   dockerImage: ghcr.io/netcracker/qubership-opensearch-dashboard-3:main

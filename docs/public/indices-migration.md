@@ -61,7 +61,9 @@ If `migration.enabled` is `false`, the hook runs in check-only mode and will fai
   Check OpenSearch logs for reindex errors. Standard indices are restored from snapshot on failure.
 
 - **Security reinitialization failed**  
-  Config secret must exist with valid `opensearch.yml`. `OPENSEARCH_STATEFULSET_NAMES` / `OPENSEARCH_DEPLOYMENT_NAMES` / `OPENSEARCH_CLIENT_SERVICE_NAME` must be correct; RBAC must allow restart and service patch. Cluster must reach green after restarts.
+  Config secret must exist with valid `opensearch.yml`. `OPENSEARCH_STATEFULSET_NAMES` /
+  `OPENSEARCH_DEPLOYMENT_NAMES` / `OPENSEARCH_CLIENT_SERVICE_NAME` must be correct; RBAC must allow
+  restart and service patch. Cluster must reach green after restarts.
 
 - **User recovery failed / timeout during user restoration**  
   DBaaS adapter must be reachable (`DBAAS_ADAPTER_ADDRESS`), credentials correct; restore API and state endpoint must respond within 240s. If you don’t use DBaaS, leave adapter env vars unset.
