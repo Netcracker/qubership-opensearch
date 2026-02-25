@@ -1025,26 +1025,6 @@ func (m *MigrationTool) CollectAndWaitBackup(ctx context.Context, dbs []string) 
 	return backupID, nil
 }
 
-func (m *MigrationTool) indexExists(ctx context.Context, index string) (bool, error) {
-	req := opensearchapi.IndicesExistsRequest{Index: []string{index}}
-	resp, err := req.Do(ctx, m.osCluster.Client)
-	if err != nil {
-		return false, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode == 200 {
-		return true, nil
-	}
-	if resp.StatusCode == 404 {
-		return false, nil
-	}
-	raw, err := readResponseBody(resp.Body)
-	if err != nil {
-		return false, fmt.Errorf("read response body: %w", err)
-	}
-	return false, errors.New("indices exists unexpected status for " + index + ": " + strings.TrimSpace(string(raw)))
-}
-
 func (m *MigrationTool) cleanupIndices(ctx context.Context, name string) error {
 	dErr := m.deleteIndex(ctx, name)
 	if dErr != nil {
