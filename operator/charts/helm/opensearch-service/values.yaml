@@ -1,6 +1,3 @@
-migration:
-  enabled: false
-
 dashboards:
   enabled: false
   dockerImage: ghcr.io/netcracker/qubership-opensearch-dashboard-3:main
@@ -1189,6 +1186,21 @@ groupMigration:
   image: "ghcr.io/netcracker/qubership-docker-kubectl:main"
   imagePullPolicy: Always
   runAsNonRoot: true
+
+migration:
+  enabled: false
+  # Example:
+  # args:
+  #   - "--dry-run"  # Test without making changes
+  args: []
+  # Resource limits for migration job
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m  
 
 nameOverride: "opensearch"
 fullnameOverride: "opensearch"
