@@ -59,7 +59,6 @@ dashboards:
 #      - secretName: chart-example-tls
 #        hosts:
 #          - chart-example.local
-
   service:
     type: ClusterIP
     port: 5601

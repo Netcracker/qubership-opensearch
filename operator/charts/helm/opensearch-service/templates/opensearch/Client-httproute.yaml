@@ -1,0 +1,78 @@
+{{- if and .Values.opensearch.client.enabled (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1") (eq .Values.PAAS_PLATFORM "KUBERNETES") -}}
+{{- if not .Values.global.externalOpensearch.enabled }}
+{{- $fullName := printf "%s" (include "opensearch.fullname" .) }}
+{{- $ingressPath := .Values.opensearch.client.ingress.path }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $fullName }}-httproute
+  labels:
+    {{- include "opensearch.labels.standard" . | nindent 4 }}
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+spec:
+  parentRefs:
+    - name: {{ .Values.opensearch.client.ingress.gatewayName | default "default-external-gateway" }}
+      namespace: {{ .Values.opensearch.client.ingress.envoyNamespace | default "envoy-gateway" }}
+      port: 443
+  {{- with .Values.opensearch.client.ingress.hosts }}
+  hostnames:
+    {{- tpl (toYaml .) . | nindent 4 }}
+  {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: {{ $ingressPath }}
+      backendRefs:
+        - name: {{ $fullName }}-internal
+          port: 9200
+
+{{- if (eq (include "opensearch.tlsEnabled" .) "true") }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: {{ $fullName }}-backend-tls
+  labels:
+    {{- include "opensearch.labels.standard" . | nindent 4 }}
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: {{ $fullName }}-internal
+  validation:
+    {{- with index .Values.opensearch.client.ingress.hosts 0 }}
+    hostname: {{ . | quote }}
+    {{- end }}
+    caCertificateRefs:
+      - group: ""
+        kind: Secret
+        name: {{ include "opensearch.rest-cert-secret-name" . }}
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $fullName }}-redirect
+  labels:
+    {{- include "opensearch.labels.standard" . | nindent 4 }}
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+spec:
+  parentRefs:
+    - name: {{ .Values.opensearch.client.ingress.gatewayName | default "default-external-gateway" }}
+      namespace: {{ .Values.opensearch.client.ingress.envoyNamespace | default "envoy-gateway" }}
+      port: 80
+  {{- with .Values.opensearch.client.ingress.hosts }}
+  hostnames:
+    {{- tpl (toYaml .) . | nindent 4 }}
+  {{- end }}
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+{{- end }}
+{{- end }}
+{{- end }}
