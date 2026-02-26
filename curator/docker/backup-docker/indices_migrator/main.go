@@ -130,9 +130,9 @@ type reindexAsyncResp struct {
 }
 
 type taskGetResp struct {
-	Completed bool   `json:"completed"`
-	Error     string `json:"error,omitempty"`
-	Response  any    `json:"response,omitempty"`
+	Completed bool `json:"completed"`
+	Error     any `json:"error,omitempty"`
+	Response  any `json:"response,omitempty"`
 }
 
 type PerfSnapshot struct {
