@@ -180,13 +180,18 @@ func run(dryRun bool) error {
 
 	m.backupProvider = backup.NewBackupProvider(osCluster.Client, cl.ConfigureCuratorClient(), snapshotRepoName)
 
-	oneXAll, oneXBackup, err := m.CollectInappropriateIndices(ctx)
+	oneXAll, oneXBackup, oneXSourceDisabled, err := m.CollectInappropriateIndices(ctx)
 	if err != nil {
 		log.Error(fmt.Sprintf("OpenSearch 1.x index migration preparation failed: %v", err))
 		return err
 	}
 	log.Info(fmt.Sprintf("Indices need migration: %#v (count=%d)", oneXAll, len(oneXAll)))
 	log.Info(fmt.Sprintf("Security needs reinit: %v", m.securityNeedsReInit))
+	if len(oneXSourceDisabled) > 0 {
+		log.Error(fmt.Sprintf("Indices with _source disabled (cannot be migrated): %#v (count=%d)", oneXSourceDisabled, len(oneXSourceDisabled)))
+		log.Error("Those indices have to be deleted/recreated manually before indices migration operation.")
+		return fmt.Errorf("%d index/indices have _source disabled and cannot be migrated: %v", len(oneXSourceDisabled), oneXSourceDisabled)
+	}
 
 	if dryRun {
 		return nil
@@ -229,20 +234,19 @@ func run(dryRun bool) error {
 	return nil
 }
 
-func (m *MigrationTool) CollectInappropriateIndices(ctx context.Context) ([]string, []string, error) {
+func (m *MigrationTool) CollectInappropriateIndices(ctx context.Context) ([]string, []string, []string, error) {
 	createdMap, err := m.fetchAllCreatedVersions(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	sizesMap, err := m.fetchAllIndexSizesBytes(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-
-	log.Info(fmt.Sprintf("Indices from OS: %#v (count=%d)", createdMap, len(createdMap)))
 
 	var oneXAll []string
 	var oneXBackup []string
+	var oneXSourceDisabled []string
 
 	for idx, raw := range createdMap {
 		dec := decodeCreated(raw)
@@ -261,14 +265,23 @@ func (m *MigrationTool) CollectInappropriateIndices(ctx context.Context) ([]stri
 
 	if len(oneXAll) == 0 {
 		log.Info("No indices created on OpenSearch 1.x found (excluding security index)")
-		return nil, nil, nil
+		return nil, nil, nil, nil
 	}
 
 	sort.Strings(oneXAll)
-	sort.Strings(oneXBackup)
 
-	log.Info(fmt.Sprintf("1.x indices (all): %#v (count=%d)", oneXAll, len(oneXAll)))
-	log.Info(fmt.Sprintf("1.x indices for backup (no dot-prefixed): %#v (count=%d)", oneXBackup, len(oneXBackup)))
+	for _, indexName := range oneXAll {
+		mappings, err := m.getIndexMappings(ctx, indexName)
+		if err != nil {
+			if !errors.Is(err, ErrNotFound) {
+				return nil, nil, nil, err
+			}
+			continue
+		}
+		if len(mappings) > 0 && mappingHasSourceDisabled(mappings) {
+			oneXSourceDisabled = append(oneXSourceDisabled, indexName)
+		}
+	}
 
 	var heaviestName string
 	var heaviestSize uint64
@@ -282,12 +295,12 @@ func (m *MigrationTool) CollectInappropriateIndices(ctx context.Context) ([]stri
 
 	minAvail, err := m.getClusterMinAvailableBytes(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	need := heaviestSize * 2
 	if minAvail < need {
-		return nil, nil, errors.New(
+		return nil, nil, nil, errors.New(
 			"Disk precheck FAILED. " +
 				"Min node available=" + strconv.FormatUint(minAvail, 10) +
 				" bytes, need=" + strconv.FormatUint(need, 10) +
@@ -296,7 +309,7 @@ func (m *MigrationTool) CollectInappropriateIndices(ctx context.Context) ([]stri
 		)
 	}
 
-	return oneXAll, oneXBackup, nil
+	return oneXAll, oneXBackup, oneXSourceDisabled, nil
 }
 
 func (m *MigrationTool) MigrateAll(ctx context.Context, indices []string) error {
@@ -849,6 +862,39 @@ func (m *MigrationTool) setWriteBlock(ctx context.Context, index string, on bool
 		return errors.New("set write block failed for " + index + ": " + strings.TrimSpace(string(raw)))
 	}
 	return nil
+}
+
+// mappingHasSourceDisabled returns true if _source is explicitly disabled in the index mapping.
+// Reindex cannot run when _source is disabled because document bodies are not stored.
+func mappingHasSourceDisabled(mappings json.RawMessage) bool {
+	if len(mappings) == 0 {
+		return false
+	}
+	var m map[string]any
+	if err := json.Unmarshal(mappings, &m); err != nil {
+		return false
+	}
+	return sourceDisabledInMap(m)
+}
+
+func sourceDisabledInMap(m map[string]any) bool {
+	if s, ok := m["_source"]; ok {
+		if sm, ok := s.(map[string]any); ok {
+			if en, ok := sm["enabled"]; ok {
+				if b, ok := en.(bool); ok && !b {
+					return true
+				}
+			}
+		}
+	}
+	for _, v := range m {
+		if vm, ok := v.(map[string]any); ok {
+			if sourceDisabledInMap(vm) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func sanitizeIndexSettings(idx map[string]any) map[string]any {
