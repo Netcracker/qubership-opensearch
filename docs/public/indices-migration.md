@@ -60,6 +60,11 @@ If `migration.enabled` is `false`, the hook runs in check-only mode and will fai
   No concurrent writes (write block is set; check for other writers). Mapping/settings must be compatible.
   Check OpenSearch logs for reindex errors. Standard indices are restored from snapshot on failure.
 
+- **Indices with _source disabled (cannot be migrated)**  
+  Migration fails at the start (dry-run or full run) if any 1.x index has `_source` disabled in its mapping.
+  Reindex requires document bodies; when `_source` is disabled they were never stored and cannot be migrated.
+  You need to go to the documentation of the application that owns this index and perform a reindex operation.
+
 - **Security reinitialization failed**  
   Config secret must exist with valid `opensearch.yml`. `OPENSEARCH_STATEFULSET_NAMES` /
   `OPENSEARCH_DEPLOYMENT_NAMES` / `OPENSEARCH_CLIENT_SERVICE_NAME` must be correct; RBAC must allow
