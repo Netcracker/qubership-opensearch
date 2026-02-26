@@ -1,0 +1,137 @@
+name: Build Qubership-OpenSearch with custom image
+run-name: "Opensearch version: ${{ github.event.client_payload.opensearch_tag }}"
+on:
+  repository_dispatch:
+    types: [opensearch-patched-build]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.ref_type == 'branch' && format('build-branch-{0}', github.ref_name) || format('build-{0}', github.sha) }}
+  cancel-in-progress: true
+env:
+  INTEGRATION_BUILD_BRANCH: "feature/integration-build"
+  TARGET_REF: ${{ github.event.client_payload.target_branch || github.ref }}
+  OPENSEARCH_CUSTOM_IMAGE: ${{ github.event.client_payload.custom_opensearch_version }}
+  OPENSEARCH_VERSION: ${{ github.event.client_payload.opensearch_tag }}
+  REPLACE_SYMBOL: ${{ github.event.client_payload.replace-symbol || '_'}}
+  DOCKER_CONFIG_FILE: ".qubership/docker-build-config.cfg"
+
+jobs:
+  prepare:
+    name: "Prepare Images and Metadata"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      components: ${{ steps.load.outputs.components }}
+      platforms: ${{ steps.load.outputs.platforms }}
+      tags: "${{ steps.meta.outputs.result }}"
+      opensearch_major_version: ${{ steps.set-opensearch-major-version.outputs.major }}
+
+    steps:
+      - name: Show payload
+        env:
+          PAYLOADS: ${{ toJson(github.event.client_payload) }}
+        run: |
+          echo "${PAYLOADS}"
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: ${{ env.TARGET_REF }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Prepare ${{ env.INTEGRATION_BUILD_BRANCH }}
+        run: |
+          git fetch origin
+          if git show-ref --verify --quiet refs/heads/${INTEGRATION_BUILD_BRANCH}; then
+            git checkout ${INTEGRATION_BUILD_BRANCH}
+            git reset --hard origin/${TARGET_REF}
+          else
+            git checkout -b ${INTEGRATION_BUILD_BRANCH} origin/${TARGET_REF}
+          fi
+          git pull
+
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+          echo "$(date): [IBuild] Updated ${INTEGRATION_BUILD_BRANCH} by ${TARGET_REF} to build qubership-opensearch images with patched opensearch from ${OPENSEARCH_CUSTOM_IMAGE,,}" >> patched-build.log
+
+          git add .
+          git commit -m "[IBuild] Updated ${INTEGRATION_BUILD_BRANCH} by ${TARGET_REF} to build qubership-opensearch images with patched opensearch from ${OPENSEARCH_CUSTOM_IMAGE,,}"
+          git push -f -u origin "${INTEGRATION_BUILD_BRANCH}"
+
+      - id: load
+        run: |
+          if [ -f ${DOCKER_CONFIG_FILE} ];then
+            echo "components=$(jq -c '.components' ${DOCKER_CONFIG_FILE})" >> "$GITHUB_OUTPUT"
+            echo "platforms=$(jq -c '.platforms' ${DOCKER_CONFIG_FILE})" >> "$GITHUB_OUTPUT"
+            echo "Components: $(jq '.components' ${DOCKER_CONFIG_FILE})"
+            echo "Platforms: $(jq '.platforms' ${DOCKER_CONFIG_FILE})"
+          else
+            echo "Configuration file ${DOCKER_CONFIG_FILE} not found."
+            exit 1
+          fi
+
+      - name: Create tags for images
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
+        id: meta
+        with:
+          default-template: "{{ref-name}}"
+          default-tag: ''
+          ref: ${{ env.INTEGRATION_BUILD_BRANCH }}
+          extra-tags: ${{ github.event.client_payload.opensearch_tag }}
+          replace-symbol: ${{ env.REPLACE_SYMBOL }}
+
+      - name: Set opensearch Major Version
+        id: set-opensearch-major-version
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
+        with:
+          ref: ${{ env.OPENSEARCH_VERSION }}
+          default-template: "{{ref-name}}"
+
+  build:
+    name: ${{ matrix.component.name }}
+    needs: [prepare]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        component: ${{ fromJson(needs.prepare.outputs.components) }}
+    steps:
+      - name: Add build arg
+        env:
+            DOCKER_OPENSEARCH_VERSIONED_NAME: qubership-docker-opensearch-${{ needs.prepare.outputs.opensearch_major_version }}
+        if: ${{ github.event_name == 'repository_dispatch' && github.event.action == 'opensearch-patched-build' && matrix.component.name == env.DOCKER_OPENSEARCH_VERSIONED_NAME }}
+        run: |
+          echo "CUSTOM_BASE_IMAGE_ARG=OPENSEARCH_BASE=${OPENSEARCH_CUSTOM_IMAGE,,}" >> "$GITHUB_ENV"
+          IMAGE_TAG="${OPENSEARCH_CUSTOM_IMAGE,,}"
+          echo "IMAGE_TAG=${IMAGE_TAG#*:}" >> "$GITHUB_ENV"
+      - name: Docker
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
+        with:
+          ref: ${{ env.INTEGRATION_BUILD_BRANCH }}
+          dry-run: false
+          download-artifact: false
+          component: ${{ toJson(matrix.component) }}
+          platforms: ${{ needs.prepare.outputs.platforms }}
+          tags: ${{ needs.prepare.outputs.tags}},${{ env.IMAGE_TAG }}
+          build-args: ${{ env.CUSTOM_BASE_IMAGE_ARG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  Opensearch-Pipeline:
+    needs: [build]
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@4cb7d7c09d0205268066b130c8c6205d9232507b #v1.4.1
+    with:
+      service_branch: 'feature/integration-build'
+      pipeline_branch: '4cb7d7c09d0205268066b130c8c6205d9232507b' #this value must match the value after '@' in 'uses'
+      runner_type: 'ubuntu-latest'
+    secrets:
+      AWS_S3_ACCESS_KEY_ID: ${{secrets.AWS_S3_ACCESS_KEY_ID}}
+      AWS_S3_ACCESS_KEY_SECRET: ${{secrets.AWS_S3_ACCESS_KEY_SECRET}}
