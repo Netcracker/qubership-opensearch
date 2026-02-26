@@ -188,9 +188,8 @@ func run(dryRun bool) error {
 	log.Info(fmt.Sprintf("Indices need migration: %#v (count=%d)", oneXAll, len(oneXAll)))
 	log.Info(fmt.Sprintf("Security needs reinit: %v", m.securityNeedsReInit))
 	if len(oneXSourceDisabled) > 0 {
-		log.Error(fmt.Sprintf("Indices with _source disabled (cannot be migrated): %#v (count=%d)", oneXSourceDisabled, len(oneXSourceDisabled)))
-		log.Error("Those indices have to be deleted/recreated manually before indices migration operation.")
-		return fmt.Errorf("%d index/indices have _source disabled and cannot be migrated: %v", len(oneXSourceDisabled), oneXSourceDisabled)
+		log.Error(fmt.Sprintf("Indices with _source disabled (cannot be migrated): %#v (count=%d)\nThose indices have to be deleted or recreated and reindexed by owner application before indices migration operation.", oneXSourceDisabled, len(oneXSourceDisabled)))
+		return fmt.Errorf("Some index/indices have _source disabled and cannot be migrated")
 	}
 
 	if dryRun {
