@@ -830,9 +830,9 @@ func (m *MigrationTool) waitTask(ctx context.Context, taskID string) error {
 
 			if tr.Completed {
 				if tr.Error != "" {
-					return fmt.Errorf("task failed: %s: %s", taskID, tr.Error)
+					return fmt.Errorf("Reindex task failed: %s: %s, Responce: %s", taskID, tr.Error, tr.Response)
 				}
-				log.Info(fmt.Sprintf("Task completed: %s", taskID))
+				log.Info(fmt.Sprintf("Reindex task completed: %s", taskID))
 				return nil
 			}
 		}
