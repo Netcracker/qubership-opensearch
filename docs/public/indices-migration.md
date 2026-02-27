@@ -42,7 +42,7 @@ If `migration.enabled` is `false`, the hook runs in check-only mode and will fai
 
 ---
 
-**Note:** - this is not recomended as may can take a lot of time.
+**Note:** - this is not recommended as may can take a lot of time.
 
 ## Common issues (environment-specific and what can go wrong)
 
