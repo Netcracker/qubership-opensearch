@@ -16,7 +16,7 @@
 
 - **Where:** The migrator is a binary in the **curator** Docker image (`qubership-opensearch-curator`), at
   `$ELASTICSEARCH_CURATOR_HOME/migrator` (e.g. `/opt/elasticsearch-curator/migrator`). **Included in the curator
-  image only from Qubership OpenSearch 2.2.14.** Run it from the curator pod or from a one-off Job using the same
+  image only from Qubership OpenSearch 2.3.0.** Run it from the curator pod or from a one-off Job using the same
   image and env/RBAC as the curator.
 - **How:**
   - Dry-run (no changes):  
@@ -41,6 +41,8 @@ In your Helm values set **`migration.enabled: true`** so the hook runs the migra
 If `migration.enabled` is `false`, the hook runs in check-only mode and will fail when upgrading 2.x → 3.x with legacy 1.x indices present.
 
 ---
+
+**Note:** - this is not recomended as may can take a lot of time.
 
 ## Common issues (environment-specific and what can go wrong)
 

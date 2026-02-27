@@ -193,6 +193,9 @@ func run(dryRun bool) error {
 	}
 
 	if dryRun {
+		if len(oneXAll) > 0 || m.securityNeedsReInit {
+			return fmt.Errorf("dry-run failed: indices need migration or security reinit is required")
+		}
 		return nil
 	}
 
