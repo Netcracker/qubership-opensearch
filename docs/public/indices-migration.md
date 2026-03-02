@@ -43,6 +43,7 @@ If `migration.enabled` is `false`, the hook runs in check-only mode and will fai
 ---
 
 **Note:** - this is not recommended as may can take a lot of time.
+**Note:** - Job only works during upgrade to **2.x → 3.x**, for other cases use manual migration.
 
 ## Common issues (environment-specific and what can go wrong)
 
