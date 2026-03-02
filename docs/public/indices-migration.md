@@ -22,7 +22,13 @@
   - Dry-run (no changes):  
     `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migrator --dry-run`
   - Full run:  
-    `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migrator`  
+    `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migrator`
+  - **`--skip-security`** — Skips security reinitialization and operator restart. Use this when the migration target is an **external OpenSearch** cluster. **This flag MUST be used with external OpenSearch**; do not use it for in-cluster operator-managed clusters.  
+    Example:  
+    `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migrator --skip-security`
+  - **`--skip-backup`** — Skips snapshot backup before migration and restore on failure. No backup is taken; on migration failure only the temporary migration index is deleted (the original index is left as-is except scepial indices which have prefixes `.`).
+    Example:  
+    `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migrator --skip-backup`  
   On failure the process exits with a non-zero code.
 
 **Prerequisites:** Curator enabled in the OpenSearch Service Helm chart, snapshot repository registered (for backup of standard indices). 
@@ -31,14 +37,34 @@
 
 ## How to run it during upgrade
 
-In your Helm values set **`migration.enabled: true`** so the hook runs the migration job:
+In your Helm values set **`migration.enabled: true`** so the hook runs the migration job. You can pass extra parameters via **`migration.args`**:
 
    ```yaml
    migration:
      enabled: true
+     args: []   # optional: list of flags passed to the migrator
    ```
 
-If `migration.enabled` is `false`, the hook runs in check-only mode and will fail when upgrading 2.x → 3.x with legacy 1.x indices present.
+If `migration.enabled` is `false`, the hook runs in check-only mode (with `--dry-run`) and will fail when upgrading 2.x → 3.x with legacy 1.x indices present.
+
+**Parameters you can set in `migration.args`:**
+
+| Parameter         | Description |
+|-------------------|-------------|
+| `--dry-run`       | Run in check-only mode; no changes are applied. (When `migration.enabled` is `false`, the hook automatically uses this.) |
+| `--skip-security` | Skip security reinitialization and operator restart. **MUST** be used when the migration target is external OpenSearch. |
+| `--skip-backup`   | Skip snapshot backup before migration and restore on failure; on failure only the temporary migration index is deleted. |
+
+Example for external OpenSearch (no in-cluster backup/restore or operator steps):
+
+   ```yaml
+   migration:
+     enabled: true
+     args:
+       - "--dry-run"
+       - "--skip-security"
+       - "--skip-backup"
+   ```
 
 ---
 

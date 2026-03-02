@@ -146,8 +146,10 @@ type clusterHealthResp struct {
 func main() {
 	log.Info("Starting migration 1.x -> 2.x(created) for upgrade 2.x -> 3.x")
 
-	var dryRun bool
+	var dryRun, skipSecurity, skipBackup bool
 	flag.BoolVar(&dryRun, "dry-run", false, "Run in dry mode (no changes applied)")
+	flag.BoolVar(&skipSecurity, "skip-security", false, "Skip security reinitialization")
+	flag.BoolVar(&skipBackup, "skip-backup", false, "Skip backup and restore; on failure only delete migration index")
 	flag.Parse()
 	if dryRun {
 		log.Info("===================================")
@@ -156,13 +158,13 @@ func main() {
 		log.Info("===================================")
 	}
 
-	if err := run(dryRun); err != nil {
+	if err := run(dryRun, skipSecurity, skipBackup); err != nil {
 		log.Error(fmt.Sprintf("OpenSearch 1.x index migration failed: %v", err))
 		os.Exit(2)
 	}
 }
 
-func run(dryRun bool) error {
+func run(dryRun, skipSecurity, skipBackup bool) error {
 	osCluster, err := newOpenSearchClient()
 	if err != nil {
 		log.Error("OpenSearch client creation failed")
@@ -202,23 +204,29 @@ func run(dryRun bool) error {
 	if len(oneXAll) == 0 {
 		log.Info("Nothing to migrate")
 	} else {
-		backupID, berr := m.CollectAndWaitBackup(ctx, oneXBackup)
-		if berr != nil {
-			log.Error(fmt.Sprintf("OpenSearch 1.x index migration failed: %v", berr))
-			return berr
+		if !skipBackup {
+			backupID, berr := m.CollectAndWaitBackup(ctx, oneXBackup)
+			if berr != nil {
+				log.Error(fmt.Sprintf("OpenSearch 1.x index migration failed: %v", berr))
+				return berr
+			}
+			m.backupID = backupID
+		} else {
+			log.Info("Skipping backup (--skip-backup)")
 		}
-		m.backupID = backupID
-		if err = m.MigrateAll(ctx, oneXAll); err != nil {
+		if err = m.MigrateAll(ctx, oneXAll,skipBackup); err != nil {
 			log.Error(fmt.Sprintf("Step2 failed: %v", err))
 			return err
 		}
 	}
 
-	if m.securityNeedsReInit {
+	if m.securityNeedsReInit && !skipSecurity {
 		if err = m.ReinitSecurity(ctx); err != nil {
 			log.Error(fmt.Sprintf("Security reinitialization failed: %v", err))
 			return err
 		}
+	} else if m.securityNeedsReInit && skipSecurity {
+		log.Info("Securaity needs reinitialization but skipped (--skip-security)")
 	}
 
 	m.adapterClient = NewAdapterClient()
@@ -227,9 +235,13 @@ func run(dryRun bool) error {
 		return err
 	}
 
-	if err = RestartOperator(ctx); err != nil {
-		log.Error(fmt.Sprintf("Operator restart failed: %v", err))
-		return err
+	if !skipSecurity {
+		if err = RestartOperator(ctx); err != nil {
+			log.Error(fmt.Sprintf("Operator restart failed: %v", err))
+			return err
+		}
+	} else {
+		log.Info("Skipping operator restart (--skip-security)")
 	}
 
 	log.Info("All done. Step3 security later.")
@@ -314,7 +326,7 @@ func (m *MigrationTool) CollectInappropriateIndices(ctx context.Context) ([]stri
 	return oneXAll, oneXBackup, oneXSourceDisabled, nil
 }
 
-func (m *MigrationTool) MigrateAll(ctx context.Context, indices []string) error {
+func (m *MigrationTool) MigrateAll(ctx context.Context, indices []string, skipBackup bool) error {
 	for _, name := range indices {
 		log.Info(fmt.Sprintf("---- Migrating index: %s", name))
 		errMain := m.migrateOneIndex(ctx, name)
@@ -323,16 +335,29 @@ func (m *MigrationTool) MigrateAll(ctx context.Context, indices []string) error 
 			continue
 		}
 
-		if err := m.cleanupIndices(ctx, name); err != nil {
-			return err
-		}
-		if strings.HasPrefix(name, ".") {
-			log.Error(fmt.Sprintf("Index migration failed, will delete and continue. index=%s", name))
-			continue
-		}
-		_, err := m.backupProvider.RestoreBackup(m.backupID, []string{name}, "", false, ctx)
-		if err != nil {
-			return err
+		if skipBackup {
+			if err := m.deleteIndex(ctx, name+migrationSuffix); err != nil {
+				return err
+			}
+			if strings.HasPrefix(name, ".") {
+				log.Error(fmt.Sprintf("Index migration failed, will delete and continue. index=%s", name))
+				if err := m.deleteIndex(ctx, name); err != nil {
+					return err
+				}
+				continue
+			}
+		} else {
+			if err := m.cleanupIndices(ctx, name); err != nil {
+				return err
+			}
+			if strings.HasPrefix(name, ".") {
+				log.Error(fmt.Sprintf("Index migration failed, will delete and continue. index=%s", name))
+				continue
+			}
+			_, err := m.backupProvider.RestoreBackup(m.backupID, []string{name}, "", false, ctx)
+			if err != nil {
+				return err
+			}
 		}
 		return errMain
 	}
