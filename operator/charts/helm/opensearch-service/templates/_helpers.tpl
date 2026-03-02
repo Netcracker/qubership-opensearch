@@ -830,7 +830,7 @@ DBaaS Adapter address
 {{- end -}}
 
 {{/*
-DNS names used to generate TLS certificate with "Subject Alternative Name" field for OpenSearch DBaaS Addapter
+DNS names used to generate TLS certificate with "Subject Alternative Name" field for OpenSearch DBaaS Adapter
 */}}
 {{- define "dbaas-adapter.certDnsNames" -}}
   {{- $dnsNames := list "localhost" (include "dbaas-adapter.name" .) (printf "%s.%s" (include "dbaas-adapter.name" .) .Release.Namespace) (printf "%s.%s.svc" (include "dbaas-adapter.name" .) .Release.Namespace) -}}
@@ -839,7 +839,7 @@ DNS names used to generate TLS certificate with "Subject Alternative Name" field
 {{- end -}}
 
 {{/*
-IP addresses used to generate TLS certificate with "Subject Alternative Name" field for OpenSearch DBaaS Addapter
+IP addresses used to generate TLS certificate with "Subject Alternative Name" field for OpenSearch DBaaS Adapter
 */}}
 {{- define "dbaas-adapter.certIpAddresses" -}}
   {{- $ipAddresses := list "127.0.0.1" -}}
@@ -848,7 +848,7 @@ IP addresses used to generate TLS certificate with "Subject Alternative Name" fi
 {{- end -}}
 
 {{/*
-Generate certificates for OpenSearch DBaaS Addapter
+Generate certificates for OpenSearch DBaaS Adapter
 */}}
 {{- define "dbaas-adapter.generateCerts" -}}
 {{- $dnsNames := include "dbaas-adapter.certDnsNames" . | fromYamlArray -}}
@@ -1366,7 +1366,7 @@ Ingress host for OpenSearch
   {{- $restCorrect :=       or (eq $rest "")      (eq ($rest | toString) "<nil>")      (eq $rest $correctPath) -}}
   {{- $adminCorrect :=      or (eq $admin "")     (eq ($admin | toString) "<nil>")     (eq $admin $correctPath) -}}
   {{- if not (and $transportCorrect $restCorrect $adminCorrect) }}
-    {{- fail "Overriden opensearch.tls.*.existingCertSecretCertSubPath parameters are not supported" -}}
+    {{- fail "Overridden opensearch.tls.*.existingCertSecretCertSubPath parameters are not supported" -}}
   {{- end -}}
 {{- end -}}
 
@@ -1379,7 +1379,7 @@ Ingress host for OpenSearch
   {{- $restCorrect :=       or (eq $rest "")      (eq $rest "<nil>")      (eq $rest $correctPath) -}}
   {{- $adminCorrect :=      or (eq $admin "")     (eq $admin "<nil>")     (eq $admin $correctPath) -}}
   {{- if not (and $transportCorrect $restCorrect $adminCorrect) }}
-    {{- fail "Overriden opensearch.tls.*.existingCertSecretKeySubPath parameters are not supported" -}}
+    {{- fail "Overridden opensearch.tls.*.existingCertSecretKeySubPath parameters are not supported" -}}
   {{- end -}}
 {{- end -}}
 
@@ -1392,7 +1392,7 @@ Ingress host for OpenSearch
   {{- $restCorrect :=       or (eq $rest "")      (eq $rest "<nil>")      (eq $rest $correctPath) -}}
   {{- $adminCorrect :=      or (eq $admin "")     (eq $admin "<nil>")     (eq $admin $correctPath) -}}
   {{- if not (and $transportCorrect $restCorrect $adminCorrect) }}
-    {{- fail "Overriden opensearch.tls.*.existingCertSecretRootCASubPath parameters are not supported" -}}
+    {{- fail "Overridden opensearch.tls.*.existingCertSecretRootCASubPath parameters are not supported" -}}
   {{- end -}}
 {{- end -}}
 
@@ -1434,5 +1434,44 @@ Restricted environment.
     {{- (index (index $existing "spec") "volumeClaimTemplates" 0).spec.resources.requests.storage | toString -}}
   {{- else -}}
     {{- .Values.opensearch.master.persistence.size | default "1Gi" | toString -}}
+  {{- end -}}
+{{- end -}}
+
+{{- define "opensearch.currentVersion" -}}
+  {{- $currentStatefulSet := lookup "apps/v1" "StatefulSet" .Release.Namespace (include "master-nodes" .) -}}
+  {{- $currentImage := "" -}}
+  {{- if $currentStatefulSet -}}
+    {{- range $currentStatefulSet.spec.template.spec.containers -}}
+      {{- if or (eq .name "opensearch") (eq .name "opensearch-master") -}}
+        {{- $currentImage = .image -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- regexFind "[0-9]+\\.[0-9]+\\.[0-9]+" $currentImage -}}
+{{- end -}}
+
+{{/*
+Check if migration should run based on current and target OpenSearch versions.
+Returns "true" if migration should run, empty string otherwise.
+Migration runs ONLY for upgrades when:
+- Current StatefulSet exists (not a fresh install)
+- Target version is 3.x
+- Current version is 2.x (docker-opensearch-2) OR has no digit (docker-opensearch)
+- Current version is NOT 3.x (docker-opensearch-3)
+*/}}
+{{- define "opensearch.shouldRunMigration" -}}
+  {{- $currentStatefulSet := lookup "apps/v1" "StatefulSet" .Release.Namespace (include "master-nodes" .) -}}
+  {{- if $currentStatefulSet -}}
+    {{- $currentVersion := include "opensearch.currentVersion" . -}}
+    {{- $currentMajor := 0 -}}
+    {{- if $currentVersion -}}
+      {{- $currentMajor = int (regexFind "^[0-9]+" $currentVersion) -}}
+    {{- end -}}
+    {{- $targetVersion := include "opensearch.imageVariant" . -}}
+    {{- if eq $targetVersion "3" -}}
+      {{- if and (ne $currentMajor 3) (or (eq $currentMajor 0) (eq $currentMajor 2)) -}}
+        {{- printf "true" -}}
+      {{- end -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}

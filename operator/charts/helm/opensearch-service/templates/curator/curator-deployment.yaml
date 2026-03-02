@@ -36,6 +36,7 @@ spec:
       imagePullSecrets:
       {{ toYaml .Values.global.imagePullSecrets | indent 8 }}
       {{- end }}
+      serviceAccountName: {{ template "opensearch.fullname" . }}-curator
       containers:
         - env:
             - name: NAMESPACE
@@ -56,6 +57,8 @@ spec:
               value: "$(ES_USERNAME):$(ES_PASSWORD)"
             - name: TLS_HTTP_ENABLED
               value: "{{ or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}"
+            - name: OPENSEARCH_OPERATOR_DEPLOYMENT_NAME
+              value: {{ template "opensearch.fullname" . }}-service-operator
             - name: TLS_ENABLED
               value: "{{ template "curator.tlsEnabled" . }}"
             - name: SNAPSHOT_REPOSITORY_NAME
@@ -128,6 +131,33 @@ spec:
                 secretKeyRef:
                   name: {{ template "opensearch.fullname" . }}-curator-secret
                   key: password
+            - name: OPENSEARCH_NAMESPACE
+              value: {{ .Release.Namespace | quote }}
+            # Security reinit via plugins.security.disabled (no TLS / securityadmin required)
+            - name: OPENSEARCH_CONFIG_SECRET_NAME
+              value: {{ printf "%s-config" (include "opensearch.fullname" .) | quote }}
+            - name: OPENSEARCH_STATEFULSET_NAMES
+              value: {{ include "opensearch.statefulsetNames" . | quote }}
+            - name: OPENSEARCH_DEPLOYMENT_NAMES
+              {{- if and .Values.opensearch.client.enabled .Values.opensearch.client.dedicatedPod.enabled }}
+              value: {{ printf "%s-client" (include "opensearch.fullname" .) | quote }}
+              {{- else }}
+              value: ""
+              {{- end }}
+            - name: CURATOR_ADDRESS
+              value: {{ (include "curator.address" .) }}
+            - name: OPENSEARCH_CLIENT_SERVICE_NAME
+              value: {{ template "opensearch.fullname" . }}
+            - name: CURATOR_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  key: username
+            - name: CURATOR_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  key: password
           image: {{ template "curator.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
           livenessProbe:
@@ -169,6 +199,10 @@ spec:
             {{ if eq (include "curator.tlsEnabled" .) "true" }}
             - mountPath: /tls
               name: certs
+            {{- end }}
+            {{- if eq (include "dbaas-adapter.tlsEnabled" .) "true" }}
+            - mountPath: /tls/dbaas
+              name: dbaas-adapter-certs
             {{- end }}
             {{- if and .Values.opensearch.snapshots.s3.enabled .Values.opensearch.snapshots.s3.gcs.secretName .Values.opensearch.snapshots.s3.gcs.secretKey }}
             - name: gcs

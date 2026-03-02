@@ -1187,6 +1187,21 @@ groupMigration:
   imagePullPolicy: Always
   runAsNonRoot: true
 
+migration:
+  enabled: false
+  # Example:
+  # args:
+  #   - "--dry-run"  # Test without making changes
+  args: []
+  # Resource limits for migration job
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m  
+
 nameOverride: "opensearch"
 fullnameOverride: "opensearch"
 

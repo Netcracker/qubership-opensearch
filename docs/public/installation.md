@@ -394,27 +394,39 @@ in which the Persistent Volumes are specified so that OpenSearch pods are assign
 
 #### Persistent Volume Extension and Reduction
 
-**Applicability**: PVC size extension is applicable only for the **joint** installation scheme, where master and data roles are on the same nodes. In the **separate** scheme (where master and data nodes use different StatefulSets and PVCs), the procedures in this section apply to the master PVCs used for cluster metadata; data node PVC expansion depends on your storage class and platform.
+**Applicability**: PVC size extension is applicable only for the **joint** installation scheme, where master and data roles are on the same nodes.
+In the **separate** scheme (where master and data nodes use different StatefulSets and PVCs), the procedures in this section apply to the master PVCs used for cluster metadata;
+Data node PVC expansion depends on your storage class and platform.
 
 **Persistent Volume extension**
 
-You can increase the size of a Persistent Volume Claim (PVC) when the underlying StorageClass supports volume expansion. Ensure the StorageClass has `allowVolumeExpansion: true`. Then:
+You can increase the size of a Persistent Volume Claim (PVC) when the underlying StorageClass supports volume expansion.
+Ensure the StorageClass has `allowVolumeExpansion: true`. Then:
 
 1. Update the size in your Helm values (for example, `opensearch.master.persistence.size`) to the desired larger value.
 2. Upgrade the release so the PVC spec is updated.
-3. The cluster may resize the volume in place; if the filesystem supports it, the new space becomes available without recreating the PVC or the pod. If your environment requires it, you may need to restart the pod so the mount reflects the new size.
+3. The cluster may resize the volume in place: 
+    if the filesystem supports it, the new space becomes available without recreating the PVC or the pod. 
+    If your environment requires it, you may need to restart the pod so the mount reflects the new size.
 
 **Persistent Volume reduction is not supported**
 
-Reducing the size of an existing PVC (or the underlying Persistent Volume) is **not supported** by Kubernetes and by most storage providers. Once a volume is created or expanded, you cannot shrink it. Attempting to reduce the requested size in the PVC spec can lead to failed state or undefined behavior.
+Reducing the size of an existing PVC (or the underlying Persistent Volume) is **not supported** by Kubernetes and by most storage providers.
+Once a volume is created or expanded, you cannot shrink it.
+Attempting to reduce the requested size in the PVC spec can lead to failed state or undefined behavior.
 
 **How to fix if you tried to do storage reduction**
 
 If you have already changed the Helm values (or the PVC spec) to a smaller size in an attempt to reduce storage:
 
-1. **Revert the size change**: Set the persistence size back to the previous (larger) value in your values and upgrade the release again, so the PVC spec matches the actual volume size.
-2. **Verify the PVC**: Check that the PVC's `spec.resources.requests.storage` again matches the capacity of the underlying volume (e.g. with `kubectl get pvc -n <namespace>` and your storage provider's tools).
-3. **If the PVC is stuck or the controller has applied a smaller size**: Consult your Kubernetes distribution and storage provider documentation. In many cases, manually editing the PVC to restore the correct larger `spec.resources.requests.storage` and ensuring the Persistent Volume capacity is unchanged can recover the state. Do not reduce the actual volume capacity on the storage backend.
+1. **Revert the size change**: Set the persistence size back to the previous (larger) value in your values and
+   upgrade the release again, so the PVC spec matches the actual volume size.
+2. **Verify the PVC**: Check that the PVC's `spec.resources.requests.storage` again matches the capacity of the
+   underlying volume (e.g. with `kubectl get pvc -n <namespace>` and your storage provider's tools).
+3. **If the PVC is stuck or the controller has applied a smaller size**: Consult your Kubernetes distribution and
+   storage provider documentation. In many cases, manually editing the PVC to restore the correct larger
+   `spec.resources.requests.storage` and ensuring the Persistent Volume capacity is unchanged can recover the
+   state. Do not reduce the actual volume capacity on the storage backend.
 
 According to the specified parameters, the `Pod Scheduler` distributes pods to the necessary Kubernetes nodes. For more information, refer to [Pod Scheduler](#pod-scheduler) section.
 
@@ -426,8 +438,9 @@ The OpenSearch `joint` installation mode implies that each node has `master`, `d
 
 #### Separate
 
-The OpenSearch `separate` installation mode implies that each node either has one of the `master`, `data`, and `client` roles or a combination of the two.
-For example, OpenSearch installation has 3 `master` nodes, 2 `data` nodes and 2 `client` nodes, or 3 nodes with `data` and `master` roles and 2 `client` nodes.
+The OpenSearch `separate` installation mode implies that each node either has one of the `master`, `data`, and
+`client` roles or a combination of the two. For example, OpenSearch installation has 3 `master` nodes, 2 `data` nodes
+and 2 `client` nodes, or 3 nodes with `data` and `master` roles and 2 `client` nodes.
 
 If `data` and `master` nodes are separated, it is important to specify persistent storages not only for `data` nodes but also for `master` nodes.
 The size of persistent storage for a `master` node should be small. For example, `1Gi`.
@@ -572,7 +585,7 @@ The full recommendations you can find in [Size your shards](https://www.elastic.
 
 OpenSearch provides API for manage [Index Templates](https://opensearch.org/docs/latest/im-plugin/index-templates/), and it still provides API for [legacy elasticsearch templates](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates-v1.html).
 
-Both API, new composable index templates (`/_index_template`) and legacy templates (`/_template`) are avaialble now and can be used by applications,
+Both API, new composable index templates (`/_index_template`) and legacy templates (`/_template`) are available now and can be used by applications,
 but composable index templates have more features and more priority than legacy.
 
 New OpenSearch index templates offer enhanced modularity, improved prioritization for layered configurations, and a more user-friendly API, ensuring better management and future-proofing
@@ -1211,9 +1224,9 @@ Where:
 | `opensearch.master.persistence.subPath`                | string  | no        | ""                                                                                                          | The subdirectory of the volume to mount to.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `opensearch.master.persistence.storageClass`           | string  | yes       | -                                                                                                           | The storage class name that is used for OpenSearch master nodes. If it is set to `-`, dynamic provisioning is disabled. If it is empty or set to `null`, the default provisioner is chosen.                                                                                                                                                                                                                                                                                   |
 | `opensearch.master.persistence.persistentVolumes`      | list    | no        | []                                                                                                          | The list of predefined persistent volumes for OpenSearch master nodes. The number of persistent volumes should be equal to `opensearch.master.replicas` parameter. If `hostPath` PVs are used, the `nodes` parameters is also should be specified.                                                                                                                                                                                                                            |
-| `opensearch.master.persistence.nodes`                  | list    | no        | []                                                                                                          | The list of Kubernetes node names to assign OpenSearch master nodes. The number of nodes should be equal to `opensearch.master.replicas` parameter. It should not be used with `storageClass` pod assignment.                                                                                                                                                                                                                                                                 |
+| `opensearch.master.persistence.nodes`                    | list    | no        | []                                                                                                          | The list of Kubernetes node names to assign OpenSearch master nodes. The number of nodes should be equal to `opensearch.master.replicas` parameter. It should not be used with `storageClass` pod assignment.                                                                                                                                                                                                                                                                   |
 | `opensearch.master.persistence.accessModes`            | list    | no        | ["ReadWriteOnce"]                                                                                           | The list of access modes of persistent volumes for OpenSearch master nodes.                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `opensearch.master.persistence.size`                   | string  | no        | 5Gi                                                                                                         | The size of persistent volumes for OpenSearch master nodes. PVC size **extension** (increase) is supported only for the **joint** scheme (where master and data are on the same nodes), when the StorageClass has `allowVolumeExpansion: true`. Storage **reduction** is not supported. See [Persistent Volume Extension and Reduction](#persistent-volume-extension-and-reduction).                                                                                                                                                            |
+| `opensearch.master.persistence.size`                   | string  | no        | 5Gi                                                                                                         | The size of persistent volumes for OpenSearch master nodes. PVC **extension** is supported for the **joint** scheme when StorageClass has `allowVolumeExpansion: true`. **Reduction** is not supported. See [Persistent Volume Extension and Reduction](#persistent-volume-extension-and-reduction).                                                                                                                                                                                                                                                        |
 | `opensearch.master.persistence.annotations`            | object  | no        | {}                                                                                                          | The annotations of persistent volumes for OpenSearch master nodes.                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `opensearch.master.resources.requests.cpu`             | string  | no        | 250m                                                                                                        | The minimum number of CPUs the OpenSearch master node container should use.                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `opensearch.master.resources.requests.memory`          | string  | no        | 2Gi                                                                                                         | The minimum number of memory the OpenSearch master node container should use.                                                                                                                                                                                                                                                                                                                                                                                                 |
@@ -1977,6 +1990,11 @@ Automatic CRD upgrade requires the following cluster rights for the deployment u
 ### Migration to OpenSearch 3.x (OpenSearch Service 2.x.x)
 
 **Important**: The Opensearch recommends upgrading from version 2.19 for more stable operation.
+
+If your cluster has indices **created on OpenSearch 1.x**, they must be migrated (reindexed) before or during the
+upgrade to 3.x; otherwise they can cause compatibility issues. A pre-upgrade/pre-install Helm hook can run the
+migration automatically when `migration.enabled: true`. For details, prerequisites, and troubleshooting, see
+[Indices migration (1.x to 2.x for 3.x upgrade)](/docs/public/indices-migration.md).
 
 There are the following breaking changes:
 
