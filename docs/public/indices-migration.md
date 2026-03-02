@@ -20,7 +20,7 @@
   image and env/RBAC as the curator.
 - **How:**
   - Dry-run (no changes):  
-    `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migrator -dry-run`
+    `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migrator --dry-run`
   - Full run:  
     `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migrator`  
   On failure the process exits with a non-zero code.
