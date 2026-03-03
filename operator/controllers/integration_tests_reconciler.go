@@ -15,6 +15,10 @@ type ReconcileIntegrationTests struct {
 	reconciler *OpenSearchServiceReconciler
 }
 
+func (r ReconcileIntegrationTests) Configure() error {
+	return nil
+}
+
 func NewReconcileIntegrationTests(r *OpenSearchServiceReconciler, cr *opensearchservice.OpenSearchService, logger logr.Logger) ReconcileIntegrationTests {
 	return ReconcileIntegrationTests{
 		reconciler: r,
