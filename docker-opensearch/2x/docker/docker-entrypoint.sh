@@ -3,9 +3,13 @@
 set -e
 
 "${OPENSEARCH_HOME}"/bin/opensearch-plugin install \
-    --batch --verbose "file://${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.4.zip"
+    --batch --verbose "file://${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-${OPENSEARCH_VERSION}.zip"
 "${OPENSEARCH_HOME}"/bin/opensearch-plugin install \
-    --batch --verbose "file://${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.4.zip"
+    --batch --verbose "file://${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-${OPENSEARCH_VERSION}.zip"
+"${OPENSEARCH_HOME}"/bin/opensearch-plugin install \
+    --batch --verbose "file://${OPENSEARCH_HOME}/dist/analysis-icu/analysis-icu-${OPENSEARCH_VERSION}.zip"
+"${OPENSEARCH_HOME}"/bin/opensearch-plugin install \
+    --batch --verbose "file://${OPENSEARCH_HOME}/dist/analysis-kuromoji/analysis-kuromoji-${OPENSEARCH_VERSION}.zip"
 rm -rf "${OPENSEARCH_HOME}"/dist
 
 if [[ -n "$OPENSEARCH_SECURITY_CONFIG_PATH" ]]; then
