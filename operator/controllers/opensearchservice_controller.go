@@ -199,6 +199,9 @@ func (r *OpenSearchServiceReconciler) buildReconcilers(cr *opensearchservice.Ope
 	if cr.Spec.ExternalOpenSearch != nil {
 		reconcilers = append(reconcilers, NewExternalOpenSearchReconciler(r, cr, logger))
 	}
+	if cr.Spec.IntegrationTests != nil {
+		reconcilers = append(reconcilers, NewReconcileIntegrationTests(r, cr, logger) )
+	}
 	return reconcilers
 }
 
