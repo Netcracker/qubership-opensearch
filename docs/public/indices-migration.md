@@ -23,10 +23,13 @@
     `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migrator --dry-run`
   - Full run:  
     `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migrator`
-  - **`--skip-security`** — Skips security reinitialization and operator restart. Use this when the migration target is an **external OpenSearch** cluster. **This flag MUST be used with external OpenSearch**; do not use it for in-cluster operator-managed clusters.  
+  - **`--skip-security`** — Skips security reinitialization and operator restart. Use this when the migration target is an **external OpenSearch** cluster.
+  **This flag MUST be used with external OpenSearch**;
+  Do not use it for in-cluster operator-managed clusters.  
     Example:  
     `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migrator --skip-security`
-  - **`--skip-backup`** — Skips snapshot backup before migration and restore on failure. No backup is taken; on migration failure only the temporary migration index is deleted (the original index is left as-is except scepial indices which have prefixes `.`).
+  - **`--skip-backup`** — Skips snapshot backup before migration and restore on failure, no backup is taken.
+  On migration failure only the temporary migration index is deleted (the original index is left as-is except scepial indices which have prefixes `.`).
     Example:  
     `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migrator --skip-backup`  
   On failure the process exits with a non-zero code.
