@@ -41,6 +41,10 @@ var (
 	adapterUsername              = common.GetEnv("DBAAS_ADAPTER_USERNAME", "")
 	adapterPassword              = common.GetEnv("DBAAS_ADAPTER_PASSWORD", "")
 	adapterAddress               = common.GetEnv("DBAAS_ADAPTER_ADDRESS", "")
+	aggregatorAddress            = common.GetEnv("DBAAS_AGGREGATOR_REGISTRATION_ADDRESS", "")
+	aggregatorUsername           = common.GetEnv("DBAAS_AGGREGATOR_REGISTRATION_USERNAME", "")
+	aggregatorPassword           = common.GetEnv("DBAAS_AGGREGATOR_REGISTRATION_PASSWORD", "")
+	aggregatorPhysicalDbId       = common.GetEnv("DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER", "")
 	snapshotRepoName             = common.GetEnv("SNAPSHOT_REPOSITORY_NAME", "")
 	opensearchNamespace          = common.GetEnv("OPENSEARCH_NAMESPACE", "default")
 	opensearchConfigSecretName   = common.GetEnv("OPENSEARCH_CONFIG_SECRET_NAME", "")
@@ -64,8 +68,9 @@ const (
 	adapterReadyTimeout  = 240
 	adapterReadyInterval = 10
 
-	dbaasAPIVersion      = "v2"
-	RecoveryIdleState    = "idle"
+	dbaasAdapterAPIVersion   = "v2"
+	dbaasAggregatorAPIVersion = "v3"
+	RecoveryIdleState        = "idle"
 	RecoveryRunningState = "running"
 	RecoveryFailedState  = "failed"
 	RecoveryDoneState    = "done"
@@ -80,15 +85,23 @@ type MigrationTool struct {
 	osCluster           *cluster.Opensearch
 	backupProvider      *backup.BackupProvider
 	adapterClient       *AdapterClient
+	aggregatorClient    *AggregatorClient
 	backupID            string
 	securityNeedsReInit bool
 }
 
 type AdapterClient struct {
-	endpoint string
-	username string
-	password string
+	endpoint   string
+	username   string
+	password   string
+	httpClient *http.Client
+}
 
+// AggregatorClient is like AdapterClient but for the DBaaS aggregator (different URL and credentials).
+type AggregatorClient struct {
+	endpoint   string
+	username   string
+	password   string
 	httpClient *http.Client
 }
 
@@ -240,6 +253,7 @@ func run(dryRun, skipSecurity, skipBackup bool) error {
 	}
 
 	m.adapterClient = NewAdapterClient()
+	m.aggregatorClient = NewAggregatorClient()
 	if err = m.RestoreUsers(ctx); err != nil {
 		log.Error(fmt.Sprintf("User recovery failed: %v", err))
 		return err
@@ -1532,16 +1546,17 @@ func (m *MigrationTool) ReinitSecurity(ctx context.Context) error {
 
 const adapterCACertPath = "/tls/dbaas/ca.crt"
 
-func newAdapterHTTPClient() *http.Client {
+// newDbaasHTTPClient returns an HTTP client with optional TLS CA for adapter/aggregator (shared cert path).
+func newDbaasHTTPClient() *http.Client {
 	client := &http.Client{Timeout: 30 * time.Second}
 	caCert, err := os.ReadFile(adapterCACertPath)
 	if err != nil {
-		log.Info(fmt.Sprintf("Adapter CA cert not found at %s, using default TLS verification", adapterCACertPath))
+		log.Info(fmt.Sprintf("DBaaS CA cert not found at %s, using default TLS verification", adapterCACertPath))
 		return client
 	}
 	pool := x509.NewCertPool()
 	if !pool.AppendCertsFromPEM(caCert) {
-		log.Info(fmt.Sprintf("Adapter CA cert at %s invalid, using default TLS verification", adapterCACertPath))
+		log.Info(fmt.Sprintf("DBaaS CA cert at %s invalid, using default TLS verification", adapterCACertPath))
 		return client
 	}
 	client.Transport = &http.Transport{
@@ -1555,13 +1570,22 @@ func NewAdapterClient() *AdapterClient {
 		endpoint:   adapterAddress,
 		username:   adapterUsername,
 		password:   adapterPassword,
-		httpClient: newAdapterHTTPClient(),
+		httpClient: newDbaasHTTPClient(),
+	}
+}
+
+func NewAggregatorClient() *AggregatorClient {
+	return &AggregatorClient{
+		endpoint:   aggregatorAddress,
+		username:   aggregatorUsername,
+		password:   aggregatorPassword,
+		httpClient: newDbaasHTTPClient(),
 	}
 }
 
 func (m *MigrationTool) RestoreUsers(ctx context.Context) error {
-	if m.adapterClient.endpoint == "" {
-		log.Info("DBaaS adapter not configured - skipping user restoration")
+	if m.adapterClient.endpoint == "" || m.aggregatorClient.endpoint == "" || aggregatorPhysicalDbId == "" {
+		log.Info("DBaaS adapter or aggregator not configured - skipping user restoration")
 		return nil
 	}
 	log.Info("Starting DBaaS user restoration...")
@@ -1581,12 +1605,27 @@ func (m *MigrationTool) RestoreUsers(ctx context.Context) error {
 			return errors.New("timeout reached during user restoration")
 		}
 		if state == RecoveryIdleState {
-			if !m.triggerRestore(deadlineCtx) {
+			triggerTimeout := adapterReadyTimeout * time.Second
+			start := time.Now()
+			triggered := false
+			for time.Since(start) < triggerTimeout {
+				if deadlineCtx.Err() != nil {
+					restoreFailed = true
+					break
+				}
+				if m.triggerRestore(deadlineCtx) {
+					triggered = true
+					break
+				}
+				time.Sleep(adapterReadyInterval * time.Second)
+			}
+			if !triggered {
 				restoreFailed = true
-				break
+				state = RecoveryFailedState
+				continue
 			}
 		}
-		time.Sleep(adapterReadyInterval * time.Second)
+		time.Sleep(5 * time.Second)
 		state = m.getRestoreState(deadlineCtx)
 	}
 
@@ -1599,7 +1638,7 @@ func (m *MigrationTool) RestoreUsers(ctx context.Context) error {
 }
 
 func (m *MigrationTool) getRestoreState(ctx context.Context) string {
-	u := m.adapterClient.endpoint + "/api/" + dbaasAPIVersion +
+	u := m.adapterClient.endpoint + "/api/" + dbaasAdapterAPIVersion +
 		"/dbaas/adapter/opensearch/users/restore-password/state"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
@@ -1628,20 +1667,30 @@ func (m *MigrationTool) getRestoreState(ctx context.Context) string {
 }
 
 func (m *MigrationTool) triggerRestore(ctx context.Context) bool {
-	u := m.adapterClient.endpoint + "/api/" + dbaasAPIVersion +
-		"/dbaas/adapter/opensearch/users/restore-password"
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader([]byte(`{}`)))
+	u := m.aggregatorClient.endpoint + "/api/" + dbaasAggregatorAPIVersion +
+		"/dbaas/internal/physical_databases/users/restore-password"
+	body := map[string]any{
+		"physicalDbId": aggregatorPhysicalDbId,
+		"type":         "opensearch",
+		"settings":     map[string]any{},
+	}
+	bodyJSON, err := json.Marshal(body)
+	if err != nil {
+		log.Error(fmt.Sprintf("Failed to build trigger restore body: %v", err))
+		return false
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(bodyJSON))
 	if err != nil {
 		log.Error(fmt.Sprintf("Failed to build trigger restore request: %v", err))
 		return false
 	}
 	req.Header.Set("Content-Type", "application/json")
-	if m.adapterClient.username != "" && m.adapterClient.password != "" {
-		req.SetBasicAuth(m.adapterClient.username, m.adapterClient.password)
+	if m.aggregatorClient.username != "" && m.aggregatorClient.password != "" {
+		req.SetBasicAuth(m.aggregatorClient.username, m.aggregatorClient.password)
 	}
-	resp, err := m.adapterClient.httpClient.Do(req)
+	resp, err := m.aggregatorClient.httpClient.Do(req)
 	if err != nil {
-		log.Error(fmt.Sprintf("Failed to trigger user restoration: %v", err))
+		log.Info(fmt.Sprintf("Unable to restore user passwords via DBaaS aggregator: %v", err))
 		return false
 	}
 	defer func() { _ = resp.Body.Close() }()
@@ -1650,11 +1699,11 @@ func (m *MigrationTool) triggerRestore(ctx context.Context) bool {
 		log.Error(fmt.Sprintf("Failed to read trigger restore response: %v", err))
 		return false
 	}
-	if resp.StatusCode >= 300 {
-		log.Error(fmt.Sprintf("Failed to trigger user restoration: status=%d body=%s", resp.StatusCode, strings.TrimSpace(string(raw))))
+	if resp.StatusCode != 200 {
+		log.Info(fmt.Sprintf("Trigger restore aggregator status=%d body=%s", resp.StatusCode, strings.TrimSpace(string(raw))))
 		return false
 	}
-	log.Info("User restoration triggered successfully")
+	log.Info("User restoration triggered successfully via DBaaS aggregator")
 	return true
 }
 

@@ -328,7 +328,7 @@ The OpenSearch cluster contains one or more indices that were created on OpenSea
 
 1. Use the pre-upgrade migration tool that is placed inside curator deployment for manual migration before planned upgrade, check [Indices Migration](/docs/public/indices-migration.md)
 2. Alternatively, run the migration in dry-run mode first (`migration.enabled: false`) to verify which indices require migration, then enable and run the full migration.
-3. Run the pre-upgrade migration job (indices migrator) with `migration.enabled: true` to migrate 1.x indices before or during the upgrade to 3.x.
+3. Run the pre-upgrade migration job (indices migraton_tool) with `migration.enabled: true` to migrate 1.x indices before or during the upgrade to 3.x.
 
 ## OpenSearchQueryIsTooSlowAlert
 
