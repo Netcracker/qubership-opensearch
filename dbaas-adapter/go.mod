@@ -3,7 +3,7 @@ module github.com/Netcracker/dbaas-opensearch-adapter
 go 1.25.2
 
 require (
-	github.com/Netcracker/qubership-dbaas-adapter-core v0.9.6
+	github.com/Netcracker/qubership-dbaas-adapter-core v0.11.1
 	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.1
 	github.com/opensearch-project/opensearch-go v1.1.0
