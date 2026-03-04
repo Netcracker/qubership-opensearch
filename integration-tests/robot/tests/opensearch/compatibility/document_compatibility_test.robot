@@ -73,7 +73,7 @@ Bulk Index Documents
 
 Get Document With Source Filtering
     [Tags]  compatibility  document
-    ${response}=  GET On Session  opensearch  /${DOC_IDX}/_doc/doc1?_source_includes=title
+    ${response}=  GET On Session  opensearch  url=/${DOC_IDX}/_doc/doc1?_source_includes=title
     Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
     Dictionary Should Contain Key  ${content['_source']}  title
@@ -81,7 +81,7 @@ Get Document With Source Filtering
 
 Get Document With Source Excludes
     [Tags]  compatibility  document
-    ${response}=  GET On Session  opensearch  /${DOC_IDX}/_doc/doc1?_source_excludes=count
+    ${response}=  GET On Session  opensearch  url=/${DOC_IDX}/_doc/doc1?_source_excludes=count
     Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
     Dictionary Should Contain Key  ${content['_source']}  title
@@ -89,11 +89,11 @@ Get Document With Source Excludes
 
 Index Document With Unicode Content
     [Tags]  compatibility  document
-    ${doc}=  Set Variable  {"title":"Über café naïve résumé —�都","count":42}
+    ${doc}=  Set Variable  {"title":"Über café naïve résumé —東京都","count":42}
     ${response}=  PUT On Session  opensearch  /${DOC_IDX}/_doc/unicode1  data=${doc}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  201
     ${response}=  GET On Session  opensearch  /${DOC_IDX}/_doc/unicode1
-    ${content}=  Convert Json ${response.content} To Type
+    ${content}=  Evaluate  $response.json()
     Should Contain  ${content['_source']['title']}  café
 
 Index Document With Long ID

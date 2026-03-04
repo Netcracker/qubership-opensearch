@@ -145,7 +145,7 @@ Create Index With Special Characters In Name
 
 Force Merge Index
     [Tags]  compatibility  index
-    ${response}=  POST On Session  opensearch  /${BWC_IDX}/_forcemerge?max_num_segments=1  headers=${headers}
+    ${response}=  POST On Session  opensearch  url=/${BWC_IDX}/_forcemerge?max_num_segments=1  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
 
 Delete Index And Verify

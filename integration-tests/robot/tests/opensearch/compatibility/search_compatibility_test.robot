@@ -180,7 +180,7 @@ Search With Avg Aggregation
 
 Search Query String Syntax
     [Tags]  compatibility  search
-    ${response}=  GET On Session  opensearch  /${SEARCH_IDX}/_search?q=name:Bob
+    ${response}=  GET On Session  opensearch  url=/${SEARCH_IDX}/_search?q=name:Bob
     Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
     Should Be Equal As Integers  ${content['hits']['total']['value']}  1
