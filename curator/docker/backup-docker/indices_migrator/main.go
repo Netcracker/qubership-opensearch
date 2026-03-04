@@ -48,6 +48,10 @@ var (
 	opensearchDeployments        = common.GetEnv("OPENSEARCH_DEPLOYMENT_NAMES", "")
 	opensearchOperatorDeployment = common.GetEnv("OPENSEARCH_OPERATOR_DEPLOYMENT_NAME", "")
 	opensearchClientServiceName  = common.GetEnv("OPENSEARCH_CLIENT_SERVICE_NAME", "")
+	opensearchMasterNodesName   = common.GetEnv("OPENSEARCH_MASTER_NODES_NAME", "")
+	opensearchSecurityAdminPath  = common.GetEnv("OPENSEARCH_SECURITY_ADMIN_PATH", "/usr/share/opensearch/plugins/opensearch-security/tools/securityadmin.sh")
+	opensearchSecurityConfigPath = common.GetEnv("OPENSEARCH_SECURITY_CONFIG_PATH", "/usr/share/opensearch/plugins/opensearch-security/securityconfig")
+	opensearchConfigPath         = common.GetEnv("OPENSEARCH_CONFIG_PATH", "/usr/share/opensearch/config")
 	log                          = common.GetLogger()
 )
 
@@ -68,6 +72,8 @@ const (
 
 	doRetryAttempts = 5
 	doRetryInterval = 3 * time.Second
+
+	securityBackupDirInPod = "/tmp/security-backup"
 )
 
 type MigrationTool struct {
@@ -180,6 +186,10 @@ func run(dryRun, skipSecurity, skipBackup bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 180*time.Minute)
 	defer cancel()
 
+	if err := m.failIfClusterRed(ctx); err != nil {
+		return err
+	}
+
 	m.backupProvider = backup.NewBackupProvider(osCluster.Client, cl.ConfigureCuratorClient(), snapshotRepoName)
 
 	oneXAll, oneXBackup, oneXSourceDisabled, err := m.CollectInappropriateIndices(ctx)
@@ -226,7 +236,7 @@ func run(dryRun, skipSecurity, skipBackup bool) error {
 			return err
 		}
 	} else if m.securityNeedsReInit && skipSecurity {
-		log.Info("Securaity needs reinitialization but skipped (--skip-security)")
+		log.Info("Security needs reinitialization but skipped (--skip-security)")
 	}
 
 	m.adapterClient = NewAdapterClient()
@@ -1305,72 +1315,180 @@ func deleteAllPodsOfSTS(ctx context.Context, stsName string) error {
 	return g.Wait()
 }
 
+func getFirstOpenSearchPodName(ctx context.Context) (string, error) {
+	if opensearchMasterNodesName == "" {
+		return "", errors.New("OPENSEARCH_MASTER_NODES_NAME is not set")
+	}
+	out, err := runKubectl(ctx, "get", "pods", "-o", "json")
+	if err != nil {
+		return "", err
+	}
+	var podList struct {
+		Items []struct {
+			Metadata struct {
+				Name            string `json:"name"`
+				OwnerReferences []struct {
+					Kind string `json:"kind"`
+					Name string `json:"name"`
+				} `json:"ownerReferences"`
+			} `json:"metadata"`
+			Status struct {
+				Phase string `json:"phase"`
+			} `json:"status"`
+		} `json:"items"`
+	}
+	if err := json.Unmarshal([]byte(out), &podList); err != nil {
+		return "", err
+	}
+	for _, pod := range podList.Items {
+		if pod.Status.Phase != "Running" {
+			continue
+		}
+		for _, owner := range pod.Metadata.OwnerReferences {
+			if owner.Kind == "StatefulSet" && owner.Name == opensearchMasterNodesName {
+				return pod.Metadata.Name, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("no running pod found for master StatefulSet %s", opensearchMasterNodesName)
+}
+
+func runSecurityAdminBackup(ctx context.Context, podName string) error {
+	args := []string{
+		"exec", podName, "--",
+		opensearchSecurityAdminPath,
+		"-backup", securityBackupDirInPod,
+		"-cert", opensearchConfigPath + "/admin-crt.pem",
+		"-cacert", opensearchConfigPath + "/admin-root-ca.pem",
+		"-key", opensearchConfigPath + "/admin-key.pem",
+		"-h", "localhost",
+	}
+	out, err := runKubectl(ctx, args...)
+	if err != nil {
+		return fmt.Errorf("securityadmin backup failed: %w", err)
+	}
+	log.Info(fmt.Sprintf("✓ Security configuration backed up to %s", securityBackupDirInPod))
+	log.Info(fmt.Sprintf("Backup output: %s", out))
+	return nil
+}
+
+func runSecurityAdminReinit(ctx context.Context, podName string) error {
+	args := []string{
+		"exec", podName, "--",
+		opensearchSecurityAdminPath,
+		"-cd", opensearchSecurityConfigPath,
+		"-cert", opensearchConfigPath + "/admin-crt.pem",
+		"-cacert", opensearchConfigPath + "/admin-root-ca.pem",
+		"-key", opensearchConfigPath + "/admin-key.pem",
+		"-h", "localhost",
+		"-icl", "-nhnv",
+	}
+	out, err := runKubectl(ctx, args...)
+	if err != nil {
+		return fmt.Errorf("securityadmin reinit failed: %w", err)
+	}
+	log.Info("✓ Security configuration reinitialized")
+	log.Info(fmt.Sprintf("Reinitialization output: %s", out))
+	return nil
+}
+
+func fetchClusterHealthFromURL(ctx context.Context, healthURL string, useAuth bool, user, pass string) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("cluster health request: %w", err)
+	}
+	if useAuth {
+		req.SetBasicAuth(user, pass)
+	}
+	req.Header.Set("Accept", "application/json")
+	client := cl.ConfigureClient()
+	client.Timeout = 15 * time.Second
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("cluster health request: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+	body, err := readResponseBody(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("cluster health response: %w", err)
+	}
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("cluster health returned %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	var parsed clusterHealthResp
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		return "", fmt.Errorf("cluster health decode: %w", err)
+	}
+	return strings.TrimSpace(parsed.Status), nil
+}
+
+func (m *MigrationTool) healthURL(query string) string {
+	base := fmt.Sprintf("%s://%s:%d/_cluster/health", m.osCluster.Protocol, m.osCluster.Host, m.osCluster.Port)
+	if query == "" {
+		return base
+	}
+	return base + "?" + query
+}
+
+func (m *MigrationTool) getClusterHealthStatus(ctx context.Context) (string, error) {
+	useAuth := opensearchUsername != "" && opensearchPassword != ""
+	return fetchClusterHealthFromURL(ctx, m.healthURL(""), useAuth, opensearchUsername, opensearchPassword)
+}
+
+func (m *MigrationTool) failIfClusterRed(ctx context.Context) error {
+	status, err := m.getClusterHealthStatus(ctx)
+	if err != nil {
+		return fmt.Errorf("cannot check cluster health: %w", err)
+	}
+	if status == "red" {
+		return fmt.Errorf("cluster is in red state; cannot proceed with migration")
+	}
+	log.Info(fmt.Sprintf("Cluster health check passed (status: %s)", status))
+	return nil
+}
+
 func (m *MigrationTool) waitForClusterReadyHTTP(ctx context.Context, useAuth bool) bool {
-	healthURL := fmt.Sprintf("%s://%s:%d/%s", m.osCluster.Protocol, m.osCluster.Host, m.osCluster.Port, "_cluster/health?wait_for_status=green&timeout=5s")
+	healthURL := m.healthURL("wait_for_status=green&timeout=5s")
 	interval := time.Duration(clusterReadyInterval) * time.Second
 	timeout := time.Duration(clusterReadyTimeout) * time.Second
-	deadlineCtx, cancel := context.WithTimeout(ctx, time.Duration(clusterReadyTimeout)*time.Second)
+	deadlineCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-
-	httpClient := cl.ConfigureClient()
-	httpClient.Timeout = 15 * time.Second
-
 	attempt := 0
 	for {
 		time.Sleep(interval)
 		if deadlineCtx.Err() != nil {
-			log.Error(fmt.Sprintf("Timeout (%s) waiting for cluster to become ready", timeout.String()))
+			log.Error(fmt.Sprintf("Timeout (%s) waiting for cluster to become ready", timeout))
 			return false
 		}
 		attempt++
-		if isGreen(deadlineCtx, httpClient, healthURL, useAuth, opensearchUsername, opensearchPassword) {
-			log.Info(fmt.Sprintf("✓ Cluster is green and API is reachable (attempt %d)", attempt))
+		status, err := fetchClusterHealthFromURL(deadlineCtx, healthURL, useAuth, opensearchUsername, opensearchPassword)
+		if err != nil {
+			continue
+		}
+		if status == "green" || status == "yellow" {
+			log.Info(fmt.Sprintf("✓ Cluster is ready (green or yellow) and API is reachable (attempt %d)", attempt))
 			return true
 		}
 	}
 }
 
-func isGreen(ctx context.Context, c *http.Client, url string, useAuth bool, user, pass string) bool {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		log.Error(fmt.Sprintf("isGreen: NewRequest error: %v", err))
-		return false
-	}
-
-	if useAuth {
-		req.SetBasicAuth(user, pass)
-	}
-
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := c.Do(req)
-	if err != nil {
-		log.Error(fmt.Sprintf("isGreen: Do error: %v", err))
-		return false
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	body, err := readResponseBody(resp.Body)
-	if err != nil {
-		log.Error(fmt.Sprintf("isGreen: read response body: %v", err))
-		return false
-	}
-
-	if resp.StatusCode != 200 {
-		return false
-	}
-
-	var parsed clusterHealthResp
-	if err := json.Unmarshal(body, &parsed); err != nil {
-		log.Error(fmt.Sprintf("isGreen: decode error: %v body=%s", err, string(body)))
-		return false
-	}
-
-	return strings.TrimSpace(parsed.Status) == "green"
-}
-
 func (m *MigrationTool) ReinitSecurity(ctx context.Context) error {
 	log.Info("Starting security reinitialization")
+
+	if TLSHTTPEnabled {
+		podName, err := getFirstOpenSearchPodName(ctx)
+		if err != nil {
+			return fmt.Errorf("get OpenSearch pod for security backup: %w", err)
+		}
+		if err = runSecurityAdminBackup(ctx, podName); err != nil {
+			return err
+		}
+		if err = runSecurityAdminReinit(ctx, podName); err != nil {
+			return err
+		}
+		log.Info("Security reinitialization flow completed")
+		return nil
+	}
 
 	if err := disableClientServiceKubectl(ctx); err != nil {
 		return err
