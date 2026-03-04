@@ -39,7 +39,7 @@ spec:
           image: {{ template "curator.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
           command:
-            - "/opt/elasticsearch-curator/migraton_tool"
+            - "/opt/elasticsearch-curator/migration_tool"
           {{- if not .Values.migration.enabled }}
           args:
             - "--dry-run"
