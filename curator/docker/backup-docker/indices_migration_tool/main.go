@@ -97,7 +97,6 @@ type AdapterClient struct {
 	httpClient *http.Client
 }
 
-// AggregatorClient is like AdapterClient but for the DBaaS aggregator (different URL and credentials).
 type AggregatorClient struct {
 	endpoint   string
 	username   string
@@ -915,8 +914,6 @@ func (m *MigrationTool) setWriteBlock(ctx context.Context, index string, on bool
 	return nil
 }
 
-// mappingHasSourceDisabled returns true if _source is explicitly disabled in the index mapping.
-// Reindex cannot run when _source is disabled because document bodies are not stored.
 func mappingHasSourceDisabled(mappings json.RawMessage) bool {
 	if len(mappings) == 0 {
 		return false
@@ -1546,7 +1543,6 @@ func (m *MigrationTool) ReinitSecurity(ctx context.Context) error {
 
 const adapterCACertPath = "/tls/dbaas/ca.crt"
 
-// newDbaasHTTPClient returns an HTTP client with optional TLS CA for adapter/aggregator (shared cert path).
 func newDbaasHTTPClient() *http.Client {
 	client := &http.Client{Timeout: 30 * time.Second}
 	caCert, err := os.ReadFile(adapterCACertPath)
