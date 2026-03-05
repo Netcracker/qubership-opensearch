@@ -6,8 +6,6 @@ ${secret_name}                           opensearch-secret
 ${secret_name_old}                       opensearch-secret-old
 ${status}                                {"status":"UP","opensearchHealth":{"status":"UP"},"dbaasAggregatorHealth":{"status":"OK"}}
 ${host}                                  ${OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}://${OPENSEARCH_DBAAS_ADAPTER_HOST}:${OPENSEARCH_DBAAS_ADAPTER_PORT}/health
-${BAD_PASS_B64}                          YWRtaW4=
-${DEFAULT_PASS_B64}                      Um9vdDEyMzQj
 ${TEST_USER_B64}                         T3BlbnNlYXJjaC1hZG1pbjEhLUFU
 ${TEST_PASS_B64}                         UUEtZ29vZC1wYXNzd29yZDEhLUFU
 
@@ -39,9 +37,7 @@ Save Original Secret
     ${current_data}=    Set Variable    ${response.data}
     ${current_user}=    Get From Dictionary    ${current_data}    username
     ${current_pass}=    Get From Dictionary    ${current_data}    password
-    ${is_bad_pass}=     Run Keyword And Return Status    Should Be Equal As Strings    ${current_pass}    ${BAD_PASS_B64}
-    ${restore_pass}=    Set Variable If    ${is_bad_pass}    ${DEFAULT_PASS_B64}    ${current_pass}
-    ${restore_data}=    Create Dictionary    username=${current_user}    password=${restore_pass}
+    ${restore_data}=    Create Dictionary    username=${current_user}    password=${current_pass}
     ${original_body}=   Create Dictionary    data=${restore_data}
     Set Suite Variable  ${original_body}
 
@@ -110,3 +106,4 @@ Recover Users In OpenSearch
     Should Be Equal As Strings  ${document['age']}  44
 
     [Teardown]  Delete Database Resource Prefix Dbaas Agent  ${resource_prefix}
+    
