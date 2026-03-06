@@ -362,7 +362,7 @@ func (m *MigrationTool) MigrateAll(ctx context.Context, indices []string, skipBa
 			if err := m.deleteIndex(ctx, name+migrationSuffix); err != nil {
 				return err
 			}
-			if strings.HasPrefix(name, ".") {
+			if strings.HasPrefix(name, ".") || strings.HasPrefix(name, "top_queries") {
 				log.Error(fmt.Sprintf("Index migration failed, will delete and continue. index=%s", name))
 				if err := m.deleteIndex(ctx, name); err != nil {
 					return err
