@@ -1,7 +1,9 @@
+{{- if .Values.opensearch.client.envoyGateway.enabled }}
 {{- if and .Values.opensearch.client.enabled (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1") (eq .Values.PAAS_PLATFORM "KUBERNETES") -}}
 {{- if not .Values.global.externalOpensearch.enabled }}
+{{- if (eq (include "opensearch.ingressEnabled" .) "true") }}
 {{- $fullName := printf "%s" (include "opensearch.fullname" .) }}
-{{- $ingressPath := .Values.opensearch.client.ingress.path }}
+
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -11,18 +13,26 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   parentRefs:
-    - name: {{ .Values.opensearch.client.ingress.gatewayName | default "default-external-gateway" }}
-      namespace: {{ .Values.opensearch.client.ingress.envoyNamespace | default "envoy-gateway" }}
+  {{- range .Values.opensearch.client.envoyGateway.parentRefs }}
+    - name: {{ .name }}
+      namespace: {{ .namespace }}
       port: 443
-  {{- with .Values.opensearch.client.ingress.hosts }}
-  hostnames:
-    {{- tpl (toYaml .) . | nindent 4 }}
   {{- end }}
+
+  hostnames:
+  {{- if .Values.opensearch.client.envoyGateway.host }}
+    - {{ .Values.opensearch.client.envoyGateway.host | quote }}
+  {{- else }}
+  {{- range .Values.opensearch.client.ingress.hosts }}
+    - {{ . | quote }}
+  {{- end }}
+  {{- end }}
+
   rules:
     - matches:
         - path:
             type: PathPrefix
-            value: {{ $ingressPath }}
+            value: /
       backendRefs:
         - name: {{ $fullName }}-internal
           port: 9200
@@ -41,10 +51,15 @@ spec:
     - group: ""
       kind: Service
       name: {{ $fullName }}-internal
+
   validation:
-    {{- with index .Values.opensearch.client.ingress.hosts 0 }}
-    hostname: {{ . | quote }}
+    {{- if .Values.opensearch.client.envoyGateway.host }}
+    hostname: {{ .Values.opensearch.client.envoyGateway.host | quote }}
+    {{- else if .Values.opensearch.client.ingress.hosts }}
+    {{- $first := index .Values.opensearch.client.ingress.hosts 0 }}
+    hostname: {{ $first | quote }}
     {{- end }}
+
     caCertificateRefs:
       - group: ""
         kind: Secret
@@ -60,19 +75,30 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   parentRefs:
-    - name: {{ .Values.opensearch.client.ingress.gatewayName | default "default-external-gateway" }}
-      namespace: {{ .Values.opensearch.client.ingress.envoyNamespace | default "envoy-gateway" }}
+  {{- range .Values.opensearch.client.envoyGateway.parentRefs }}
+    - name: {{ .name }}
+      namespace: {{ .namespace }}
       port: 80
-  {{- with .Values.opensearch.client.ingress.hosts }}
-  hostnames:
-    {{- tpl (toYaml .) . | nindent 4 }}
   {{- end }}
+
+  hostnames:
+  {{- if .Values.opensearch.client.envoyGateway.host }}
+    - {{ .Values.opensearch.client.envoyGateway.host | quote }}
+  {{- else }}
+  {{- range .Values.opensearch.client.ingress.hosts }}
+    - {{ . | quote }}
+  {{- end }}
+  {{- end }}
+
   rules:
     - filters:
         - type: RequestRedirect
           requestRedirect:
             scheme: https
             statusCode: 301
+
+{{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
