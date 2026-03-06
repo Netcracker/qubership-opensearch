@@ -54,7 +54,7 @@ var (
 	opensearchClientServiceName  = common.GetEnv("OPENSEARCH_CLIENT_SERVICE_NAME", "")
 	opensearchMasterNodesName   = common.GetEnv("OPENSEARCH_MASTER_NODES_NAME", "")
 	opensearchSecurityAdminPath  = common.GetEnv("OPENSEARCH_SECURITY_ADMIN_PATH", "/usr/share/opensearch/plugins/opensearch-security/tools/securityadmin.sh")
-	opensearchSecurityConfigPath = common.GetEnv("OPENSEARCH_SECURITY_CONFIG_PATH", "/usr/share/opensearch/plugins/opensearch-security/securityconfig")
+	opensearchSecurityConfigPath = common.GetEnv("OPENSEARCH_SECURITY_CONFIG_PATH", "/usr/share/opensearch/config/opensearch-security")
 	opensearchConfigPath         = common.GetEnv("OPENSEARCH_CONFIG_PATH", "/usr/share/opensearch/config")
 	log                          = common.GetLogger()
 )
@@ -1483,9 +1483,6 @@ func (m *MigrationTool) ReinitSecurity(ctx context.Context) error {
 			return fmt.Errorf("get OpenSearch pod for security backup: %w", err)
 		}
 		if err = runSecurityAdminBackup(ctx, podName); err != nil {
-			return err
-		}
-		if err = m.deleteIndex(ctx, securityIndex); err != nil {
 			return err
 		}
 		if err = runSecurityAdminReinit(ctx, podName); err != nil {
