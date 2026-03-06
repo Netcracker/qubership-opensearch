@@ -194,6 +194,7 @@ func run(dryRun, skipSecurity, skipBackup bool) error {
 	}
 
 	m := &MigrationTool{osCluster: osCluster}
+	m.backupProvider = backup.NewBackupProvider(osCluster.Client, cl.ConfigureCuratorClient(), snapshotRepoName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 180*time.Minute)
 	defer cancel()
@@ -201,8 +202,6 @@ func run(dryRun, skipSecurity, skipBackup bool) error {
 	if err := m.failIfClusterRed(ctx); err != nil {
 		return err
 	}
-
-	m.backupProvider = backup.NewBackupProvider(osCluster.Client, cl.ConfigureCuratorClient(), snapshotRepoName)
 
 	oneXAll, oneXBackup, oneXSourceDisabled, err := m.CollectInappropriateIndices(ctx)
 	if err != nil {
@@ -1441,13 +1440,8 @@ func (m *MigrationTool) healthURL(query string) string {
 	return base + "?" + query
 }
 
-func (m *MigrationTool) getClusterHealthStatus(ctx context.Context) (string, error) {
-	useAuth := opensearchUsername != "" && opensearchPassword != ""
-	return fetchClusterHealthFromURL(ctx, m.healthURL(""), useAuth, opensearchUsername, opensearchPassword)
-}
-
 func (m *MigrationTool) failIfClusterRed(ctx context.Context) error {
-	status, err := m.getClusterHealthStatus(ctx)
+	status, err := m.ClusterHealth(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot check cluster health: %w", err)
 	}
@@ -1456,6 +1450,18 @@ func (m *MigrationTool) failIfClusterRed(ctx context.Context) error {
 	}
 	log.Info(fmt.Sprintf("Cluster health check passed (status: %s)", status))
 	return nil
+}
+
+func (m *MigrationTool) ClusterHealth(ctx context.Context) (string, error) {
+	req := opensearchapi.CatHealthRequest{Format: "json"}
+	var componentHealth []common.ComponentHealth
+	if err := common.DoRequest(req, m.osCluster.Client, &componentHealth, ctx); err != nil {
+		return "", fmt.Errorf("cluster health request: %w", err)
+	}
+	if len(componentHealth) == 0 {
+		return "", errors.New("cluster health response empty")
+	}
+	return strings.TrimSpace(componentHealth[0].Status), nil
 }
 
 func (m *MigrationTool) waitForClusterReadyHTTP(ctx context.Context, useAuth bool) bool {
