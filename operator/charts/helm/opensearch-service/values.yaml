@@ -59,7 +59,12 @@ dashboards:
 #      - secretName: chart-example-tls
 #        hosts:
 #          - chart-example.local
-
+  envoyGateway:
+    enabled: true
+    host: ""
+    parentRefs:
+      - name: default-external-gateway
+        namespace: envoy-gateway
   service:
     type: ClusterIP
     port: 5601
@@ -641,6 +646,12 @@ opensearch:
       #  - secretName: chart-example-tls
       #    hosts:
       #      - chart-example.local
+    envoyGateway:
+      enabled: true
+      host: ""
+      parentRefs:
+        - name: default-external-gateway
+          namespace: envoy-gateway
     resources:
       limits:
         cpu: 1
