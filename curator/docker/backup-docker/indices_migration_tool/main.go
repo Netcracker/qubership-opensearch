@@ -77,8 +77,6 @@ const (
 
 	doRetryAttempts = 5
 	doRetryInterval = 3 * time.Second
-
-	securityBackupDirInPod = "/tmp/security-backup"
 )
 
 type MigrationTool struct {
@@ -1367,7 +1365,7 @@ func runSecurityAdminBackup(ctx context.Context, podName string) error {
 	args := []string{
 		"exec", podName, "--",
 		opensearchSecurityAdminPath,
-		"-backup", securityBackupDirInPod,
+		"-backup", opensearchSecurityConfigPath,
 		"-cert", opensearchConfigPath + "/admin-crt.pem",
 		"-cacert", opensearchConfigPath + "/admin-root-ca.pem",
 		"-key", opensearchConfigPath + "/admin-key.pem",
@@ -1377,7 +1375,7 @@ func runSecurityAdminBackup(ctx context.Context, podName string) error {
 	if err != nil {
 		return fmt.Errorf("securityadmin backup failed: %w", err)
 	}
-	log.Info(fmt.Sprintf("✓ Security configuration backed up to %s", securityBackupDirInPod))
+	log.Info(fmt.Sprintf("✓ Security configuration backed up to %s", opensearchSecurityConfigPath))
 	log.Info(fmt.Sprintf("Backup output: %s", out))
 	return nil
 }
@@ -1399,6 +1397,28 @@ func runSecurityAdminReinit(ctx context.Context, podName string) error {
 	}
 	log.Info("✓ Security configuration reinitialized")
 	log.Info(fmt.Sprintf("Reinitialization output: %s", out))
+	return nil
+}
+
+// Delete .opendistro_security from inside the pod using admin mTLS (curl with certs).
+func deleteSecurityIndexInPod(ctx context.Context, podName string) error {
+	args := []string{
+		"exec", podName, "--",
+		"curl", "-s", "-o", "/dev/null", "-w", "%{http_code}",
+		"-X", "DELETE",
+		"https://localhost:9200/.opendistro_security",
+		"--cert", opensearchConfigPath + "/admin-crt.pem",
+		"--key", opensearchConfigPath + "/admin-key.pem",
+		"--cacert", opensearchConfigPath + "/admin-root-ca.pem",
+	}
+	out, err := runKubectl(ctx, args...)
+	if err != nil {
+		return fmt.Errorf("delete security index in pod: %w", err)
+	}
+	if out != "200" && out != "404" {
+		return fmt.Errorf("delete security index in pod: unexpected status %s", out)
+	}
+	log.Info("✓ Security index .opendistro_security deleted")
 	return nil
 }
 
@@ -1483,6 +1503,9 @@ func (m *MigrationTool) ReinitSecurity(ctx context.Context) error {
 			return fmt.Errorf("get OpenSearch pod for security backup: %w", err)
 		}
 		if err = runSecurityAdminBackup(ctx, podName); err != nil {
+			return err
+		}
+		if err = deleteSecurityIndexInPod(ctx, podName); err != nil {
 			return err
 		}
 		if err = runSecurityAdminReinit(ctx, podName); err != nil {
