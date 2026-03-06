@@ -67,7 +67,6 @@ const (
 	clusterReadyInterval = 15
 	adapterReadyTimeout  = 240
 	adapterReadyInterval = 10
-	trustCertsFolder     = "/trusted-certs"
 
 	dbaasAdapterAPIVersion   = "v2"
 	dbaasAggregatorAPIVersion = "v3"
