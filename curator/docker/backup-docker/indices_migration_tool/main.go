@@ -1485,6 +1485,9 @@ func (m *MigrationTool) ReinitSecurity(ctx context.Context) error {
 		if err = runSecurityAdminBackup(ctx, podName); err != nil {
 			return err
 		}
+		if err = m.deleteIndex(ctx, securityIndex); err != nil {
+			return err
+		}
 		if err = runSecurityAdminReinit(ctx, podName); err != nil {
 			return err
 		}
