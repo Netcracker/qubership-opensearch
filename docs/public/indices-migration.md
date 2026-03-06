@@ -14,15 +14,24 @@
 
 ## Where and how to run it manually
 
-- **Where:** The migrator is a binary in the **curator** Docker image (`qubership-opensearch-curator`), at
-  `$ELASTICSEARCH_CURATOR_HOME/migrator` (e.g. `/opt/elasticsearch-curator/migrator`). **Included in the curator
+- **Where:** The migration_tool is a binary in the **curator** Docker image (`qubership-opensearch-curator`), at
+  `$ELASTICSEARCH_CURATOR_HOME/migration_tool` (e.g. `/opt/elasticsearch-curator/migration_tool`). **Included in the curator
   image only from Qubership OpenSearch 2.3.0.** Run it from the curator pod or from a one-off Job using the same
   image and env/RBAC as the curator.
 - **How:**
   - Dry-run (no changes):  
-    `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migrator --dry-run`
+    `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migration_tool --dry-run`
   - Full run:  
-    `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migrator`  
+    `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migration_tool`
+  - **`--skip-security`** — Skips security reinitialization and operator restart. Use this when the migration target is an **external OpenSearch** cluster.
+  **This flag MUST be used with external OpenSearch**;
+  Do not use it for in-cluster operator-managed clusters.  
+    Example:  
+    `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migration_tool --skip-security`
+  - **`--skip-backup`** — Skips snapshot backup before migration and restore on failure, no backup is taken.
+  On migration failure only the temporary migration index is deleted (the original index is left as-is except scepial indices which have prefixes `.`).
+    Example:  
+    `kubectl exec -it -n <namespace> <curator-pod> -- /opt/elasticsearch-curator/migration_tool --skip-backup`  
   On failure the process exits with a non-zero code.
 
 **Prerequisites:** Curator enabled in the OpenSearch Service Helm chart, snapshot repository registered (for backup of standard indices). 
@@ -31,14 +40,34 @@
 
 ## How to run it during upgrade
 
-In your Helm values set **`migration.enabled: true`** so the hook runs the migration job:
+In your Helm values set **`migration.enabled: true`** so the hook runs the migration job. You can pass extra parameters via **`migration.args`**:
 
    ```yaml
    migration:
      enabled: true
+     args: []   # optional: list of flags passed to the migration_tool
    ```
 
-If `migration.enabled` is `false`, the hook runs in check-only mode and will fail when upgrading 2.x → 3.x with legacy 1.x indices present.
+If `migration.enabled` is `false`, the hook runs in check-only mode (with `--dry-run`) and will fail when upgrading 2.x → 3.x with legacy 1.x indices present.
+
+**Parameters you can set in `migration.args`:**
+
+| Parameter         | Description |
+|-------------------|-------------|
+| `--dry-run`       | Run in check-only mode; no changes are applied. (When `migration.enabled` is `false`, the hook automatically uses this.) |
+| `--skip-security` | Skip security reinitialization and operator restart. **MUST** be used when the migration target is external OpenSearch. |
+| `--skip-backup`   | Skip snapshot backup before migration and restore on failure; on failure only the temporary migration index is deleted. |
+
+Example for external OpenSearch (no in-cluster backup/restore or operator steps):
+
+   ```yaml
+   migration:
+     enabled: true
+     args:
+       - "--dry-run"
+       - "--skip-security"
+       - "--skip-backup"
+   ```
 
 ---
 
@@ -46,6 +75,10 @@ If `migration.enabled` is `false`, the hook runs in check-only mode and will fai
 **Note:** - Job only works during upgrade to **2.x → 3.x**, for other cases use manual migration.
 
 ## Common issues (environment-specific and what can go wrong)
+
+- **Migration Job `opensearch-migration-1x` failed**  
+  If the migration Job fails, check the Job pod logs for the exact error. For example:  
+  `kubectl logs -n <namespace> job/<release-name>-migration-1x` (or the failing pod name). The logs contain the migration_tool output and point to which step failed.
 
 - **OpenSearch client creation failed / client is nil**  
   TLS or credentials: `ES_USERNAME`/`ES_PASSWORD` must match a user that can read indices and run reindex/snapshots.
