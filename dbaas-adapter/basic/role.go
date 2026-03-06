@@ -50,6 +50,7 @@ const (
 	IndicesROActionPermission              = "indices:data/read/*"
 	IndicesExistPermission                 = "indices:admin/exists"
 	IndicesGetPermission                   = "indices:admin/get"
+	IndicesAdminRefreshPermission          = "indices:admin/refresh"
 	AdminRoleType                          = "admin"
 	DmlRoleType                            = "dml"
 	ReadOnlyRoleType                       = "readonly"
@@ -120,6 +121,7 @@ func (bp BaseProvider) CreateRoleWithAdminPermissions() error {
 		ClusterManageIndexTemplatePermissions,
 		ClusterManageAliasesPermissions,
 		"indices:admin/resize",
+		IndicesAdminRefreshPermission,
 	}
 	return bp.createRole(clusterPermissions, indexPermissions, indexGlobalPermissions, AdminRoleType)
 }
