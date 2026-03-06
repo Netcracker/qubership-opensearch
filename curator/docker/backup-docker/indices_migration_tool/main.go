@@ -1441,27 +1441,12 @@ func (m *MigrationTool) healthURL(query string) string {
 }
 
 func (m *MigrationTool) failIfClusterRed(ctx context.Context) error {
-	status, err := m.ClusterHealth(ctx)
-	if err != nil {
-		return fmt.Errorf("cannot check cluster health: %w", err)
-	}
-	if status == "red" {
+	status := m.osCluster.GetHealth(ctx)
+	if status == "DOWN" || status == "PROBLEM" {
 		return fmt.Errorf("cluster is in red state; cannot proceed with migration")
 	}
 	log.Info(fmt.Sprintf("Cluster health check passed (status: %s)", status))
 	return nil
-}
-
-func (m *MigrationTool) ClusterHealth(ctx context.Context) (string, error) {
-	req := opensearchapi.CatHealthRequest{Format: "json"}
-	var componentHealth []common.ComponentHealth
-	if err := common.DoRequest(req, m.osCluster.Client, &componentHealth, ctx); err != nil {
-		return "", fmt.Errorf("cluster health request: %w", err)
-	}
-	if len(componentHealth) == 0 {
-		return "", errors.New("cluster health response empty")
-	}
-	return strings.TrimSpace(componentHealth[0].Status), nil
 }
 
 func (m *MigrationTool) waitForClusterReadyHTTP(ctx context.Context, useAuth bool) bool {
