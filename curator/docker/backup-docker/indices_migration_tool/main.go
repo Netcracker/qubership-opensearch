@@ -1441,80 +1441,9 @@ func (m *MigrationTool) healthURL(query string) string {
 	return base + "?" + query
 }
 
-func newClusterHealthHTTPClient() *http.Client {
-	client := &http.Client{Timeout: 15 * time.Second}
-	if !TLSHTTPEnabled {
-		return client
-	}
-	certsDir, err := os.ReadDir(trustCertsFolder)
-	if err != nil || len(certsDir) == 0 {
-		log.Info(fmt.Sprintf("Cannot load trusted TLS certificates from '%s', using InsecureSkipVerify for cluster health", trustCertsFolder))
-		client.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-		return client
-	}
-	pool := x509.NewCertPool()
-	appended := 0
-	for _, cert := range certsDir {
-		if cert.IsDir() {
-			continue
-		}
-		pemData, err := os.ReadFile(fmt.Sprintf("%s/%s", trustCertsFolder, cert.Name()))
-		if err != nil {
-			continue
-		}
-		if pool.AppendCertsFromPEM(pemData) {
-			appended++
-		}
-	}
-	if appended == 0 {
-		log.Info(fmt.Sprintf("No valid certs in '%s', using InsecureSkipVerify for cluster health", trustCertsFolder))
-		client.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-		return client
-	}
-	client.Transport = &http.Transport{
-		TLSClientConfig: &tls.Config{RootCAs: pool},
-	}
-	return client
-}
-
-func (m *MigrationTool) getClusterHealthStatus(ctx context.Context) (string, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, m.healthURL(""), nil)
-	if err != nil {
-		return "", fmt.Errorf("cluster health request: %w", err)
-	}
-	if opensearchUsername != "" && opensearchPassword != "" {
-		req.SetBasicAuth(opensearchUsername, opensearchPassword)
-	}
-	req.Header.Set("Accept", "application/json")
-	resp, err := newClusterHealthHTTPClient().Do(req)
-	if err != nil {
-		return "", fmt.Errorf("cluster health request: %w", err)
-	}
-	defer func() { _ = resp.Body.Close() }()
-	body, err := readResponseBody(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("cluster health response: %w", err)
-	}
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("cluster health returned %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
-	}
-	var parsed clusterHealthResp
-	if err := json.Unmarshal(body, &parsed); err != nil {
-		return "", fmt.Errorf("cluster health decode: %w", err)
-	}
-	return strings.TrimSpace(parsed.Status), nil
-}
-
 func (m *MigrationTool) failIfClusterRed(ctx context.Context) error {
-	status, err := m.getClusterHealthStatus(ctx)
-	if err != nil {
-		return fmt.Errorf("cannot check cluster health: %w", err)
-	}
-	if status == "red" {
+	status := m.osCluster.GetHealth(ctx)
+	if status == "DOWN" || status == "PROBLEM" {
 		return fmt.Errorf("cluster is in red state; cannot proceed with migration")
 	}
 	log.Info(fmt.Sprintf("Cluster health check passed (status: %s)", status))
