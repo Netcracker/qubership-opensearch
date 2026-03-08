@@ -209,6 +209,7 @@ operator:
   dockerImage: ghcr.io/netcracker/qubership-opensearch-operator:main
   replicas: 1
   reconcilePeriod: 60
+  logLevel: info
 
   ## Tolerations for pod assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
