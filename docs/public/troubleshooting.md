@@ -206,6 +206,12 @@
     * [Description](#description-34)
     * [Alerts](#alerts-34)
     * [How to solve](#how-to-solve-34)
+  * [Maximum Shards Open Limit Reached](#maximum-shards-open-limit-reached)
+    * [Description](#description-35)
+    * [Alerts](#alerts-35)
+    * [Stack trace](#stack-trace-33)
+    * [How to solve](#how-to-solve-35)
+    * [Recommendations](#recommendations-34)
 <!-- TOC -->
 
 ## Cluster Health
@@ -1501,3 +1507,61 @@ Not applicable
    Then reinstall the application with the corrected prefix.
 
 **Note:** For emergency cases the prefix intersection unique validation can be disabled. You need to redeploy opensearch-service with parameter `dbaasAdapter.prefixUniqueEnabled: false`.
+
+## Maximum Shards Open Limit Reached
+
+### Description
+
+This error means the cluster has reached the maximum allowed number of open shards. OpenSearch calculates this limit as `cluster.max_shards_per_node * number_of_non_frozen_data_nodes`. Closed indexes do not count towards this limit. When the limit is reached, OpenSearch rejects operations that need additional shards, so components like OpenSearch Dashboards may fail if they need to create or update internal indices.
+
+### Alerts
+
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+
+### Stack trace
+
+```text
+Validation Failed: 1: this action would add [N] total shards, but this cluster currently has [X]/[Y] maximum shards open;
+```
+
+### How to solve
+
+Check the current configured limit:
+
+```sh
+curl -k -u <admin_user>:<admin_password> \
+  http://localhost:9200/_cluster/settings?include_defaults=true&flat_settings=true
+```
+
+Free shards by deleting unused indexes:
+
+```sh
+curl -k -u <admin_user>:<admin_password> \
+  -XDELETE http://localhost:9200/<index_name>
+```
+
+Or close unused indexes if you do not want to delete them immediately:
+
+```sh
+curl -k -u <admin_user>:<admin_password> \
+  -XPOST http://localhost:9200/<index_name>/_close
+```
+
+If an immediate workaround is required, increase the cluster shard limit:
+
+```sh
+curl -k -u <admin_user>:<admin_password> \
+  -XPUT http://localhost:9200/_cluster/settings \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "persistent": {
+      "cluster.max_shards_per_node": 1500
+    }
+  }'
+```
+
+OpenSearch supports updating cluster settings through `PUT _cluster/settings`, deleting indexes through `DELETE /<index-name>`, and closing indexes through `POST /<index>/_close`.
+
+### Recommendations
+
+At installation or upgrade time, prevent this issue by keeping shard count under control and by sizing the cluster correctly. If `opensearch.data.dedicatedPod.enabled: false`, master nodes also act as data nodes, so increase `opensearch.master.replicas`. If dedicated data pods are enabled, increase `opensearch.data.dedicatedPod.replicas`. Also keep index settings reasonable for new indexes: `index.number_of_shards` defaults to 1, while `index.number_of_replicas` defaults to 1, so unnecessary shard and replica growth should be avoided. If really required, OpenSearch settings can also be provided through `opensearch.config` during installation.
