@@ -1,0 +1,88 @@
+{{- if .Values.resourceMigration.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-resource-migrator
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "2"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ .Release.Name }}-resource-migrator
+      restartPolicy: OnFailure
+      {{- if .Values.resourceMigration.runAsNonRoot }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      {{- end }}
+      containers:
+        - name: migrator
+          image: {{ template "kubectl.image" . }}
+          imagePullPolicy: {{ .Values.resourceMigration.imagePullPolicy | default "IfNotPresent" }}
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -euo pipefail
+
+              command -v jq >/dev/null 2>&1 || { echo "[resource-migrator] jq is required"; exit 1; }
+
+              KUBECTL="kubectl"
+              NS="{{ .Release.Namespace }}"
+              STATEFULSET_NAMES="{{ trim (include "opensearch.statefulsetNames" .) }}"
+
+              if [ -z "$STATEFULSET_NAMES" ]; then
+                echo "[resource-migrator] No statefulset names configured, nothing to do"
+                exit 0
+              fi
+
+              IFS=','; for STS_NAME in $STATEFULSET_NAMES; do
+                STS_NAME="$(echo "$STS_NAME" | xargs)"
+                [ -z "$STS_NAME" ] && continue
+
+                STS_JSON="$($KUBECTL -n "$NS" get statefulset "$STS_NAME" -o json 2>/dev/null || true)"
+                if [ -z "$STS_JSON" ]; then
+                  echo "[resource-migrator] StatefulSet $STS_NAME does not exist, skipping"
+                  continue
+                fi
+
+                # 'node.master' env is a marker of OpenSearch 1.x StatefulSets that must be
+                # recreated during upgrade to 2.x because ArgoCD merge cannot remove extra envs.
+                NODE_MASTER="$(printf '%s' "$STS_JSON" \
+                  | jq -r '[.spec.template.spec.containers[].env[]? | select(.name == "node.master")] | length' 2>/dev/null || echo "0")"
+
+                if [ "$NODE_MASTER" -gt 0 ]; then
+                  echo "[resource-migrator] StatefulSet $STS_NAME contains 'node.master' env (OpenSearch 1.x)"
+                  echo "[resource-migrator] Deleting StatefulSet $STS_NAME with --cascade=orphan"
+                  if $KUBECTL -n "$NS" delete statefulset "$STS_NAME" --cascade=orphan --ignore-not-found=true; then
+                    echo "[resource-migrator] StatefulSet $STS_NAME deleted successfully"
+                  else
+                    echo "[resource-migrator][ERROR] Failed to delete StatefulSet $STS_NAME"
+                    exit 1
+                  fi
+                else
+                  echo "[resource-migrator] StatefulSet $STS_NAME: no 'node.master' env found, skipping"
+                fi
+              done
+
+              echo "[resource-migrator] done"
+          resources:
+            limits:
+              cpu: {{ .Values.resourceMigration.resources.limits.cpu }}
+              memory: {{ .Values.resourceMigration.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.resourceMigration.resources.requests.cpu }}
+              memory: {{ .Values.resourceMigration.resources.requests.memory }}
+          {{- if .Values.resourceMigration.runAsNonRoot }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          {{- end }}
+{{- end }}
