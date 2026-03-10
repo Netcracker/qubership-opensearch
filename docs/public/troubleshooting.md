@@ -1501,3 +1501,35 @@ Not applicable
    Then reinstall the application with the corrected prefix.
 
 **Note:** For emergency cases the prefix intersection unique validation can be disabled. You need to redeploy opensearch-service with parameter `dbaasAdapter.prefixUniqueEnabled: false`.
+
+## Indices migration issue
+
+### Description
+
+| Problem                                               | Severity | Possible Reason                                    |
+|-------------------------------------------------------|----------|----------------------------------------------------|
+| Automatic indices migration job have failed during upgrade | High     | There are variety of fail reasons |
+ 
+In installation job logs the following error:
+
+```text
+*job opensearch-migration-1x failed: BackoffLimitExceeded
+```
+
+Or, for ArgoCD, you'll see following:
+
+```text
+Job/opensearch-migration-1x; Hook: PreSync; Phase: Failed
+Sync Message: Job has reached the specified backoff limit
+```
+
+This issue means that opensearch indices migration have failed, you need to check migration job logs.
+
+### Alerts
+
+* [OpenSearchLegacyIndicesDetectedAlert](./alerts.md#opensearchlegacyindicesdetectedalert)
+
+### How to solve
+
+If the migration Job fails, check the Job pod logs for the exact error. For example:  
+  `kubectl logs -n <namespace> job/<release-name>-migration-1x` (or the failing pod name). The logs contain the migration_tool output and point to which step failed.

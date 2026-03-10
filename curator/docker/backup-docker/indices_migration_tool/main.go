@@ -54,7 +54,6 @@ var (
 	opensearchClientServiceName  = common.GetEnv("OPENSEARCH_CLIENT_SERVICE_NAME", "")
 	opensearchMasterNodesName   = common.GetEnv("OPENSEARCH_MASTER_NODES_NAME", "")
 	opensearchSecurityAdminPath  = common.GetEnv("OPENSEARCH_SECURITY_ADMIN_PATH", "/usr/share/opensearch/plugins/opensearch-security/tools/securityadmin.sh")
-	opensearchSecurityConfigPath = common.GetEnv("OPENSEARCH_SECURITY_CONFIG_PATH", "/usr/share/opensearch/config/opensearch-security")
 	opensearchConfigPath         = common.GetEnv("OPENSEARCH_CONFIG_PATH", "/usr/share/opensearch/config")
 	log                          = common.GetLogger()
 )
@@ -1417,11 +1416,8 @@ func deleteSecurityIndexInPod(ctx context.Context, podName string) error {
 	if err != nil {
 		return fmt.Errorf("delete security index in pod: %w", err)
 	}
-	// 200 = deleted, 404 = index did not exist (treat as success)
-	if out != "200" && out != "404" {
-		return fmt.Errorf("delete security index in pod: unexpected status %s", out)
-	}
-	log.Info("✓ Security index .opendistro_security deleted in pod (mTLS)")
+	log.Info(fmt.Sprintf("Security index delete call output: %s", out))
+	log.Info("✓ Security index .opendistro_security delete request sent in pod (mTLS)")
 	return nil
 }
 

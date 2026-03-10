@@ -56,7 +56,7 @@ If `migration.enabled` is `false`, the hook runs in check-only mode (with `--dry
 |-------------------|-------------|
 | `--dry-run`       | Run in check-only mode; no changes are applied. (When `migration.enabled` is `false`, the hook automatically uses this.) |
 | `--skip-security` | Skip security reinitialization and operator restart. **MUST** be used when the migration target is external OpenSearch. |
-| `--skip-backup`   | Skip snapshot backup before migration and restore on failure; on failure only the temporary migration index is deleted. |
+| `--skip-backup`   | Skip snapshot backup before migration and restore on failure; **MUST** be used when the curator is disabled. |
 
 Example for external OpenSearch (no in-cluster backup/restore or operator steps):
 
