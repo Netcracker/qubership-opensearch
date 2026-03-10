@@ -1598,4 +1598,8 @@ OpenSearch supports updating cluster settings through `PUT _cluster/settings`, d
 
 ### Recommendations
 
-At installation or upgrade time, prevent this issue by keeping shard count under control and by sizing the cluster correctly. If `opensearch.data.dedicatedPod.enabled: false`, master nodes also act as data nodes, so increase `opensearch.master.replicas`. If dedicated data pods are enabled, increase `opensearch.data.dedicatedPod.replicas`. Also keep index settings reasonable for new indexes: `index.number_of_shards` defaults to 1, while `index.number_of_replicas` defaults to 1, so unnecessary shard and replica growth should be avoided. If really required, OpenSearch settings can also be provided through `opensearch.config` during installation.
+At installation or upgrade time, prevent this issue by keeping shard count under control and by sizing the cluster correctly. 
+If `opensearch.data.dedicatedPod.enabled: false`, master nodes also act as data nodes, so increase `opensearch.master.replicas`. 
+If dedicated data pods are enabled, increase `opensearch.data.dedicatedPod.replicas`. 
+Also keep index settings reasonable for new indexes: `index.number_of_shards` defaults to 1, while `index.number_of_replicas` defaults to 1, so unnecessary shard and replica growth should be avoided. 
+If really required, OpenSearch settings can also be provided through `opensearch.config` during installation.
