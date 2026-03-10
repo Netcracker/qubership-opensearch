@@ -1539,11 +1539,14 @@ This issue means that opensearch indices migration have failed, you need to chec
 
 If the migration Job fails, check the Job pod logs for the exact error. For example:  
   `kubectl logs -n <namespace> job/<release-name>-migration-1x` (or the failing pod name). The logs contain the migration_tool output and point to which step failed.
+
 ## Maximum Shards Open Limit Reached
 
 ### Description
 
-This error means the cluster has reached the maximum allowed number of open shards. OpenSearch calculates this limit as `cluster.max_shards_per_node * number_of_non_frozen_data_nodes`. Closed indexes do not count towards this limit. When the limit is reached, OpenSearch rejects operations that need additional shards, so components like OpenSearch Dashboards may fail if they need to create or update internal indices.
+This error means the cluster has reached the maximum allowed number of open shards. OpenSearch calculates this limit as `cluster.max_shards_per_node * number_of_non_frozen_data_nodes`. 
+Closed indexes do not count towards this limit. 
+When the limit is reached, OpenSearch rejects operations that need additional shards, so components like OpenSearch Dashboards may fail if they need to create or update internal indices.
 
 ### Alerts
 
