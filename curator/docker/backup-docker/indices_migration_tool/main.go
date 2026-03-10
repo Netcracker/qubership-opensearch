@@ -1414,7 +1414,7 @@ func deleteSecurityIndexInPod(ctx context.Context, podName string) error {
 	}
 	out, err := runKubectl(ctx, args...)
 	if err != nil {
-		return fmt.Errorf("delete security index in pod: %w", err)
+		return fmt.Errorf("Failed to delete security index in pod: %w", err)
 	}
 	log.Info(fmt.Sprintf("Security index delete call output: %s", out))
 	log.Info("✓ Security index .opendistro_security delete request sent in pod (mTLS)")
