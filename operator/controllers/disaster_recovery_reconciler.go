@@ -430,7 +430,7 @@ func (r DisasterRecoveryReconciler) getReplicationManager() ReplicationManager {
 	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
 	client, _ := r.reconciler.configureClient()
 	restClient := util.NewRestClient(url, client, credentials)
-	return *NewReplicationManager(*restClient, remoteService, pattern, r.logger)
+	return *NewReplicationManager(*restClient, remoteService, pattern, r.cr.Spec.DisasterRecovery.DeleteFollowerIndex, r.logger)
 }
 
 func isReplicationCheckNeeded(instance *opensearchservice.OpenSearchService) bool {
