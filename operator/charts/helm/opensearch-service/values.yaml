@@ -185,6 +185,7 @@ global:
       customAudience: "sm-services"
     mode: ""
     indicesPattern: "*"
+    deleteFollowerIndex: true
     remoteCluster: ""
     siteManagerEnabled: true
     siteManagerApiGroup: "netcracker.com"
@@ -1200,7 +1201,7 @@ migration:
       cpu: 100m
     limits:
       memory: 512Mi
-      cpu: 500m  
+      cpu: 500m
 
 nameOverride: "opensearch"
 fullnameOverride: "opensearch"

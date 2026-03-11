@@ -89,6 +89,7 @@ Then, pay attention to the following steps that are significant for the Disaster
    ```
 
 5. The DBaaS adapter should be installed only if the DBaaS aggregator is on the cloud.
+6. If you need to disable automatic follower index deletion whenever the corresponding leader index is deleted, set the `global.disasterRecovery.deleteFollowerIndex` parameter to `false`.
 
 ## Manual Steps Before Installation
 
