@@ -655,7 +655,7 @@ func majorOf(versionID uint64) uint64 {
 }
 
 func isSecurityIndex(name string) bool {
-	return name == ".opendistro_security" || name == ".opensearch-security" || name == ".plugins-security"
+	return name == ".opendistro_security" || name == ".opensearch-security" || name == ".plugins-security" || name == ".opensearch-observability"
 }
 
 func readResponseBody(r io.Reader) ([]byte, error) {
