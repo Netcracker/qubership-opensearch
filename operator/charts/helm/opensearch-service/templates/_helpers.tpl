@@ -1462,6 +1462,12 @@ Migration runs ONLY for upgrades when:
 {{- define "opensearch.shouldRunMigration" -}}
   {{- $currentStatefulSet := lookup "apps/v1" "StatefulSet" .Release.Namespace (include "master-nodes" .) -}}
   {{- if $currentStatefulSet -}}
+    {{- $currentImage := "" -}}
+    {{- range $currentStatefulSet.spec.template.spec.containers -}}
+      {{- if or (eq .name "opensearch") (eq .name "opensearch-master") -}}
+        {{- $currentImage = .image -}}
+      {{- end -}}
+    {{- end -}}
     {{- $currentVersion := include "opensearch.currentVersion" . -}}
     {{- $currentMajor := 0 -}}
     {{- if $currentVersion -}}
@@ -1469,7 +1475,8 @@ Migration runs ONLY for upgrades when:
     {{- end -}}
     {{- $targetVersion := include "opensearch.imageVariant" . -}}
     {{- if eq $targetVersion "3" -}}
-      {{- if and (ne $currentMajor 3) (or (eq $currentMajor 0) (eq $currentMajor 2)) -}}
+      {{- $currentIs3x := or (eq $currentMajor 3) (regexFind "opensearch-3" $currentImage) -}}
+      {{- if and (not $currentIs3x) (or (eq $currentMajor 0) (eq $currentMajor 2)) -}}
         {{- printf "true" -}}
       {{- end -}}
     {{- end -}}

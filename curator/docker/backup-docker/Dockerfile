@@ -9,12 +9,12 @@ ENV GOSUMDB=off
 # Layout matches go.mod replace ../../../../dbaas-adapter => /workspace/dbaas-adapter
 WORKDIR /workspace
 COPY dbaas-adapter /workspace/dbaas-adapter
-COPY curator/docker/backup-docker/indices_migrator/go.mod curator/docker/backup-docker/indices_migrator/go.sum /workspace/curator/docker/backup-docker/indices_migrator/
-WORKDIR /workspace/curator/docker/backup-docker/indices_migrator
+COPY curator/docker/backup-docker/indices_migration_tool/go.mod curator/docker/backup-docker/indices_migration_tool/go.sum /workspace/curator/docker/backup-docker/indices_migration_tool/
+WORKDIR /workspace/curator/docker/backup-docker/indices_migration_tool
 RUN go mod download
 
-COPY curator/docker/backup-docker/indices_migrator/main.go main.go
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o migrator main.go
+COPY curator/docker/backup-docker/indices_migration_tool/main.go main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o migration_tool main.go
 
 FROM ghcr.io/netcracker/qubership-backup-daemon:main_alpine
 
@@ -29,7 +29,7 @@ COPY curator/docker/backup-docker/scripts ${ELASTICSEARCH_CURATOR_HOME}
 COPY curator/docker/backup-docker/config/curator.yml ${ELASTICSEARCH_CURATOR_HOME}/config/curator.yml
 COPY curator/docker/backup-docker/actions ${ELASTICSEARCH_CURATOR_HOME}/actions
 COPY curator/docker/backup-docker/docker-entrypoint.sh /docker-entrypoint.sh
-COPY --from=builder --chown=${USER_UID} /workspace/curator/docker/backup-docker/indices_migrator/migrator ${ELASTICSEARCH_CURATOR_HOME}
+COPY --from=builder --chown=${USER_UID} /workspace/curator/docker/backup-docker/indices_migration_tool/migration_tool ${ELASTICSEARCH_CURATOR_HOME}
 
 RUN set -x \
     && pip3 install --upgrade pip setuptools wheel \
