@@ -36,6 +36,7 @@ var (
 	ErrNotFound                  = errors.New("not found")
 	opensearchHost               = common.GetEnv("ES_HOST", "opensearch-internal:9200")
 	TLSHTTPEnabled               = strings.EqualFold(common.GetEnv("TLS_HTTP_ENABLED", "false"), "true")
+	externalOpensearchEnabled    = strings.EqualFold(common.GetEnv("EXTERNAL_OPENSEARCH_ENABLED", "false"), "true")
 	opensearchUsername           = common.GetEnv("ES_USERNAME", "")
 	opensearchPassword           = common.GetEnv("ES_PASSWORD", "")
 	adapterUsername              = common.GetEnv("DBAAS_ADAPTER_USERNAME", "")
@@ -655,7 +656,10 @@ func majorOf(versionID uint64) uint64 {
 }
 
 func isSecurityIndex(name string) bool {
-	return name == ".opendistro_security" || name == ".opensearch-security" || name == ".plugins-security" || name == ".opensearch-observability"
+	if externalOpensearchEnabled && strings.HasPrefix(name, ".opensearch-observability") {
+		return true
+	}
+	return name == ".opendistro_security" || name == ".opensearch-security" || name == ".plugins-security"
 }
 
 func readResponseBody(r io.Reader) ([]byte, error) {
