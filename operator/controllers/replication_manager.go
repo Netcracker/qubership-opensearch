@@ -38,11 +38,10 @@ const (
 )
 
 type ReplicationManager struct {
-	restClient          util.RestClient
-	remoteUrl           string
-	pattern             string
-	deleteFollowerIndex bool
-	logger              logr.Logger
+	restClient util.RestClient
+	remoteUrl  string
+	pattern    string
+	logger     logr.Logger
 }
 
 /*
@@ -160,23 +159,17 @@ type PluginReplicationError struct {
 	Status int `json:"status"`
 }
 
-func NewReplicationManager(restClient util.RestClient, remoteUrl string, indexPattern string, deleteFollowerIndex bool, logger logr.Logger) *ReplicationManager {
+func NewReplicationManager(restClient util.RestClient, remoteUrl string, indexPattern string, logger logr.Logger) *ReplicationManager {
 	return &ReplicationManager{
-		restClient:          restClient,
-		remoteUrl:           remoteUrl,
-		pattern:             indexPattern,
-		deleteFollowerIndex: deleteFollowerIndex,
-		logger:              logger,
+		restClient: restClient,
+		remoteUrl:  remoteUrl,
+		pattern:    indexPattern,
+		logger:     logger,
 	}
 }
 
 func (rm ReplicationManager) Configure() error {
 	path := "_cluster/settings"
-	// OpenSearch requires `null` value for property to remove it from configuration
-	deleteFollowerIndex := "null"
-	if rm.deleteFollowerIndex {
-		deleteFollowerIndex = "true"
-	}
 	body := fmt.Sprintf(`
 {
   "persistent": {
@@ -186,17 +179,10 @@ func (rm ReplicationManager) Configure() error {
 		  "seeds": ["%s"]
 		}
 	  }
-    },
-	"plugins": {
-	  "replication": {
-	    "replicate": {
-		  "delete_index": "%s"
-		}
-	  }
-	}
+    }
   }
 }
-`, leaderAlias, rm.remoteUrl, deleteFollowerIndex)
+`, leaderAlias, rm.remoteUrl)
 	statusCode, _, err := rm.restClient.SendRequest(http.MethodPut, path, strings.NewReader(body))
 	if err != nil {
 		return err

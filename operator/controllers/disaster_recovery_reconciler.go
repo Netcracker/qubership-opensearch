@@ -30,7 +30,6 @@ import (
 
 const (
 	drConfigHashName            = "config.disasterRecovery"
-	leaderStatsPath             = "_plugins/_replication/leader_stats"
 	replicationRemoteServiceKey = "remoteCluster"
 	replicationPatternKey       = "indicesPattern"
 	interval                    = 10 * time.Second
@@ -187,6 +186,10 @@ func (r DisasterRecoveryReconciler) Configure() error {
 	}
 
 	r.reconciler.ResourceHashes[drConfigHashName] = drConfigHash
+
+	if r.cr.Spec.DisasterRecovery.Mode == "standby" {
+		err = r.updateClusterSettings()
+	}
 
 	if r.cr.Spec.DisasterRecovery.ReplicationWatcherEnabled {
 		r.replicationWatcher.start(r, r.logger)
@@ -426,11 +429,46 @@ func (r DisasterRecoveryReconciler) getReplicationManager() ReplicationManager {
 	configMap, _ := r.reconciler.findConfigMap(cmName, r.cr.Namespace, r.logger)
 	remoteService := configMap.Data[replicationRemoteServiceKey]
 	pattern := configMap.Data[replicationPatternKey]
+	restClient := r.getRestClient()
+	return *NewReplicationManager(*restClient, remoteService, pattern, r.logger)
+}
+
+func (r DisasterRecoveryReconciler) getRestClient() *util.RestClient {
 	credentials := r.reconciler.parseOpenSearchCredentials(r.cr, r.logger)
 	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
 	client, _ := r.reconciler.configureClient()
-	restClient := util.NewRestClient(url, client, credentials)
-	return *NewReplicationManager(*restClient, remoteService, pattern, r.cr.Spec.DisasterRecovery.DeleteFollowerIndex, r.logger)
+	return util.NewRestClient(url, client, credentials)
+}
+
+func (r DisasterRecoveryReconciler) updateClusterSettings() error {
+	path := "_cluster/settings"
+	// OpenSearch requires `null` value for property to remove it from configuration
+	deleteFollowerIndex := "null"
+	if r.cr.Spec.DisasterRecovery.DeleteFollowerIndex {
+		deleteFollowerIndex = "true"
+	}
+	body := fmt.Sprintf(`
+{
+	"plugins": {
+	  "replication": {
+	    "replicate": {
+		  "delete_index": "%s"
+		}
+	  }
+	}
+  }
+}
+`, deleteFollowerIndex)
+	restClient := r.getRestClient()
+	statusCode, _, err := restClient.SendRequest(http.MethodPut, path, strings.NewReader(body))
+	if err != nil {
+		return err
+	}
+	if statusCode >= 400 {
+		return fmt.Errorf("asynchronous request to create connection with the remote opensearch cluster returned unexpected status code - [%d]",
+			statusCode)
+	}
+	return nil
 }
 
 func isReplicationCheckNeeded(instance *opensearchservice.OpenSearchService) bool {
