@@ -35,7 +35,7 @@ spec:
       serviceAccountName: {{ template "opensearch.fullname" . }}-integration-tests
       {{- if .Values.integrationTests.affinity }}
       affinity:
-      {{ .Values.integrationTests.affinity | toJson }}
+      {{- toYaml .Values.integrationTests.affinity | nindent 8 }}
       {{- end }}
       securityContext:
         {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
