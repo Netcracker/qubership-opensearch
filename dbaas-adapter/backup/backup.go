@@ -19,16 +19,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Netcracker/dbaas-opensearch-adapter/api"
-	"github.com/Netcracker/dbaas-opensearch-adapter/basic"
-	core "github.com/Netcracker/qubership-dbaas-adapter-core/pkg/utils"
 	"io"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/Netcracker/dbaas-opensearch-adapter/api"
+	"github.com/Netcracker/dbaas-opensearch-adapter/basic"
 	"github.com/Netcracker/dbaas-opensearch-adapter/common"
+	"github.com/Netcracker/qubership-dbaas-adapter-core/pkg/dao"
+	"github.com/Netcracker/qubership-dbaas-adapter-core/pkg/service"
+	core "github.com/Netcracker/qubership-dbaas-adapter-core/pkg/utils"
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
 )
@@ -36,6 +40,10 @@ import (
 var (
 	logger                      = common.GetLogger()
 	resourcePrefixAttributeName = "resource_prefix"
+	validate                    = validator.New()
+	backupServiceAddress  = common.GetEnv("CURATOR_ADDRESS", "")
+	backupServiceUser     = common.GetEnv("CURATOR_USERNAME", "")
+	backupServicePassword = common.GetEnv("CURATOR_PASSWORD", "")
 )
 
 type Repository struct {
@@ -115,10 +123,11 @@ var ErrBackupNotFound = errors.New("backup not found")
 var ErrCuratorUnavailable = errors.New("curator return internal server error")
 
 type BackupProvider struct {
-	client     common.Client
-	indexNames *common.IndexAdapter
-	repoRoot   string
-	Curator    *Curator
+	client               common.Client
+	indexNames           *common.IndexAdapter
+	repoRoot             string
+	Curator              *Curator
+	DefaultBackupService service.BackupAdministrationService
 }
 
 func NewBackupProvider(opensearchClient common.Client, curatorClient *http.Client, repoRoot string) *BackupProvider {
@@ -127,18 +136,227 @@ func NewBackupProvider(opensearchClient common.Client, curatorClient *http.Clien
 		repoRoot = repoRoot + "/"
 	}
 	curator := &Curator{
-		url:      common.GetEnv("CURATOR_ADDRESS", ""),
-		username: common.GetEnv("CURATOR_USERNAME", ""),
-		password: common.GetEnv("CURATOR_PASSWORD", ""),
+		url:      backupServiceAddress,
+		username: backupServiceUser,
+		password: backupServicePassword,
 		client:   curatorClient,
 	}
-	backupService := &BackupProvider{
-		client:     opensearchClient,
-		indexNames: common.NewIndexAdapter(),
-		repoRoot:   repoRoot,
-		Curator:    curator,
+	return &BackupProvider{
+		client:               opensearchClient,
+		indexNames:           common.NewIndexAdapter(),
+		repoRoot:             repoRoot,
+		Curator:              curator,
+		DefaultBackupService: service.DefaultBackupAdministrationService(
+			common.GetDbaasCoreLogger(), backupServiceAddress, backupServiceUser, backupServicePassword, false, curatorClient, common.DbMaxLength, []string{}),
 	}
-	return backupService
+}
+
+func requireBlobPath(r *http.Request) (string, error) {
+	blobPath := strings.TrimSpace(r.URL.Query().Get("blobPath"))
+	if blobPath == "" {
+		return "", errors.New("query parameter 'blobPath' is required")
+	}
+	return blobPath, nil
+}
+
+func handleValidationErrors(err error) dao.BadRequestResponse {
+	var validationErrors []string
+	if validationErrs, ok := err.(validator.ValidationErrors); ok {
+		for _, validationErr := range validationErrs {
+			fieldName := validationErr.Namespace()
+			if fieldName == "" {
+				fieldName = validationErr.Field()
+			}
+			validationErrors = append(validationErrors, fmt.Sprintf("Field '%s' failed validation: %s", fieldName, validationErr.Tag()))
+		}
+	} else {
+		validationErrors = []string{err.Error()}
+	}
+	return dao.BadRequestResponse{
+		Error:   "Invalid request parameters",
+		Details: validationErrors,
+	}
+}
+
+func (bp *BackupProvider) CollectBackupV2Handler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := common.PrepareContext(r)
+		defer func() { _ = r.Body.Close() }()
+
+		var backupRequest dao.CreateBackupRequest
+		if err := json.NewDecoder(r.Body).Decode(&backupRequest); err != nil {
+			logger.ErrorContext(ctx, "Failed to parse backup request", slog.Any("error", err))
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(dao.BadRequestResponse{
+				Error:   "Invalid request parameters",
+				Details: []string{err.Error()},
+			})
+			return
+		}
+		if err := validate.Struct(backupRequest); err != nil {
+			logger.ErrorContext(ctx, "Failed to validate backup request", slog.Any("error", err))
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(handleValidationErrors(err))
+			return
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("Backup request: %+v", backupRequest))
+
+		var databaseNames []string
+		for _, db := range backupRequest.Databases {
+			databaseNames = append(databaseNames, db.DatabaseName)
+		}
+		backupResponse, found := bp.DefaultBackupService.CollectBackupV2(ctx, backupRequest.StorageName, backupRequest.BlobPath, databaseNames)
+		if !found {
+			logger.InfoContext(ctx, "Database not found")
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("Database not found"))
+			return
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("Backup response: %+v", backupResponse))
+		w.WriteHeader(http.StatusAccepted)
+		_ = json.NewEncoder(w).Encode(backupResponse)
+	}
+}
+
+func (bp *BackupProvider) TrackBackupV2Handler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := common.PrepareContext(r)
+		backupId := mux.Vars(r)["backupId"]
+		blobPath, err := requireBlobPath(r)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("Get backup request for ID: %s", backupId))
+
+		backupResponse, found := bp.DefaultBackupService.TrackBackupV2(ctx, backupId, blobPath)
+		if !found {
+			logger.InfoContext(ctx, "Backup not found", slog.String("backupId", backupId))
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("Backup not found"))
+			return
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("Backup response: %+v", backupResponse))
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(backupResponse)
+	}
+}
+
+func (bp *BackupProvider) DeleteBackupV2Handler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := common.PrepareContext(r)
+		backupId := mux.Vars(r)["backupId"]
+		blobPath, err := requireBlobPath(r)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("Delete backup request for ID: %s", backupId))
+
+		found := bp.DefaultBackupService.EvictBackupV2(ctx, backupId, blobPath)
+		if !found {
+			logger.InfoContext(ctx, "Backup not found", slog.String("backupId", backupId))
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("Backup not found"))
+			return
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("Backup deleted successfully: %s", backupId))
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func (bp *BackupProvider) RestoreBackupV2Handler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := common.PrepareContext(r)
+		backupId := mux.Vars(r)["backupId"]
+		dryRun, _ := strconv.ParseBool(r.URL.Query().Get("dryRun"))
+		defer func() { _ = r.Body.Close() }()
+
+		var restoreRequest dao.CreateRestoreRequest
+		if err := json.NewDecoder(r.Body).Decode(&restoreRequest); err != nil {
+			logger.ErrorContext(ctx, "Failed to parse restore request", slog.Any("error", err))
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(dao.BadRequestResponse{
+				Error:   "Invalid request parameters",
+				Details: []string{err.Error()},
+			})
+			return
+		}
+		if err := validate.Struct(restoreRequest); err != nil {
+			logger.ErrorContext(ctx, "Failed to validate restore request", slog.Any("error", err))
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(handleValidationErrors(err))
+			return
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("Restore request: %+v, dryRun: %v", restoreRequest, dryRun))
+
+		restoreResponse, found := bp.DefaultBackupService.RestoreBackupV2(ctx, backupId, restoreRequest, dryRun)
+		if !found {
+			logger.InfoContext(ctx, "Backup not found", slog.String("backupId", backupId))
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("Backup not found"))
+			return
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("Restore response: %+v", restoreResponse))
+		w.WriteHeader(http.StatusAccepted)
+		_ = json.NewEncoder(w).Encode(restoreResponse)
+	}
+}
+
+func (bp *BackupProvider) TrackRestoreV2Handler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := common.PrepareContext(r)
+		restoreId := mux.Vars(r)["restoreId"]
+		blobPath, err := requireBlobPath(r)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("Get restore request for ID: %s", restoreId))
+
+		restoreResponse, found := bp.DefaultBackupService.TrackRestoreV2(ctx, restoreId, blobPath)
+		if !found {
+			logger.InfoContext(ctx, "Restore not found", slog.String("restoreId", restoreId))
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("Restore not found"))
+			return
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("Restore response: %+v", restoreResponse))
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(restoreResponse)
+	}
+}
+
+func (bp *BackupProvider) DeleteRestoreV2Handler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := common.PrepareContext(r)
+		restoreId := mux.Vars(r)["restoreId"]
+		blobPath, err := requireBlobPath(r)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		if bp.DefaultBackupService == nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte("backup service is not configured"))
+			return
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("Delete restore request for ID: %s", restoreId))
+
+		found := bp.DefaultBackupService.EvictRestoreV2(ctx, restoreId, blobPath)
+		if !found {
+			logger.InfoContext(ctx, "Restore not found", slog.String("restoreId", restoreId))
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("Restore not found"))
+			return
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("Restore deleted successfully: %s", restoreId))
+		w.WriteHeader(http.StatusNoContent)
+	}
 }
 
 func (bp BackupProvider) CollectBackupHandler() func(w http.ResponseWriter, r *http.Request) {

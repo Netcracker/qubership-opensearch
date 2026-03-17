@@ -199,15 +199,30 @@ func Handlers(ctx context.Context, adapter common.Component) http.Handler {
 		handlers.LoggingHandler(os.Stdout, authorizer(baseProvider.CreateUserHandler())),
 	).Methods(http.MethodPut)
 
-	if registrationProvider.ApiVersion == common.ApiV2 {
-		r.Handle(fmt.Sprintf("%s/users/restore-password", basePath),
-			handlers.LoggingHandler(os.Stdout, authorizer(baseProvider.RecoverUsersHandler())),
-		).Methods(http.MethodPost)
+	// New backup API (v2)
+	r.Handle(fmt.Sprintf("%s/backups/backup", basePath),
+		handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.CollectBackupV2Handler())),
+	).Methods(http.MethodPost)
 
-		r.Handle(fmt.Sprintf("%s/users/restore-password/state", basePath),
-			handlers.LoggingHandler(os.Stdout, authorizer(baseProvider.GetRecoveryStateHandler())),
-		).Methods(http.MethodGet)
-	}
+	r.Handle(fmt.Sprintf("%s/backups/backup/{backupId}", basePath),
+		handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.TrackBackupV2Handler())),
+	).Methods(http.MethodGet)
+
+	r.Handle(fmt.Sprintf("%s/backups/backup/{backupId}/restore", basePath),
+		handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.RestoreBackupV2Handler())),
+	).Methods(http.MethodPost)
+
+	r.Handle(fmt.Sprintf("%s/backups/restore/{restoreId}", basePath),
+		handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.TrackRestoreV2Handler())),
+	).Methods(http.MethodGet)
+
+	r.Handle(fmt.Sprintf("%s/backups/backup/{backupId}", basePath),
+		handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.DeleteBackupV2Handler())),
+	).Methods(http.MethodDelete)
+
+	r.Handle(fmt.Sprintf("%s/backups/restore/{restoreId}", basePath),
+		handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.DeleteRestoreV2Handler())),
+	).Methods(http.MethodDelete)
 
 	return JsonContentType(handlers.CompressHandler(r))
 }
