@@ -1430,11 +1430,12 @@ Restricted environment.
 {{- end -}}
 
 {{- define "gateway.parentRefs" -}}
-{{- $refs := index . 0 | default list -}}
-{{- $port := index . 1 -}}
-{{- if and .Values.GATEWAY_SYSTEM_NAME .Values.GATEWAY_SYSTEM_NAMESPACE }}
-- name: {{ .Values.GATEWAY_SYSTEM_NAME }}
-  namespace: {{ .Values.GATEWAY_SYSTEM_NAMESPACE }}
+{{- $root := index . 0 -}}
+{{- $refs := index . 1 | default list -}}
+{{- $port := index . 2 -}}
+{{- if and $root.Values.GATEWAY_SYSTEM_NAME $root.Values.GATEWAY_SYSTEM_NAMESPACE }}
+- name: {{ $root.Values.GATEWAY_SYSTEM_NAME }}
+  namespace: {{ $root.Values.GATEWAY_SYSTEM_NAMESPACE }}
   port: {{ $port }}
 {{- else if gt (len $refs) 0 }}
 {{- range $refs }}
