@@ -8,6 +8,8 @@ on:
 #  pull_request:
 #    types: [opened, synchronize, reopened]
 #    branches: [main]
+#  push:
+#    branches: [main]
 
 jobs:
   Wait-for-images:
@@ -24,10 +26,10 @@ jobs:
           poll-interval: 20
   Opensearch-Pipeline:
     needs: Wait-for-images
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@main
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@a23bed13d489e8fe6e335fe717258dea12cbb006 #v1.6.0
     with:
       service_branch: '${{ github.head_ref || github.ref_name }}'
-      pipeline_branch: 'main' #this value must match the value after '@' in 'uses'
+      pipeline_branch: 'a23bed13d489e8fe6e335fe717258dea12cbb006' #this value must match the value after '@' in 'uses'
       runner_type: 'ubuntu-latest'
     secrets:
       AWS_S3_ACCESS_KEY_ID: ${{secrets.AWS_S3_ACCESS_KEY_ID}}

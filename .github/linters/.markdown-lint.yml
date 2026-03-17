@@ -31,3 +31,5 @@ MD009: false
 MD010: false
 # MD051/Link fragments should be valid
 MD051: false
+# MD060/table-column-style - Table column alignment (pipes align with header)
+MD060: false

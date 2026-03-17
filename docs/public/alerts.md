@@ -299,6 +299,37 @@ For more information, refer to [Last Backup Has Failed](./troubleshooting.md#las
 1. Fix issues with backup storage if necessary.
 2. Follow [Last Backup Has Failed](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/troubleshooting.md#last-backup-has-failed) for additional steps.
 
+## OpenSearchLegacyIndicesDetectedAlert
+
+### Description
+
+The OpenSearch cluster contains one or more indices that were created on OpenSearch 1.x. These legacy indices must be migrated before or during an upgrade to OpenSearch 3.x.
+
+### Possible Causes
+
+- Indices were created on an OpenSearch 1.x cluster and have not been migrated.
+- Upgrade from 2.x to 3.x was performed without running the 1.x index migration.
+
+### Impact
+
+- Legacy 1.x indices may cause incompatibility or failures after upgrading to OpenSearch 3.x.
+- Inability to use or reindex affected indices until migration is completed.
+
+### Actions for Investigation
+
+1. Check the `OpenSearch Indices` monitoring dashboard and review the **Indices by OpenSearch Version** panel to see which indices have version 1.x.
+2. List index settings to confirm created version, for example:
+
+   ```sh
+   curl -X GET 'http://localhost:9200/_all/_settings?filter_path=*.settings.index.version.created&pretty'
+   ```
+
+### Recommended Actions to Resolve Issue
+
+1. Use the pre-upgrade migration tool that is placed inside curator deployment for manual migration before planned upgrade, check [Indices Migration](/docs/public/indices-migration.md)
+2. Alternatively, run the migration in dry-run mode first (`migration.enabled: false`) to verify which indices require migration, then enable and run the full migration.
+3. Run the pre-upgrade migration job (indices migration_tool) with `migration.enabled: true` to migrate 1.x indices before or during the upgrade to 3.x.
+
 ## OpenSearchQueryIsTooSlowAlert
 
 ### Description

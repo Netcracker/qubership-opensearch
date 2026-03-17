@@ -1,0 +1,180 @@
+{{ if and (not .Values.global.externalOpensearch.enabled) (eq (include "opensearch.shouldRunMigration" .) "true") }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "opensearch.fullname" . }}-migration-1x
+  labels:
+{{ include "opensearch.labels.standard" . | indent 4 }}
+    name: {{ template "opensearch.fullname" . }}-migration-1x
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-migration-1x
+    app.kubernetes.io/instance: {{ cat (printf "%s-migration-1x"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
+    component: migration
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      name: {{ template "opensearch.fullname" . }}-migration-1x
+      labels:
+{{ include "opensearch.labels.standard" . | indent 8 }}
+        name: {{ template "opensearch.fullname" . }}-migration-1x
+        app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-migration-1x
+        component: migration
+    spec:
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+      {{ toYaml .Values.global.imagePullSecrets | indent 8 }}
+      {{- end }}
+      restartPolicy: Never
+      serviceAccountName: {{ template "opensearch.fullname" . }}-migration
+      securityContext:
+        {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+      containers:
+        - name: migration
+          image: {{ template "curator.image" . }}
+          imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
+          command:
+            - "/opt/elasticsearch-curator/migration_tool"
+          {{- if not .Values.migration.enabled }}
+          args:
+            - "--dry-run"
+          {{- else if .Values.migration.args }}
+          args:
+            {{- toYaml .Values.migration.args | nindent 12 }}
+          {{- else }}
+          args: []
+          {{- end }}
+          env:
+            - name: NAMESPACE
+              value: {{ .Release.Namespace }}
+            - name: ES_HOST
+              value: {{ default (printf "%s-internal:9200" (include "opensearch.fullname" .)) (.Values.global.externalOpensearch.enabled | ternary (printf "%s:%s" (include "external.opensearch-host" .) (include "external.opensearch-port" .)) .Values.curator.opensearchHost) }}
+            - name: ES_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-secret
+                  key: username
+            - name: ES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-secret
+                  key: password
+            - name: ES_AUTH
+              value: "$(ES_USERNAME):$(ES_PASSWORD)"
+            - name: TLS_HTTP_ENABLED
+              value: "{{ or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}"
+            - name: EXTERNAL_OPENSEARCH_ENABLED
+              value: {{ .Values.global.externalOpensearch.enabled | quote }}
+            - name: OPENSEARCH_OPERATOR_DEPLOYMENT_NAME
+              value: {{ template "opensearch.fullname" . }}-service-operator
+            - name: TLS_ENABLED
+              value: "{{ template "curator.tlsEnabled" . }}"
+            - name: SNAPSHOT_REPOSITORY_NAME
+              value: {{ .Values.curator.snapshotRepositoryName | default "snapshots" }}
+            {{- if eq (include "dbaas.enabled" .) "true" }}
+            - name: DBAAS_ADAPTER_ADDRESS
+              value: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (include "dbaas-adapter.address" .) }}
+            - name: DBAAS_AGGREGATOR_REGISTRATION_ADDRESS
+              value: {{ include "dbaas.registrationUrl" . | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
+            - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER
+              value: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
+            - name: DBAAS_ADAPTER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+            - name: DBAAS_ADAPTER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+            - name: DBAAS_AGGREGATOR_REGISTRATION_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: registration-auth-username
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+            - name: DBAAS_AGGREGATOR_REGISTRATION_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: registration-auth-password
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+            {{- end }}
+            - name: OPENSEARCH_NAMESPACE
+              value: {{ .Release.Namespace | quote }}
+            - name: OPENSEARCH_CONFIG_SECRET_NAME
+              value: {{ printf "%s-config" (include "opensearch.fullname" .) | quote }}
+            - name: OPENSEARCH_STATEFULSET_NAMES
+              value: {{ include "opensearch.statefulsetNames" . | quote }}
+            - name: OPENSEARCH_DEPLOYMENT_NAMES
+              {{- if and .Values.opensearch.client.enabled .Values.opensearch.client.dedicatedPod.enabled }}
+              value: {{ printf "%s-client" (include "opensearch.fullname" .) | quote }}
+              {{- else }}
+              value: ""
+              {{- end }}
+            - name: OPENSEARCH_CLIENT_SERVICE_NAME
+              value: {{ template "opensearch.fullname" . }}
+            - name: OPENSEARCH_MASTER_NODES_NAME
+              value: {{ template "master-nodes" . }}
+            - name: OPENSEARCH_SECURITY_CONFIG_PATH
+              value: {{ .Values.opensearch.securityConfig.path | quote }}
+            - name: OPENSEARCH_CONFIG_PATH
+              value: {{ .Values.opensearch.configDirectory | quote }}
+            {{- if .Values.curator.enabled }}
+            - name: CURATOR_ADDRESS
+              value: {{ (include "curator.address" .) }}
+            - name: CURATOR_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  key: username
+            - name: CURATOR_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  key: password
+            {{- end }}
+          volumeMounts:
+            {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+            - mountPath: /trusted-certs/root-ca.pem
+              name: opensearch-certs
+              subPath: {{ template "opensearch.root-ca-path" . }}
+            {{- end }}
+            {{- if eq (include "curator.tlsEnabled" .) "true" }}
+            - mountPath: /tls
+              name: certs
+            {{- end }}
+            {{- if eq (include "dbaas-adapter.tlsEnabled" .) "true" }}
+            - mountPath: /tls/dbaas
+              name: dbaas-adapter-certs
+            {{- end }}
+          resources:
+            requests:
+              memory: {{ default "256Mi" .Values.migration.resources.requests.memory }}
+              cpu: {{ default "100m" .Values.migration.resources.requests.cpu }}
+            limits:
+              memory: {{ default "512Mi" .Values.migration.resources.limits.memory }}
+              cpu: {{ default "500m" .Values.migration.resources.limits.cpu }}
+          securityContext:
+            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
+      volumes:
+        {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+        - name: opensearch-certs
+          secret:
+            secretName: {{ template "opensearch.rest-cert-secret-name" . }}
+        {{- end }}
+        {{- if eq (include "curator.tlsEnabled" .) "true" }}
+        - name: certs
+          secret:
+            secretName: {{ template "curator.certSecretName" . }}
+        {{- end }}
+        {{- if eq (include "dbaas-adapter.tlsEnabled" .) "true" }}
+        - name: dbaas-adapter-certs
+          secret:
+            secretName: {{ template "dbaas-adapter.tlsSecretName" . }}
+        {{- end }}
+{{- end }}
