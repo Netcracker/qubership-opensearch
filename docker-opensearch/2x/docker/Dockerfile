@@ -22,10 +22,10 @@ RUN yum update --assumeyes --skip-broken \
 # CCR plugin upgrade is required for each OpenSearch upgrade
 RUN echo "Replacing Cross Cluster Replication plugin..." \
     && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-cross-cluster-replication/* \
-    && curl --create-dirs -s -L "https://github.com/Netcracker/opensearch-cross-cluster-replication-patches/releases/download/2.19.4.0-1/opensearch-cross-cluster-replication-2.19.4.0-SNAPSHOT-11.zip" \
-    -o ${OPENSEARCH_HOME}/dist/repository-ccr/repository-ccr-2.19.4.zip \
-    && unzip ${OPENSEARCH_HOME}/dist/repository-ccr/repository-ccr-2.19.4.zip -d ${OPENSEARCH_HOME}/plugins/opensearch-cross-cluster-replication \
-    && rm -rf ${OPENSEARCH_HOME}/dist/repository-ccr
+    && curl --create-dirs -s -L "https://github.com/Netcracker/opensearch-cross-cluster-replication-patches/releases/download/2.19.4.0-1/opensearch-cross-cluster-replication-2.19.4.0-11.zip" \
+    -o ${OPENSEARCH_HOME}/dist/ccr/opensearch-cross-cluster-replication-2.19.4.zip \
+    && unzip ${OPENSEARCH_HOME}/dist/ccr/opensearch-cross-cluster-replication-2.19.4.zip -d ${OPENSEARCH_HOME}/plugins/opensearch-cross-cluster-replication \
+    && rm -rf ${OPENSEARCH_HOME}/dist/ccr
 
 RUN echo "Download OpenSearch plugins..." \
     && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/2.19.4/repository-s3-2.19.4.zip" \

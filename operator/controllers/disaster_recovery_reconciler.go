@@ -453,7 +453,7 @@ func (r DisasterRecoveryReconciler) updateClusterSettings() error {
 	"plugins": {
 	  "replication": {
 	    "replicate": {
-		  "delete_index": "%s"
+		  "delete_index": %s
 		}
 	  }
 	}
