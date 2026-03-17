@@ -449,6 +449,7 @@ func (r DisasterRecoveryReconciler) updateClusterSettings() error {
 	}
 	body := fmt.Sprintf(`
 {
+  "persistent": {
 	"plugins": {
 	  "replication": {
 	    "replicate": {
@@ -460,13 +461,12 @@ func (r DisasterRecoveryReconciler) updateClusterSettings() error {
 }
 `, deleteFollowerIndex)
 	restClient := r.getRestClient()
-	statusCode, _, err := restClient.SendRequest(http.MethodPut, path, strings.NewReader(body))
+	statusCode, response, err := restClient.SendRequest(http.MethodPut, path, strings.NewReader(body))
 	if err != nil {
 		return err
 	}
 	if statusCode >= 400 {
-		return fmt.Errorf("asynchronous request to create connection with the remote opensearch cluster returned unexpected status code - [%d]",
-			statusCode)
+		return fmt.Errorf("unable to update cluster settings: [%d] %s", statusCode, string(response))
 	}
 	return nil
 }
