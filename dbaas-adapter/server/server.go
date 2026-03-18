@@ -209,27 +209,27 @@ func Handlers(ctx context.Context, adapter common.Component) http.Handler {
 		).Methods(http.MethodGet)
 
 		// New backup API (v2)
-		r.Handle(fmt.Sprintf("%s/backups/backup", basePath),
+		r.Handle(fmt.Sprintf("%s/backup", basePath),
 			handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.CollectBackupV2Handler())),
 		).Methods(http.MethodPost)
 
-		r.Handle(fmt.Sprintf("%s/backups/backup/{backupId}", basePath),
+		r.Handle(fmt.Sprintf("%s/backup/{backupId}", basePath),
 			handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.TrackBackupV2Handler())),
 		).Methods(http.MethodGet)
 
-		r.Handle(fmt.Sprintf("%s/backups/backup/{backupId}/restore", basePath),
+		r.Handle(fmt.Sprintf("%s/backup/{backupId}/restore", basePath),
 			handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.RestoreBackupV2Handler())),
 		).Methods(http.MethodPost)
 
-		r.Handle(fmt.Sprintf("%s/backups/restore/{restoreId}", basePath),
+		r.Handle(fmt.Sprintf("%s/restore/{restoreId}", basePath),
 			handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.TrackRestoreV2Handler())),
 		).Methods(http.MethodGet)
 
-		r.Handle(fmt.Sprintf("%s/backups/backup/{backupId}", basePath),
+		r.Handle(fmt.Sprintf("%s/backup/{backupId}", basePath),
 			handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.DeleteBackupV2Handler())),
 		).Methods(http.MethodDelete)
 
-		r.Handle(fmt.Sprintf("%s/backups/restore/{restoreId}", basePath),
+		r.Handle(fmt.Sprintf("%s/restore/{restoreId}", basePath),
 			handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.DeleteRestoreV2Handler())),
 		).Methods(http.MethodDelete)
 	}
