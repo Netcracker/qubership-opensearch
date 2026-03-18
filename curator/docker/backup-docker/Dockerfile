@@ -31,6 +31,10 @@ COPY curator/docker/backup-docker/actions ${ELASTICSEARCH_CURATOR_HOME}/actions
 COPY curator/docker/backup-docker/docker-entrypoint.sh /docker-entrypoint.sh
 COPY --from=builder --chown=${USER_UID} /workspace/curator/docker/backup-docker/indices_migration_tool/migration_tool ${ELASTICSEARCH_CURATOR_HOME}
 
+RUN apk add --no-cache wget python3 python3-dev py3-pip \
+    && apk update \
+    && apk upgrade
+
 RUN set -x \
     && pip3 install --upgrade pip setuptools wheel \
     && pip3 install -U opensearch-py==2.5.0 elasticsearch==7.17.12 curator-opensearch==0.0.13 \
