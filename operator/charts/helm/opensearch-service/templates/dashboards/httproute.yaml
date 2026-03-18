@@ -1,5 +1,5 @@
 {{- if and .Values.dashboards.envoyGateway.enabled (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1") (eq .Values.PAAS_PLATFORM "KUBERNETES") -}}
-{{- if and .Values.dashboards.enabled .Values.dashboards.ingress.enabled -}}
+{{- if .Values.dashboards.enabled -}}
 {{- $serviceName := printf "%s-%s" (include "opensearch.fullname" .) "dashboards" }}
 
 apiVersion: gateway.networking.k8s.io/v1

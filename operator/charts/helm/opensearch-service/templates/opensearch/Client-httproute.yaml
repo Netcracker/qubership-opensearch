@@ -1,7 +1,6 @@
 {{- if .Values.opensearch.client.envoyGateway.enabled }}
 {{- if and .Values.opensearch.client.enabled (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1") (eq .Values.PAAS_PLATFORM "KUBERNETES") -}}
 {{- if not .Values.global.externalOpensearch.enabled }}
-{{- if (eq (include "opensearch.ingressEnabled" .) "true") }}
 {{- $fullName := printf "%s" (include "opensearch.fullname" .) }}
 
 apiVersion: gateway.networking.k8s.io/v1
@@ -89,7 +88,6 @@ spec:
             scheme: https
             statusCode: 301
 
-{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
