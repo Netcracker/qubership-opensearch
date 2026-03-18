@@ -1508,13 +1508,45 @@ Not applicable
 
 **Note:** For emergency cases the prefix intersection unique validation can be disabled. You need to redeploy opensearch-service with parameter `dbaasAdapter.prefixUniqueEnabled: false`.
 
+## Indices migration issue
+
+### Description
+
+| Problem                                               | Severity | Possible Reason                                    |
+|-------------------------------------------------------|----------|----------------------------------------------------|
+| Automatic indices migration job have failed during upgrade | High     | There are variety of fail reasons |
+ 
+In installation job logs the following error:
+
+```text
+*job opensearch-migration-1x failed: BackoffLimitExceeded
+```
+
+Or, for ArgoCD, you'll see following:
+
+```text
+Job/opensearch-migration-1x; Hook: PreSync; Phase: Failed
+Sync Message: Job has reached the specified backoff limit
+```
+
+This issue means that opensearch indices migration have failed, you need to check migration job logs.
+
+### Alerts
+
+* [OpenSearchLegacyIndicesDetectedAlert](./alerts.md#opensearchlegacyindicesdetectedalert)
+
+### How to solve
+
+If the migration Job fails, check the Job pod logs for the exact error. For example:  
+  `kubectl logs -n <namespace> job/<release-name>-migration-1x` (or the failing pod name). The logs contain the migration_tool output and point to which step failed.
+
 ## Maximum Shards Open Limit Reached
 
 ### Description
 
-This error means the cluster has reached the maximum allowed number of open shards. OpenSearch calculates this limit as `cluster.max_shards_per_node * number_of_non_frozen_data_nodes`.
-Closed indexes do not count towards this limit. When the limit is reached, OpenSearch rejects operations that need additional shards, so components like OpenSearch Dashboards may fail if they need
-to create or update internal indices.
+This error means the cluster has reached the maximum allowed number of open shards. OpenSearch calculates this limit as `cluster.max_shards_per_node * number_of_non_frozen_data_nodes`. 
+Closed indexes do not count towards this limit. 
+When the limit is reached, OpenSearch rejects operations that need additional shards, so components like OpenSearch Dashboards may fail if they need to create or update internal indices.
 
 ### Alerts
 
@@ -1566,7 +1598,8 @@ OpenSearch supports updating cluster settings through `PUT _cluster/settings`, d
 
 ### Recommendations
 
-At installation or upgrade time, prevent this issue by keeping shard count under control and by sizing the cluster correctly. If `opensearch.data.dedicatedPod.enabled: false`,
-master nodes also act as data nodes, so increase `opensearch.master.replicas`. If dedicated data pods are enabled, increase `opensearch.data.dedicatedPod.replicas`.
-Also keep index settings reasonable for new indexes: `index.number_of_shards` defaults to 1, while `index.number_of_replicas` defaults to 1, so unnecessary shard and replica growth should be avoided.
+At installation or upgrade time, prevent this issue by keeping shard count under control and by sizing the cluster correctly. 
+If `opensearch.data.dedicatedPod.enabled: false`, master nodes also act as data nodes, so increase `opensearch.master.replicas`. 
+If dedicated data pods are enabled, increase `opensearch.data.dedicatedPod.replicas`. 
+Also keep index settings reasonable for new indexes: `index.number_of_shards` defaults to 1, while `index.number_of_replicas` defaults to 1, so unnecessary shard and replica growth should be avoided. 
 If really required, OpenSearch settings can also be provided through `opensearch.config` during installation.

@@ -39,7 +39,7 @@ spec:
           image: {{ template "curator.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
           command:
-            - "/opt/elasticsearch-curator/migrator"
+            - "/opt/elasticsearch-curator/migration_tool"
           {{- if not .Values.migration.enabled }}
           args:
             - "--dry-run"
@@ -68,6 +68,8 @@ spec:
               value: "$(ES_USERNAME):$(ES_PASSWORD)"
             - name: TLS_HTTP_ENABLED
               value: "{{ or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}"
+            - name: EXTERNAL_OPENSEARCH_ENABLED
+              value: {{ .Values.global.externalOpensearch.enabled | quote }}
             - name: OPENSEARCH_OPERATOR_DEPLOYMENT_NAME
               value: {{ template "opensearch.fullname" . }}-service-operator
             - name: TLS_ENABLED
@@ -116,6 +118,12 @@ spec:
               {{- end }}
             - name: OPENSEARCH_CLIENT_SERVICE_NAME
               value: {{ template "opensearch.fullname" . }}
+            - name: OPENSEARCH_MASTER_NODES_NAME
+              value: {{ template "master-nodes" . }}
+            - name: OPENSEARCH_SECURITY_CONFIG_PATH
+              value: {{ .Values.opensearch.securityConfig.path | quote }}
+            - name: OPENSEARCH_CONFIG_PATH
+              value: {{ .Values.opensearch.configDirectory | quote }}
             {{- if .Values.curator.enabled }}
             - name: CURATOR_ADDRESS
               value: {{ (include "curator.address" .) }}

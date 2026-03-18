@@ -57,10 +57,18 @@ spec:
               value: "$(ES_USERNAME):$(ES_PASSWORD)"
             - name: TLS_HTTP_ENABLED
               value: "{{ or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}"
+            - name: EXTERNAL_OPENSEARCH_ENABLED
+              value: {{ .Values.global.externalOpensearch.enabled | quote }}
             - name: OPENSEARCH_OPERATOR_DEPLOYMENT_NAME
               value: {{ template "opensearch.fullname" . }}-service-operator
             - name: TLS_ENABLED
               value: "{{ template "curator.tlsEnabled" . }}"
+            - name: OPENSEARCH_MASTER_NODES_NAME
+              value: {{ template "master-nodes" . }}
+            - name: OPENSEARCH_SECURITY_CONFIG_PATH
+              value: {{ .Values.opensearch.securityConfig.path | quote }}
+            - name: OPENSEARCH_CONFIG_PATH
+              value: {{ .Values.opensearch.configDirectory | quote }}
             - name: SNAPSHOT_REPOSITORY_NAME
               value: {{ .Values.curator.snapshotRepositoryName | default "snapshots" }}
           {{- if eq (include "dbaas.enabled" .) "true" }}
