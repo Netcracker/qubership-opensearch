@@ -35,18 +35,15 @@ RUN apk add --no-cache wget python3 python3-dev py3-pip \
     && apk update \
     && apk upgrade
 
-ENV VENV_PATH=/opt/venv
-RUN python3 -m venv ${VENV_PATH} \
-    && ${VENV_PATH}/bin/pip install --upgrade pip setuptools wheel \
-    && ${VENV_PATH}/bin/pip install \
+#https://peps.python.org/pep-0668/
+RUN apk add --no-cache wget python3 py3-pip \
+    && pip install --break-system-packages --upgrade pip setuptools wheel \
+    && pip install --break-system-packages \
         opensearch-py==2.5.0 \
         elasticsearch==7.17.12 \
         curator-opensearch==0.0.13 \
         urllib3 \
-        click \
-    && rm -rf /var/cache/apk/*
-
-ENV PATH="${VENV_PATH}/bin:${PATH}"
+        click
 
 #Download necessary tools
 RUN set -x \
