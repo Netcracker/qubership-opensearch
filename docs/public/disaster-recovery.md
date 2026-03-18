@@ -91,6 +91,8 @@ Then, pay attention to the following steps that are significant for the Disaster
 5. The DBaaS adapter should be installed only if the DBaaS aggregator is on the cloud.
 6. If you need to disable automatic follower index deletion whenever the corresponding leader index is deleted, set the `global.disasterRecovery.deleteFollowerIndex` parameter to `false`.
 
+   **Note**: If `global.disasterRecovery.deleteFollowerIndex` parameter is set to `true` after `false`, OpenSearch will automatically delete only the follower indices for which the corresponding leader index is deleted after a configuration change.
+
 ## Manual Steps Before Installation
 
 The OpenSearch cross cluster replication is allowed only for OpenSearch services from a union cluster. This means that both OpenSearch nodes must have the same admin, transport, and rest certificates.
