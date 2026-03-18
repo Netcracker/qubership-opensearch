@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.25.6-alpine3.23 as builder
+FROM --platform=$BUILDPLATFORM golang:1.25.6-alpine3.23 AS builder
 ARG BUILDPLATFORM
 ARG TARGETOS
 ARG TARGETARCH
@@ -35,11 +35,18 @@ RUN apk add --no-cache wget python3 python3-dev py3-pip \
     && apk update \
     && apk upgrade
 
-RUN set -x \
-    && pip install --upgrade pip setuptools wheel \
-    && pip install -U opensearch-py==2.5.0 elasticsearch==7.17.12 curator-opensearch==0.0.13 \
-    && pip install --upgrade pip urllib3 click \
+ENV VENV_PATH=/opt/venv
+RUN python3 -m venv ${VENV_PATH} \
+    && ${VENV_PATH}/bin/pip install --upgrade pip setuptools wheel \
+    && ${VENV_PATH}/bin/pip install \
+        opensearch-py==2.5.0 \
+        elasticsearch==7.17.12 \
+        curator-opensearch==0.0.13 \
+        urllib3 \
+        click \
     && rm -rf /var/cache/apk/*
+
+ENV PATH="${VENV_PATH}/bin:${PATH}"
 
 #Download necessary tools
 RUN set -x \
