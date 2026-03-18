@@ -15,4 +15,8 @@ else
   export ROOT_CA_CERTIFICATE=""
 fi
 
-python3 /opt/backup/backup-daemon.py
+exec /opt/backup/backup-daemon \
+  --custom-vars backup_info:nothing \
+  --tls-enabled "${INTERNAL_TLS_ENABLED}" \
+  --certs-path "${INTERNAL_TLS_PATH}" \
+  "$@"
