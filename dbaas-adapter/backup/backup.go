@@ -350,6 +350,8 @@ func (bp *BackupProvider) restoreBackupV2WithSkipUsersRecovery(ctx context.Conte
 		DryRun:            dryRun,
 		SkipUsersRecovery: "true",
 	}
+	
+	logger.DebugContext(ctx, fmt.Sprintf("Restore request: %+v, dryRun: %v", restoreRequest, dryRun))
 
 	requestBytes, err := json.Marshal(request)
 	if err != nil {
