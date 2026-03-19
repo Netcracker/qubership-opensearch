@@ -15,12 +15,4 @@ else
   export ROOT_CA_CERTIFICATE=""
 fi
 
-exec /opt/backup/backup-daemon \
-  --custom-vars backup_info:nothing \
-  --backup-cmd "/opt/elasticsearch-curator/backup.py {{.data_folder}} {{.dbs}}" \
-  --restore-cmd "/opt/elasticsearch-curator/restore.py {{.data_folder}} {{.skip_users_recovery}} {{.dbs}} {{.dbmap}} {{.clean}}" \
-  --dblist-cmd "/opt/elasticsearch-curator/list_instances_in_vault.py {{.data_folder}}" \
-  --evict-cmd "/opt/elasticsearch-curator/evict.py {{.data_folder}}" \
-  --tls-enabled "${INTERNAL_TLS_ENABLED}" \
-  --certs-path "${INTERNAL_TLS_PATH}" \
-  "$@"
+exec /opt/backup/backup-daemon

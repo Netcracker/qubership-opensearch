@@ -15,6 +15,7 @@
 package backup
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -22,6 +23,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -41,10 +43,12 @@ var (
 	logger                      = common.GetLogger()
 	resourcePrefixAttributeName = "resource_prefix"
 	validate                    = validator.New()
-	backupServiceAddress  = common.GetEnv("CURATOR_ADDRESS", "")
-	backupServiceUser     = common.GetEnv("CURATOR_USERNAME", "")
-	backupServicePassword = common.GetEnv("CURATOR_PASSWORD", "")
+	backupServiceAddress        = common.GetEnv("CURATOR_ADDRESS", "")
+	backupServiceUser           = common.GetEnv("CURATOR_USERNAME", "")
+	backupServicePassword       = common.GetEnv("CURATOR_PASSWORD", "")
 )
+
+const backupAPIv1 = "api/v1"
 
 type Repository struct {
 	Status int `json:"status"`
@@ -119,6 +123,14 @@ type Curator struct {
 	client   *http.Client
 }
 
+type restoreRequestV2WithSkipUsers struct {
+	StorageName       string                     `json:"storageName" validate:"required"`
+	BlobPath          string                     `json:"blobPath" validate:"required"`
+	Databases         []dao.DaemonRestoreMapping `json:"databases" validate:"required,dive"`
+	DryRun            bool                       `json:"dryRun,omitempty"`
+	SkipUsersRecovery string                     `json:"skip_users_recovery"`
+}
+
 var ErrBackupNotFound = errors.New("backup not found")
 var ErrCuratorUnavailable = errors.New("curator return internal server error")
 
@@ -142,10 +154,10 @@ func NewBackupProvider(opensearchClient common.Client, curatorClient *http.Clien
 		client:   curatorClient,
 	}
 	return &BackupProvider{
-		client:               opensearchClient,
-		indexNames:           common.NewIndexAdapter(),
-		repoRoot:             repoRoot,
-		Curator:              curator,
+		client:     opensearchClient,
+		indexNames: common.NewIndexAdapter(),
+		repoRoot:   repoRoot,
+		Curator:    curator,
 		DefaultBackupService: service.DefaultBackupAdministrationService(
 			common.GetDbaasCoreLogger(), backupServiceAddress, backupServiceUser, backupServicePassword, false, curatorClient, common.DbMaxLength, []string{}),
 	}
@@ -292,7 +304,16 @@ func (bp *BackupProvider) RestoreBackupV2Handler() func(w http.ResponseWriter, r
 		}
 		logger.DebugContext(ctx, fmt.Sprintf("Restore request: %+v, dryRun: %v", restoreRequest, dryRun))
 
-		restoreResponse, found := bp.DefaultBackupService.RestoreBackupV2(ctx, backupId, restoreRequest, dryRun)
+		restoreResponse, found, err := bp.restoreBackupV2WithSkipUsersRecovery(ctx, backupId, restoreRequest, dryRun)
+		if err != nil {
+			logger.ErrorContext(ctx, "Failed to create restore", slog.Any("error", err))
+			w.WriteHeader(http.StatusInternalServerError)
+			_ = json.NewEncoder(w).Encode(dao.ServerErrorResponse{
+				Error:     "Failed to create restore",
+				RequestId: common.GetCtxStringValue(ctx, common.RequestIdKey),
+			})
+			return
+		}
 		if !found {
 			logger.InfoContext(ctx, "Backup not found", slog.String("backupId", backupId))
 			w.WriteHeader(http.StatusNotFound)
@@ -303,6 +324,76 @@ func (bp *BackupProvider) RestoreBackupV2Handler() func(w http.ResponseWriter, r
 		w.WriteHeader(http.StatusAccepted)
 		_ = json.NewEncoder(w).Encode(restoreResponse)
 	}
+}
+
+func (bp *BackupProvider) restoreBackupV2WithSkipUsersRecovery(ctx context.Context, backupId string, restoreRequest dao.CreateRestoreRequest, dryRun bool) (*dao.RestoreResponse, bool, error) {
+	databases := make([]dao.DaemonRestoreMapping, 0, len(restoreRequest.Databases))
+	databasesResp := make([]dao.LogicalDatabaseRestore, 0, len(restoreRequest.Databases))
+
+	for _, database := range restoreRequest.Databases {
+		newDbName := database.DatabaseName
+		databases = append(databases, dao.DaemonRestoreMapping{
+			PreviousDatabaseName: database.DatabaseName,
+			DatabaseName:         newDbName,
+		})
+		databasesResp = append(databasesResp, dao.LogicalDatabaseRestore{
+			DatabaseName:         newDbName,
+			PreviousDatabaseName: &database.DatabaseName,
+			Status:               dao.NotStartedStatus,
+		})
+	}
+
+	request := restoreRequestV2WithSkipUsers{
+		StorageName:       restoreRequest.StorageName,
+		BlobPath:          restoreRequest.BlobPath,
+		Databases:         databases,
+		DryRun:            dryRun,
+		SkipUsersRecovery: "true",
+	}
+
+	requestBytes, err := json.Marshal(request)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to marshal restore request: %w", err)
+	}
+
+	u, _ := url.Parse(fmt.Sprintf("%s/%s/restore/%s", bp.Curator.url, backupAPIv1, url.PathEscape(backupId)))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), bytes.NewReader(requestBytes))
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to prepare restore request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(common.RequestIdKey, common.GetCtxStringValue(ctx, common.RequestIdKey))
+	req.SetBasicAuth(bp.Curator.username, bp.Curator.password)
+
+	res, err := bp.Curator.client.Do(req)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to create restore: %w", err)
+	}
+	defer func() { _ = res.Body.Close() }()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to read restore response: %w", err)
+	}
+
+	if res.StatusCode == http.StatusNotFound {
+		return nil, false, nil
+	}
+	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
+		return nil, false, fmt.Errorf("failed to create restore: %s", string(body))
+	}
+
+	restoreResponse := &dao.RestoreResponse{
+		Status:      dao.NotStartedStatus,
+		StorageName: restoreRequest.StorageName,
+		BlobPath:    restoreRequest.BlobPath,
+		Databases:   databasesResp,
+	}
+	if err = json.Unmarshal(body, restoreResponse); err != nil {
+		return nil, false, fmt.Errorf("failed to unmarshal restore response: %w", err)
+	}
+
+	return restoreResponse, true, nil
 }
 
 func (bp *BackupProvider) TrackRestoreV2Handler() func(w http.ResponseWriter, r *http.Request) {
