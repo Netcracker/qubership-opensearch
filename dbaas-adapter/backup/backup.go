@@ -128,7 +128,7 @@ type restoreRequestV2WithSkipUsers struct {
 	BlobPath          string                     `json:"blobPath" validate:"required"`
 	Databases         []dao.DaemonRestoreMapping `json:"databases" validate:"required,dive"`
 	DryRun            bool                       `json:"dryRun,omitempty"`
-	CusromVars        map[string]string          `json:"customVars,omitempty"`
+	CusromVars        map[string]string          `json:"custom_vars,omitempty"`
 }
 
 var ErrBackupNotFound = errors.New("backup not found")
