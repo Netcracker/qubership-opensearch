@@ -128,7 +128,7 @@ type restoreRequestV2WithSkipUsers struct {
 	BlobPath          string                     `json:"blobPath" validate:"required"`
 	Databases         []dao.DaemonRestoreMapping `json:"databases" validate:"required,dive"`
 	DryRun            bool                       `json:"dryRun,omitempty"`
-	SkipUsersRecovery string                     `json:"skip_users_recovery"`
+	CusromVars        map[string]string          `json:"customVars,omitempty"`
 }
 
 var ErrBackupNotFound = errors.New("backup not found")
@@ -348,10 +348,10 @@ func (bp *BackupProvider) restoreBackupV2WithSkipUsersRecovery(ctx context.Conte
 		BlobPath:          restoreRequest.BlobPath,
 		Databases:         databases,
 		DryRun:            dryRun,
-		SkipUsersRecovery: "true",
+		CusromVars:        map[string]string{"skip_users_recovery": "true"},
 	}
-	
-	logger.DebugContext(ctx, fmt.Sprintf("Restore request: %+v, dryRun: %v", restoreRequest, dryRun))
+
+	logger.DebugContext(ctx, fmt.Sprintf("Restore request: %+v, dryRun: %v", request, dryRun))
 
 	requestBytes, err := json.Marshal(request)
 	if err != nil {
@@ -1066,7 +1066,7 @@ func (bp BackupProvider) requestRestore(ctx context.Context, dbs []string, backu
 	body := strings.NewReader(fmt.Sprintf(`
 		{
 			"vault": "%s",
-			"skip_users_recovery": "true",
+			"customVars": {"skip_users_recovery": "true"},
 			"dbs": ["%s"]
 		%s
 		}
@@ -1100,7 +1100,7 @@ func (bp BackupProvider) requestRestoration(ctx context.Context, dbs []string, b
 	body := strings.NewReader(fmt.Sprintf(`
 		{
 			"vault": "%s",
-			"skip_users_recovery": "true",
+			"customVars": {"skip_users_recovery": "true"},
 			"dbs": [%s]
 		%s
 		}
