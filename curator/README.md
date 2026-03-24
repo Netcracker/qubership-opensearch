@@ -133,7 +133,7 @@ To recover users via DBaaS during restore procedure, you need to specify JSON wi
 It works for both granular and full backup. By default, users recovery is enabled if DBaaS parameters specified correctly.
 
 ```
-curl -XPOST -u username:password -v -H "Content-Type: application/json" -d '{"vault":"20190321T080000", "skip_users_recovery":"true"}' http://localhost:8080/restore
+curl -XPOST -u username:password -v -H "Content-Type: application/json" -d '{"vault":"20190321T080000", "customVars": {"skip_users_recovery": "true"}}' http://localhost:8080/restore
 ```
 
 As a response you receive `task_id`, which can be used to check _Recovery Status_.

@@ -811,6 +811,240 @@ Response:
 {"action":"RESTORE","details":{"localId":"20240322T091826"},"status":"SUCCESS","trackId":"20240322T091826","changedNameDb":null,"trackPath":null}
 ```
 
+## Collect Backup v2
+
+```
+POST /api/v2/dbaas/adapter/opensearch/backups/backup
+```
+
+### Description
+
+This API requests to collect backup for specified databases.
+
+### Parameters
+
+| Type     | Name                               | Description                         | Schema |
+|----------|------------------------------------|-------------------------------------|--------|
+| **Body** | **backupRequest**  <br>*required*  | Backup request                      | object |
+
+Request body:
+
+| Field        | Type         | Required | Description |
+|--------------|--------------|----------|-------------|
+| storageName  | string       | yes      | Backup storage name |
+| blobPath     | string       | yes      | Base path in the storage |
+| databases    | list<object> | yes      | List of databases to backup |
+| databases[].databaseName | string | yes | Database name |
+
+### Responses
+
+| HTTP Code | Description                            | Schema |
+|-----------|----------------------------------------|--------|
+| **202**   | Backup is in progress                  | object |
+| **400**   | Invalid request parameters             | object |
+| **404**   | Database not found                     | string |
+
+### Example
+
+Request:
+
+```
+curl -u <username>:<password> -H "Content-Type: application/json" -XPOST http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/backup -d '{
+  "storageName": "s3",
+  "blobPath": "backups/custom/path",
+  "databases": [{"databaseName":"db1"}]
+}'
+```
+
+## Track Backup v2
+
+```
+GET /api/v2/dbaas/adapter/opensearch/backups/backup/{backupId}?blobPath={blobPath}
+```
+
+### Description
+
+This API provides information about requested backup (v2).
+
+### Parameters
+
+| Type      | Name                           | Description                 | Schema |
+|-----------|--------------------------------|-----------------------------|--------|
+| **Path**  | **backupId**  <br>*required*   | Backup identifier           | string |
+| **Query** | **blobPath**  <br>*required*   | Base path in the storage    | string |
+
+### Responses
+
+| HTTP Code | Description        | Schema |
+|-----------|--------------------|--------|
+| **200**   | Backup status      | object |
+| **400**   | Invalid parameters | string |
+| **404**   | Backup not found   | string |
+
+### Example
+
+Request:
+
+```
+curl -u <username>:<password> -XGET "http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/backup/20240322T091826?blobPath=backups/custom/path"
+```
+
+## Restore Backup v2
+
+```
+POST /api/v2/dbaas/adapter/opensearch/backups/backup/{backupId}/restore?dryRun={dryRun}
+```
+
+### Description
+
+This API requests to restore backup (v2) for specified databases.
+
+### Parameters
+
+| Type      | Name                              | Description                                                  | Schema |
+|-----------|-----------------------------------|--------------------------------------------------------------|--------|
+| **Path**  | **backupId**  <br>*required*      | Backup identifier to be restored                             | string |
+| **Query** | **dryRun**  <br>*optional*        | If `true`, run restore in dry-run mode                       | boolean |
+| **Body**  | **restoreRequest**  <br>*required*| Restore request                                              | object |
+
+Request body:
+
+| Field        | Type         | Required | Description |
+|--------------|--------------|----------|-------------|
+| storageName  | string       | yes      | Backup storage name |
+| blobPath     | string       | yes      | Base path in the storage |
+| databases    | list<object> | yes      | List of databases to restore |
+| databases[].microserviceName | string | yes | Microservice name |
+| databases[].databaseName | string | yes | Database name |
+| databases[].namespace | string | yes | Namespace |
+| databases[].prefix | string | no | Database prefix |
+
+### Responses
+
+| HTTP Code | Description                | Schema |
+|-----------|----------------------------|--------|
+| **202**   | Restore is in progress     | object |
+| **400**   | Invalid request parameters | object |
+| **404**   | Backup not found           | string |
+
+### Example
+
+Request:
+
+```
+curl -u <username>:<password> -H "Content-Type: application/json" -XPOST "http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/backup/20240322T091826/restore?dryRun=false" -d '{
+  "storageName": "s3",
+  "blobPath": "backups/custom/path",
+  "databases": [
+    {
+      "microserviceName": "my-service",
+      "databaseName": "db1",
+      "namespace": "default"
+    }
+  ]
+}'
+```
+
+## Track Restore v2
+
+```
+GET /api/v2/dbaas/adapter/opensearch/backups/restore/{restoreId}?blobPath={blobPath}
+```
+
+### Description
+
+This API provides information about requested restore (v2).
+
+### Parameters
+
+| Type      | Name                           | Description                 | Schema |
+|-----------|--------------------------------|-----------------------------|--------|
+| **Path**  | **restoreId**  <br>*required*  | Restore identifier          | string |
+| **Query** | **blobPath**  <br>*required*   | Base path in the storage    | string |
+
+### Responses
+
+| HTTP Code | Description        | Schema |
+|-----------|--------------------|--------|
+| **200**   | Restore status     | object |
+| **400**   | Invalid parameters | string |
+| **404**   | Restore not found  | string |
+
+### Example
+
+Request:
+
+```
+curl -u <username>:<password> -XGET "http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/restore/20240322T091826?blobPath=backups/custom/path"
+```
+
+## Delete Backup v2
+
+```
+DELETE /api/v2/dbaas/adapter/opensearch/backups/backup/{backupId}?blobPath={blobPath}
+```
+
+### Description
+
+This API deletes (evicts) a backup (v2).
+
+### Parameters
+
+| Type      | Name                           | Description              | Schema |
+|-----------|--------------------------------|--------------------------|--------|
+| **Path**  | **backupId**  <br>*required*   | Backup identifier        | string |
+| **Query** | **blobPath**  <br>*required*   | Base path in the storage | string |
+
+### Responses
+
+| HTTP Code | Description        | Schema |
+|-----------|--------------------|--------|
+| **204**   | Backup deleted     | -      |
+| **400**   | Invalid parameters | string |
+| **404**   | Backup not found   | string |
+
+### Example
+
+Request:
+
+```
+curl -u <username>:<password> -XDELETE "http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/backup/20240322T091826?blobPath=backups/custom/path"
+```
+
+## Delete Restore v2
+
+```
+DELETE /api/v2/dbaas/adapter/opensearch/backups/restore/{restoreId}?blobPath={blobPath}
+```
+
+### Description
+
+This API deletes (evicts) a restore (v2).
+
+### Parameters
+
+| Type      | Name                           | Description              | Schema |
+|-----------|--------------------------------|--------------------------|--------|
+| **Path**  | **restoreId**  <br>*required*  | Restore identifier       | string |
+| **Query** | **blobPath**  <br>*required*   | Base path in the storage | string |
+
+### Responses
+
+| HTTP Code | Description        | Schema |
+|-----------|--------------------|--------|
+| **204**   | Restore deleted    | -      |
+| **400**   | Invalid parameters | string |
+| **404**   | Restore not found  | string |
+| **500**   | Backup service is not configured | string |
+
+### Example
+
+Request:
+
+```
+curl -u <username>:<password> -XDELETE "http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/restore/20240322T091826?blobPath=backups/custom/path"
+```
+
 ## Create Database v2
 ```
 
