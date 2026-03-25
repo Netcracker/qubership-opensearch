@@ -55,6 +55,8 @@ Granular Backup And Restore On S3 Storage
 
     #Remove backup from S3
     Delete Backup  ${backup_id}
-    ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}/granular    backup_id=${backup_id}
-    Should Not Be True  ${backup_file_exist}
+    Wait Until Keyword Succeeds  20s  10s
+    ...  Run Keywords
+    ...  ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}/granular    backup_id=${backup_id}
+    ...  AND  Should Not Be True  ${backup_file_exist}
     [Teardown]  Run Keywords  Delete Data  ${OPENSEARCH_BACKUP_INDEX}  AND  Delete Backup If Exists  ${backup_id}
