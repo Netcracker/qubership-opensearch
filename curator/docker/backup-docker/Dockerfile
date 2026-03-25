@@ -80,4 +80,5 @@ USER 1000:0
 
 WORKDIR ${ELASTICSEARCH_CURATOR_HOME}
 
+
 ENTRYPOINT ["/docker-entrypoint.sh"]
