@@ -1066,7 +1066,7 @@ func (bp BackupProvider) requestRestore(ctx context.Context, dbs []string, backu
 	body := strings.NewReader(fmt.Sprintf(`
 		{
 			"vault": "%s",
-			"customVars": {"skip_users_recovery": "true"},
+			"custom_vars": {"skip_users_recovery": "true"},
 			"dbs": ["%s"]
 		%s
 		}
@@ -1100,7 +1100,7 @@ func (bp BackupProvider) requestRestoration(ctx context.Context, dbs []string, b
 	body := strings.NewReader(fmt.Sprintf(`
 		{
 			"vault": "%s",
-			"customVars": {"skip_users_recovery": "true"},
+			"custom_vars": {"skip_users_recovery": "true"},
 			"dbs": [%s]
 		%s
 		}

@@ -80,7 +80,7 @@ Check Backup Status
 
 Granular Restore
     [Arguments]  ${backup_id}  ${dbs_list}  ${renames}={}  ${clean}=false
-    ${restore_data}=  Set Variable  {"vault":"${backup_id}","dbs":${dbs_list},"changeDbNames":${renames},"clean":"${clean}"}
+    ${restore_data}=  Set Variable  {"vault":"${backup_id}","dbs":${dbs_list},"changeDbNames":${renames},"custom_vars":{"clean":"${clean}"}}
     ${response}=  Post Request  curatorsession  /restore  data=${restore_data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
