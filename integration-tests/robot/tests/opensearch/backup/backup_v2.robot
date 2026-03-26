@@ -32,7 +32,8 @@ Prepare Dbaas Adapter
 Get Track Id
     [Arguments]  ${response_content}
     ${content}=  Convert Json ${response_content} To Type
-    ${track_id}=  Set Variable If  'trackId' in ${content}  ${content['trackId']}  ${content['id']}
+    ${track_id}=  Evaluate  $content.get('backupId') or $content.get('restoreId') or $content.get('trackId') or $content.get('id')
+    Should Not Be Equal  ${track_id}  ${None}
     RETURN  ${track_id}
 
 Create Backup V2
