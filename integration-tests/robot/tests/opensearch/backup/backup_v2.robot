@@ -50,7 +50,7 @@ Check Backup Status V2
     [Arguments]  ${backup_id}
     ${response}=  Get Request  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}?blobPath=${BACKUP_BLOB_PATH}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
-    Should Contain  str(${response.content})  SUCCESS
+    Should Contain  str(${response.content})  completed
 
 Restore Backup V2
     [Arguments]  ${backup_id}  ${database_name}
@@ -65,7 +65,7 @@ Check Restore Status V2
     [Arguments]  ${restore_id}
     ${response}=  Get Request  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/restore/${restore_id}?blobPath=${BACKUP_BLOB_PATH}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
-    Should Contain  str(${response.content})  SUCCESS
+    Should Contain  str(${response.content})  completed
 
 Delete Backup V2
     [Arguments]  ${backup_id}
