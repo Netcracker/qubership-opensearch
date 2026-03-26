@@ -167,6 +167,13 @@ func (r *OpenSearchServiceReconciler) Reconcile(ctx context.Context, request ctr
 		}
 	}
 
+	for _, reconciler := range reconcilers {
+    	if err = reconciler.Status(); err != nil {
+        	reqLogger.Error(err, fmt.Sprintf("Status check failed for %T:", reconciler))
+        	return ctrl.Result{}, err
+    	}
+	}
+
 	reqLogger.Info("Reconciliation cycle succeeded")
 	r.ResourceHashes[opensearchSecretHashName] = opensearchSecretHash
 	return ctrl.Result{}, nil
