@@ -1288,7 +1288,6 @@ Response:
 | **name**  <br>*optional*                 | Name of created database                                                        | string                                        |
 | **resources**  <br>*optional*            | List of resources created during database creation and used during its deletion | list<[DbResource](#dbresource)>               |
 
-
 ## UserCreateRequest
 
 | Name                         | Description                                                                                                   | Schema |
