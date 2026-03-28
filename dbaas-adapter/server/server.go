@@ -76,12 +76,16 @@ func Server(ctx context.Context, adapterAddress string, adapterUsername string, 
 		return
 	}
 
-	server := &http.Server{
-		Addr:    ":8080",
-		Handler: hnd,
+	isTlsEnabled := strings.Contains(adapterAddress, common.Https)
+	port := ":8080"
+	if isTlsEnabled {
+		port = ":8443"
 	}
 
-	isTlsEnabled := strings.Contains(adapterAddress, common.Https)
+	server := &http.Server{
+		Addr:    port,
+		Handler: hnd,
+	}
 	logger := common.GetLogger()
 
 	go func() {
