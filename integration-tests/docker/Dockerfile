@@ -1,4 +1,4 @@
-FROM ghcr.io/netcracker/qubership-docker-integration-tests:main
+FROM ghcr.io/netcracker/qubership-docker-integration-tests:0.5.5
 
 USER root
 

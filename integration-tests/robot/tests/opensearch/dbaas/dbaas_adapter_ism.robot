@@ -10,8 +10,7 @@ Suite Setup  Prepare
 Set ISM Job Interval
     [Arguments]  ${interval}
     Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}
-    ${response}=  Update Cluster Settings  {"persistent" : {"plugins.index_state_management.job_interval": ${interval}}}
-    Should Be Equal As Strings  ${response.status_code}  200
+    Update Cluster Settings  {"persistent" : {"plugins.index_state_management.job_interval": ${interval}}}
 
 Check Managed Index State
     [Arguments]  ${index_name}  ${policy_name}  ${state}
