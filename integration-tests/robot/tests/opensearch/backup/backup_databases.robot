@@ -34,10 +34,10 @@ Prepare Databases
 
 Delete Databases
     FOR  ${db}  IN  ${database}  ${database_two}  ${renaming_database}
-        Delete OpenSearch Index  ${db}*
-        Delete OpenSearch Index Template  ${db}*
-        Delete OpenSearch Component Template  ${db}*
-        Delete OpenSearch Template  ${db}*
+        Delete OpenSearch Resource With Retry  Delete OpenSearch Index  ${db}*
+        Delete OpenSearch Resource With Retry  Delete OpenSearch Index Template  ${db}*
+        Delete OpenSearch Resource With Retry  Delete OpenSearch Component Template  ${db}*
+        Delete OpenSearch Resource With Retry  Delete OpenSearch Template  ${db}*
         ${response}=  Get OpenSearch Index  ${db}*
         Check Response Is Empty  ${response}
         ${response}=  Get OpenSearch Index Template  ${db}*
@@ -49,6 +49,16 @@ Delete Databases
         ${response}=  Get OpenSearch Alias  ${db}*
         Check Response Is Empty  ${response}
     END
+
+Delete OpenSearch Resource With Retry
+    [Arguments]  ${delete_keyword}  ${name}
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Delete OpenSearch Resource And Verify Status  ${delete_keyword}  ${name}
+
+Delete OpenSearch Resource And Verify Status
+    [Arguments]  ${delete_keyword}  ${name}
+    ${response}=  Run Keyword  ${delete_keyword}  ${name}
+    Should Be True  ${response.status_code} == 200 or ${response.status_code} == 404
 
 Create Index With Generated Data
     [Arguments]  ${index_name}  ${data}=${None}
