@@ -12,7 +12,7 @@ Suite Setup  Prepare
 Change User Password By Dbaas Agent
     [Arguments]  ${username}  ${password}  ${role_type}
     ${data}=  Set Variable  {"password": "${password}", "role": "${role_type}"}
-    ${response}=  Put Request  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/users/${username}  data=${data}  headers=${headers}
+    ${response}=  PUT On Session  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/users/${username}  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  201
     ${content}=  Convert Json ${response.content} To Type
     RETURN  ${content}
@@ -108,7 +108,7 @@ Database Resource Prefix Authorization
     Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Create OpenSearch Index  ${resourcePrefix_first}-test2
     Should Be Equal As Strings  ${response.status_code}  403
-    ${response}=  Get Request  opensearch  /${resourcePrefix_first}-test/_search
+    ${response}=  GET On Session  opensearch  /${resourcePrefix_first}-test/_search
     Should Be Equal As Strings  ${response.status_code}  403
     ${document}=  Set Variable  {"name": "John", "age": "26"}
     ${response}=  Update Document ${document} For Index ${resourcePrefix_first}-test

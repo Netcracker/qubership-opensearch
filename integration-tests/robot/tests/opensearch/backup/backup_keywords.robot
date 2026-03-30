@@ -32,7 +32,7 @@ Delete Data
     ...  Check OpenSearch Index Does Not Exist  ${prefix}-2
 
 Full Backup
-    ${response}=  Post Request  curatorsession  /backup
+    ${response}=  POST On Session  curatorsession  /backup
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${response.content}
@@ -41,7 +41,7 @@ Full Backup
 Granular Backup
     [Arguments]  ${indices_list}
     ${data}=  Set Variable  {"dbs":${indices_list}}
-    ${response}=  Post Request  curatorsession  /backup  data=${data}  headers=${headers}
+    ${response}=  POST On Session  curatorsession  /backup  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${response.content}
@@ -49,18 +49,18 @@ Granular Backup
 
 Delete Backup
     [Arguments]  ${backup_id}
-    ${response}=  Post Request  curatorsession  /evict/${backup_id}
+    ${response}=  POST On Session  curatorsession  /evict/${backup_id}
     Should Be Equal As Strings  ${response.status_code}  200
 
 Delete Backup If Exists
     [Arguments]  ${backup_id}
-    ${response}=  Get Request  curatorsession  /listbackups/${backup_id}
+    ${response}=  GET On Session  curatorsession  /listbackups/${backup_id}
     Run Keyword If    ${response.status_code}==200    Delete Backup  ${backup_id}
 
 Full Restore
     [Arguments]  ${backup_id}  ${indices_list}
     ${restore_data}=  Set Variable  {"vault":"${backup_id}","dbs":${indices_list}}
-    ${response}=  Post Request  curatorsession  /restore  data=${restore_data}  headers=${headers}
+    ${response}=  POST On Session  curatorsession  /restore  data=${restore_data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Restore Status  ${response.content}
@@ -68,14 +68,14 @@ Full Restore
 Full Restore By Timestamp
     [Arguments]  ${backup_ts}  ${indices_list}
     ${restore_data}=  Set Variable  {"ts":"${backup_ts}","dbs":${indices_list}}
-    ${response}=  Post Request  curatorsession  /restore  data=${restore_data}  headers=${headers}
+    ${response}=  POST On Session  curatorsession  /restore  data=${restore_data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Restore Status  ${response.content}
 
 Get Backup Timestamp
     [Arguments]  ${backup_id}
-    ${response}=  Get Request  curatorsession  /listbackups/${backup_id}
+    ${response}=  GET On Session  curatorsession  /listbackups/${backup_id}
     Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
     RETURN  ${content['ts']}
@@ -83,32 +83,32 @@ Get Backup Timestamp
 Find Backup ID By Timestamp
     [Arguments]  ${backup_ts}
     ${find_data}=  Create Dictionary  ts=${backup_ts}
-    ${response}=  Get Request  curatorsession  /find  json=${find_data}
+    ${response}=  GET On Session  curatorsession  /find  json=${find_data}
     Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
     RETURN  ${content['id']}
 
 Check Backup Status
     [Arguments]  ${backup_id}
-    ${response}=  Get Request  curatorsession  /listbackups/${backup_id}
+    ${response}=  GET On Session  curatorsession  /listbackups/${backup_id}
     ${content}=  Convert Json ${response.content} To Type
     Should Be Equal As Strings  ${content['failed']}  False
 
 Check Restore Status
     [Arguments]  ${task_id}
-    ${response}=  Get Request  curatorsession  /jobstatus/${task_id}
+    ${response}=  GET On Session  curatorsession  /jobstatus/${task_id}
     ${content}=  Convert Json ${response.content} To Type
     Should Be Equal As Strings  ${content['status']}  Successful
 
 Check Backup Absence By Curator
     [Arguments]  ${backup_id}
-    ${response}=  Get Request  curatorsession  /listbackups/${backup_id}
+    ${response}=  GET On Session  curatorsession  /listbackups/${backup_id}
     Should Be Equal As Strings  ${response.status_code}  404
 
 Check Backup Absence By OpenSearch
     [Arguments]  ${backup_id}
     ${backup_id_in_lowercase}=  Convert To Lowercase  ${backup_id}
-    ${response}=  Get Request  opensearch  /_snapshot/snapshots/${backup_id_in_lowercase}  headers=${headers}
+    ${response}=  GET On Session  opensearch  /_snapshot/snapshots/${backup_id_in_lowercase}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  404
 
 Create Index With Generated Data

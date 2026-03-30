@@ -35,7 +35,7 @@ Generate Name
 
 Create Backup By Dbaas Agent
     [Arguments]  ${indices_list}
-    ${response}=  Post Request  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/collect  data=${indices_list}  headers=${headers}
+    ${response}=  POST On Session  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/collect  data=${indices_list}  headers=${headers}
     ${content}=  Convert Json ${response.content} To Type
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${content['trackId']}
@@ -43,12 +43,12 @@ Create Backup By Dbaas Agent
 
 Delete Backup By Dbaas Agent
     [Arguments]  ${backup_id}
-    ${response}=  Delete Request  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}  headers=${headers}
+    ${response}=  DELETE On Session  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
 
 Restore Indices From Backup By Dbaas Agent
     [Arguments]  ${backup_id}  ${indices_list}
-    ${response}=  Post Request  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}/restore  data=${indices_list}  headers=${headers}
+    ${response}=  POST On Session  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}/restore  data=${indices_list}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
@@ -56,17 +56,17 @@ Restore Indices From Backup By Dbaas Agent
 
 Check Backup Status
     [Arguments]  ${backup_id}
-    ${restore_status}=  Get Request  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/track/backup/${backup_id}
+    ${restore_status}=  GET On Session  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/track/backup/${backup_id}
     Should Contain  str(${restore_status.content})  SUCCESS
 
 Check Restore Status
     [Arguments]  ${backup_id}
-    ${restore_status}=  Get Request  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/track/restore/${backup_id}
+    ${restore_status}=  GET On Session  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/track/restore/${backup_id}
     Should Contain  str(${restore_status.content})  SUCCESS
 
 Delete OpenSearch Backup
     [Arguments]  ${backup_id}
-    ${response}=  Delete Request  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${backup_id}
+    ${response}=  DELETE On Session  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${backup_id}
     ${boolean_success_result}=  Evaluate  ${response.status_code} in [200, 404]
     Should Be True  ${boolean_success_result}
 
@@ -75,12 +75,12 @@ Check OpenSearch Backup Exists
     # DBaaS adapter manipulates backups via Curator.
     # The backup_id in backup-daemon and the real snapshot name in opensearch are different.
     ${opensearch_backup_id}=  Convert To Lowercase  ${backup_id}
-    ${response}=  Get Request  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${opensearch_backup_id}
+    ${response}=  GET On Session  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${opensearch_backup_id}
     Should Be Equal As Strings  ${response.status_code}  200
 
 Check OpenSearch Backup Does Not Exist
     [Arguments]  ${backup_id}
-    ${response}=  Get Request  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${backup_id}
+    ${response}=  GET On Session  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${backup_id}
     Should Be Equal As Strings  ${response.status_code}  404
 
 *** Test Cases ***

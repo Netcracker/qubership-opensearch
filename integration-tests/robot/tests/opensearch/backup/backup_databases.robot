@@ -66,7 +66,7 @@ Generate And Add Unique Data To Index By Id
 Granular Backup
     [Arguments]  ${databases}
     ${data}=  Set Variable  {"dbs":${databases}}
-    ${response}=  Post Request  curatorsession  /backup  data=${data}  headers=${headers}
+    ${response}=  POST On Session  curatorsession  /backup  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${response.content}
@@ -74,27 +74,27 @@ Granular Backup
 
 Check Backup Status
     [Arguments]  ${backup_id}
-    ${response}=  Get Request  curatorsession  /listbackups/${backup_id}
+    ${response}=  GET On Session  curatorsession  /listbackups/${backup_id}
     ${content}=  Convert Json ${response.content} To Type
     Should Be Equal As Strings  ${content['failed']}  False
 
 Granular Restore
     [Arguments]  ${backup_id}  ${dbs_list}  ${renames}={}  ${clean}=false
     ${restore_data}=  Set Variable  {"vault":"${backup_id}","dbs":${dbs_list},"changeDbNames":${renames},"clean":"${clean}"}
-    ${response}=  Post Request  curatorsession  /restore  data=${restore_data}  headers=${headers}
+    ${response}=  POST On Session  curatorsession  /restore  data=${restore_data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Restore Status  ${response.content}
 
 Check Restore Status
     [Arguments]  ${task_id}
-    ${response}=  Get Request  curatorsession  /jobstatus/${task_id}
+    ${response}=  GET On Session  curatorsession  /jobstatus/${task_id}
     ${content}=  Convert Json ${response.content} To Type
     Should Be Equal As Strings  ${content['status']}  Successful
 
 Delete Backup
     [Arguments]  ${backup_id}
-    ${response}=  Post Request  curatorsession  /evict/${backup_id}
+    ${response}=  POST On Session  curatorsession  /evict/${backup_id}
     Should Be Equal As Strings  ${response.status_code}  200
 
 *** Test Cases ***

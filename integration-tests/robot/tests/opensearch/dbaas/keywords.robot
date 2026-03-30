@@ -35,7 +35,7 @@ Create Database Resource Prefix By Dbaas Agent
     &{data}=  Create Dictionary  settings=${settings}
     Run Keyword If  "${prefix}" != "${EMPTY}"  Set To Dictionary  ${data}  namePrefix=${prefix}
     Run Keyword If  ${metadata}  Set To Dictionary  ${data}  metadata=${metadata}
-    ${response}=  Post Request  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
+    ${response}=  POST On Session  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  201
     ${content}=  Convert Json ${response.content} To Type
     RETURN  ${content}
@@ -43,5 +43,5 @@ Create Database Resource Prefix By Dbaas Agent
 Delete Database Resource Prefix Dbaas Agent
     [Arguments]  ${prefix}
     ${data}=  Set Variable  [{"kind":"resourcePrefix","name":"${prefix}"}]
-    ${response}=  Post Request  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/resources/bulk-drop  data=${data}  headers=${headers}
+    ${response}=  POST On Session  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/resources/bulk-drop  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
