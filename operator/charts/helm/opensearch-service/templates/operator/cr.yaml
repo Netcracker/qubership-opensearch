@@ -109,3 +109,12 @@ spec:
     replicationWatcherInterval: {{ .Values.global.disasterRecovery.replicationWatcherIntervalSeconds }}
     deleteFollowerIndex: {{ .Values.global.disasterRecovery.deleteFollowerIndex }}
   {{- end }}
+  {{- if .Values.integrationTests.enabled }}
+  integrationTests:
+    serviceName: {{ .Values.integrationTests.service.name | default "opensearch-integration-tests" }}
+    waitForResult: {{ .Values.integrationTests.waitForResult }}
+    timeout: {{ .Values.integrationTests.timeout | default 1200 }}
+    {{- if .Values.integrationTests.waitForResult }}
+    randomRunTrigger: "{{ randAlphaNum 10 }}"
+    {{- end }}
+  {{- end }}
