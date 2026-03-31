@@ -119,7 +119,7 @@ Search Document
 
 Search Document By Field
     [Arguments]  ${index_name}  ${field_name}  ${field_value}
-    ${response}=  GET On Session  opensearch  /${index_name}/_search?q=${field_name}:${field_value}
+    ${response}=  GET On Session  opensearch  /${index_name}/_search  params=q=${field_name}:${field_value}
     ${content}=  Convert Json ${response.content} To Type
     RETURN  ${content}
 
@@ -151,7 +151,7 @@ Convert Json ${json} To Type
     RETURN  ${json_dictionary}
 
 Get OpenSearch Status
-    ${response}=  GET On Session  opensearch  /_cat/health?h=status
+    ${response}=  GET On Session  opensearch  /_cat/health  params=h=status
     ${content}=  Decode Bytes To String  ${response.content}  UTF-8
     RETURN  ${content.strip()}
 
@@ -161,18 +161,18 @@ Check OpenSearch Is Green
 
 Get Index Uuid
     [Arguments]  ${index_name}
-    ${response}=  GET On Session  opensearch  /_cat/indices/${index_name}?h=uuid
+    ${response}=  GET On Session  opensearch  /_cat/indices/${index_name}  params=h=uuid
     ${content}=  Decode Bytes To String  ${response.content}  UTF-8
     RETURN  ${content.strip()}
 
 Get Index Information
     [Arguments]  ${index_name}
-    ${response}=  GET On Session  opensearch  /_cat/shards/${index_name}?v&h=shard,prirep,node&format=json
+    ${response}=  GET On Session  opensearch  /_cat/shards/${index_name}  params=v&h=shard,prirep,node&format=json
     ${content}=  Convert Json ${response.content} To Type
     RETURN  ${content}
 
 Get Master Node Name
-    ${response}=  GET On Session  opensearch  /_cat/cluster_manager?h=node  timeout=10
+    ${response}=  GET On Session  opensearch  /_cat/cluster_manager  params=h=node  timeout=10
     ${content}=  Decode Bytes To String  ${response.content}  UTF-8
     Should Be Equal As Strings  ${response.status_code}  200  OpenSearch returned ${response.status_code} code. Master node is not recognized
     RETURN  ${content.strip()}
@@ -313,7 +313,7 @@ Get Policies
 
 Update Policy
     [Arguments]  ${policy_name}  ${seq_no}  ${primary_term}  ${body}
-    ${response}=  PUT On Session  opensearch  /_plugins/_ism/policies/${policy_name}?if_seq_no=${seq_no}&if_primary_term=${primary_term}  data=${body}  headers=${headers}
+    ${response}=  PUT On Session  opensearch  /_plugins/_ism/policies/${policy_name}  params=if_seq_no=${seq_no}&if_primary_term=${primary_term}  data=${body}  headers=${headers}
     RETURN  ${response}
 
 Remove Policy
