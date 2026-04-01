@@ -16,7 +16,7 @@ Resource  ../shared/keywords.robot
 *** Keywords ***
 Send Request With Basic Authentication
     [Arguments]  ${path}
-    ${response}=  GET On Session  opensearch  ${path}
+    ${response}=  GET On Session  opensearch  ${path}  expected_status=any
     RETURN  ${response}
 
 Register New Client
@@ -33,7 +33,7 @@ Get New Token
 Send Request With OAuth Token
     [Arguments]  ${endpoint}  ${token}  ${data}=${None}
     &{headers}=  Create Dictionary  Authorization=Bearer ${token}
-    ${response}=  GET On Session  opensearch  ${endpoint}  headers=${headers}
+    ${response}=  GET On Session  opensearch  ${endpoint}  headers=${headers}  expected_status=any
     RETURN  ${response}
 
 *** Test Cases ***

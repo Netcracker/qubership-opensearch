@@ -43,7 +43,7 @@ Create Backup By Dbaas Agent
 
 Delete Backup By Dbaas Agent
     [Arguments]  ${backup_id}
-    ${response}=  DELETE On Session  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}  headers=${headers}
+    ${response}=  DELETE On Session  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}  headers=${headers}  expected_status=any
     Should Be Equal As Strings  ${response.status_code}  200
 
 Restore Indices From Backup By Dbaas Agent
@@ -66,7 +66,7 @@ Check Restore Status
 
 Delete OpenSearch Backup
     [Arguments]  ${backup_id}
-    ${response}=  DELETE On Session  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${backup_id}
+    ${response}=  DELETE On Session  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${backup_id}  expected_status=any
     ${boolean_success_result}=  Evaluate  ${response.status_code} in [200, 404]
     Should Be True  ${boolean_success_result}
 

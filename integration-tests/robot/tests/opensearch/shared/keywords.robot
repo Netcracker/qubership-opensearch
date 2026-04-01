@@ -64,7 +64,7 @@ Get OpenSearch Index
 
 Delete OpenSearch Index
     [Arguments]  ${name}
-    ${response}=  DELETE On Session  opensearch  /${name}
+    ${response}=  DELETE On Session  opensearch  /${name}  expected_status=any
     RETURN  ${response}
 
 Check OpenSearch Index Exists
@@ -143,7 +143,7 @@ Delete Document For Index ${index_name}
 
 Delete Document From Index By Id
     [Arguments]  ${index_name}  ${id}
-    ${response}=  DELETE On Session  opensearch  /${index_name}/_doc/${id}  headers=${headers}
+    ${response}=  DELETE On Session  opensearch  /${index_name}/_doc/${id}  headers=${headers}  expected_status=any
     Should Be Equal As Strings  ${response.status_code}  200
 
 Convert Json ${json} To Type
@@ -217,7 +217,7 @@ Get OpenSearch Template
 
 Delete OpenSearch Template
     [Arguments]  ${template_name}
-    ${response}=  DELETE On Session  opensearch  /_template/${template_name}
+    ${response}=  DELETE On Session  opensearch  /_template/${template_name}  expected_status=any
     RETURN  ${response}
 
 Get OpenSearch Component Template
@@ -227,7 +227,7 @@ Get OpenSearch Component Template
 
 Delete OpenSearch Component Template
     [Arguments]  ${template_name}
-    ${response}=  DELETE On Session  opensearch  /_component_template/${template_name}
+    ${response}=  DELETE On Session  opensearch  /_component_template/${template_name}  expected_status=any
     RETURN  ${response}
 
 Get OpenSearch Index Template
@@ -237,7 +237,7 @@ Get OpenSearch Index Template
 
 Delete OpenSearch Index Template
     [Arguments]  ${template_name}
-    ${response}=  DELETE On Session  opensearch  /_index_template/${template_name}
+    ${response}=  DELETE On Session  opensearch  /_index_template/${template_name}  expected_status=any
     RETURN  ${response}
 
 Get OpenSearch Tasks
@@ -318,7 +318,7 @@ Update Policy
 
 Remove Policy
     [Arguments]  ${policy_name}
-    ${response}=  DELETE On Session  opensearch  /_plugins/_ism/policies/${policy_name}  headers=${headers}
+    ${response}=  DELETE On Session  opensearch  /_plugins/_ism/policies/${policy_name}  headers=${headers}  expected_status=any
     RETURN  ${response}
 
 Add Policy To Index
