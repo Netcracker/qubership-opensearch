@@ -67,7 +67,6 @@ Granular Backup
     [Arguments]  ${databases}
     ${data}=  Set Variable  {"dbs":${databases}}
     ${response}=  POST On Session  curatorsession  /backup  data=${data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${response.content}
     RETURN  ${response.text}
@@ -82,7 +81,6 @@ Granular Restore
     [Arguments]  ${backup_id}  ${dbs_list}  ${renames}={}  ${clean}=false
     ${restore_data}=  Set Variable  {"vault":"${backup_id}","dbs":${dbs_list},"changeDbNames":${renames},"clean":"${clean}"}
     ${response}=  POST On Session  curatorsession  /restore  data=${restore_data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Restore Status  ${response.content}
 
@@ -95,7 +93,6 @@ Check Restore Status
 Delete Backup
     [Arguments]  ${backup_id}
     ${response}=  POST On Session  curatorsession  /evict/${backup_id}
-    Should Be Equal As Strings  ${response.status_code}  200
 
 *** Test Cases ***
 Granular Backup And Restore With Alias

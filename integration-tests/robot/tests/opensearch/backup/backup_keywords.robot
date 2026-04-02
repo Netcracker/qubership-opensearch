@@ -33,7 +33,6 @@ Delete Data
 
 Full Backup
     ${response}=  POST On Session  curatorsession  /backup
-    Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${response.content}
     RETURN  ${response.text}
@@ -42,26 +41,23 @@ Granular Backup
     [Arguments]  ${indices_list}
     ${data}=  Set Variable  {"dbs":${indices_list}}
     ${response}=  POST On Session  curatorsession  /backup  data=${data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${response.content}
     RETURN  ${response.text}
 
 Delete Backup
     [Arguments]  ${backup_id}
-    ${response}=  POST On Session  curatorsession  /evict/${backup_id}
-    Should Be Equal As Strings  ${response.status_code}  200
+    POST On Session  curatorsession  /evict/${backup_id}
 
 Delete Backup If Exists
     [Arguments]  ${backup_id}
-    ${response}=  GET On Session  curatorsession  /listbackups/${backup_id}
+    ${response}=  GET On Session  curatorsession  /listbackups/${backup_id}  expected_status=any
     Run Keyword If    ${response.status_code}==200    Delete Backup  ${backup_id}
 
 Full Restore
     [Arguments]  ${backup_id}  ${indices_list}
     ${restore_data}=  Set Variable  {"vault":"${backup_id}","dbs":${indices_list}}
     ${response}=  POST On Session  curatorsession  /restore  data=${restore_data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Restore Status  ${response.content}
 
@@ -69,14 +65,12 @@ Full Restore By Timestamp
     [Arguments]  ${backup_ts}  ${indices_list}
     ${restore_data}=  Set Variable  {"ts":"${backup_ts}","dbs":${indices_list}}
     ${response}=  POST On Session  curatorsession  /restore  data=${restore_data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Restore Status  ${response.content}
 
 Get Backup Timestamp
     [Arguments]  ${backup_id}
     ${response}=  GET On Session  curatorsession  /listbackups/${backup_id}
-    Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
     RETURN  ${content['ts']}
 
@@ -84,7 +78,6 @@ Find Backup ID By Timestamp
     [Arguments]  ${backup_ts}
     ${find_data}=  Create Dictionary  ts=${backup_ts}
     ${response}=  GET On Session  curatorsession  /find  json=${find_data}
-    Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
     RETURN  ${content['id']}
 
@@ -102,14 +95,12 @@ Check Restore Status
 
 Check Backup Absence By Curator
     [Arguments]  ${backup_id}
-    ${response}=  GET On Session  curatorsession  /listbackups/${backup_id}
-    Should Be Equal As Strings  ${response.status_code}  404
+    ${response}=  GET On Session  curatorsession  /listbackups/${backup_id}  expected_status=404
 
 Check Backup Absence By OpenSearch
     [Arguments]  ${backup_id}
     ${backup_id_in_lowercase}=  Convert To Lowercase  ${backup_id}
-    ${response}=  GET On Session  opensearch  /_snapshot/snapshots/${backup_id_in_lowercase}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  404
+    ${response}=  GET On Session  opensearch  /_snapshot/snapshots/${backup_id_in_lowercase}  headers=${headers}  expected_status=404
 
 Create Index With Generated Data
     [Arguments]  ${index_name}

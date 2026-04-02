@@ -43,13 +43,11 @@ Create Backup By Dbaas Agent
 
 Delete Backup By Dbaas Agent
     [Arguments]  ${backup_id}
-    ${response}=  DELETE On Session  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}  headers=${headers}  expected_status=any
-    Should Be Equal As Strings  ${response.status_code}  200
+    DELETE On Session  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}  headers=${headers}
 
 Restore Indices From Backup By Dbaas Agent
     [Arguments]  ${backup_id}  ${indices_list}
     ${response}=  POST On Session  dbaassession  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/${backup_id}/restore  data=${indices_list}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Restore Status  ${content['trackId']}
@@ -76,12 +74,10 @@ Check OpenSearch Backup Exists
     # The backup_id in backup-daemon and the real snapshot name in opensearch are different.
     ${opensearch_backup_id}=  Convert To Lowercase  ${backup_id}
     ${response}=  GET On Session  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${opensearch_backup_id}
-    Should Be Equal As Strings  ${response.status_code}  200
 
 Check OpenSearch Backup Does Not Exist
     [Arguments]  ${backup_id}
-    ${response}=  GET On Session  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${backup_id}
-    Should Be Equal As Strings  ${response.status_code}  404
+    GET On Session  opensearch  /_snapshot/${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}/${backup_id}  expected_status=404
 
 *** Test Cases ***
 Create Backup By Dbaas Adapter

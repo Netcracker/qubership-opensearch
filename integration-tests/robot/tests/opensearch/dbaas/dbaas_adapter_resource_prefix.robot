@@ -13,7 +13,6 @@ Change User Password By Dbaas Agent
     [Arguments]  ${username}  ${password}  ${role_type}
     ${data}=  Set Variable  {"password": "${password}", "role": "${role_type}"}
     ${response}=  PUT On Session  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/users/${username}  data=${data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  201
     ${content}=  Convert Json ${response.content} To Type
     RETURN  ${content}
 
@@ -88,8 +87,7 @@ Database Resource Prefix Authorization
     Should Be Equal As Strings  ${response.status_code}  403
     ${document}=  Set Variable  {"name": "John", "age": "25"}
     Create Document ${document} For Index ${resourcePrefix_first}-test
-    ${response}=  Make Index Read Only  ${resourcePrefix_first}-test
-    Should Be Equal As Strings  ${response.status_code}  200
+    Make Index Read Only  ${resourcePrefix_first}-test
     ${response}=  Clone Index  ${resourcePrefix_first}-test  ${resourcePrefix_first}-test-new
     Should Be Equal As Strings  ${response.status_code}  200
     Check OpenSearch Index Exists  ${resourcePrefix_first}-test-new
@@ -98,8 +96,7 @@ Database Resource Prefix Authorization
 #    {response}=  Clone Index  ${resourcePrefix_first}-test  custom-test-new
 #    Should Be Equal As Strings  ${response.status_code}  403
 
-    ${response}=  Make Index Read Write  ${resourcePrefix_first}-test
-    Should Be Equal As Strings  ${response.status_code}  200
+    Make Index Read Write  ${resourcePrefix_first}-test
 
     Login To OpenSearch  ${username_second}  ${password_second}
     Create OpenSearch Template  ${resourcePrefix_second}-template  ${resourcePrefix_second}*  {"number_of_shards":3}
@@ -108,8 +105,7 @@ Database Resource Prefix Authorization
     Should Be Equal As Strings  ${response.status_code}  200
     ${response}=  Create OpenSearch Index  ${resourcePrefix_first}-test2
     Should Be Equal As Strings  ${response.status_code}  403
-    ${response}=  GET On Session  opensearch  /${resourcePrefix_first}-test/_search
-    Should Be Equal As Strings  ${response.status_code}  403
+    ${response}=  GET On Session  opensearch  /${resourcePrefix_first}-test/_search  expected_status=403
     ${document}=  Set Variable  {"name": "John", "age": "26"}
     ${response}=  Update Document ${document} For Index ${resourcePrefix_first}-test
     Should Be Equal As Strings  ${response.status_code}  403

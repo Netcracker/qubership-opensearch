@@ -53,13 +53,13 @@ Generate Database Name
 Create OpenSearch Index
     [Arguments]  ${name}  ${data}=${None}
     ${json}=  Run Keyword If  ${data}  To Json  ${data}
-    ${response}=  PUT On Session  opensearch  /${name}  data=${json}  headers=${headers}
+    ${response}=  PUT On Session  opensearch  /${name}  data=${json}  headers=${headers}  expected_status=any
     Log  ${response.content}
     RETURN  ${response}
 
 Get OpenSearch Index
     [Arguments]  ${name}  ${timeout}=${None}
-    ${response}=  GET On Session  opensearch  /${name}  timeout=${timeout}
+    ${response}=  GET On Session  opensearch  /${name}  timeout=${timeout}  expected_status=any
     RETURN  ${response}
 
 Delete OpenSearch Index
@@ -105,11 +105,10 @@ Add Document To Index By Id
     [Arguments]  ${index_name}  ${document}  ${id}
     ${response}=  PUT On Session  opensearch  /${index_name}/_create/${id}  data=${document}  headers=${headers}
     Log  ${response.content}
-    Should Be Equal As Strings  ${response.status_code}  201
 
 Update Document ${document} For Index ${index_name}
     ${document}=  Set Variable  {"doc":${document}}
-    ${response}=  POST On Session  opensearch  /${index_name}/_update/1  data=${document}  headers=${headers}
+    ${response}=  POST On Session  opensearch  /${index_name}/_update/1  data=${document}  headers=${headers}  expected_status=any
     RETURN  ${response}
 
 Search Document
@@ -143,8 +142,7 @@ Delete Document For Index ${index_name}
 
 Delete Document From Index By Id
     [Arguments]  ${index_name}  ${id}
-    ${response}=  DELETE On Session  opensearch  /${index_name}/_doc/${id}  headers=${headers}  expected_status=any
-    Should Be Equal As Strings  ${response.status_code}  200
+    DELETE On Session  opensearch  /${index_name}/_doc/${id}  headers=${headers}
 
 Convert Json ${json} To Type
     ${json_dictionary}=  Evaluate  json.loads('''${json}''')  json
@@ -172,91 +170,85 @@ Get Index Information
     RETURN  ${content}
 
 Get Master Node Name
-    ${response}=  GET On Session  opensearch  /_cat/cluster_manager  params=h=node  timeout=10
+    ${response}=  GET On Session  opensearch  /_cat/cluster_manager  params=h=node  timeout=10  expected_status=any
     ${content}=  Decode Bytes To String  ${response.content}  UTF-8
     Should Be Equal As Strings  ${response.status_code}  200  OpenSearch returned ${response.status_code} code. Master node is not recognized
     RETURN  ${content.strip()}
 
 Create OpenSearch Alias
     [Arguments]  ${index_name}  ${alias}
-    ${response}=  PUT On Session  opensearch  /${index_name}/_alias/${alias}
+    ${response}=  PUT On Session  opensearch  /${index_name}/_alias/${alias}  expected_status=any
     RETURN  ${response}
 
 Get OpenSearch Alias
     [Arguments]  ${alias}
-    ${response}=  GET On Session  opensearch  /_alias/${alias}
+    ${response}=  GET On Session  opensearch  /_alias/${alias}  expected_status=any
     RETURN  ${response}
 
 Get OpenSearch Alias For Index
     [Arguments]  ${index_name}  ${alias}
-    ${response}=  GET On Session  opensearch  /${index_name}/_alias/${alias}
+    ${response}=  GET On Session  opensearch  /${index_name}/_alias/${alias}  expected_status=any
     RETURN  ${response}
 
 Create OpenSearch Component Template
     [Arguments]  ${template_name}  ${settings}={}  ${aliases}={}
     ${template}=  Set Variable  {"template": {"settings":${settings}, "aliases": ${aliases}}}
     ${response}=  PUT On Session  opensearch  /_component_template/${template_name}  data=${template}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
 
 Create OpenSearch Index Template
     [Arguments]  ${template_name}  ${index_pattern}  ${settings}={}  ${aliases}={}  ${composed_of}=[]
     ${template}=  Set Variable  {"index_patterns":["${index_pattern}"],"template": {"settings":${settings}, "aliases": ${aliases}}, "composed_of": ${composed_of}}
     ${response}=  PUT On Session  opensearch  /_index_template/${template_name}  data=${template}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
 
 Create OpenSearch Template
     [Arguments]  ${template_name}  ${index_pattern}  ${settings}={}  ${aliases}={}
     ${template}=  Set Variable  {"index_patterns":["${index_pattern}"],"settings":${settings},"aliases": ${aliases}}
     ${response}=  PUT On Session  opensearch  /_template/${template_name}  data=${template}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
 
 Get OpenSearch Template
     [Arguments]  ${template_name}
-    ${response}=  GET On Session  opensearch  /_template/${template_name}
+    ${response}=  GET On Session  opensearch  /_template/${template_name}  expected_status=any
     RETURN  ${response}
 
 Delete OpenSearch Template
     [Arguments]  ${template_name}
-    ${response}=  DELETE On Session  opensearch  /_template/${template_name}  expected_status=any
-    RETURN  ${response}
+    DELETE On Session  opensearch  /_template/${template_name}  expected_status=any
 
 Get OpenSearch Component Template
     [Arguments]  ${template_name}
-    ${response}=  GET On Session  opensearch  /_component_template/${template_name}
+    ${response}=  GET On Session  opensearch  /_component_template/${template_name}  expected_status=any
     RETURN  ${response}
 
 Delete OpenSearch Component Template
     [Arguments]  ${template_name}
-    ${response}=  DELETE On Session  opensearch  /_component_template/${template_name}  expected_status=any
-    RETURN  ${response}
+    DELETE On Session  opensearch  /_component_template/${template_name}  expected_status=any
 
 Get OpenSearch Index Template
     [Arguments]  ${template_name}
-    ${response}=  GET On Session  opensearch  /_index_template/${template_name}
+    ${response}=  GET On Session  opensearch  /_index_template/${template_name}  expected_status=any
     RETURN  ${response}
 
 Delete OpenSearch Index Template
     [Arguments]  ${template_name}
-    ${response}=  DELETE On Session  opensearch  /_index_template/${template_name}  expected_status=any
-    RETURN  ${response}
+    DELETE On Session  opensearch  /_index_template/${template_name}  expected_status=any
 
 Get OpenSearch Tasks
-    ${response}=  GET On Session  opensearch  /_tasks
+    ${response}=  GET On Session  opensearch  /_tasks  expected_status=any
     RETURN  ${response}
 
 Get OpenSearch Task By ID
     [Arguments]  ${task_id}
-    ${response}=  GET On Session  opensearch  /_tasks/${task_id}
+    ${response}=  GET On Session  opensearch  /_tasks/${task_id}  expected_status=any
     RETURN  ${response}
 
 Get OpenSearch Index Exists
     [Arguments]  ${index_name}
-    ${response}=  Head Request  opensearch  /${index_name}
+    ${response}=  Head Request  opensearch  /${index_name}  expected_status=any
     RETURN  ${response}
 
 Get OpenSearch User
     [Arguments]  ${username}
-    ${response}=  GET On Session  opensearch  /_plugins/_security/api/internalusers/${username}
+    ${response}=  GET On Session  opensearch  /_plugins/_security/api/internalusers/${username}  expected_status=any
     RETURN  ${response}
 
 Check OpenSearch User Exists
@@ -267,15 +259,13 @@ Check OpenSearch User Exists
 Get Index Settings
     [Arguments]  ${index_name}
     ${response}=  GET On Session  opensearch  /${index_name}/_settings
-    Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
     RETURN  ${content}
 
 Make Index Read Only
     [Arguments]  ${index_name}
     ${body}=  Set Variable  {"settings":{"index.blocks.write":true}}
-    ${response}=  PUT On Session  opensearch  /${index_name}/_settings  data=${body}  headers=${headers}
-    RETURN  ${response}
+    PUT On Session  opensearch  /${index_name}/_settings  data=${body}  headers=${headers}
 
 Make Index Read Write
     [Arguments]  ${index_name}
@@ -291,18 +281,18 @@ Enable Slow Log
 
 Clone Index
     [Arguments]  ${index_name}  ${clone_index_name}
-    ${response}=  PUT On Session  opensearch  /${index_name}/_clone/${clone_index_name}  headers=${headers}
+    ${response}=  PUT On Session  opensearch  /${index_name}/_clone/${clone_index_name}  headers=${headers}  expected_status=any
     RETURN  ${response}
 
 Create Policy
     [Arguments]  ${policy_name}  ${body}
-    ${response}=  PUT On Session  opensearch  /_plugins/_ism/policies/${policy_name}  data=${body}  headers=${headers}
+    ${response}=  PUT On Session  opensearch  /_plugins/_ism/policies/${policy_name}  data=${body}  headers=${headers}  expected_status=any
     Log  ${response.text}
     RETURN  ${response}
 
 Get Policy
     [Arguments]  ${policy_name}  ${with_content}=True
-    ${response}=  GET On Session  opensearch  /_plugins/_ism/policies/${policy_name}
+    ${response}=  GET On Session  opensearch  /_plugins/_ism/policies/${policy_name}  expected_status=any
     Log  ${response.text}
     Run Keyword And Return If  ${with_content}  Get Response Content  ${response}
     RETURN  ${response}
@@ -313,7 +303,7 @@ Get Policies
 
 Update Policy
     [Arguments]  ${policy_name}  ${seq_no}  ${primary_term}  ${body}
-    ${response}=  PUT On Session  opensearch  /_plugins/_ism/policies/${policy_name}  params=if_seq_no=${seq_no}&if_primary_term=${primary_term}  data=${body}  headers=${headers}
+    ${response}=  PUT On Session  opensearch  /_plugins/_ism/policies/${policy_name}  params=if_seq_no=${seq_no}&if_primary_term=${primary_term}  data=${body}  headers=${headers}  expected_status=any
     RETURN  ${response}
 
 Remove Policy
@@ -323,29 +313,29 @@ Remove Policy
 
 Add Policy To Index
     [Arguments]  ${index_name}  ${policy_name}
-    ${response}=  POST On Session  opensearch  /_plugins/_ism/add/${index_name}  data={"policy_id": "${policy_name}"}  headers=${headers}
+    ${response}=  POST On Session  opensearch  /_plugins/_ism/add/${index_name}  data={"policy_id": "${policy_name}"}  headers=${headers}  expected_status=any
     RETURN  ${response}
 
 Explain Index
     [Arguments]  ${index_name}  ${with_content}=True
-    ${response}=  GET On Session  opensearch  /_plugins/_ism/explain/${index_name}
+    ${response}=  GET On Session  opensearch  /_plugins/_ism/explain/${index_name}  expected_status=any
     Log  ${response.text}
     Run Keyword And Return If  ${with_content}  Get Response Content  ${response}
     RETURN  ${response}
 
 Change Index Policy
     [Arguments]  ${index_name}  ${data}
-    ${response}=  POST On Session  opensearch  /_plugins/_ism/change_policy/${index_name}  data=${data}  headers=${headers}
+    ${response}=  POST On Session  opensearch  /_plugins/_ism/change_policy/${index_name}  data=${data}  headers=${headers}  expected_status=any
     RETURN  ${response}
 
 Retry Failed Index
     [Arguments]  ${index_name}  ${data}
-    ${response}=  POST On Session  opensearch  /_plugins/_ism/retry/${index_name}  data=${data}  headers=${headers}
+    ${response}=  POST On Session  opensearch  /_plugins/_ism/retry/${index_name}  data=${data}  headers=${headers}  expected_status=any
     RETURN  ${response}
 
 Remove Policy From Index
     [Arguments]  ${index_name}
-    ${response}=  POST On Session  opensearch  /_plugins/_ism/remove/${index_name}  headers=${headers}
+    ${response}=  POST On Session  opensearch  /_plugins/_ism/remove/${index_name}  headers=${headers}  expected_status=any
     RETURN  ${response}
 
 Update Cluster Settings
