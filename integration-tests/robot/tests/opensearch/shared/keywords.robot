@@ -52,7 +52,7 @@ Generate Database Name
 
 Create OpenSearch Index
     [Arguments]  ${name}  ${data}=${None}
-    ${json}=  Set Variable If  ${data}  ${data.json()}
+    ${json}=  Run Keyword If  ${data}  Evaluate  json.loads($data)  modules=json
     ${response}=  PUT On Session  opensearch  /${name}  data=${json}  headers=${headers}  expected_status=any
     Log  ${response.content}
     RETURN  ${response}
