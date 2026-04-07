@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Netcracker/dbaas-opensearch-adapter/cluster"
 	"github.com/Netcracker/dbaas-opensearch-adapter/common"
@@ -31,6 +32,7 @@ import (
 	core "github.com/Netcracker/qubership-dbaas-adapter-core/pkg/utils"
 	"github.com/gorilla/mux"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 const (
@@ -159,14 +161,22 @@ func (bp BaseProvider) BulkDropResourceHandler() func(w http.ResponseWriter, r *
 		}
 		defer func() { _ = r.Body.Close() }()
 
-		deletedResources := bp.deleteResources(resources, ctx)
-		failedResources := getResourcesWithFailedStatus(deletedResources)
 		var resourcesToReturn []dao.DbResource
-		if len(failedResources) > 0 {
-			resourcesToReturn = failedResources
+		err = wait.PollUntilContextTimeout(context.Background(), 30*time.Second, 3*time.Minute, true, func(ctx context.Context) (done bool, err error) {
+			deletedResources := bp.deleteResources(resources, ctx)
+			successfulResources, failedResources := getResourcesWithSuccessfulAndFailedStatus(deletedResources)
+			resourcesToReturn = append(resourcesToReturn, successfulResources...)
+			if len(failedResources) > 0 {
+				logger.WarnContext(ctx, "Some of the resources can't be deleted due to errors", slog.Any("resources", failedResources))
+				resources = failedResources
+				return false, nil
+			}
+			return true, nil
+		})
+		if err != nil {
+			resourcesToReturn = resources
 			w.WriteHeader(http.StatusInternalServerError)
 		} else {
-			resourcesToReturn = deletedResources
 			w.WriteHeader(http.StatusOK)
 		}
 		bytesResult, err := json.Marshal(resourcesToReturn)
@@ -955,14 +965,17 @@ func getResourceDeletionFailedStatus(resource dao.DbResource, err error) *dao.Db
 	}
 }
 
-func getResourcesWithFailedStatus(resources []dao.DbResource) []dao.DbResource {
-	var result []dao.DbResource
+func getResourcesWithSuccessfulAndFailedStatus(resources []dao.DbResource) ([]dao.DbResource, []dao.DbResource) {
+	var deletedResources []dao.DbResource
+	var failedResources []dao.DbResource
 	for _, resource := range resources {
 		if resource.Status == DeletionFailedStatus {
-			result = append(result, resource)
+			failedResources = append(failedResources, resource)
+		} else {
+			deletedResources = append(deletedResources, resource)
 		}
 	}
-	return result
+	return deletedResources, failedResources
 }
 
 func buildIndexName(dbName string, prefix string) string {
