@@ -190,6 +190,34 @@ func handleValidationErrors(err error) dao.BadRequestResponse {
 	}
 }
 
+func writeJSONResponse(ctx context.Context, w http.ResponseWriter, statusCode int, payload any) bool {
+	var responseBuffer bytes.Buffer
+	if err := json.NewEncoder(&responseBuffer).Encode(payload); err != nil {
+		logger.ErrorContext(ctx, "Failed to encode response payload", slog.Any("error", err))
+		serverErrorPayload := dao.ServerErrorResponse{
+			Error:     "Internal server error",
+			RequestId: common.GetCtxStringValue(ctx, common.RequestIdKey),
+		}
+		responseBuffer.Reset()
+		if encodeErr := json.NewEncoder(&responseBuffer).Encode(serverErrorPayload); encodeErr != nil {
+			logger.ErrorContext(ctx, "Failed to encode server error response payload", slog.Any("error", encodeErr))
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return false
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write(responseBuffer.Bytes())
+		return false
+	}
+
+	w.WriteHeader(statusCode)
+	if _, err := w.Write(responseBuffer.Bytes()); err != nil {
+		logger.ErrorContext(ctx, "Failed to write response payload", slog.Any("error", err))
+		return false
+	}
+
+	return true
+}
+
 func (bp *BackupProvider) CollectBackupV2Handler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := common.PrepareContext(r)
@@ -197,18 +225,20 @@ func (bp *BackupProvider) CollectBackupV2Handler() func(w http.ResponseWriter, r
 
 		var backupRequest dao.CreateBackupRequest
 		if err := json.NewDecoder(r.Body).Decode(&backupRequest); err != nil {
-			logger.ErrorContext(ctx, "Failed to parse backup request", slog.Any("error", err))
-			w.WriteHeader(http.StatusBadRequest)
-			_ = json.NewEncoder(w).Encode(dao.BadRequestResponse{
+			logger.ErrorContext(ctx, "Failed to parse backup request", slog.String("error", err.Error()))
+			if !writeJSONResponse(ctx, w, http.StatusBadRequest, dao.BadRequestResponse{
 				Error:   "Invalid request parameters",
 				Details: []string{err.Error()},
-			})
+			}) {
+				return
+			}
 			return
 		}
 		if err := validate.Struct(backupRequest); err != nil {
-			logger.ErrorContext(ctx, "Failed to validate backup request", slog.Any("error", err))
-			w.WriteHeader(http.StatusBadRequest)
-			_ = json.NewEncoder(w).Encode(handleValidationErrors(err))
+			logger.ErrorContext(ctx, "Failed to validate backup request", slog.String("error", err.Error()))
+			if !writeJSONResponse(ctx, w, http.StatusBadRequest, handleValidationErrors(err)) {
+				return
+			}
 			return
 		}
 		logger.DebugContext(ctx, fmt.Sprintf("Backup request: %+v", backupRequest))
@@ -225,8 +255,9 @@ func (bp *BackupProvider) CollectBackupV2Handler() func(w http.ResponseWriter, r
 			return
 		}
 		logger.DebugContext(ctx, fmt.Sprintf("Backup response: %+v", backupResponse))
-		w.WriteHeader(http.StatusAccepted)
-		_ = json.NewEncoder(w).Encode(backupResponse)
+		if !writeJSONResponse(ctx, w, http.StatusAccepted, backupResponse) {
+			return
+		}
 	}
 }
 
@@ -236,8 +267,12 @@ func (bp *BackupProvider) TrackBackupV2Handler() func(w http.ResponseWriter, r *
 		backupId := mux.Vars(r)["backupId"]
 		blobPath, err := requireBlobPath(r)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			_, _ = w.Write([]byte(err.Error()))
+			if !writeJSONResponse(ctx, w, http.StatusBadRequest, dao.BadRequestResponse{
+				Error:   "Invalid request parameters",
+				Details: []string{err.Error()},
+			}) {
+				return
+			}
 			return
 		}
 		logger.DebugContext(ctx, fmt.Sprintf("Get backup request for ID: %s", backupId))
@@ -250,8 +285,9 @@ func (bp *BackupProvider) TrackBackupV2Handler() func(w http.ResponseWriter, r *
 			return
 		}
 		logger.DebugContext(ctx, fmt.Sprintf("Backup response: %+v", backupResponse))
-		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(backupResponse)
+		if !writeJSONResponse(ctx, w, http.StatusOK, backupResponse) {
+			return
+		}
 	}
 }
 
@@ -261,8 +297,12 @@ func (bp *BackupProvider) DeleteBackupV2Handler() func(w http.ResponseWriter, r 
 		backupId := mux.Vars(r)["backupId"]
 		blobPath, err := requireBlobPath(r)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			_, _ = w.Write([]byte(err.Error()))
+			if !writeJSONResponse(ctx, w, http.StatusBadRequest, dao.BadRequestResponse{
+				Error:   "Invalid request parameters",
+				Details: []string{err.Error()},
+			}) {
+				return
+			}
 			return
 		}
 		logger.DebugContext(ctx, fmt.Sprintf("Delete backup request for ID: %s", backupId))
@@ -289,17 +329,19 @@ func (bp *BackupProvider) RestoreBackupV2Handler() func(w http.ResponseWriter, r
 		var restoreRequest dao.CreateRestoreRequest
 		if err := json.NewDecoder(r.Body).Decode(&restoreRequest); err != nil {
 			logger.ErrorContext(ctx, "Failed to parse restore request", slog.Any("error", err))
-			w.WriteHeader(http.StatusBadRequest)
-			_ = json.NewEncoder(w).Encode(dao.BadRequestResponse{
+			if !writeJSONResponse(ctx, w, http.StatusBadRequest, dao.BadRequestResponse{
 				Error:   "Invalid request parameters",
 				Details: []string{err.Error()},
-			})
+			}) {
+				return
+			}
 			return
 		}
 		if err := validate.Struct(restoreRequest); err != nil {
 			logger.ErrorContext(ctx, "Failed to validate restore request", slog.Any("error", err))
-			w.WriteHeader(http.StatusBadRequest)
-			_ = json.NewEncoder(w).Encode(handleValidationErrors(err))
+			if !writeJSONResponse(ctx, w, http.StatusBadRequest, handleValidationErrors(err)) {
+				return
+			}
 			return
 		}
 		logger.DebugContext(ctx, fmt.Sprintf("Restore request: %+v, dryRun: %v", restoreRequest, dryRun))
@@ -307,11 +349,12 @@ func (bp *BackupProvider) RestoreBackupV2Handler() func(w http.ResponseWriter, r
 		restoreResponse, found, err := bp.restoreBackupV2WithSkipUsersRecovery(ctx, backupId, restoreRequest, dryRun)
 		if err != nil {
 			logger.ErrorContext(ctx, "Failed to create restore", slog.Any("error", err))
-			w.WriteHeader(http.StatusInternalServerError)
-			_ = json.NewEncoder(w).Encode(dao.ServerErrorResponse{
+			if !writeJSONResponse(ctx, w, http.StatusInternalServerError, dao.ServerErrorResponse{
 				Error:     "Failed to create restore",
 				RequestId: common.GetCtxStringValue(ctx, common.RequestIdKey),
-			})
+			}) {
+				return
+			}
 			return
 		}
 		if !found {
@@ -321,8 +364,9 @@ func (bp *BackupProvider) RestoreBackupV2Handler() func(w http.ResponseWriter, r
 			return
 		}
 		logger.DebugContext(ctx, fmt.Sprintf("Restore response: %+v", restoreResponse))
-		w.WriteHeader(http.StatusAccepted)
-		_ = json.NewEncoder(w).Encode(restoreResponse)
+		if !writeJSONResponse(ctx, w, http.StatusAccepted, restoreResponse) {
+			return
+		}
 	}
 }
 
@@ -404,8 +448,12 @@ func (bp *BackupProvider) TrackRestoreV2Handler() func(w http.ResponseWriter, r 
 		restoreId := mux.Vars(r)["restoreId"]
 		blobPath, err := requireBlobPath(r)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			_, _ = w.Write([]byte(err.Error()))
+			if !writeJSONResponse(ctx, w, http.StatusBadRequest, dao.BadRequestResponse{
+				Error:   "Invalid request parameters",
+				Details: []string{err.Error()},
+			}) {
+				return
+			}
 			return
 		}
 		logger.DebugContext(ctx, fmt.Sprintf("Get restore request for ID: %s", restoreId))
@@ -418,8 +466,9 @@ func (bp *BackupProvider) TrackRestoreV2Handler() func(w http.ResponseWriter, r 
 			return
 		}
 		logger.DebugContext(ctx, fmt.Sprintf("Restore response: %+v", restoreResponse))
-		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(restoreResponse)
+		if !writeJSONResponse(ctx, w, http.StatusOK, restoreResponse) {
+			return
+		}
 	}
 }
 
@@ -429,8 +478,12 @@ func (bp *BackupProvider) DeleteRestoreV2Handler() func(w http.ResponseWriter, r
 		restoreId := mux.Vars(r)["restoreId"]
 		blobPath, err := requireBlobPath(r)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			_, _ = w.Write([]byte(err.Error()))
+			if !writeJSONResponse(ctx, w, http.StatusBadRequest, dao.BadRequestResponse{
+				Error:   "Invalid request parameters",
+				Details: []string{err.Error()},
+			}) {
+				return
+			}
 			return
 		}
 		if bp.DefaultBackupService == nil {
