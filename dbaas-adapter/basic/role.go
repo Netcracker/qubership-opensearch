@@ -56,7 +56,6 @@ const (
 	ReadOnlyRoleType                       = "readonly"
 	IsmRoleType                            = "ism"
 	BackendRolePattern                     = "dbaas_%s"
-	RefreshRoleType 					   = "refresh"
 )
 
 type Role struct {
@@ -70,7 +69,7 @@ type IndexPermission struct {
 }
 
 func (bp BaseProvider) GetSupportedRoleTypes() []string {
-	return []string{ReadOnlyRoleType, DmlRoleType, AdminRoleType, IsmRoleType, RefreshRoleType}
+	return []string{ReadOnlyRoleType, DmlRoleType, AdminRoleType, IsmRoleType}
 }
 
 func (bp BaseProvider) DefineRoleType(roleName string) string {
@@ -122,6 +121,7 @@ func (bp BaseProvider) CreateRoleWithAdminPermissions() error {
 		ClusterManageIndexTemplatePermissions,
 		ClusterManageAliasesPermissions,
 		"indices:admin/resize",
+		IndicesAdminRefreshPermission,
 	}
 	return bp.createRole(clusterPermissions, indexPermissions, indexGlobalPermissions, AdminRoleType)
 }
@@ -165,14 +165,6 @@ func (bp BaseProvider) CreateRoleWithReadOnlyPermissions() error {
 		ClusterMonitorMainPermission,
 	}
 	return bp.createRole(clusterPermissions, indexPermissions, []string{}, ReadOnlyRoleType)
-}
-
-func (bp BaseProvider) CreateRoleWithRefreshPermissions() error {
-    indexPermissions := []string{
-        IndicesAdminRefreshPermission,
-        strings.ToUpper(IndicesAdminRefreshPermission),
-    }
-    return bp.createRole([]string{}, indexPermissions, []string{}, RefreshRoleType)
 }
 
 func (bp BaseProvider) createRole(clusterPermissions []string, indexPermissions []string,

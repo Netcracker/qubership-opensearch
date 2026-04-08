@@ -278,9 +278,6 @@ func createBasicRoles(baseProvider *basic.BaseProvider) {
 	if err = baseProvider.CreateRoleWithReadOnlyPermissions(); err != nil {
 		panic(err)
 	}
-	if err = baseProvider.CreateRoleWithRefreshPermissions(); err != nil {
-		panic(err)
-	}
 	// migration is necessary if specific roles mapping does not exist
 	if mapping == nil {
 		if err := performMigration(baseProvider); err != nil {
@@ -312,7 +309,7 @@ func performMigration(baseProvider *basic.BaseProvider) error {
 func relevantForMigration(roleName string, roleMapping basic.RoleMapping) bool {
 	return (strings.HasSuffix(roleName, "_role") || strings.HasSuffix(roleName, "_dml") ||
 		strings.HasSuffix(roleName, "_readonly") || strings.HasSuffix(roleName, "_admin") ||
-		strings.HasSuffix(roleName, "_ism") || strings.HasSuffix(roleName, "_refresh")) && !roleMapping.Reserved && len(roleMapping.Users) == 1
+		strings.HasSuffix(roleName, "_ism")) && !roleMapping.Reserved && len(roleMapping.Users) == 1
 }
 
 func updateUserConfiguration(username string, roleName string, baseProvider *basic.BaseProvider) error {
