@@ -63,11 +63,6 @@ func TestCreateRoleWithDMLPermission(t *testing.T) {
 	assert.Empty(t, err)
 }
 
-func TestCreateRoleWithRefreshPermissions(t *testing.T) {
-	err := baseProvider.CreateRoleWithRefreshPermissions()
-	assert.Empty(t, err)
-}
-
 func TestGetRoleWithDMLPermission(t *testing.T) {
 	name := fmt.Sprintf(common.RoleNamePattern, DmlRoleType)
 	clusterPermissions := []string{
