@@ -167,7 +167,7 @@ func (bp BaseProvider) BulkDropResourceHandler() func(w http.ResponseWriter, r *
 			successfulResources, failedResources := getResourcesWithSuccessfulAndFailedStatus(deletedResources)
 			resourcesToReturn = append(resourcesToReturn, successfulResources...)
 			if len(failedResources) > 0 {
-				logger.WarnContext(ctx, fmt.Sprintf("Some of the resources can't be deleted due to errors: %v", failedResources))
+				logger.WarnContext(ctx, fmt.Sprintf("Some of the resources can't be deleted due to errors: %+v", failedResources))
 				resources = failedResources
 				return false, nil
 			}
