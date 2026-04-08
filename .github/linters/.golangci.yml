@@ -2,6 +2,9 @@ version: 2
 
 run:
   tests: false
+  skip-dirs:
+    - ^\.$
+    - ^$
 
 linters:
   settings:

@@ -82,8 +82,8 @@ Get Backup Timestamp
 
 Find Backup ID By Timestamp
     [Arguments]  ${backup_ts}
-    ${find_data}=  Create Dictionary  ts=${backup_ts}
-    ${response}=  Get Request  curatorsession  /find  json=${find_data}
+    ${find_data}=  Set Variable  {"ts":"${backup_ts}"}
+    ${response}=  Get Request  curatorsession  /find  data=${find_data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     ${content}=  Convert Json ${response.content} To Type
     RETURN  ${content['id']}
