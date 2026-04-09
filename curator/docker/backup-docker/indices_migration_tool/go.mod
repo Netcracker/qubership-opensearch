@@ -1,6 +1,6 @@
 module github.com/Netcracker/qubership-opensearch/index-migration-docker-image
 
-go 1.25.2
+go 1.26
 
 require (
 	github.com/Netcracker/dbaas-opensearch-adapter v0.0.0-20250604105712-8d15c5f91d19
