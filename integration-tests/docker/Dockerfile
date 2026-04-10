@@ -24,7 +24,7 @@ RUN set -x \
 RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
     && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
     && apk add --update --upgrade --no-cache \
-        libcurl curl
+        libcurl curl libcrypto3
 
 USER 1000:0
 

@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.26.1-alpine3.23 as builder
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine3.23 as builder
 ARG BUILDPLATFORM
 ARG TARGETOS
 ARG TARGETARCH
@@ -37,12 +37,12 @@ RUN apk add --no-cache wget python3 python3-dev py3-pip \
 
 #https://peps.python.org/pep-0668/
 RUN apk add --no-cache wget python3 py3-pip \
-    && pip install --break-system-packages --upgrade pip setuptools wheel \
+    && pip install --break-system-packages --upgrade pip setuptools==80.10.2 wheel==0.46.2 \
     && pip install --break-system-packages \
         opensearch-py==2.5.0 \
         elasticsearch==7.17.12 \
         curator-opensearch==0.0.13 \
-        urllib3 \
+        urllib3==2.6.0 \
         click
 
 #Download necessary tools
