@@ -1,4 +1,4 @@
-FROM opensearchproject/opensearch-dashboards:3.5.0
+FROM opensearchproject/opensearch-dashboards:3.6.0
 
 USER 1000
 
