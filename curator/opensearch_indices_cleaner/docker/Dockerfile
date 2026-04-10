@@ -18,6 +18,12 @@ RUN set -x \
 # Upgrade all tools to avoid vulnerabilities
 RUN set -x && apk upgrade --no-cache --available
 
+# Upgrade tools from edge to avoid vulnerabilities
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
+    && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
+    && apk add --update --upgrade --no-cache \
+        libcrypto3 libssl3 binutils zlib
+
 RUN set -x \
     && python3 -m unittest discover -s ${ELASTICSEARCH_INDICES_CLEANER_HOME} -p "*_tests.py"
 
