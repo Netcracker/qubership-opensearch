@@ -39,10 +39,10 @@ RUN apk add --no-cache wget python3 python3-dev py3-pip \
 RUN apk add --no-cache wget python3 py3-pip \
     && pip install --break-system-packages --upgrade pip setuptools==80.10.2 wheel==0.46.2 \
     && pip install --break-system-packages \
-        opensearch-py==2.8.0 \
+        opensearch-py==2.5.0 \
         elasticsearch==7.17.12 \
         curator-opensearch==0.0.13 \
-        urllib3==1.26.20 \
+        urllib3 \
         click
 
 #Download necessary tools
