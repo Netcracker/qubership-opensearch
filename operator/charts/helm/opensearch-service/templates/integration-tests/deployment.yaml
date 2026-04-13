@@ -16,6 +16,7 @@ spec:
   strategy:
     type: RollingUpdate
   replicas: {{ template "opensearch.replicasForSingleService" . }}
+  progressDeadlineSeconds: 3000
   template:
     metadata:
       labels:
