@@ -17,6 +17,7 @@ COPY robot ${ROBOT_HOME}
 RUN chmod -R 775 ${ROBOT_HOME}/tests/opensearch/ha/test-data-resources/*
 
 RUN set -x \
+    && pip install --no-cache-dir --upgrade pip==26.0 \
     && pip3 install -r ${ROBOT_HOME}/requirements.txt \
     && apk add --no-cache curl \
     && rm -rf /var/cache/apk/*
@@ -24,7 +25,7 @@ RUN set -x \
 RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
     && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
     && apk add --update --upgrade --no-cache \
-        libcurl curl libcrypto3
+        libcurl curl libcrypto3 musl-dev musl-utils musl libssl3 libuuid binutils vim xxd vim-common
 
 USER 1000:0
 

@@ -10,7 +10,7 @@ COPY scripts/indices_cleaner_tests.py ${ELASTICSEARCH_INDICES_CLEANER_HOME}/indi
 # Return back 5.8.1 version for 'elasticsearch-curator' in requirements when 'botocore' version is compatible with 5.8.1 version of 'elasticsearch-curator'
 RUN set -x \
     && apk add --upgrade --no-cache build-base apk-tools \
-    && pip3 install --upgrade pip setuptools \
+    && pip3 install --upgrade pip setuptools==80.10.2 jaraco.context==6.1.0 \
     && pip3 install -r ${ELASTICSEARCH_INDICES_CLEANER_HOME}/requirements.txt \
     && pip3 install --upgrade urllib3 \
     && rm -rf /var/cache/apk/*
