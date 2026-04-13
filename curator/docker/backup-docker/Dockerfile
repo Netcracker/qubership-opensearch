@@ -42,7 +42,7 @@ RUN apk add --no-cache wget python3 py3-pip \
         opensearch-py==2.8.0 \
         elasticsearch==7.17.12 \
         curator-opensearch==0.0.13 \
-        urllib3==2.6.0 \
+        urllib3==1.26.20 \
         click
 
 #Download necessary tools
