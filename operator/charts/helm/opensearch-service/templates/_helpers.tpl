@@ -213,11 +213,14 @@ plugins.security.ssl.http.enabled_ciphers:
 DNS names used to generate TLS certificate with "Subject Alternative Name" field
 */}}
 {{- define "opensearch.certDnsNames" -}}
-  {{- $opensearchName := include "opensearch.fullname" . -}}
-  {{- $dnsNames := list "localhost" $opensearchName (printf "%s.%s" $opensearchName .Release.Namespace) (printf "%s.%s.svc" $opensearchName .Release.Namespace) (printf "%s-internal" $opensearchName) (printf "%s-internal.%s" $opensearchName .Release.Namespace) (printf "%s-internal.%s.svc" $opensearchName .Release.Namespace) -}}
-  {{- $dnsNames = concat $dnsNames .Values.opensearch.client.ingress.hosts }}
-  {{- $dnsNames = concat $dnsNames .Values.opensearch.tls.subjectAlternativeName.additionalDnsNames -}}
-  {{- $dnsNames | toYaml -}}
+{{- $opensearchName := include "opensearch.fullname" . -}}
+{{- $dnsNames := list "localhost" $opensearchName (printf "%s.%s" $opensearchName .Release.Namespace) (printf "%s.%s.svc" $opensearchName .Release.Namespace) (printf "%s-internal" $opensearchName) (printf "%s-internal.%s" $opensearchName .Release.Namespace) (printf "%s-internal.%s.svc" $opensearchName .Release.Namespace) -}}
+{{- $dnsNames = concat $dnsNames .Values.opensearch.client.ingress.hosts }}
+{{- if .Values.opensearch.client.envoyGateway.host }}
+{{- $dnsNames = append $dnsNames .Values.opensearch.client.envoyGateway.host }}
+{{- end }}
+{{- $dnsNames = concat $dnsNames .Values.opensearch.tls.subjectAlternativeName.additionalDnsNames }}
+{{- $dnsNames | toYaml -}}
 {{- end -}}
 
 {{/*
@@ -1426,6 +1429,23 @@ Restricted environment.
   {{- end -}}
 {{- end -}}
 
+{{- define "gateway.parentRefs" -}}
+{{- $root := index . 0 -}}
+{{- $refs := index . 1 | default list -}}
+{{- $port := index . 2 -}}
+{{- if and $root.Values.GATEWAY_SYSTEM_NAME $root.Values.GATEWAY_SYSTEM_NAMESPACE }}
+- name: {{ $root.Values.GATEWAY_SYSTEM_NAME }}
+  namespace: {{ $root.Values.GATEWAY_SYSTEM_NAMESPACE }}
+  port: {{ $port }}
+{{- else if gt (len $refs) 0 }}
+{{- range $refs }}
+- name: {{ .name }}
+  namespace: {{ .namespace }}
+  port: {{ $port }}
+{{- end }}
+{{- end }}
+{{- end -}}
+
 {{- define "opensearch.stsStorage" -}}
   {{- $ns := .Release.Namespace -}}
   {{- $stsName := (include "master-nodes" .) -}}
@@ -1462,6 +1482,12 @@ Migration runs ONLY for upgrades when:
 {{- define "opensearch.shouldRunMigration" -}}
   {{- $currentStatefulSet := lookup "apps/v1" "StatefulSet" .Release.Namespace (include "master-nodes" .) -}}
   {{- if $currentStatefulSet -}}
+    {{- $currentImage := "" -}}
+    {{- range $currentStatefulSet.spec.template.spec.containers -}}
+      {{- if or (eq .name "opensearch") (eq .name "opensearch-master") -}}
+        {{- $currentImage = .image -}}
+      {{- end -}}
+    {{- end -}}
     {{- $currentVersion := include "opensearch.currentVersion" . -}}
     {{- $currentMajor := 0 -}}
     {{- if $currentVersion -}}
@@ -1469,7 +1495,8 @@ Migration runs ONLY for upgrades when:
     {{- end -}}
     {{- $targetVersion := include "opensearch.imageVariant" . -}}
     {{- if eq $targetVersion "3" -}}
-      {{- if and (ne $currentMajor 3) (or (eq $currentMajor 0) (eq $currentMajor 2)) -}}
+      {{- $currentIs3x := or (eq $currentMajor 3) (regexFind "opensearch-3" $currentImage) -}}
+      {{- if and (not $currentIs3x) (or (eq $currentMajor 0) (eq $currentMajor 2)) -}}
         {{- printf "true" -}}
       {{- end -}}
     {{- end -}}

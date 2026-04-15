@@ -211,12 +211,12 @@
     * [Alerts](#alerts-35)
     * [Stack trace](#stack-trace-33)
     * [How to solve](#how-to-solve-35)
-    * [Recommendations](#recommendations-34)
+    * [Recommendations](#recommendations-33)
   * [Upgrade Failed Due to Pre-Deploy Migration Hook](#upgrade-failed-due-to-pre-deploy-migration-hook)
     * [Description](#description-36)
     * [Stack trace](#stack-trace-34)
     * [How to solve](#how-to-solve-36)
-    * [Recommendations](#recommendations-35)
+    * [Recommendations](#recommendations-34)
 <!-- TOC -->
 
 ## Cluster Health
@@ -656,7 +656,7 @@ OpenSearch uses replica shards to provide failover capabilities, as well as to s
 
 ```text
 /go/pkg/mod/sigs.k8s.io/controller-runtime@v0.10.0/pkg/internal/controller/controller.go:227
-2022-08-17T10:54:48.543Z        ERROR   controller.opensearchservice    Reconciler error        {"reconciler group": "netcracker.com", "reconciler kind": "OpenSearchService", "name": "opensearch", "namespace": "platform-opensearch", "error": "some replication indicies are failed"}
+2022-08-17T10:54:48.543Z        ERROR   controller.opensearchservice    Reconciler error        {"reconciler group": "netcracker.com", "reconciler kind": "OpenSearchService", "name": "opensearch", "namespace": "platform-opensearch", "error": "some replication indices are failed"}
 ```
 
 ### How to solve
@@ -926,7 +926,7 @@ The CustomResourceDefinition "opensearchservices.netcracker.com" is invalid: spe
 To fix the issue, you need to find the following section in the CRD (`config/crd/old/netcracker.com_opensearchservices.yaml`):
 
 ```yaml
-#Comment it if you deploy to Kubernetes 1.11 (e.g OpenShift 3.11)
+#Comment it if you deploy to Kubernetes 1.11 (e.g. OpenShift 3.11)
 type: object
 ```
 
@@ -1055,7 +1055,7 @@ Otherwise, you have to regenerate TLS certificates with specified way (`CertMana
 
 ### Description
 
-DBaaS created users cannot login to OpenSearch and fails with authentication error.
+DBaaS created users cannot log in to OpenSearch and fails with authentication error.
 
 DBaaS user was not correctly created on the OpenSearch side while DBaaS thought it was.
 To check the real state of OpenSearch users you can reach the endpoint `{opensearch_host}/_plugins/_security/api/internalusers/`
@@ -1073,7 +1073,7 @@ Request action failed: Unexpected response status for RequestActionHandler.Reque
 
 ### How to solve
 
-  To resolve desynchronization of DBaaS database and OpenSearch users storage you can use the rollowing DBaaS restore API:
+  To resolve desynchronization of DBaaS database and OpenSearch users storage you can use the following DBaaS restore API:
 
 ```bash
 curl -u {dbaas_user}:{dbaas_password} -XPOST -H "Accept:application/json" -H  "Content-Type:application/json" http://dbaas-aggregator.dbaas:8080/api/v3/dbaas/internal/physical_databases/users/restore-password -d '
@@ -1088,7 +1088,7 @@ Then wait some time until users being synchronized.
 
 ### Recommendations
 
-There can be a lot of causes of that desynchronization and you need to contact support with your case and provide logs from DBaaS Adapter.
+There can be a lot of causes of that desynchronization, and you need to contact support with your case and provide logs from DBaaS Adapter.
 
 ## DBaaS Adapter.DBaaS Adapter Status Is Down/Warning
 
@@ -1462,7 +1462,7 @@ When command finished, you can check health
 url --user basic:basic -XGET localhost:9200 
 ```
 
-If after command, you have problem with healt yet, check opendistro_roles with this request, opendistro_roles should be empty:
+If after command, you have problem with health yet, check opendistro_roles with this request, opendistro_roles should be empty:
 
 ```text
     curl -XGET "https://localhost:9200/_plugins/_security/api/internalusers/<username>"
@@ -1513,11 +1513,45 @@ Not applicable
 
 **Note:** For emergency cases the prefix intersection unique validation can be disabled. You need to redeploy opensearch-service with parameter `dbaasAdapter.prefixUniqueEnabled: false`.
 
+## Indices migration issue
+
+### Description
+
+| Problem                                               | Severity | Possible Reason                                    |
+|-------------------------------------------------------|----------|----------------------------------------------------|
+| Automatic indices migration job have failed during upgrade | High     | There are variety of fail reasons |
+ 
+In installation job logs the following error:
+
+```text
+*job opensearch-migration-1x failed: BackoffLimitExceeded
+```
+
+Or, for ArgoCD, you'll see following:
+
+```text
+Job/opensearch-migration-1x; Hook: PreSync; Phase: Failed
+Sync Message: Job has reached the specified backoff limit
+```
+
+This issue means that opensearch indices migration have failed, you need to check migration job logs.
+
+### Alerts
+
+* [OpenSearchLegacyIndicesDetectedAlert](./alerts.md#opensearchlegacyindicesdetectedalert)
+
+### How to solve
+
+If the migration Job fails, check the Job pod logs for the exact error. For example:  
+  `kubectl logs -n <namespace> job/<release-name>-migration-1x` (or the failing pod name). The logs contain the migration_tool output and point to which step failed.
+
 ## Maximum Shards Open Limit Reached
 
 ### Description
 
-This error means the cluster has reached the maximum allowed number of open shards. OpenSearch calculates this limit as `cluster.max_shards_per_node * number_of_non_frozen_data_nodes`. Closed indexes do not count towards this limit. When the limit is reached, OpenSearch rejects operations that need additional shards, so components like OpenSearch Dashboards may fail if they need to create or update internal indices.
+This error means the cluster has reached the maximum allowed number of open shards. OpenSearch calculates this limit as `cluster.max_shards_per_node * number_of_non_frozen_data_nodes`. 
+Closed indexes do not count towards this limit. 
+When the limit is reached, OpenSearch rejects operations that need additional shards, so components like OpenSearch Dashboards may fail if they need to create or update internal indices.
 
 ### Alerts
 
@@ -1569,7 +1603,11 @@ OpenSearch supports updating cluster settings through `PUT _cluster/settings`, d
 
 ### Recommendations
 
-At installation or upgrade time, prevent this issue by keeping shard count under control and by sizing the cluster correctly. If `opensearch.data.dedicatedPod.enabled: false`, master nodes also act as data nodes, so increase `opensearch.master.replicas`. If dedicated data pods are enabled, increase `opensearch.data.dedicatedPod.replicas`. Also keep index settings reasonable for new indexes: `index.number_of_shards` defaults to 1, while `index.number_of_replicas` defaults to 1, so unnecessary shard and replica growth should be avoided. If really required, OpenSearch settings can also be provided through `opensearch.config` during installation.
+At installation or upgrade time, prevent this issue by keeping shard count under control and by sizing the cluster correctly. 
+If `opensearch.data.dedicatedPod.enabled: false`, master nodes also act as data nodes, so increase `opensearch.master.replicas`. 
+If dedicated data pods are enabled, increase `opensearch.data.dedicatedPod.replicas`. 
+Also keep index settings reasonable for new indexes: `index.number_of_shards` defaults to 1, while `index.number_of_replicas` defaults to 1, so unnecessary shard and replica growth should be avoided. 
+If really required, OpenSearch settings can also be provided through `opensearch.config` during installation.
 
 ## Upgrade Failed Due to Pre-Deploy Migration Hook
 

@@ -1,0 +1,94 @@
+{{- if .Values.opensearch.client.envoyGateway.enabled }}
+{{- if and .Values.opensearch.client.enabled (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1") (eq .Values.PAAS_PLATFORM "KUBERNETES") -}}
+{{- if not .Values.global.externalOpensearch.enabled }}
+{{- $fullName := printf "%s" (include "opensearch.fullname" .) }}
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $fullName }}-httproute
+  labels:
+    {{- include "opensearch.labels.standard" . | nindent 4 }}
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+spec:
+  parentRefs:
+  {{- include "gateway.parentRefs" (list . .Values.opensearch.client.envoyGateway.parentRefs 443) | nindent 2 }}
+
+  hostnames:
+  {{- if .Values.opensearch.client.envoyGateway.host }}
+    - {{ .Values.opensearch.client.envoyGateway.host | quote }}
+  {{- else }}
+  {{- range .Values.opensearch.client.ingress.hosts }}
+    - {{ . | quote }}
+  {{- end }}
+  {{- end }}
+
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ $fullName }}-internal
+          port: 9200
+
+{{- if (eq (include "opensearch.tlsEnabled" .) "true") }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: {{ $fullName }}-backend-tls
+  labels:
+    {{- include "opensearch.labels.standard" . | nindent 4 }}
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: {{ $fullName }}-internal
+
+  validation:
+    {{- if .Values.opensearch.client.envoyGateway.host }}
+    hostname: {{ .Values.opensearch.client.envoyGateway.host | quote }}
+    {{- else if .Values.opensearch.client.ingress.hosts }}
+    {{- $first := index .Values.opensearch.client.ingress.hosts 0 }}
+    hostname: {{ $first | quote }}
+    {{- end }}
+
+    caCertificateRefs:
+      - group: ""
+        kind: Secret
+        name: {{ include "opensearch.rest-cert-secret-name" . }}
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $fullName }}-redirect
+  labels:
+    {{- include "opensearch.labels.standard" . | nindent 4 }}
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+spec:
+  parentRefs:
+  {{- include "gateway.parentRefs" (list . .Values.opensearch.client.envoyGateway.parentRefs 80) | nindent 2 }}
+
+  hostnames:
+  {{- if .Values.opensearch.client.envoyGateway.host }}
+    - {{ .Values.opensearch.client.envoyGateway.host | quote }}
+  {{- else }}
+  {{- range .Values.opensearch.client.ingress.hosts }}
+    - {{ . | quote }}
+  {{- end }}
+  {{- end }}
+
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
