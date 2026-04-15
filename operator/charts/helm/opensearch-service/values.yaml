@@ -1183,6 +1183,18 @@ integrationTests:
   # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
   priorityClassName: ""
 
+resourceMigration:
+  enabled: true
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 20m
+    limits:
+      memory: 256Mi
+      cpu: 100m
+  imagePullPolicy: IfNotPresent
+  runAsNonRoot: true
+
 groupMigration:
   enabled: true
   oldGroupPrefix: "qubership.org/"
