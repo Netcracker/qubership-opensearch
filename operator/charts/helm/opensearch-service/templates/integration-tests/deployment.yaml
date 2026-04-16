@@ -15,7 +15,7 @@ spec:
       name: {{ template "opensearch.fullname" . }}-integration-tests
   strategy:
     type: RollingUpdate
-  replicas: {{ template "opensearch.replicasForSingleService" . }}
+  replicas: 1 #{{ template "opensearch.replicasForSingleService" . }}
   progressDeadlineSeconds: 3000
   template:
     metadata:
@@ -251,7 +251,7 @@ spec:
           readinessProbe:
             exec:
               command: ["sh", "-c", "true"]
-            initialDelaySeconds: 40
+            initialDelaySeconds: 20
             timeoutSeconds: 5
             periodSeconds: 20
             successThreshold: 1
