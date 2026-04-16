@@ -43,7 +43,7 @@ RUN apk add --no-cache wget python3 py3-pip \
         elasticsearch==7.17.12 \
         curator-opensearch==0.0.13 \
         urllib3 \
-        click
+        "click>=8,<9"
 
 #Download necessary tools
 RUN set -x \
