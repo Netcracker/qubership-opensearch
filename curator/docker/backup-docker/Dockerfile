@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.25.6-alpine3.23 as builder
+FROM --platform=$BUILDPLATFORM golang:1.26.1-alpine3.23 as builder
 ARG BUILDPLATFORM
 ARG TARGETOS
 ARG TARGETARCH
@@ -31,11 +31,19 @@ COPY curator/docker/backup-docker/actions ${ELASTICSEARCH_CURATOR_HOME}/actions
 COPY curator/docker/backup-docker/docker-entrypoint.sh /docker-entrypoint.sh
 COPY --from=builder --chown=${USER_UID} /workspace/curator/docker/backup-docker/indices_migration_tool/migration_tool ${ELASTICSEARCH_CURATOR_HOME}
 
-RUN set -x \
-    && pip3 install --upgrade pip setuptools wheel \
-    && pip3 install -U opensearch-py==2.5.0 elasticsearch==7.17.12 curator-opensearch==0.0.13 \
-    && pip3 install --upgrade pip urllib3 click \
-    && rm -rf /var/cache/apk/*
+RUN apk add --no-cache wget python3 python3-dev py3-pip \
+    && apk update \
+    && apk upgrade
+
+#https://peps.python.org/pep-0668/
+RUN apk add --no-cache wget python3 py3-pip \
+    && pip install --break-system-packages --upgrade pip setuptools wheel \
+    && pip install --break-system-packages \
+        opensearch-py==2.5.0 \
+        elasticsearch==7.17.12 \
+        curator-opensearch==0.0.13 \
+        urllib3 \
+        click
 
 #Download necessary tools
 RUN set -x \
