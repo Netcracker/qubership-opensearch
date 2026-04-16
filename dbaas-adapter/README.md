@@ -1,5 +1,3 @@
-<!-- markdownlint-disable MD013 -->
-
 This section provides information about REST API of the DBaaS OpenSearch adapter.
 
 - [Introduction](#introduction)
@@ -43,9 +41,11 @@ This section provides information about REST API of the DBaaS OpenSearch adapter
 
 # Introduction
 
-OpenSearch does not have databases or any other logical entity which could combine the indexes of one microservice. In terms of the DBaaS OpenSearch adapter the database is a set of indices, aliases and templates starting with one `resourcePrefix` and managed by one microservice and its user.
+OpenSearch does not have databases or any other logical entity which could combine the indexes of one microservice. In terms of the DBaaS OpenSearch adapter the database is a set of indices, aliases
+and templates starting with one `resourcePrefix` and managed by one microservice and its user.
 
-The DBaaS OpenSearch adapter has 2 versions of API: `v1` and `v2`. The `v1` version allows to create users only with `admin` permissions, but the `v2` version creates 4 users with different roles (`admin`, `dml`, `readonly`, `ism`) on each corresponding request. You can find out more about roles in [Multiple Roles](#multiple-roles) section.
+The DBaaS OpenSearch adapter has 2 versions of API: `v1` and `v2`. The `v1` version allows to create users only with `admin` permissions, but the `v2` version creates 4 users with different roles
+(`admin`, `dml`, `readonly`, `ism`) on each corresponding request. You can find out more about roles in [Multiple Roles](#multiple-roles) section.
 
 The migration between these versions is uni-directional. It means if you are upgraded DBaaS OpenSearch adapter from `v1` to `v2` version, you must not downgrade it.
 
@@ -53,7 +53,8 @@ The migration between these versions is uni-directional. It means if you are upg
 
 The DBaaS OpenSearch adapter allows to create users which have access only for indices with specific Resource Prefix (`resourcePrefix`) which is also generated with Database Creation.
 
-**Note:** At this moment OpenSearch security does not allow to configure granular security for Index Templates. Users can create any Index Template with any `index_pattern` inside or cannot create them all. It is strongly recommended to create templates starting with `resourcePrefix`.
+**Note:** At this moment OpenSearch security does not allow to configure granular security for Index Templates. Users can create any Index Template with any `index_pattern` inside or cannot create
+them all. It is strongly recommended to create templates starting with `resourcePrefix`.
 
 ### Multiple Roles
 
@@ -64,11 +65,11 @@ The DBaaS OpenSearch adapter in `v2` version supports the following roles:
 * `admin` role allows the same as `dml` role and creating, updating, deleting specific indices, aliases and any templates.
 * `ism` role allows the same as `admin` role and access to OpenSearch Index State Management API.
 
-# Paths
+## Paths
 
 ## Force physical database registration
 
-```http
+```text
 GET /api/v1/dbaas/adapter/physical_database/force_registration
 ```
 
@@ -86,13 +87,13 @@ background task that tries to register physical database in `DBaaS aggregator`, 
 
 ### Example
 
-```bash
+```text
 curl -u <username>:<password> -XGET http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/physical_database/force_registration
 ```
 
 ## Physical database information
 
-```http
+```text
 GET /api/v1/dbaas/adapter/opensearch/physical_database
 ```
 
@@ -111,19 +112,19 @@ This API sends adapter physical database information.
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XGET http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/opensearch/physical_database
 ```
 
 Response:
 
-```json
+```text
 {"id":"opensearch-service","labels":null}
 ```
 
 ## Support Info
 
-```http
+```text
 GET /api/v1/dbaas/adapter/opensearch/supports
 ```
 
@@ -141,19 +142,19 @@ This API describes what features supported by adapter.
 
 Request:
 
-```bash
+```text
 curl -XGET http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/opensearch/supports
 ```
 
 Response:
 
-```json
+```text
 {"users":true,"settings":true,"describeDatabases":false}
 ```
 
 ## Health
 
-```http
+```text
 GET /health
 ```
 
@@ -172,20 +173,19 @@ This API provides information about OpenSearch and DBaaS aggregator health statu
 
 Request:
 
-```bash
+```text
 curl -XGET http://dbaas-opensearch-adapter:8080/health
 ```
 
 Response:
 
-```json
+```text
 {"status":"UP","opensearchHealth":{"status":"UP"},"dbaasAggregatorHealth":{"status":"OK"}}
 ```
 
 ## Create Database
 
-```http
-
+```text
 POST /api/v1/dbaas/adapter/opensearch/databases
 ```
 
@@ -220,7 +220,7 @@ To init this option the request parameter `settings.resourcePrefix` must be `tru
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/opensearch/databases -d'
 {
   "settings": {
@@ -234,7 +234,7 @@ curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v1
 
 Response:
 
-```json
+```text
 {
   "name": "",
   "connectionProperties": {
@@ -265,7 +265,7 @@ Response:
 
 ## Create Database Old
 
-```http
+```text
 POST /api/v1/dbaas/adapter/opensearch/databases
 ```
 
@@ -291,7 +291,7 @@ This API creates database and user with permissions to read and write to the dat
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/opensearch/databases -d'{
   "dbName": "index_name",
   "metadata": {
@@ -316,13 +316,13 @@ curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v1
 
 Response:
 
-```json
+```text
 {"name":"dbaas_prefix-index_name","connectionProperties":{"dbName":"dbaas_prefix-index_name","host":"opensearch","port":9200,"url":"http://opensearch:9200/dbaas_prefix-index_name","username":"new-user","password":"pass"},"resources":[{"kind":"index","name":"dbaas_prefix-index_name"},{"kind":"metadataDocument","name":"dbaas_prefix-index_name"},{"kind":"role","name":"dbaas_prefix-index_name-role"},{"kind":"user","name":"new-user"}]}
 ```
 
 ## List Databases
 
-```http
+```text
 GET /api/v1/dbaas/adapter/opensearch/databases
 ```
 
@@ -341,19 +341,19 @@ This API returns list of database names excluding service ones.
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XGET http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/opensearch/databases
 ```
 
 Response:
 
-```json
+```text
 ["dbaas_opensearch_metadata","testmine","test-newsty","test-new","dbaas_metadata","test-news","testme","dbaas_prefix-index_name"]
 ```
 
 ## Update Database Metadata
 
-```http
+```text
 PUT /api/v1/dbaas/adapter/opensearch/databases/{dbName}/metadata
 ```
 
@@ -379,7 +379,7 @@ This API changes metadata for `{dbName}` specified in `dbaas_opensearch_metadata
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XPUT http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/opensearch/databases/testmine/metadata -d'{
   "doc": {
     "data": "new data"
@@ -389,13 +389,14 @@ curl -u <username>:<password> -XPUT http://dbaas-opensearch-adapter:8080/api/v1/
 
 ## Create User with Generated Name
 
-```http
+```text
 PUT /api/v1/dbaas/adapter/opensearch/users
 ```
 
 ### Description
 
-This API creates or updates OpenSearch user with read/write access to specific database. This operation returns connection parameters including database name, username, password. If user exists, password will be changed to the specified one.
+This API creates or updates OpenSearch user with read/write access to specific database. This operation returns connection parameters including database name, username, password. If user exists,
+password will be changed to the specified one.
 
 ### Parameters
 
@@ -414,7 +415,7 @@ This API creates or updates OpenSearch user with read/write access to specific d
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XPUT http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/opensearch/users -d'{
   "dbName": "test-newsty",
   "password": "psswrd"
@@ -423,19 +424,20 @@ curl -u <username>:<password> -XPUT http://dbaas-opensearch-adapter:8080/api/v1/
 
 Response:
 
-```json
+```text
 {"connectionProperties":{"dbName":"test-newsty","host":"opensearch","port":9200,"url":"http://opensearch:9200/test-newsty","username":"dbaas_c71f1a63193c40328281e4901efb647f","password":"psswrd"},"name":"test-newsty","resources":[{"kind":"role","name":"test-newsty-role"},{"kind":"index","name":"test-newsty"},{"kind":"user","name":"dbaas_c71f1a63193c40328281e4901efb647f"}]}
 ```
 
 ## Create User with Specified Name
 
-```http
+```text
 PUT /api/v1/dbaas/adapter/opensearch/users/{name}
 ```
 
 ### Description
 
-This API creates or updates OpenSearch user with read/write access to specific database. This operation returns connection parameters including database name, username, password. If user exists, password will be changed to the specified one.
+This API creates or updates OpenSearch user with read/write access to specific database. This operation returns connection parameters including database name, username, password. If user exists,
+password will be changed to the specified one.
 
 ### Parameters
 
@@ -455,7 +457,7 @@ This API creates or updates OpenSearch user with read/write access to specific d
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XPUT http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/opensearch/users/usertest -d'{
   "dbName": "test-news"
 }'
@@ -463,13 +465,13 @@ curl -u <username>:<password> -XPUT http://dbaas-opensearch-adapter:8080/api/v1/
 
 Response:
 
-```json
+```text
 {"connectionProperties":{"dbName":"test-news","host":"opensearch","port":9200,"url":"http://opensearch:9200/test-news","username":"usertest","password":"a02e2104fead496c8a4c6ef84c4ae70b"},"name":"test-news","resources":[{"kind":"role","name":"test-news-role"},{"kind":"index","name":"test-news"},{"kind":"user","name":"usertest"}]}
 ```
 
 ## Recover Users
 
-```http
+```text
 POST /api/v2/dbaas/adapter/opensearch/users/restore-password
 ```
 
@@ -494,7 +496,7 @@ This API runs the OpenSearch users recovery process which creates or updates use
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/users/restore-password -d'{
   "settings": {},
   "connectionProperties": [
@@ -548,7 +550,7 @@ curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v2
 
 ## Users Recovery State
 
-```http
+```text
 GET /api/v2/dbaas/adapter/opensearch/users/restore-password/state
 ```
 
@@ -566,7 +568,7 @@ This API returns the current state of the OpenSearch users recovery process.
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XGET /api/v2/dbaas/adapter/opensearch/users/restore-password/state
 ```
 
@@ -578,7 +580,7 @@ running
 
 ## Drop Created Resources
 
-```http
+```text
 POST /api/v1/dbaas/adapter/opensearch/resources/bulk-drop
 ```
 
@@ -603,7 +605,7 @@ This API deletes any previously created resources such as user or database.
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/opensearch/resources/bulk-drop -d'[
   {
     "kind": "role",
@@ -622,13 +624,13 @@ curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v1
 
 Response:
 
-```json
+```text
 [{"kind":"role","name":"test-newsty-role","status":"DELETED","errorMessage":""},{"kind":"user","name":"dbaas_c71f1a63193c40328281e4901efb647f","status":"DELETED","errorMessage":""},{"kind":"index","name":"test-newsty","status":"DELETED","errorMessage":""}]
 ```
 
 ## Collect Backup
 
-```http
+```text
 POST /api/v1/dbaas/adapter/opensearch/backups/collect
 ```
 
@@ -653,19 +655,19 @@ This API requests to collect backup for specified database prefixes.
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/opensearch/backups/collect -d '["db1"]'
 ```
 
 Response:
 
-```json
+```text
 {"action":"BACKUP","details":{"localId":"20240322T091826"},"status":"PROCEEDING","trackId":"20240322T091826","changedNameDb":null,"trackPath":null}
 ```
 
 ## Track Backup
 
-```http
+```text
 GET /api/v1/dbaas/adapter/opensearch/backups/track/backup/{trackId}
 ```
 
@@ -690,19 +692,19 @@ This API provides information about requested backup action.
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XGET http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/opensearch/backups/track/backup/dbaas_2022_04_07_t_14_50_02_339486
 ```
 
 Response:
 
-```json
+```text
 {"action":"BACKUP","details":{"localId":"dbaas_2022_04_07_t_14_50_02_339486"},"status":"SUCCESS","trackId":"dbaas_2022_04_07_t_14_50_02_339486","changedNameDb":null,"trackPath":null}
 ```
 
 ## Restore Backup
 
-```http
+```text
 POST /api/v1/dbaas/adapter/opensearch/backups/{backupId}/restore
 ```
 
@@ -729,19 +731,19 @@ This API requests to restore backup for specified databases.
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/opensearch/backups/20240322T091826/restore -d'["db1"]'
 ```
 
 Response:
 
-```json
+```text
 {"action":"RESTORE","details":{"localId":"20240322T091826"},"status":"PROCEEDING","trackId":"20240322T091826","changedNameDb":null,"trackPath":null}
 ```
 
 ## Track Restore From Track ID
 
-```http
+```text
 GET /api/v1/dbaas/adapter/opensearch/backups/track/restore/{trackId}
 ```
 
@@ -766,19 +768,19 @@ This API provides information about requested restore action.
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XGET http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/opensearch/backups/track/restore/20240322T091826
 ```
 
 Response:
 
-```json
+```text
 {"action":"RESTORE","details":{"localId":"20240322T091826"},"status":"SUCCESS","trackId":"20240322T091826","changedNameDb":null,"trackPath":null}
 ```
 
 ## Track Restore From Indices
 
-```http
+```text
 GET /api/v1/dbaas/adapter/opensearch/backups/track/restoring/backups/{trackId}/indices/{indices}
 ```
 
@@ -804,263 +806,30 @@ This API provides information about requested restore action.
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XGET http://dbaas-opensearch-adapter:8080/api/v1/dbaas/adapter/opensearch/backups/track/restoring/backups/20240322T091826/indices/testme,testmine
 ```
 
 Response:
 
-```json
+```text
 {"action":"RESTORE","details":{"localId":"20240322T091826"},"status":"SUCCESS","trackId":"20240322T091826","changedNameDb":null,"trackPath":null}
-```
-
-## Collect Backup v2
-
-```http
-POST /api/v2/dbaas/adapter/opensearch/backups/backup
-```
-
-### Description
-
-This API requests to collect backup for specified databases.
-
-### Parameters
-
-| Type     | Name                               | Description                         | Schema |
-|----------|------------------------------------|-------------------------------------|--------|
-| **Body** | **backupRequest**  <br>*required*  | Backup request                      | object |
-
-Request body:
-
-| Field        | Type         | Required | Description |
-|--------------|--------------|----------|-------------|
-| storageName  | string       | yes      | Backup storage name |
-| blobPath     | string       | yes      | Base path in the storage |
-| databases    | list<object> | yes      | List of databases to backup |
-| databases[].databaseName | string | yes | Database name |
-
-### Responses
-
-| HTTP Code | Description                            | Schema |
-|-----------|----------------------------------------|--------|
-| **202**   | Backup is in progress                  | object |
-| **400**   | Invalid request parameters             | object |
-| **404**   | Database not found                     | string |
-
-### Example
-
-Request:
-
-```bash
-curl -u <username>:<password> -H "Content-Type: application/json" -XPOST http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/backup -d '{
-  "storageName": "s3",
-  "blobPath": "backups/custom/path",
-  "databases": [{"databaseName":"db1"}]
-}'
-```
-
-## Track Backup v2
-
-```http
-GET /api/v2/dbaas/adapter/opensearch/backups/backup/{backupId}?blobPath={blobPath}
-```
-
-### Description
-
-This API provides information about requested backup (v2).
-
-### Parameters
-
-| Type      | Name                           | Description                 | Schema |
-|-----------|--------------------------------|-----------------------------|--------|
-| **Path**  | **backupId**  <br>*required*   | Backup identifier           | string |
-| **Query** | **blobPath**  <br>*required*   | Base path in the storage    | string |
-
-### Responses
-
-| HTTP Code | Description        | Schema |
-|-----------|--------------------|--------|
-| **200**   | Backup status      | object |
-| **400**   | Invalid parameters | string |
-| **404**   | Backup not found   | string |
-
-### Example
-
-Request:
-
-```bash
-curl -u <username>:<password> -XGET "http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/backup/20240322T091826?blobPath=backups/custom/path"
-```
-
-## Restore Backup v2
-
-```http
-POST /api/v2/dbaas/adapter/opensearch/backups/backup/{backupId}/restore?dryRun={dryRun}
-```
-
-### Description
-
-This API requests to restore backup (v2) for specified databases.
-
-### Parameters
-
-| Type      | Name                              | Description                                                  | Schema |
-|-----------|-----------------------------------|--------------------------------------------------------------|--------|
-| **Path**  | **backupId**  <br>*required*      | Backup identifier to be restored                             | string |
-| **Query** | **dryRun**  <br>*optional*        | If `true`, run restore in dry-run mode                       | boolean |
-| **Body**  | **restoreRequest**  <br>*required*| Restore request                                              | object |
-
-Request body:
-
-| Field        | Type         | Required | Description |
-|--------------|--------------|----------|-------------|
-| storageName  | string       | yes      | Backup storage name |
-| blobPath     | string       | yes      | Base path in the storage |
-| databases    | list<object> | yes      | List of databases to restore |
-| databases[].microserviceName | string | yes | Microservice name |
-| databases[].databaseName | string | yes | Database name |
-| databases[].namespace | string | yes | Namespace |
-| databases[].prefix | string | no | Database prefix |
-
-### Responses
-
-| HTTP Code | Description                | Schema |
-|-----------|----------------------------|--------|
-| **202**   | Restore is in progress     | object |
-| **400**   | Invalid request parameters | object |
-| **404**   | Backup not found           | string |
-
-### Example
-
-Request:
-
-```bash
-curl -u <username>:<password> -H "Content-Type: application/json" -XPOST "http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/backup/20240322T091826/restore?dryRun=false" -d '{
-  "storageName": "s3",
-  "blobPath": "backups/custom/path",
-  "databases": [
-    {
-      "microserviceName": "my-service",
-      "databaseName": "db1",
-      "namespace": "default"
-    }
-  ]
-}'
-```
-
-## Track Restore v2
-
-```http
-GET /api/v2/dbaas/adapter/opensearch/backups/restore/{restoreId}?blobPath={blobPath}
-```
-
-### Description
-
-This API provides information about requested restore (v2).
-
-### Parameters
-
-| Type      | Name                           | Description                 | Schema |
-|-----------|--------------------------------|-----------------------------|--------|
-| **Path**  | **restoreId**  <br>*required*  | Restore identifier          | string |
-| **Query** | **blobPath**  <br>*required*   | Base path in the storage    | string |
-
-### Responses
-
-| HTTP Code | Description        | Schema |
-|-----------|--------------------|--------|
-| **200**   | Restore status     | object |
-| **400**   | Invalid parameters | string |
-| **404**   | Restore not found  | string |
-
-### Example
-
-Request:
-
-```bash
-curl -u <username>:<password> -XGET "http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/restore/20240322T091826?blobPath=backups/custom/path"
-```
-
-## Delete Backup v2
-
-```http
-DELETE /api/v2/dbaas/adapter/opensearch/backups/backup/{backupId}?blobPath={blobPath}
-```
-
-### Description
-
-This API deletes (evicts) a backup (v2).
-
-### Parameters
-
-| Type      | Name                           | Description              | Schema |
-|-----------|--------------------------------|--------------------------|--------|
-| **Path**  | **backupId**  <br>*required*   | Backup identifier        | string |
-| **Query** | **blobPath**  <br>*required*   | Base path in the storage | string |
-
-### Responses
-
-| HTTP Code | Description        | Schema |
-|-----------|--------------------|--------|
-| **204**   | Backup deleted     | -      |
-| **400**   | Invalid parameters | string |
-| **404**   | Backup not found   | string |
-
-### Example
-
-Request:
-
-```bash
-curl -u <username>:<password> -XDELETE "http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/backup/20240322T091826?blobPath=backups/custom/path"
-```
-
-## Delete Restore v2
-
-```http
-DELETE /api/v2/dbaas/adapter/opensearch/backups/restore/{restoreId}?blobPath={blobPath}
-```
-
-### Description
-
-This API deletes (evicts) a restore (v2).
-
-### Parameters
-
-| Type      | Name                           | Description              | Schema |
-|-----------|--------------------------------|--------------------------|--------|
-| **Path**  | **restoreId**  <br>*required*  | Restore identifier       | string |
-| **Query** | **blobPath**  <br>*required*   | Base path in the storage | string |
-
-### Responses
-
-| HTTP Code | Description        | Schema |
-|-----------|--------------------|--------|
-| **204**   | Restore deleted    | -      |
-| **400**   | Invalid parameters | string |
-| **404**   | Restore not found  | string |
-| **500**   | Backup service is not configured | string |
-
-### Example
-
-Request:
-
-```bash
-curl -u <username>:<password> -XDELETE "http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/restore/20240322T091826?blobPath=backups/custom/path"
 ```
 
 ## Create Database v2
 
-```http
-
+```text
 POST /api/v2/dbaas/adapter/opensearch/databases
 ```
 
 ### Description
 
-This API creates users with permissions according to dbaas aggregator roles with generated prefix (`admin`, `dml`, `readonly` and `ism` by default). The operation returns list of connection parameters including generated prefix, usernames, passwords.
+This API creates users with permissions according to dbaas aggregator roles with generated prefix (`admin`, `dml`, `readonly` and `ism` by default). The operation returns list of connection parameters
+ including generated prefix, usernames, passwords.
 
 In the terms of DBaaS OpenSearch the database is a logical scope of entities (indices, aliases and templates) with the same prefix name.
-When you create database the DBaaS adapter generates prefix and creates users with rights for all entities of generated prefix name. All users and roles created during this operation have the same `resourcePrefix`.
+When you create database the DBaaS adapter generates prefix and creates users with rights for all entities of generated prefix name. All users and roles created during this operation have the same
+`resourcePrefix`.
 
 ### Parameters
 
@@ -1084,7 +853,7 @@ To init this option the request parameter `settings.resourcePrefix` must be `tru
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/databases -d'
 {
   "settings": {
@@ -1104,7 +873,7 @@ curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v2
 
 Response:
 
-```json
+```text
 {
   "name": "",
   "connectionProperties": [
@@ -1180,7 +949,7 @@ Response:
 
 ## Drop Created Resources v2
 
-```http
+```text
 POST /api/v2/dbaas/adapter/opensearch/resources/bulk-drop
 ```
 
@@ -1205,7 +974,7 @@ This API deletes any previously created resources such as user or database. If `
 
 Request:
 
-```bash
+```text
 curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/resources/bulk-drop -d'[
   {
     "kind": "role",
@@ -1224,11 +993,11 @@ curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v2
 
 Response:
 
-```json
+```text
 [{"kind":"role","name":"test-newsty-role","status":"DELETED","errorMessage":""},{"kind":"user","name":"dbaas_c71f1a63193c40328281e4901efb647f","status":"DELETED","errorMessage":""},{"kind":"user","name":"prefix-user","status":"DELETED","errorMessage":""},{"kind":"role","name":"prefix-role","status":"DELETED","errorMessage":""}]
 ```
 
-# Definitions
+## Definitions
 
 ## RegistrationPhysicalRequest
 

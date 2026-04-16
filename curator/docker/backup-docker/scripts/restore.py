@@ -52,10 +52,7 @@ class Restore:
     self._dbs = ast.literal_eval(args.dbs) if args.dbs else None
     # correctness of `dbmap` is checked in backup-daemon.
     # Correct pattern for keys and values is [0-9a-zA-Z-_]
-    _raw_dbmap = ast.literal_eval(args.dbmap) if args.dbmap else {}
-    # dbmap may be passed as a quoted JSON string (e.g. by backup-daemon),
-    # in which case ast.literal_eval returns a str; ensure we always have a dict.
-    self._renames = json.loads(_raw_dbmap) if isinstance(_raw_dbmap, str) else (_raw_dbmap or {})
+    self._renames = ast.literal_eval(args.dbmap) if args.dbmap else {}
     self._clean_recovery = utils.str2bool(args.clean) if args.clean else False
 
   def granular_restore(self):

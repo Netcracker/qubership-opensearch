@@ -1,5 +1,3 @@
-<!-- markdownlint-disable MD013 -->
-
 # What is Qubership OpenSearch Curator?
 
 OpenSearch Curator helps you curate, or manage, your OpenSearch indices and snapshots by:
@@ -13,7 +11,8 @@ And all backups are stored on OpenSearch side, OpenSearch Curator only stores me
 
 ## API Usage
 
-For POST operations you must specify user/pass from `BACKUP_DAEMON_API_CREDENTIALS_USERNAME` and `BACKUP_DAEMON_API_CREDENTIALS_PASSWORD` env parameters so that you can use REST api to run backup tasks:
+For POST operations you must specify user/pass from `BACKUP_DAEMON_API_CREDENTIALS_USERNAME` and `BACKUP_DAEMON_API_CREDENTIALS_PASSWORD` env parameters so that you can use REST api to run backup
+tasks:
 
 ## Backup
 
@@ -21,7 +20,7 @@ For POST operations you must specify user/pass from `BACKUP_DAEMON_API_CREDENTIA
 
 If you want to make a backup of all OpenSearch indices data, you need to run the following command:
 
-```bash
+```text
 curl -XPOST -u username:password http://localhost:8080/backup
 ```
 
@@ -32,7 +31,7 @@ After executing the command you receive name of folder where the backup is store
 
 If you want the backup to be performed for specified database prefixes you can specify them in parameter `dbs`. For example:
 
-```bash
+```text
 curl -XPOST -u username:password -v -H "Content-Type: application/json" -d '{"dbs":["db1","db2"]}'  http://localhost:8080/backup
 ```
 
@@ -41,7 +40,7 @@ curl -XPOST -u username:password -v -H "Content-Type: application/json" -d '{"db
 If backup should not be evicted automatically, it is necessary to add `allow_eviction` property
 with value `False` to the request body. For example,
 
-```bash
+```text
 curl -XPOST -u username:password -v -H "Content-Type: application/json" -d '{"allow_eviction":"False"}' http://localhost:8080/backup
 ```
 
@@ -51,7 +50,7 @@ curl -XPOST -u username:password -v -H "Content-Type: application/json" -d '{"al
 
 If you want to remove specific backup, you should run the following command:
 
-```bash
+```text
 curl -XPOST -u username:password http://localhost:8080/evict/<backup_id>
 ```
 
@@ -62,7 +61,7 @@ successful, you see the following text: `Backup <backup_id> successfully removed
 
 If backup is in progress, you can check its status running the following command:
 
-```bash
+```text
 curl -XGET http://localhost:8080/jobstatus/<backup_id>
 ```
 
@@ -80,7 +79,7 @@ the following information:
 
 To get the backup information, use the following command:
 
-```bash
+```text
 curl -XGET http://localhost:8080/listbackups/<backup_id>
 ```
 
@@ -104,27 +103,33 @@ To recover data from certain backup, you need to specify JSON with information a
 
 If you need to restore only specific databases, use `dbs` parameter in JSON. **Pay attention**, that you can use this parameter only to restore from `granular` snapshots.
 
-```bash
+```text
 curl -XPOST -u username:password -v -H "Content-Type: application/json" -d '{"vault":"20190321T080000", "dbs":["index1","index2"]}' http://localhost:8080/restore
 ```
 
-If you want to rename database entities during recovery, you need to specify `changeDbName` parameter in JSON. Like `dbs`, you can use `changeDbName` parameter only to restore from `granular` snapshots. For example,
+If you want to rename database entities during recovery, you need to specify `changeDbName` parameter in JSON. Like `dbs`, you can use `changeDbName` parameter only to restore from `granular`
+snapshots. For example,
 
-```bash
+```text
 curl -XPOST -u username:password -v -H "Content-Type: application/json" -d  '{"vault":"20190321T080000", "dbs":["db1","db2","db3"], "changeDbNames":{"db1":"new_db1_name","db2":"new_db2_name"}}' http://localhost:8080/restore
 ```
 
-This functionality will leave `db1` and `db2` databases as is and restore `db1` and `db2` into new (or existing) databases called `new_db1_name` and `new_db2_name`. The `db3` database will be rewritten, because it's not in `changeDbNames` list.
+This functionality will leave `db1` and `db2` databases as is and restore `db1` and `db2` into new (or existing) databases called `new_db1_name` and `new_db2_name`. The `db3` database will be
+rewritten, because it's not in `changeDbNames` list.
 
-If you need to clean resources before recovery, use `clean` parameter in JSON. It removes indices, aliases, index (old and new) and component templates from OpenSearch depending on recovery type. For `full` recovery it removes all resources. For `granular` recovery without renaming - only resources prefixed with the specified databases. For `granular` recovery with renaming - only resources prefixed with the specified databases or renaming pattern in `changeDbNames` list. For example,
+If you need to clean resources before recovery, use `clean` parameter in JSON. It removes indices, aliases, index (old and new) and component templates from OpenSearch depending on recovery type. For
+`full` recovery it removes all resources. For `granular` recovery without renaming - only resources prefixed with the specified databases. For `granular` recovery with renaming - only resources
+prefixed with the specified databases or renaming pattern in `changeDbNames` list. For example,
 
-```bash
+```text
 curl -XPOST -u username:password -v -H "Content-Type: application/json" -d  '{"vault":"20190321T080000", "dbs":["db1","db2","db3"], "changeDbNames":{"db1":"new_db1_name","db2":"new_db2_name"}, "clean":"true"}' http://localhost:8080/restore
 ```
 
-This functionality will remove indices, templates and aliases of databases that should be restored. For example, it deletes resources by `new_db1_name`, `new_db2_name` and `db3` prefixes as `db1` and `db2` databases are to be renamed and `db3` is to be restored with the same name.
+This functionality will remove indices, templates and aliases of databases that should be restored. For example, it deletes resources by `new_db1_name`, `new_db2_name` and `db3` prefixes as `db1` and
+`db2` databases are to be renamed and `db3` is to be restored with the same name.
 
-**Note**: You can use `clean` parameter if you need data for all or corresponding databases only from backup, or common recovery fails due to a configuration conflict between existing and restored resources.
+**Note**: You can use `clean` parameter if you need data for all or corresponding databases only from backup, or common recovery fails due to a configuration conflict between existing and restored
+resources.
 
 ### Users Recovery
 
@@ -134,8 +139,8 @@ To recover users via DBaaS during restore procedure, you need to specify JSON wi
 
 It works for both granular and full backup. By default, users recovery is enabled if DBaaS parameters specified correctly.
 
-```bash
-curl -XPOST -u username:password -v -H "Content-Type: application/json" -d '{"vault":"20190321T080000", "customVars": {"skip_users_recovery": "true"}}' http://localhost:8080/restore
+```text
+curl -XPOST -u username:password -v -H "Content-Type: application/json" -d '{"vault":"20190321T080000", "skip_users_recovery":"true"}' http://localhost:8080/restore
 ```
 
 As a response you receive `task_id`, which can be used to check _Recovery Status_.
@@ -144,7 +149,7 @@ As a response you receive `task_id`, which can be used to check _Recovery Status
 
 If recovery is in progress, you can check its status running the following command:
 
-```bash
+```text
 curl -XGET http://localhost:8080/jobstatus/<task_id>
 ```
 
@@ -154,7 +159,7 @@ where `task_id` is task id received at the recovery execution step.
 
 To receive list of collected backups you need to use the following command:
 
-```bash
+```text
 curl -XGET http://localhost:8080/listbackups
 ```
 
@@ -164,13 +169,13 @@ It returns JSON with list of backup names.
 
 If you want to know the state of Backup Daemon, you should use the following command:
 
-```bash
+```text
 curl -XGET http://localhost:8080/health
 ```
 
 As a result you receive JSON with information:
 
-```json
+```text
 "status": status of backup daemon
 "backup_queue_size": backup daemon queue size (if > 0 then there are 1 or tasks waiting for execution)
  "storage": storage info:
@@ -203,9 +208,12 @@ As a result you receive JSON with information:
 ## Scheduled snapshots cleanup
 
 Curator is able to perform scheduled snapshots cleanup. However, it is not possible to provide common template that can be easily configured for different use cases.
-So actions configuration for cleanup should be provided. It is highly recommended to include cleanup actions as part of snapshot creation action file (snapshot.yml) that is mounted to /opt/OpenSearch-curator/actions/ in container.
+So actions configuration for cleanup should be provided. It is highly recommended to include cleanup actions as part of snapshot creation action file (snapshot.yml) that is mounted to
+/opt/OpenSearch-curator/actions/ in container.
 
-For more information on different filter types (such as [age](https://www.elastic.co/guide/en/elasticsearch/client/curator/current/filtertype_age.html) and [period](https://www.elastic.co/guide/en/elasticsearch/client/curator/current/filtertype_period.html)) please check [curator documentation](https://www.elastic.co/guide/en/elasticsearch/client/curator/5.4/index.html).
+For more information on different filter types (such as [age](https://www.elastic.co/guide/en/elasticsearch/client/curator/current/filtertype_age.html) and
+[period](https://www.elastic.co/guide/en/elasticsearch/client/curator/current/filtertype_period.html)) please check [curator
+documentation](https://www.elastic.co/guide/en/elasticsearch/client/curator/5.4/index.html).
 
 ## Example of configuration
 
@@ -214,7 +222,7 @@ Here is sample of configuration (for development) that will create snapshots eve
 `BACKUP_SCHEDULE` environmental variable is set to "0,10,20,30,40,50 * * * *"
 period filter is used to keep only one hourly snapshot after 1 hour passes since snapshot creation:
 
-```yaml
+```text
 actions:
   1:
     action: snapshot
@@ -261,7 +269,8 @@ actions:
 
 OpenSearch Curator provides eviction policy to remove obsolete snapshots. You can change eviction policy via environment variable `EVICTION_POLICY`.
 
-Eviction policy is a comma-separated string of policies written as `$start_time/$interval`. This policy splits all backups older than $start_time to numerous time intervals $interval time long. Then it deletes all backups in every interval except the newest one.
+Eviction policy is a comma-separated string of policies written as `$start_time/$interval`. This policy splits all backups older than $start_time to numerous time intervals $interval time long. Then
+it deletes all backups in every interval except the newest one.
 
 For example:
 
