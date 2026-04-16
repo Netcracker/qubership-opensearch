@@ -27,8 +27,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+
 	"github.com/Netcracker/qubership-dbaas-adapter-core/pkg/dao"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
 	uuid "github.com/satori/go.uuid"
@@ -54,7 +53,6 @@ const (
 	Http               = "http"
 	Https              = "https"
 	RequestIdKey       = "X-Request-Id"
-	DbMaxLength        = 255
 )
 
 var (
@@ -287,22 +285,4 @@ func CheckPrefixUniqueness(prefix string, ctx context.Context, opensearchcli Cli
 		return true, nil
 	}
 	return true, nil
-}
-
-
-func GetDbaasCoreLogger() *zap.Logger {
-	atom := zap.NewAtomicLevel()
-	encoderCfg := zap.NewProductionEncoderConfig()
-	encoderCfg.TimeKey = "timestamp"
-	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
-
-	logger := zap.New(zapcore.NewCore(
-		zapcore.NewJSONEncoder(encoderCfg),
-		zapcore.Lock(os.Stdout),
-		atom,
-	))
-	defer func() {
-		_ = logger.Sync()
-	}()
-	return logger
 }
