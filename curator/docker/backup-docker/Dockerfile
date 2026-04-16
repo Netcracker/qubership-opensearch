@@ -43,6 +43,7 @@ RUN apk add --no-cache wget python3 py3-pip \
         elasticsearch==7.17.12 \
         curator-opensearch==0.0.13 \
         "Flask<2.1" \
+        "Werkzeug<2.1" \
         urllib3 \
         "click<8"
 
