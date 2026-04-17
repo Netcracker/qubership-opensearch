@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Netcracker/dbaas-opensearch-adapter/cluster"
 	"github.com/Netcracker/dbaas-opensearch-adapter/common"
@@ -31,6 +32,7 @@ import (
 	core "github.com/Netcracker/qubership-dbaas-adapter-core/pkg/utils"
 	"github.com/gorilla/mux"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 const (
@@ -159,14 +161,22 @@ func (bp BaseProvider) BulkDropResourceHandler() func(w http.ResponseWriter, r *
 		}
 		defer func() { _ = r.Body.Close() }()
 
-		deletedResources := bp.deleteResources(resources, ctx)
-		failedResources := getResourcesWithFailedStatus(deletedResources)
 		var resourcesToReturn []dao.DbResource
-		if len(failedResources) > 0 {
-			resourcesToReturn = failedResources
+		err = wait.PollUntilContextTimeout(context.Background(), 30*time.Second, 3*time.Minute, true, func(ctx context.Context) (done bool, err error) {
+			deletedResources := bp.deleteResources(resources, ctx)
+			successfulResources, failedResources := getResourcesWithSuccessfulAndFailedStatus(deletedResources)
+			resourcesToReturn = append(resourcesToReturn, successfulResources...)
+			if len(failedResources) > 0 {
+				logger.WarnContext(ctx, fmt.Sprintf("Some of the resources can't be deleted due to errors: %+v", failedResources))
+				resources = failedResources
+				return false, nil
+			}
+			return true, nil
+		})
+		if err != nil {
+			resourcesToReturn = resources
 			w.WriteHeader(http.StatusInternalServerError)
 		} else {
-			resourcesToReturn = deletedResources
 			w.WriteHeader(http.StatusOK)
 		}
 		bytesResult, err := json.Marshal(resourcesToReturn)
@@ -769,7 +779,9 @@ func (bp BaseProvider) GetExtendedConnectionProperties(dbName string, username s
 func (bp BaseProvider) deleteResources(resources []dao.DbResource, ctx context.Context) []dao.DbResource {
 	var deletedResources []dao.DbResource
 
-	resources = append(resources, bp.processResourcePrefixKind(resources, ctx)...)
+	additionalResources, failedResources := bp.processResourcePrefixKind(resources, ctx)
+	resources = append(resources, additionalResources...)
+	deletedResources = append(deletedResources, failedResources...)
 
 	users := bp.deleteResourcesByKind(resources, common.UserKind)
 	deletedResources = append(deletedResources, users...)
@@ -792,8 +804,9 @@ func (bp BaseProvider) deleteResources(resources []dao.DbResource, ctx context.C
 	return deletedResources
 }
 
-func (bp BaseProvider) processResourcePrefixKind(resources []dao.DbResource, ctx context.Context) []dao.DbResource {
+func (bp BaseProvider) processResourcePrefixKind(resources []dao.DbResource, ctx context.Context) ([]dao.DbResource, []dao.DbResource) {
 	var additionalResources []dao.DbResource
+	var failedResources []dao.DbResource
 	for _, resource := range resources {
 		if resource.Kind == common.ResourcePrefixKind {
 			namePattern := fmt.Sprintf("%s*", resource.Name)
@@ -807,26 +820,27 @@ func (bp BaseProvider) processResourcePrefixKind(resources []dao.DbResource, ctx
 					{Kind: common.AliasKind, Name: namePattern},
 				}...)
 			} else if bp.ApiVersion == common.ApiV2 {
-				additionalResources = append(additionalResources, []dao.DbResource{
-					{Kind: common.IndexKind, Name: namePattern},
-					{Kind: common.MetadataKind, Name: resource.Name},
-					{Kind: common.TemplateKind, Name: namePattern},
-					{Kind: common.IndexTemplateKind, Name: namePattern},
-					{Kind: common.AliasKind, Name: namePattern},
-				}...)
 				users, err := bp.getUsersByPrefix(resource.Name)
 				if err != nil {
 					logger.ErrorContext(ctx, fmt.Sprintf("Failed to receive users with prefix %s ", resource.Name), slog.Any("error", err))
+					failedResources = append(additionalResources, *getResourceDeletionFailedStatus(resource, err))
 				} else {
 					for _, user := range users {
 						additionalResources = append(additionalResources,
 							dao.DbResource{Kind: common.UserKind, Name: user})
 					}
+					additionalResources = append(additionalResources, []dao.DbResource{
+						{Kind: common.IndexKind, Name: namePattern},
+						{Kind: common.MetadataKind, Name: resource.Name},
+						{Kind: common.TemplateKind, Name: namePattern},
+						{Kind: common.IndexTemplateKind, Name: namePattern},
+						{Kind: common.AliasKind, Name: namePattern},
+					}...)
 				}
 			}
 		}
 	}
-	return additionalResources
+	return additionalResources, failedResources
 }
 
 func (bp BaseProvider) deleteResourcesByKind(resources []dao.DbResource, kind string) []dao.DbResource {
@@ -955,14 +969,17 @@ func getResourceDeletionFailedStatus(resource dao.DbResource, err error) *dao.Db
 	}
 }
 
-func getResourcesWithFailedStatus(resources []dao.DbResource) []dao.DbResource {
-	var result []dao.DbResource
+func getResourcesWithSuccessfulAndFailedStatus(resources []dao.DbResource) ([]dao.DbResource, []dao.DbResource) {
+	var deletedResources []dao.DbResource
+	var failedResources []dao.DbResource
 	for _, resource := range resources {
 		if resource.Status == DeletionFailedStatus {
-			result = append(result, resource)
+			failedResources = append(failedResources, resource)
+		} else {
+			deletedResources = append(deletedResources, resource)
 		}
 	}
-	return result
+	return deletedResources, failedResources
 }
 
 func buildIndexName(dbName string, prefix string) string {
