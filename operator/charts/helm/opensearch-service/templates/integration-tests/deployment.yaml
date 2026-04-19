@@ -10,6 +10,7 @@ metadata:
     app.kubernetes.io/instance: {{ cat (printf "%s-integration-tests"  (include "opensearch.fullname" .)) .Values.DELIMITER .Release.Namespace | nospace | trunc 63 }}
     app.kubernetes.io/technology: python
 spec:
+  progressDeadlineSeconds: 3000
   selector:
     matchLabels:
       name: {{ template "opensearch.fullname" . }}-integration-tests
@@ -249,7 +250,10 @@ spec:
             failureThreshold: 5
           readinessProbe:
             exec:
-              command: ["sh", "-c", "true"]
+              command:
+                - sh
+                - -c
+                - 'cat /opt/robot/output/result.txt | grep -q "RESULT: TESTS PASSED"'
             initialDelaySeconds: 40
             timeoutSeconds: 5
             periodSeconds: 20
