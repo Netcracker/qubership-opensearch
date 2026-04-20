@@ -1065,8 +1065,8 @@ curator:
       memory: 256Mi
       cpu: 200m
     limits:
-      memory: 256Mi
-      cpu: 200m
+      memory: 512Mi
+      cpu: 400m
 
   ## Node labels for pod assignment
   ## ref: https://kubernetes.io/docs/user-guide/node-selection/

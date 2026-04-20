@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 This section provides information about REST API of the DBaaS OpenSearch adapter.
 
 - [Introduction](#introduction)

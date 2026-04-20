@@ -15,20 +15,26 @@
 package backup
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Netcracker/dbaas-opensearch-adapter/api"
-	"github.com/Netcracker/dbaas-opensearch-adapter/basic"
-	core "github.com/Netcracker/qubership-dbaas-adapter-core/pkg/utils"
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/Netcracker/dbaas-opensearch-adapter/api"
+	"github.com/Netcracker/dbaas-opensearch-adapter/basic"
 	"github.com/Netcracker/dbaas-opensearch-adapter/common"
+	"github.com/Netcracker/qubership-dbaas-adapter-core/pkg/dao"
+	"github.com/Netcracker/qubership-dbaas-adapter-core/pkg/service"
+	core "github.com/Netcracker/qubership-dbaas-adapter-core/pkg/utils"
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
 )
@@ -36,7 +42,13 @@ import (
 var (
 	logger                      = common.GetLogger()
 	resourcePrefixAttributeName = "resource_prefix"
+	validate                    = validator.New()
+	backupServiceAddress        = common.GetEnv("CURATOR_ADDRESS", "")
+	backupServiceUser           = common.GetEnv("CURATOR_USERNAME", "")
+	backupServicePassword       = common.GetEnv("CURATOR_PASSWORD", "")
 )
+
+const backupAPIv1 = "api/v1"
 
 type Repository struct {
 	Status int `json:"status"`
@@ -111,14 +123,23 @@ type Curator struct {
 	client   *http.Client
 }
 
+type restoreRequestV2WithSkipUsers struct {
+	StorageName string                     `json:"storageName" validate:"required"`
+	BlobPath    string                     `json:"blobPath" validate:"required"`
+	Databases   []dao.DaemonRestoreMapping `json:"databases" validate:"required,dive"`
+	DryRun      bool                       `json:"dryRun,omitempty"`
+	CustomVars  map[string]string          `json:"custom_vars,omitempty"`
+}
+
 var ErrBackupNotFound = errors.New("backup not found")
 var ErrCuratorUnavailable = errors.New("curator return internal server error")
 
 type BackupProvider struct {
-	client     common.Client
-	indexNames *common.IndexAdapter
-	repoRoot   string
-	Curator    *Curator
+	client               common.Client
+	indexNames           *common.IndexAdapter
+	repoRoot             string
+	Curator              *Curator
+	DefaultBackupService service.BackupAdministrationService
 }
 
 func NewBackupProvider(opensearchClient common.Client, curatorClient *http.Client, repoRoot string) *BackupProvider {
@@ -127,18 +148,331 @@ func NewBackupProvider(opensearchClient common.Client, curatorClient *http.Clien
 		repoRoot = repoRoot + "/"
 	}
 	curator := &Curator{
-		url:      common.GetEnv("CURATOR_ADDRESS", ""),
-		username: common.GetEnv("CURATOR_USERNAME", ""),
-		password: common.GetEnv("CURATOR_PASSWORD", ""),
+		url:      backupServiceAddress,
+		username: backupServiceUser,
+		password: backupServicePassword,
 		client:   curatorClient,
 	}
-	backupService := &BackupProvider{
+	return &BackupProvider{
 		client:     opensearchClient,
 		indexNames: common.NewIndexAdapter(),
 		repoRoot:   repoRoot,
 		Curator:    curator,
+		DefaultBackupService: service.DefaultBackupAdministrationService(
+			common.GetDbaasCoreLogger(),
+			backupServiceAddress,
+			backupServiceUser,
+			backupServicePassword,
+			false,
+			curatorClient,
+			common.DbMaxLength,
+			[]string{},
+		),
 	}
-	return backupService
+}
+
+func requireBlobPath(r *http.Request) (string, error) {
+	blobPath := strings.TrimSpace(r.URL.Query().Get("blobPath"))
+	if blobPath == "" {
+		return "", errors.New("query parameter 'blobPath' is required")
+	}
+	return blobPath, nil
+}
+
+func handleValidationErrors(err error) dao.BadRequestResponse {
+	var validationErrors []string
+	if validationErrs, ok := err.(validator.ValidationErrors); ok {
+		for _, validationErr := range validationErrs {
+			fieldName := validationErr.Namespace()
+			if fieldName == "" {
+				fieldName = validationErr.Field()
+			}
+			validationErrors = append(validationErrors, fmt.Sprintf("Field '%s' failed validation: %s", fieldName, validationErr.Tag()))
+		}
+	} else {
+		validationErrors = []string{err.Error()}
+	}
+	return dao.BadRequestResponse{
+		Error:   "Invalid request parameters",
+		Details: validationErrors,
+	}
+}
+
+func writeJSONResponse(ctx context.Context, w http.ResponseWriter, statusCode int, payload any) bool {
+	var responseBuffer bytes.Buffer
+	if err := json.NewEncoder(&responseBuffer).Encode(payload); err != nil {
+		logger.ErrorContext(ctx, "Failed to encode response payload", slog.Any("error", err))
+		serverErrorPayload := dao.ServerErrorResponse{
+			Error:     "Internal server error",
+			RequestId: common.GetCtxStringValue(ctx, common.RequestIdKey),
+		}
+		responseBuffer.Reset()
+		if encodeErr := json.NewEncoder(&responseBuffer).Encode(serverErrorPayload); encodeErr != nil {
+			logger.ErrorContext(ctx, "Failed to encode server error response payload", slog.Any("error", encodeErr))
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return false
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write(responseBuffer.Bytes())
+		return false
+	}
+
+	w.WriteHeader(statusCode)
+	if _, err := w.Write(responseBuffer.Bytes()); err != nil {
+		logger.ErrorContext(ctx, "Failed to write response payload", slog.Any("error", err))
+		return false
+	}
+
+	return true
+}
+
+func (bp *BackupProvider) CollectBackupV2Handler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := common.PrepareContext(r)
+		defer func() { _ = r.Body.Close() }()
+
+		var backupRequest dao.CreateBackupRequest
+		if err := json.NewDecoder(r.Body).Decode(&backupRequest); err != nil {
+			logger.ErrorContext(ctx, "Failed to parse backup request", slog.String("error", err.Error()))
+			_ = writeJSONResponse(ctx, w, http.StatusBadRequest, dao.BadRequestResponse{
+				Error:   "Invalid request parameters",
+				Details: []string{err.Error()},
+			})
+			return
+		}
+		if err := validate.Struct(backupRequest); err != nil {
+			logger.ErrorContext(ctx, "Failed to validate backup request", slog.String("error", err.Error()))
+			_ = writeJSONResponse(ctx, w, http.StatusBadRequest, handleValidationErrors(err))
+			return
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("Backup request: %+v", backupRequest))
+
+		var databaseNames []string
+		for _, db := range backupRequest.Databases {
+			databaseNames = append(databaseNames, db.DatabaseName)
+		}
+		backupResponse, found := bp.DefaultBackupService.CollectBackupV2(ctx, backupRequest.StorageName, backupRequest.BlobPath, databaseNames)
+		if !found {
+			logger.InfoContext(ctx, "Database not found")
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("Database not found"))
+			return
+		}
+		logger.DebugContext(ctx, fmt.Sprintf("Backup response: %+v", backupResponse))
+		_ = writeJSONResponse(ctx, w, http.StatusAccepted, backupResponse)
+	}
+}
+
+func (bp *BackupProvider) TrackBackupV2Handler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := common.PrepareContext(r)
+		backupID := mux.Vars(r)["backupId"]
+		blobPath, err := requireBlobPath(r)
+		if err != nil {
+			_ = writeJSONResponse(ctx, w, http.StatusBadRequest, dao.BadRequestResponse{
+				Error:   "Invalid request parameters",
+				Details: []string{err.Error()},
+			})
+			return
+		}
+
+		backupResponse, found := bp.DefaultBackupService.TrackBackupV2(ctx, backupID, blobPath)
+		if !found {
+			logger.InfoContext(ctx, "Backup not found", slog.String("backupId", backupID))
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("Backup not found"))
+			return
+		}
+		_ = writeJSONResponse(ctx, w, http.StatusOK, backupResponse)
+	}
+}
+
+func (bp *BackupProvider) DeleteBackupV2Handler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := common.PrepareContext(r)
+		backupID := mux.Vars(r)["backupId"]
+		blobPath, err := requireBlobPath(r)
+		if err != nil {
+			_ = writeJSONResponse(ctx, w, http.StatusBadRequest, dao.BadRequestResponse{
+				Error:   "Invalid request parameters",
+				Details: []string{err.Error()},
+			})
+			return
+		}
+
+		found := bp.DefaultBackupService.EvictBackupV2(ctx, backupID, blobPath)
+		if !found {
+			logger.InfoContext(ctx, "Backup not found", slog.String("backupId", backupID))
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("Backup not found"))
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func (bp *BackupProvider) RestoreBackupV2Handler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := common.PrepareContext(r)
+		backupID := mux.Vars(r)["backupId"]
+		dryRun, _ := strconv.ParseBool(r.URL.Query().Get("dryRun"))
+		defer func() { _ = r.Body.Close() }()
+
+		var restoreRequest dao.CreateRestoreRequest
+		if err := json.NewDecoder(r.Body).Decode(&restoreRequest); err != nil {
+			logger.ErrorContext(ctx, "Failed to parse restore request", slog.Any("error", err))
+			_ = writeJSONResponse(ctx, w, http.StatusBadRequest, dao.BadRequestResponse{
+				Error:   "Invalid request parameters",
+				Details: []string{err.Error()},
+			})
+			return
+		}
+		if err := validate.Struct(restoreRequest); err != nil {
+			logger.ErrorContext(ctx, "Failed to validate restore request", slog.Any("error", err))
+			_ = writeJSONResponse(ctx, w, http.StatusBadRequest, handleValidationErrors(err))
+			return
+		}
+
+		restoreResponse, found, err := bp.restoreBackupV2WithSkipUsersRecovery(ctx, backupID, restoreRequest, dryRun)
+		if err != nil {
+			logger.ErrorContext(ctx, "Failed to create restore", slog.Any("error", err))
+			_ = writeJSONResponse(ctx, w, http.StatusInternalServerError, dao.ServerErrorResponse{
+				Error:     "Failed to create restore",
+				RequestId: common.GetCtxStringValue(ctx, common.RequestIdKey),
+			})
+			return
+		}
+		if !found {
+			logger.InfoContext(ctx, "Backup not found", slog.String("backupId", backupID))
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("Backup not found"))
+			return
+		}
+		_ = writeJSONResponse(ctx, w, http.StatusAccepted, restoreResponse)
+	}
+}
+
+func (bp *BackupProvider) restoreBackupV2WithSkipUsersRecovery(ctx context.Context, backupID string, restoreRequest dao.CreateRestoreRequest, dryRun bool) (*dao.RestoreResponse, bool, error) {
+	databases := make([]dao.DaemonRestoreMapping, 0, len(restoreRequest.Databases))
+	databasesResp := make([]dao.LogicalDatabaseRestore, 0, len(restoreRequest.Databases))
+
+	for _, database := range restoreRequest.Databases {
+		newDbName := database.DatabaseName
+		databases = append(databases, dao.DaemonRestoreMapping{
+			PreviousDatabaseName: database.DatabaseName,
+			DatabaseName:         newDbName,
+		})
+		databasesResp = append(databasesResp, dao.LogicalDatabaseRestore{
+			DatabaseName:         newDbName,
+			PreviousDatabaseName: &database.DatabaseName,
+			Status:               dao.NotStartedStatus,
+		})
+	}
+
+	request := restoreRequestV2WithSkipUsers{
+		StorageName: restoreRequest.StorageName,
+		BlobPath:    restoreRequest.BlobPath,
+		Databases:   databases,
+		DryRun:      dryRun,
+		CustomVars:  map[string]string{"skip_users_recovery": "true"},
+	}
+
+	requestBytes, err := json.Marshal(request)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to marshal restore request: %w", err)
+	}
+
+	u, _ := url.Parse(fmt.Sprintf("%s/%s/restore/%s", bp.Curator.url, backupAPIv1, url.PathEscape(backupID)))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), bytes.NewReader(requestBytes))
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to prepare restore request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(common.RequestIdKey, common.GetCtxStringValue(ctx, common.RequestIdKey))
+	req.SetBasicAuth(bp.Curator.username, bp.Curator.password)
+
+	res, err := bp.Curator.client.Do(req)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to create restore: %w", err)
+	}
+	defer func() { _ = res.Body.Close() }()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to read restore response: %w", err)
+	}
+
+	if res.StatusCode == http.StatusNotFound {
+		return nil, false, nil
+	}
+	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
+		return nil, false, fmt.Errorf("failed to create restore: %s", string(body))
+	}
+
+	restoreResponse := &dao.RestoreResponse{
+		Status:      dao.NotStartedStatus,
+		StorageName: restoreRequest.StorageName,
+		BlobPath:    restoreRequest.BlobPath,
+		Databases:   databasesResp,
+	}
+	if err = json.Unmarshal(body, restoreResponse); err != nil {
+		return nil, false, fmt.Errorf("failed to unmarshal restore response: %w", err)
+	}
+
+	return restoreResponse, true, nil
+}
+
+func (bp *BackupProvider) TrackRestoreV2Handler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := common.PrepareContext(r)
+		restoreID := mux.Vars(r)["restoreId"]
+		blobPath, err := requireBlobPath(r)
+		if err != nil {
+			_ = writeJSONResponse(ctx, w, http.StatusBadRequest, dao.BadRequestResponse{
+				Error:   "Invalid request parameters",
+				Details: []string{err.Error()},
+			})
+			return
+		}
+
+		restoreResponse, found := bp.DefaultBackupService.TrackRestoreV2(ctx, restoreID, blobPath)
+		if !found {
+			logger.InfoContext(ctx, "Restore not found", slog.String("restoreId", restoreID))
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("Restore not found"))
+			return
+		}
+		_ = writeJSONResponse(ctx, w, http.StatusOK, restoreResponse)
+	}
+}
+
+func (bp *BackupProvider) DeleteRestoreV2Handler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := common.PrepareContext(r)
+		restoreID := mux.Vars(r)["restoreId"]
+		blobPath, err := requireBlobPath(r)
+		if err != nil {
+			_ = writeJSONResponse(ctx, w, http.StatusBadRequest, dao.BadRequestResponse{
+				Error:   "Invalid request parameters",
+				Details: []string{err.Error()},
+			})
+			return
+		}
+		if bp.DefaultBackupService == nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte("backup service is not configured"))
+			return
+		}
+
+		found := bp.DefaultBackupService.EvictRestoreV2(ctx, restoreID, blobPath)
+		if !found {
+			logger.InfoContext(ctx, "Restore not found", slog.String("restoreId", restoreID))
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("Restore not found"))
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}
 }
 
 func (bp BackupProvider) CollectBackupHandler() func(w http.ResponseWriter, r *http.Request) {
@@ -755,7 +1089,7 @@ func (bp BackupProvider) requestRestore(ctx context.Context, dbs []string, backu
 	body := strings.NewReader(fmt.Sprintf(`
 		{
 			"vault": "%s",
-			"skip_users_recovery": "true",
+			"custom_vars": {"skip_users_recovery": "true"},
 			"dbs": ["%s"]
 		%s
 		}
@@ -789,7 +1123,7 @@ func (bp BackupProvider) requestRestoration(ctx context.Context, dbs []string, b
 	body := strings.NewReader(fmt.Sprintf(`
 		{
 			"vault": "%s",
-			"skip_users_recovery": "true",
+			"custom_vars": {"skip_users_recovery": "true"},
 			"dbs": [%s]
 		%s
 		}
