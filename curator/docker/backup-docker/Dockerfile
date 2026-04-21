@@ -16,7 +16,7 @@ RUN go mod download
 COPY curator/docker/backup-docker/indices_migration_tool/main.go main.go
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o migration_tool main.go
 
-FROM ghcr.io/netcracker/qubership-backup-daemon-go:main
+FROM ghcr.io/netcracker/qubership-backup-daemon-go:fix_minor_fixes
 
 ARG TARGETOS
 ARG TARGETARCH
