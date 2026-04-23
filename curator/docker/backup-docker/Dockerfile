@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.26.1-alpine3.23 as builder
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine3.23 as builder
 ARG BUILDPLATFORM
 ARG TARGETOS
 ARG TARGETARCH
@@ -76,7 +76,7 @@ RUN chmod +x ${ELASTICSEARCH_CURATOR_HOME}/*
 RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
     && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
     && apk add --update --upgrade --no-cache \
-        pcre2 libcurl curl
+        pcre2 libcurl curl py3-setuptools py3-setuptools-pyc musl-utils
 
 USER 1000:0
 
