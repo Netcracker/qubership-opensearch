@@ -419,7 +419,9 @@ spec:
 {{- end }}
   {{- if and .Values.opensearch.arbiter.persistence.enabled (not .Values.opensearch.arbiter.persistence.existingClaim) }}
   volumeClaimTemplates:
-    - metadata:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
         name: pvc
         annotations:
         {{- range $key, $value := .Values.opensearch.arbiter.persistence.annotations }}
