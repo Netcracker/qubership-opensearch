@@ -21,6 +21,14 @@ OpenSearch Indices
 | Indices | The number of documents and size in bytes for each index in descending order of size values | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
 <!-- markdownlint-enable line-length -->
 
+![Dashboard](/docs/public/images/indices-by-opensearch-version.png)
+
+<!-- markdownlint-disable line-length -->
+| Name | Description | Thresholds | Repeat |
+| ---- | ----------- | ---------- | ------ |
+| Indices by OpenSearch Version | The number of document versions created due to versioned indexing operations | Default:<br/>Mode: absolute<br/>Level 1: 80<br/><br/> |  |
+<!-- markdownlint-enable line-length -->
+
 ### Indices Information
 
 ![Dashboard](/docs/public/images/opensearch-indices_indices_information.png)
