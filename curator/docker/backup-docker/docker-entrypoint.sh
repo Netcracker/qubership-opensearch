@@ -15,4 +15,4 @@ else
   export ROOT_CA_CERTIFICATE=""
 fi
 
-python3 /opt/backup/backup-daemon.py
+exec /opt/backup/backup-daemon
