@@ -31,6 +31,8 @@ import (
 	"github.com/Netcracker/qubership-dbaas-adapter-core/pkg/dao"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
 	uuid "github.com/satori/go.uuid"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 const (
@@ -53,6 +55,7 @@ const (
 	Http               = "http"
 	Https              = "https"
 	RequestIdKey       = "X-Request-Id"
+	DbMaxLength        = 255
 )
 
 var (
@@ -124,6 +127,19 @@ func GetLogger() *slog.Logger {
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 	return logger
+}
+
+func GetDbaasCoreLogger() *zap.Logger {
+	atom := zap.NewAtomicLevel()
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.TimeKey = "timestamp"
+	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+
+	return zap.New(zapcore.NewCore(
+		zapcore.NewJSONEncoder(encoderCfg),
+		zapcore.Lock(os.Stdout),
+		atom,
+	))
 }
 
 func (h *CustomLogHandler) Handle(ctx context.Context, record slog.Record) error {
