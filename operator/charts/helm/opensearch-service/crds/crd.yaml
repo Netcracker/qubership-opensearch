@@ -26,6 +26,21 @@ spec:
               type: object
             spec:
               properties:
+                integrationTests:
+                  properties:
+                    randomRunTrigger:
+                      type: string
+                    serviceName:
+                      type: string
+                    timeout:
+                      type: integer
+                    waitForResult:
+                      type: boolean
+                  required:
+                    - serviceName
+                    - timeout
+                    - waitForResult
+                  type: object
                 curator:
                   properties:
                     name:
@@ -183,6 +198,8 @@ spec:
               type: object
             status:
               properties:
+                terminatingReplicas:
+                  type: integer
                 conditions:
                   items:
                     properties:

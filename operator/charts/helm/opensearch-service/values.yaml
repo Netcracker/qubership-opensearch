@@ -1142,6 +1142,10 @@ integrationTests:
   dockerImage: ghcr.io/netcracker/qubership-opensearch-integration-tests:main
   statusWritingEnabled: true
   isShortStatusMessage: true
+  service:
+    name: opensearch-integration-tests
+  waitForResult: true
+  timeout: 1200
   secrets:
     idp:
       username: ""
