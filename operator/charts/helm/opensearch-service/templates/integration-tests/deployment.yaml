@@ -16,6 +16,7 @@ spec:
   strategy:
     type: RollingUpdate
   replicas: {{ template "opensearch.replicasForSingleService" . }}
+  progressDeadlineSeconds: {{ .Values.statusProvisioner.integrationTestsTimeout | default 300 }}
   template:
     metadata:
       labels:

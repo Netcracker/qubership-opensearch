@@ -16,7 +16,7 @@ RUN go mod download
 COPY curator/docker/backup-docker/indices_migration_tool/main.go main.go
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o migration_tool main.go
 
-FROM ghcr.io/netcracker/qubership-backup-daemon-go:main
+FROM ghcr.io/netcracker/qubership-backup-daemon-go:fix_minor_fixes
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -42,8 +42,10 @@ RUN apk add --no-cache wget python3 py3-pip \
         opensearch-py==2.5.0 \
         elasticsearch==7.17.12 \
         curator-opensearch==0.0.13 \
+        "Flask<2.1" \
+        "Werkzeug<2.1" \
         urllib3 \
-        click
+        "click<8"
 
 #Download necessary tools
 RUN set -x \
@@ -79,6 +81,5 @@ RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositori
 USER 1000:0
 
 WORKDIR ${ELASTICSEARCH_CURATOR_HOME}
-
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
