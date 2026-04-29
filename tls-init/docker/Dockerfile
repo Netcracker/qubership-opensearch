@@ -23,7 +23,7 @@ RUN set -x \
 RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
     && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
     && apk add --update --upgrade --no-cache \
-        libcurl curl
+        libcurl curl musl musl-utils libcrypto3 libssl3 zlib openssl musl-dev
 
 WORKDIR ${OPENSEARCH_TLS_INIT_HOME}
 
