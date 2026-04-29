@@ -1065,7 +1065,7 @@ curator:
       memory: 256Mi
       cpu: 200m
     limits:
-      memory: 512Mi
+      memory: 768Mi
       cpu: 400m
 
   ## Node labels for pod assignment
