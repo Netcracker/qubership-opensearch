@@ -1183,6 +1183,38 @@ integrationTests:
   # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
   priorityClassName: ""
 
+  # ATP report upload (S3 under atpReport.atpStorage)
+  atpReport:
+    enabled: false
+    atpStorage:
+      # S3 provider type: aws (for real AWS S3), minio, s3 (for S3-compatible with custom endpoint)
+      provider: "aws"
+      # S3 API server URL (e.g., https://s3.amazonaws.com or https://minio.example.com)
+      serverUrl: "https://s3.amazonaws.com"
+      # S3 UI URL for browsing results (e.g., https://minio.example.com)
+      serverUiUrl: ""
+      # S3 bucket name. If empty - S3 integration is disabled and results stay local
+      bucket: ""
+      # S3 region (required for AWS S3)
+      region: "us-east-1"
+      # S3 credentials (stored in secret when atpReport.enabled)
+      username: ""
+      password: ""
+
+  # URL for viewing Allure reports (e.g., https://reports.example.com)
+  atpReportViewUiUrl: ""
+
+  # Environment name for organizing test results path in S3
+  environmentName: "opensearch"
+
+  # Enable Jira integration (writes to marker file for external processing)
+  enableJiraIntegration: false
+
+  # Override MONITORED_IMAGES for opensearch_images test
+  # Format: "type name containerName registry:port/image:tag, ..."
+  # Example: "statefulset opensearch-master opensearch ghcr.io:443/netcracker/qubership-docker-opensearch-3:main"
+  monitoredImages: ""
+
 groupMigration:
   enabled: true
   oldGroupPrefix: "qubership.org/"
