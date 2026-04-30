@@ -1419,6 +1419,42 @@ Curator SSL secret name
 {{- end -}}
 
 {{/*
+Effective native backup daemon S3 aliases wrapped in a map: { items: [...] }.
+fromYaml cannot parse bare YAML lists, so the output is a map with an "items" key.
+*/}}
+{{- define "backupDaemon.s3Aliases" -}}
+{{- if and .Values.opensearch.snapshots.s3Aliases -}}
+items: {{ toYaml .Values.opensearch.snapshots.s3Aliases | nindent 2 }}
+{{- else -}}
+items: []
+{{- end -}}
+{{- end -}}
+
+{{/*
+Build native backup daemon aliases payload as JSON object.
+*/}}
+{{- define "backupDaemon.s3AliasesJson" -}}
+{{- $s3Data := fromYaml (include "backupDaemon.s3Aliases" .) -}}
+{{- $aliases := dict -}}
+{{- range $s3Data.items }}
+  {{- $out := dict -}}
+  {{- if .spec }}
+    {{- $out = merge $out (omit .spec "storageBucket" "storageUsername" "storageRegion" "storageServerUrl") -}}
+    {{- if .spec.storageBucket }}{{- $out = set $out "bucketName" .spec.storageBucket }}{{- end -}}
+    {{- if .spec.storageUsername }}{{- $out = set $out "accessKeyId" .spec.storageUsername }}{{- end -}}
+    {{- $out = set $out "region" (default "us-east-1" .spec.storageRegion) -}}
+    {{- if .spec.storageServerUrl }}{{- $out = set $out "s3Url" .spec.storageServerUrl }}{{- end -}}
+  {{- end }}
+  {{- if .secretContent }}
+    {{- $out = merge $out (omit .secretContent "storagePassword") -}}
+    {{- if .secretContent.storagePassword }}{{- $out = set $out "accessKeySecret" .secretContent.storagePassword }}{{- end -}}
+  {{- end }}
+  {{- $aliases = set $aliases .name $out -}}
+{{- end }}
+{{- $aliases | toPrettyJson -}}
+{{- end -}}
+
+{{/*
 Restricted environment.
 */}}
 {{- define "opensearch.restrictedEnvironment" -}}
