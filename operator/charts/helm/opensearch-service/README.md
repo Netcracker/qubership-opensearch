@@ -22,3 +22,28 @@ helm install opensearch-service ./ -f example.yaml -n opensearch
 ```
 Please see the many options supported in the `values.yaml`
 file.
+
+## Snapshot S3 aliases
+
+Use these values to configure named backup-storage aliases for snapshot/restore flows:
+
+- `opensearch.snapshots.s3Aliases` - list of S3 alias definitions. If empty, no aliases secret is rendered.
+
+Example:
+
+```yaml
+opensearch:
+  snapshots:
+    s3Aliases:
+      - name: default
+        spec:
+          default: true
+          storageBucket: backup-restore-bucket
+          storageProvider: aws
+          storageRegion: us-east-1
+          storageServerUrl: "https://s3.example.com"
+          storageUsername: name
+          storageSecret: storage-location
+        secretContent:
+          storagePassword: pass  
+```
