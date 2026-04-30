@@ -212,6 +212,11 @@
     * [Stack trace](#stack-trace-33)
     * [How to solve](#how-to-solve-35)
     * [Recommendations](#recommendations-33)
+  * [Upgrade Failed Due to Pre-Deploy Migration Hook](#upgrade-failed-due-to-pre-deploy-migration-hook)
+    * [Description](#description-36)
+    * [Stack trace](#stack-trace-34)
+    * [How to solve](#how-to-solve-36)
+    * [Recommendations](#recommendations-34)
 <!-- TOC -->
 
 ## Cluster Health
@@ -1603,3 +1608,58 @@ If `opensearch.data.dedicatedPod.enabled: false`, master nodes also act as data 
 If dedicated data pods are enabled, increase `opensearch.data.dedicatedPod.replicas`. 
 Also keep index settings reasonable for new indexes: `index.number_of_shards` defaults to 1, while `index.number_of_replicas` defaults to 1, so unnecessary shard and replica growth should be avoided. 
 If really required, OpenSearch settings can also be provided through `opensearch.config` during installation.
+
+## Upgrade Failed Due to Pre-Deploy Migration Hook
+
+### Description
+
+During an OpenSearch Service upgrade (especially from 2.x to 3.x), the Helm pre-deploy hook job `opensearch-migration-1x` may fail with a `BackoffLimitExceeded` error. This job is a Kubernetes Job that runs as a `pre-install`/`pre-upgrade` Helm hook and performs index migration for indices originally created on OpenSearch 1.x. If the cluster contains such indices, they must be reindexed before the upgrade to 3.x can proceed. When this migration fails, the entire Helm upgrade is blocked.
+
+In **ArgoCD** deployments, this appears as a failed PreSync hook:
+
+```text
+- Job/opensearch-migration-1x; Hook: PreSync; Phase: Failed
+    Sync Message: Job has reached the specified backoff limit
+```
+
+In **Helm** output, the error looks like:
+
+```text
+Error: UPGRADE FAILED: pre-upgrade hooks failed: 1 error occurred:
+    * job opensearch-migration-1x failed: BackoffLimitExceeded
+```
+
+### Stack trace
+
+```text
+Error: UPGRADE FAILED: pre-upgrade hooks failed: 1 error occurred:
+    * job opensearch-migration-1x failed: BackoffLimitExceeded
+```
+
+### How to solve
+
+1. **Check the migration Job logs** to find the root cause of the failure:
+
+    ```sh
+    kubectl logs -n <namespace> job/opensearch-migration-1x
+    ```
+
+    If the pod has already been cleaned up, look for the pod by label:
+
+    ```sh
+    kubectl get pods -n <namespace> -l component=migration
+    kubectl logs -n <namespace> <migration-pod-name>
+    ```
+
+2. **Common failure reasons:**
+    - The cluster contains indices created on OpenSearch 1.x that block the upgrade to 3.x. The migrator attempts to reindex them but may fail due to insufficient resources, connectivity issues, or incompatible index settings.
+    - OpenSearch is not reachable from the migration pod (network or TLS issues).
+    - Insufficient permissions or missing secrets.
+
+3. **After identifying and resolving the issue**, retry the upgrade. If using ArgoCD, trigger a new sync. If using Helm directly, re-run the `helm upgrade` command.
+
+4. For detailed information about the index migration process, including how to run the migrator manually in dry-run mode, refer to the [Indices Migration](indices-migration.md) documentation.
+
+### Recommendations
+
+Before upgrading OpenSearch from 2.x to 3.x, run the migration tool in **dry-run mode** to identify any 1.x indices that would block the upgrade. Review the dry-run output and plan the migration during a maintenance window. See the [Indices Migration](indices-migration.md) guide for the full procedure.
