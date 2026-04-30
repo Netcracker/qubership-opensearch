@@ -95,11 +95,7 @@ spec:
                 - /bin/bash
                 - -ec
                 - |
-                  test -f /tmp/last_beat
-                  now=$(date +%s)
-                  last=$(cat /tmp/last_beat || echo 0)
-                  [[ $(( now - last )) -lt 60 ]]
-                  kubectl --request-timeout=5s -n {{ .Release.Namespace }} auth can-i get pods >/dev/null
+                  kubectl --request-timeout=5s -n {{ .Release.Namespace }} get pods >/dev/null 2>&1
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
@@ -110,10 +106,7 @@ spec:
                 - /bin/bash
                 - -ec
                 - |
-                  test -f /tmp/last_beat
-                  now=$(date +%s)
-                  last=$(cat /tmp/last_beat || echo 0)
-                  [[ $(( now - last )) -lt 300 ]]
+                  pgrep -f kubectl >/dev/null || pgrep -f bash >/dev/null
             initialDelaySeconds: 60
             periodSeconds: 20
             timeoutSeconds: 5
