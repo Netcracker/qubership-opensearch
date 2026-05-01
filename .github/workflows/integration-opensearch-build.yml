@@ -76,7 +76,7 @@ jobs:
           fi
 
       - name: Create tags for images
-        uses: netcracker/qubership-workflow-hub/actions/metadata-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@e64a1ee2fc2f68ab44a4ef416c27d83ce36ba8e1  # v2.2.1
         id: meta
         with:
           default-template: "{{ref-name}}"
@@ -87,7 +87,7 @@ jobs:
 
       - name: Set opensearch Major Version
         id: set-opensearch-major-version
-        uses: netcracker/qubership-workflow-hub/actions/metadata-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@e64a1ee2fc2f68ab44a4ef416c27d83ce36ba8e1  # v2.2.1
         with:
           ref: ${{ env.OPENSEARCH_VERSION }}
           default-template: "{{ref-name}}"
@@ -113,7 +113,7 @@ jobs:
           IMAGE_TAG="${OPENSEARCH_CUSTOM_IMAGE,,}"
           echo "IMAGE_TAG=${IMAGE_TAG#*:}" >> "$GITHUB_ENV"
       - name: Docker
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@e64a1ee2fc2f68ab44a4ef416c27d83ce36ba8e1  # v2.2.1
         with:
           ref: ${{ env.INTEGRATION_BUILD_BRANCH }}
           dry-run: false
