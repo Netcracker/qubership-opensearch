@@ -1,4 +1,11 @@
 {{- if .Values.integrationTests.enabled }}
+{{- $s3AliasesData := fromYaml (include "backupDaemon.s3Aliases" .) }}
+{{- $defaultS3AliasName := "" }}
+{{- range $s3AliasesData.items }}
+  {{- if and .name .spec .spec.default }}
+    {{- $defaultS3AliasName = .name }}
+  {{- end }}
+{{- end }}
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -90,6 +97,10 @@ spec:
                   name: {{ template "opensearch.fullname" . }}-secret
             - name: OPENSEARCH_MASTER_NODES_NAME
               value: {{ template "master-nodes" . }}
+            - name: S3_ALIASES_SECRET_NAME
+              value: {{ template "opensearch.fullname" . }}-s3-aliases
+            - name: S3_DEFAULT_ALIAS_NAME
+              value: {{ default "default" $defaultS3AliasName | quote }}
             - name: IDENTITY_PROVIDER_URL
               value: "{{ .Values.integrationTests.identityProviderUrl }}"
             - name: IDENTITY_PROVIDER_REGISTRATION_TOKEN
