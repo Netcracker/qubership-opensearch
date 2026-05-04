@@ -17,9 +17,11 @@ The versions required are:
 
 Assuming this repository was unpacked into the directory `opensearch-service` and Kubernetes config is available with namespace `opensearch`, the chart can
 then be installed directly:
+
 ```bash
 helm install opensearch-service ./ -f example.yaml -n opensearch
 ```
+
 Please see the many options supported in the `values.yaml`
 file.
 
@@ -45,5 +47,5 @@ opensearch:
           storageUsername: name
           storageSecret: storage-location
         secretContent:
-          storagePassword: pass  
+          storagePassword: pass
 ```
