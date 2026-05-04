@@ -93,13 +93,13 @@ spec:
             exec:
               command:
                 - /bin/bash
-                - -ec
+                - -c
                 - |
-                  kubectl --request-timeout=5s -n {{ .Release.Namespace }} get pods >/dev/null 2>&1
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
+                  kubectl get pods >/dev/null 2>&1
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 10
+            failureThreshold: 5
           livenessProbe:
             exec:
               command:
