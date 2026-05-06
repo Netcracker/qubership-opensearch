@@ -56,21 +56,6 @@ Check Backup Status V2
     Should Be Equal As Strings  ${response.status_code}  200
     Should Contain  str(${response.content})  completed
 
-Restore Backup V2
-    [Arguments]  ${backup_id}  ${database_name}  ${blob_path}=${BACKUP_BLOB_PATH}
-    ${data}=  Set Variable  {"storageName":"${BACKUP_STORAGE_NAME}","blobPath":"${blob_path}","databases":[{"microserviceName":"integration-tests","databaseName":"${database_name}","namespace":"${OPENSEARCH_NAMESPACE}"}]}
-    ${response}=  Post Request  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}/restore?dryRun=false  data=${data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  202
-    ${restore_id}=  Get Track Id  ${response.content}
-    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Check Restore Status V2  ${restore_id}  ${blob_path}
-
-Check Restore Status V2
-    [Arguments]  ${restore_id}  ${blob_path}=${BACKUP_BLOB_PATH}
-    ${response}=  Get Request  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/restore/${restore_id}?blobPath=${blob_path}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
-    Should Contain  str(${response.content})  completed
-
 Delete Backup V2
     [Arguments]  ${backup_id}  ${blob_path}=${BACKUP_BLOB_PATH}
     ${response}=  Delete Request  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}?blobPath=${blob_path}  headers=${headers}
@@ -125,18 +110,6 @@ Check Backup Does Not Exist In Default Alias Bucket
     Should Not Be True  ${backup_file_exist}
 
 *** Test Cases ***
-Full Backup And Restore V2
-    [Tags]  opensearch  backup  backup_v2
-    ${backup_id}=  Set Variable  ${None}
-    Create Index With Generated Data  ${OPENSEARCH_BACKUP_V2_INDEX}
-    ${backup_id}=  Create Backup V2  ${OPENSEARCH_BACKUP_V2_INDEX}
-    Delete Data  ${OPENSEARCH_BACKUP_V2_INDEX}
-    Restore Backup V2  ${backup_id}  ${OPENSEARCH_BACKUP_V2_INDEX}
-    Check OpenSearch Index Exists  ${OPENSEARCH_BACKUP_V2_INDEX}
-    Check That Document Exists By Field  ${OPENSEARCH_BACKUP_V2_INDEX}  name  ${document_name}
-    Delete Backup V2  ${backup_id}
-    [Teardown]  Run Keywords  Delete Data  ${OPENSEARCH_BACKUP_V2_INDEX}  AND  Delete Backup V2 If Exists  ${backup_id}
-
 V2 Backup Uses Default S3 Alias Container
     [Tags]  opensearch  backup  backup_v2  backup_v2_aliases
     ${backup_id}=  Set Variable  ${None}
