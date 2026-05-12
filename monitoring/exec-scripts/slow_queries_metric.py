@@ -56,10 +56,11 @@ def __configure_logging(log):
 
 """
 Slow log message example:
-[WARN ], 2023-07-27T08:03:43, [opensearch-2], [my-supper-index][0] took[12.4ms], took_millis[12], total_hits[0
+[WARN], 2023-07-27T08:03:43, [opensearch-2], [my-supper-index][0] took[12.4ms], took_millis[12], total_hits[0
 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[1], source[{"query":{ "match":{"phrase":{
 "query":"heuristic","operator":"OR","prefix_length":0,"max_expansions":50, "fuzzy_transpositions":true,
 "lenient":false,"zero_terms_query":"NONE","auto_generate_synonyms_phrase_query":true,"boost":1.0}}}}], id[],
+request_id[0bcf833c6c1b59d10aad96010bc56eaf]
 
 Converted SlowLogRecord object:
     log_level = "WARN"
@@ -77,12 +78,13 @@ Converted SlowLogRecord object:
     "fuzzy_transpositions":true,"lenient":false,"zero_terms_query":"NONE","auto_generate_synonyms_phrase_query":true,
     "boost":1.0}}}}"
     id = ""
+    request_id = "0bcf833c6c1b59d10aad96010bc56eaf"
 """
 
 
 class SlowLogRecord:
     def __init__(self, data: []):
-        if len(data) != 13:
+        if len(data) != 14:
             raise ValueError
         (
             self.log_level,
@@ -97,14 +99,15 @@ class SlowLogRecord:
             self.search_type,
             self.total_shards,
             self.source,
-            self.id_
+            self.id_,
+            self.request_id
         ) = data
 
     def __str__(self):
         return (f'[{self.log_level}], {self.time}, [{self.node}], [{self.index}][{self.shard}] took[{self.took}], '
                 f'took_millis[{self.took_millis}], total_hits[{self.total_hits} hits], stats[{self.stats}], '
                 f'search_type[{self.search_type}], total_shards[{self.total_shards}], source[{self.source}], '
-                f'id[{self.id_}]')
+                f'id[{self.id_}], request_id[{self.request_id}]')
 
     def __eq__(self, other):
         if isinstance(other, SlowLogRecord):
@@ -120,7 +123,8 @@ class SlowLogRecord:
                     and self.search_type == other.search_type
                     and self.total_shards == other.total_shards
                     and self.source == other.source
-                    and self.id_ == other.id_)
+                    and self.id_ == other.id_
+                    and self.request_id == other.request_id)
         return False
 
     def convert_to_metric_line(self) -> str:
@@ -146,7 +150,7 @@ def _extract_values_from_brackets(element: str) -> list:
 
 def convert_slow_log_record(record: str) -> Optional[SlowLogRecord]:
     elements = record.strip(', ').split(', ')
-    if len(elements) != 11:
+    if len(elements) != 12:
         logger.warning(f'Unable to parse the record, because it has incorrect format: {record}')
         return None
 
