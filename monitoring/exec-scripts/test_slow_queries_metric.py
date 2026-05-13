@@ -25,8 +25,7 @@ log_record = ('[WARN ], 2023-07-27T08:00:43, [opensearch-1], [test-index-1][0] t
               'total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[1], '
               'source[{"query":{"match":{"phrase":{"query":"heuristic","operator":"OR","prefix_length":0,'
               '"max_expansions":50,"fuzzy_transpositions":true,"lenient":false,"zero_terms_query":"NONE",'
-              '"auto_generate_synonyms_phrase_query":true,"boost":1.0}}}}], id[],')
-
+              '"auto_generate_synonyms_phrase_query":true,"boost":1.0}}}}], id[], request_id[3076c8407ed7cbfd1521f28ac261b3f9]')
 
 class TestSlowQueriesMetric(unittest.TestCase):
 
@@ -48,25 +47,26 @@ class TestSlowQueriesMetric(unittest.TestCase):
                          '"max_expansions":50,"fuzzy_transpositions":true,"lenient":false,"zero_terms_query":"NONE",'
                          '"auto_generate_synonyms_phrase_query":true,"boost":1.0}}}}')
         self.assertEqual(record.id_, '')
+        self.assertEqual(record.request_id, '3076c8407ed7cbfd1521f28ac261b3f9')
 
     def test_processing_log_records(self):
         time_to_stop = datetime.fromisoformat("2023-08-21T13:48:35") - timedelta(minutes=5)
         records = _process_log_records(SLOW_LOGS_FILENAME, time_to_stop)
         self.assertEqual(len(records), 2)
         self.assertEqual(str(records[0]),
-                         '[INFO], 2023-08-21T13:43:55, [opensearch-0], [test_index][1] took[3.9s], took_millis[3925], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"query":{"regexp":{"value":{"value":".*M.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[]')
+                         '[INFO], 2023-08-21T13:43:55, [opensearch-0], [test_index][1] took[3.9s], took_millis[3925], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"query":{"regexp":{"value":{"value":".*M.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[], request_id[3e0d8400e29b41d4a716446655440233]')
         self.assertEqual(str(records[1]),
-                         '[INFO], 2023-08-21T13:43:55, [opensearch-0], [test_index][0] took[3.7s], took_millis[3772], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"query":{"regexp":{"value":{"value":".*M.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[]')
+                         '[INFO], 2023-08-21T13:43:55, [opensearch-0], [test_index][0] took[3.7s], took_millis[3772], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"query":{"regexp":{"value":{"value":".*M.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[], request_id[2d0c8400e29b41d4a716446655440222]')
 
     def test_slow_logs_filtering_with_high_top_number(self):
         expected_records_list = [
-            '[INFO], 2023-08-21T13:40:45, [opensearch-0], [test_index][0] took[1.2ms], took_millis[1], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":"f2H.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[],',
-            '[INFO], 2023-08-21T13:41:16, [opensearch-0], [test_index][1] took[5.7s], took_millis[5735], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*Nr.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[],',
-            '[INFO], 2023-08-21T13:42:04, [opensearch-0], [test_index][1] took[3.2s], took_millis[3252], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*mM.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[],',
-            '[INFO], 2023-08-21T13:42:23, [opensearch-0], [test_index][1] took[2.4s], took_millis[2484], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*N.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[],',
-            '[INFO], 2023-08-21T13:42:46, [opensearch-0], [test_index][0] took[69.8ms], took_millis[69], total_hits[4672 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":2048}], id[],',
-            '[INFO], 2023-08-21T13:43:06, [opensearch-0], [test_index][1] took[3.7s], took_millis[3786], total_hits[4248 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*1.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[],',
-            '[INFO], 2023-08-21T13:43:55, [opensearch-0], [test_index][1] took[3.9s], took_millis[3925], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"query":{"regexp":{"value":{"value":".*M.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[],',
+            '[INFO], 2023-08-21T13:40:45, [opensearch-0], [test_index][0] took[1.2ms], took_millis[1], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":"f2H.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[], request_id[bb0e8400e29b41d4a716446655440066],',
+            '[INFO], 2023-08-21T13:41:16, [opensearch-0], [test_index][1] took[5.7s], took_millis[5735], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*Nr.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[], request_id[dd0a8400e29b41d4a716446655440088],',
+            '[INFO], 2023-08-21T13:42:04, [opensearch-0], [test_index][1] took[3.2s], took_millis[3252], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*mM.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[], request_id[120d8400e29b41d4a716446655440111],',
+            '[INFO], 2023-08-21T13:42:23, [opensearch-0], [test_index][1] took[2.4s], took_millis[2484], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*N.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[], request_id[450a8400e29b41d4a716446655440144],',
+            '[INFO], 2023-08-21T13:42:46, [opensearch-0], [test_index][0] took[69.8ms], took_millis[69], total_hits[4672 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":2048}], id[], request_id[780d8400e29b41d4a716446655440177],',
+            '[INFO], 2023-08-21T13:43:06, [opensearch-0], [test_index][1] took[3.7s], took_millis[3786], total_hits[4248 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*1.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[], request_id[0b0a8400e29b41d4a716446655440200],',
+            '[INFO], 2023-08-21T13:43:55, [opensearch-0], [test_index][1] took[3.9s], took_millis[3925], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"query":{"regexp":{"value":{"value":".*M.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[], request_id[3e0d8400e29b41d4a716446655440233],',
         ]
         file_name = 'slow_logs_expected.log'
         with open(file_name, mode='w') as file:
@@ -83,11 +83,11 @@ class TestSlowQueriesMetric(unittest.TestCase):
 
     def test_slow_logs_filtering_with_low_top_number(self):
         expected_records_list = [
-            '[INFO], 2023-08-21T13:41:16, [opensearch-0], [test_index][1] took[5.7s], took_millis[5735], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*Nr.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[],',
-            '[INFO], 2023-08-21T13:42:04, [opensearch-0], [test_index][1] took[3.2s], took_millis[3252], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*mM.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[],',
-            '[INFO], 2023-08-21T13:42:23, [opensearch-0], [test_index][1] took[2.4s], took_millis[2484], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*N.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[],',
-            '[INFO], 2023-08-21T13:43:06, [opensearch-0], [test_index][1] took[3.7s], took_millis[3786], total_hits[4248 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*1.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[],',
-            '[INFO], 2023-08-21T13:43:55, [opensearch-0], [test_index][1] took[3.9s], took_millis[3925], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"query":{"regexp":{"value":{"value":".*M.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[],',
+            '[INFO], 2023-08-21T13:41:16, [opensearch-0], [test_index][1] took[5.7s], took_millis[5735], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*Nr.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[], request_id[dd0a8400e29b41d4a716446655440088],',
+            '[INFO], 2023-08-21T13:42:04, [opensearch-0], [test_index][1] took[3.2s], took_millis[3252], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*mM.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[], request_id[120d8400e29b41d4a716446655440111],',
+            '[INFO], 2023-08-21T13:42:23, [opensearch-0], [test_index][1] took[2.4s], took_millis[2484], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*N.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[], request_id[450a8400e29b41d4a716446655440144],',
+            '[INFO], 2023-08-21T13:43:06, [opensearch-0], [test_index][1] took[3.7s], took_millis[3786], total_hits[4248 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"size":10000,"query":{"regexp":{"value":{"value":".*1.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[], request_id[0b0a8400e29b41d4a716446655440200],',
+            '[INFO], 2023-08-21T13:43:55, [opensearch-0], [test_index][1] took[3.9s], took_millis[3925], total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[5], source[{"query":{"regexp":{"value":{"value":".*M.*","flags_value":255,"max_determinized_states":10000,"boost":1.0}}}}], id[], request_id[3e0d8400e29b41d4a716446655440233],',
         ]
         file_name = 'slow_logs_expected.log'
         with open(file_name, mode='w') as file:

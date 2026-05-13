@@ -209,7 +209,6 @@ func Handlers(ctx context.Context, adapter common.Component) http.Handler {
 			handlers.LoggingHandler(os.Stdout, authorizer(baseProvider.GetRecoveryStateHandler())),
 		).Methods(http.MethodGet)
 
-		// New backup API (v2)
 		r.Handle(fmt.Sprintf("%s/backups/backup", basePath),
 			RecoverMiddleware(handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.CollectBackupV2Handler()))),
 		).Methods(http.MethodPost)

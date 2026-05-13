@@ -18,6 +18,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
+
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -70,7 +72,7 @@ func main() {
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	opts := zap.Options{
-		Development: true,
+		Development: strings.EqualFold(os.Getenv("LOG_LEVEL"), "debug"),
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
