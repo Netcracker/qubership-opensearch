@@ -28,10 +28,11 @@ spec:
 {{- with .Values.statusProvisioner.customLabels }}
   {{- toYaml . | nindent 8 -}}
 {{- end }}
+{{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
         component: status-provisioner
         name: {{ template "opensearch.fullname" . }}-status-provisioner
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-status-provisioner
-{{ include "opensearch.labels.standard" . | nindent 8 }}
     spec:
       {{- if .Values.global.imagePullSecrets }}
       imagePullSecrets:
@@ -49,6 +50,8 @@ spec:
           image: {{ template "deployment-status-provisioner.image" . }}
           imagePullPolicy: "Always"
           env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
             - name: NAMESPACE
               valueFrom:
                 fieldRef:

@@ -157,7 +157,7 @@ spec:
           resources:
 {{ toYaml .Values.opensearch.data.resources | indent 12 }}
           securityContext:
-            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
+            {{- include "opensearch-service.globalContainerSecurityContextRWRootFs" . | nindent 12 }}
           readinessProbe:
         {{- if .Values.opensearch.data.readinessProbe }}
 {{ toYaml .Values.opensearch.data.readinessProbe | indent 10 }}
@@ -177,6 +177,9 @@ spec:
 {{ toYaml . | indent 12 }}
     {{- end }}
           volumeMounts:
+            {{- include "opensearch.tmpVolumeMount" . | nindent 12 }}
+            - mountPath: /usr/share/opensearch/logs
+              name: logs
             - mountPath: /usr/share/opensearch/data
               name: pvc
               subPath: {{ .Values.opensearch.data.persistence.subPath }}
@@ -233,6 +236,10 @@ spec:
 {{ toYaml .Values.opensearch.extraVolumeMounts | indent 8 }}
 {{- end }}
       volumes:
+        {{- include "opensearch.tmpVolume" . | nindent 8 }}
+        - name: logs
+          emptyDir:
+            sizeLimit: 30Mi
         - name: config
           secret:
             secretName: {{ template "opensearch.fullname" . }}-config

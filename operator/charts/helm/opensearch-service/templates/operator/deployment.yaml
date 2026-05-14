@@ -23,6 +23,8 @@ spec:
 {{- with .Values.operator.customLabels }}
   {{- toYaml . | nindent 8 -}}
 {{- end }}
+{{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
         name: {{ template "opensearch.fullname" . }}-service-operator
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-service-operator
         component: opensearch-service-operator

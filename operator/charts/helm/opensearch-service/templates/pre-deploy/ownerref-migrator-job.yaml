@@ -13,6 +13,8 @@ spec:
   template:
     metadata:
       labels:
+{{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       serviceAccountName: {{ .Release.Name }}-ownerref-migrator

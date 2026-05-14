@@ -13,6 +13,7 @@ spec:
       name: {{ template "opensearch.fullname" . }}-update-resources
       labels:
         {{ include "opensearch.labels.standard" . | nindent 8 }}
+        {{ include "opensearch-service.defaultLabels" . | nindent 8 }}
         component: update-resources
     spec:
       securityContext:
@@ -36,7 +37,7 @@ spec:
                 echo >&2 "Error: NAMESPACE is not set"
                 exit 121
               fi
-              
+
               LABEL_VALUE=$(kubectl get ns "${NAMESPACE}" -o jsonpath='{.metadata.labels.pod-security\.kubernetes\.io/enforce}')
               echo "Current enforce label for '${NAMESPACE}': ${LABEL_VALUE}"
               if [[ "${LABEL_VALUE}" != "privileged" ]]; then

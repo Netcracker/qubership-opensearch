@@ -27,6 +27,7 @@ spec:
         {{- toYaml . | nindent 8 -}}
         {{- end }}
 {{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
         role: dashboards
         {{- range $key, $value := .Values.dashboards.labels }}
         {{ $key }}: {{ $value | quote }}
@@ -55,6 +56,12 @@ spec:
       hostAliases: {{ toYaml .Values.dashboards.hostAliases | nindent 6 }}
       {{- end }}
       volumes:
+        - name: dashboards-data
+          emptyDir:
+            sizeLimit: 10Mi
+        - name: dashboards-optimize
+          emptyDir:
+            sizeLimit: 20Mi
         {{- range .Values.dashboards.secretMounts }}
         - name: {{ .name }}
           secret:
@@ -163,6 +170,10 @@ spec:
           resources:
 {{ toYaml .Values.dashboards.resources | indent 12 }}
           volumeMounts:
+            - name: dashboards-data
+              mountPath: /usr/share/opensearch-dashboards/data
+            - name: dashboards-optimize
+              mountPath: /usr/share/opensearch-dashboards/optimize
             {{- range .Values.dashboards.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}

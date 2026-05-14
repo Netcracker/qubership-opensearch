@@ -22,6 +22,7 @@ spec:
       name: {{ template "opensearch.fullname" . }}-migration-1x
       labels:
 {{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
         name: {{ template "opensearch.fullname" . }}-migration-1x
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-migration-1x
         component: migration
@@ -50,6 +51,8 @@ spec:
           args: []
           {{- end }}
           env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
             - name: NAMESPACE
               value: {{ .Release.Namespace }}
             - name: ES_HOST

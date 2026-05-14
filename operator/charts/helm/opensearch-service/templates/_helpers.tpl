@@ -1060,6 +1060,10 @@ Usage example:
 runAsNonRoot: true
 seccompProfile:
   type: "RuntimeDefault"
+{{- if eq (default "" .Values.PAAS_PLATFORM) "KUBERNETES" }}
+runAsUser: 1000
+runAsGroup: 1000
+{{- end }}
 {{- with .Values.global.securityContext }}
 {{ toYaml . }}
 {{- end -}}
@@ -1067,8 +1071,27 @@ seccompProfile:
 
 {{- define "opensearch-service.globalContainerSecurityContext" -}}
 allowPrivilegeEscalation: false
+readOnlyRootFilesystem: true
 capabilities:
   drop: ["ALL"]
+{{- end -}}
+
+{{- define "opensearch-service.globalContainerSecurityContextRWRootFs" -}}
+allowPrivilegeEscalation: false
+readOnlyRootFilesystem: false
+capabilities:
+  drop: ["ALL"]
+{{- end -}}
+
+{{- define "opensearch.tmpVolume" -}}
+- name: tmp
+  emptyDir:
+    sizeLimit: 8Mi
+{{- end -}}
+
+{{- define "opensearch.tmpVolumeMount" -}}
+- name: tmp
+  mountPath: /tmp
 {{- end -}}
 
 {{- define "opensearch-gke-service-name" -}}

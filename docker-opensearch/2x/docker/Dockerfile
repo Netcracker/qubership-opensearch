@@ -25,19 +25,10 @@ RUN echo "Replacing Cross Cluster Replication plugin..." \
     && curl --create-dirs -s -L "https://github.com/Netcracker/opensearch-cross-cluster-replication-patches/releases/download/2.19.4.0-1/opensearch-cross-cluster-replication-2.19.4.0-11.zip" \
     -o ${OPENSEARCH_HOME}/dist/ccr/opensearch-cross-cluster-replication-2.19.4.zip \
     && unzip ${OPENSEARCH_HOME}/dist/ccr/opensearch-cross-cluster-replication-2.19.4.zip -d ${OPENSEARCH_HOME}/plugins/opensearch-cross-cluster-replication \
-    && rm -rf ${OPENSEARCH_HOME}/dist/ccr
+    && rm -rf ${OPENSEARCH_HOME}/dist
 
-RUN echo "Download OpenSearch plugins..." \
-    && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/2.19.4/repository-s3-2.19.4.zip" \
-    -o ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.4.zip \
-    && curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/2.19.4/repository-gcs-2.19.4.zip" \
-    -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.4.zip \
-    && if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-2.19.4.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-2.19.4.zip ]; then \
-        echo "Plugins downloaded successfully."; \
-    else \
-        echo "Plugin download failed"; \
-    exit 1; \
-    fi
+RUN echo "Install OpenSearch plugins..." \
+    && ${OPENSEARCH_HOME}/bin/opensearch-plugin install --batch --verbose repository-s3 repository-gcs
 
 # Adapt grants
 RUN set -x \
@@ -52,7 +43,6 @@ RUN set -x \
         /usr/share/opensearch/data \
         /usr/share/opensearch/jdk \
         /usr/share/opensearch/plugins \
-        /usr/share/opensearch/dist \
         ; do \
         chmod -R 777 "$path"; \
         done
