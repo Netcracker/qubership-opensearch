@@ -1,24 +1,5 @@
 ---
 
-# This workflow is used to release Helm charts and Docker images.
-# It has a dry run stage to check the build process without actually publishing the artifacts.
-# The workflow is triggered manually and allows the user to specify the release version.
-# The workflow also creates a GitHub release after the deployment stage if the deployment is successful.
-# The workflow uses the `netcracker/qubership-workflow-hub/actions/charts-values-update-action` action to perform the release steps.
-# The workflow requires the following inputs:
-# - `release`: The release version to publish.
-# The workflow requires several configuration files:
-# - configuration file used for the release process: `.qubership/helm-charts-release-config.yaml`
-#   Example: config/examples/helm-charts-release-config.yaml
-# - Docker build configuration file: `.qubership/docker-build-config.cfg`
-#   Example: config/examples/docker.cfg
-# - Assets configuration file: `.qubership/assets-config.yml`
-#   Example: config/examples/assets-config.yml
-# - GitHub release drafter configuration file: `.github/release-drafter-config.yml`
-#   Example: config/examples/release-drafter-config.yml
-
----
-
 name: Helm Charts Release
 on:
   workflow_dispatch:
