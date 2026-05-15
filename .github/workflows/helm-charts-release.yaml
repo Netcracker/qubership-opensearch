@@ -1,5 +1,24 @@
 ---
 
+# This workflow is used to release Helm charts and Docker images.
+# It has a dry run stage to check the build process without actually publishing the artifacts.
+# The workflow is triggered manually and allows the user to specify the release version.
+# The workflow also creates a GitHub release after the deployment stage if the deployment is successful.
+# The workflow uses the `netcracker/qubership-workflow-hub/actions/charts-values-update-action` action to perform the release steps.
+# The workflow requires the following inputs:
+# - `release`: The release version to publish.
+# The workflow requires several configuration files:
+# - configuration file used for the release process: `.qubership/helm-charts-release-config.yaml`
+#   Example: config/examples/helm-charts-release-config.yaml
+# - Docker build configuration file: `.qubership/docker-build-config.cfg`
+#   Example: config/examples/docker.cfg
+# - Assets configuration file: `.qubership/assets-config.yml`
+#   Example: config/examples/assets-config.yml
+# - GitHub release drafter configuration file: `.github/release-drafter-config.yml`
+#   Example: config/examples/release-drafter-config.yml
+
+---
+
 name: Helm Charts Release
 on:
   workflow_dispatch:
@@ -21,7 +40,7 @@ jobs:
     steps:
       - name: Check if tag exists
         id: check_tag
-        uses: netcracker/qubership-workflow-hub/actions/tag-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
+        uses: netcracker/qubership-workflow-hub/actions/tag-action@5a557213e92e3d22d0292330c4817c82af6704d2 #v2.1.2
         with:
           tag-name: '${{ inputs.release }}'
           ref: ${{ github.ref }}
@@ -69,6 +88,7 @@ jobs:
 
   docker-check-build:
     needs: [load-docker-build-components, check-tag]
+    name: ${{ matrix.component.name }} dry run
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -80,7 +100,7 @@ jobs:
         run: |
           echo "IMAGE=${{ matrix.component.name }}" >> $GITHUB_ENV
       - name: Docker build
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@5a557213e92e3d22d0292330c4817c82af6704d2 #v2.1.2
         with:
           ref: ${{ github.ref }}
           download-artifact: false
@@ -91,7 +111,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-  chart-release-prepare:
+  chart-release:
     permissions:
       contents: write
       packages: write
@@ -99,6 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       images-versions: ${{ steps.update-versions.outputs.images-versions }}
+      charts-artifact: ${{ steps.update-versions.outputs.released-chart-atrifact }}
     steps:
       - name: Checkout code
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
@@ -112,24 +133,29 @@ jobs:
         run: |
           echo "${VARS_JSON}" | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' >> $GITHUB_ENV
 
-      - name: "Update versions in values"
+      - name: "Chart release"
         id: update-versions
-        uses: netcracker/qubership-workflow-hub/actions/charts-values-update-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
+        uses: netcracker/qubership-workflow-hub/actions/charts-values-update-action@5a557213e92e3d22d0292330c4817c82af6704d2 #v2.1.2
         with:
           release-version: ${{ inputs.release }}
-          config-file: .github/charts-values-update-config.yaml
+          config-file: .qubership/helm-charts-release-config.yaml
+          default-tag: ${{ inputs.release }}
+          package-charts: true
+          publish-charts: true
 
       - name: "Debug"
         env:
-          IMAGES_VERSIONS: '${{ steps.update-versions.outputs.images-versions }}'
+          IMAGES_VERSIONS: "${{ steps.update-versions.outputs.images-versions }}"
         run: |
           echo "Images versions: ${IMAGES_VERSIONS}"
+          ls -laR
 
   docker-build:
+    name: ${{ matrix.component.name }}
     permissions:
       contents: write
       packages: write
-    needs: [chart-release-prepare, load-docker-build-components]
+    needs: [chart-release, load-docker-build-components]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -139,12 +165,12 @@ jobs:
       - name: Get version for current component
         id: get-version
         env:
-          IMG_VER: '${{ fromJson(needs.chart-release-prepare.outputs.images-versions)[matrix.component.name] || inputs.release }}'
+          IMAGE_VER: "${{ fromJson(needs.chart-release.outputs.images-versions)[matrix.component.name] || inputs.release }}"
         run: |
-          echo "IMAGE_VERSION=${IMG_VER}" >> $GITHUB_ENV
+          echo "IMAGE_VERSION=${IMAGE_VER}" >> $GITHUB_ENV
 
       - name: Docker build
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@5a557213e92e3d22d0292330c4817c82af6704d2 #v2.1.2
         with:
           ref: release-${{ inputs.release }}
           download-artifact: false
@@ -154,36 +180,21 @@ jobs:
           tags: "${{ env.IMAGE_VERSION }},latest"
         env:
           GITHUB_TOKEN: ${{ github.token }}
-  charts-release:
+
+  github-release:
     permissions:
       contents: write
       packages: write
-    needs: [docker-build]
+    needs: [chart-release, docker-build]
     continue-on-error: false
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: "Checkout code"
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
         with:
           fetch-depth: 0
           ref: release-${{ inputs.release }}
           persist-credentials: true
-
-      - name: Configure Git
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
-      - name: Run chart-releaser
-        #continue-on-error: true
-        uses: netcracker/chart-releaser-action@7015249576e76bfb228e6fe04b4869d44511c014  # main
-        with:
-          charts_dir: operator/charts/helm
-          release_name_template: "{{ .Version }}"
-          skip_existing: true
-          skip_upload: true
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: "Release-drafter"
         uses: netcracker/release-drafter@86f4276a3894b5af70480e826c32fe3648ac6a70  # v1.0.0
@@ -193,12 +204,18 @@ jobs:
           name: ${{ inputs.release }}
           tag: ${{ inputs.release }}
           version: ${{ inputs.release }}
+          commitish: release-${{ inputs.release }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload Assets
-        uses: netcracker/qubership-workflow-hub/actions/assets-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
+
+      - name: "Download released charts"
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7.0.0
+        with:
+          artifact-ids: ${{ needs.chart-release.outputs.charts-artifact }}
+      - name: "Upload Assets"
+        uses: netcracker/qubership-workflow-hub/actions/assets-action@5a557213e92e3d22d0292330c4817c82af6704d2 #v2.1.2
         with:
           tag: ${{ inputs.release }}
-          item-path: .cr-release-packages/*.tgz
+          item-path: "./*.tgz"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
