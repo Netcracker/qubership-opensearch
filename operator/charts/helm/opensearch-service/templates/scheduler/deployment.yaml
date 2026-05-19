@@ -98,7 +98,7 @@ spec:
                   kubectl get pods >/dev/null 2>&1
             initialDelaySeconds: 15
             periodSeconds: 15
-            timeoutSeconds: 10
+            timeoutSeconds: 30
             failureThreshold: 5
           livenessProbe:
             exec:
@@ -109,7 +109,7 @@ spec:
                   pgrep -f kubectl >/dev/null || pgrep -f bash >/dev/null
             initialDelaySeconds: 60
             periodSeconds: 20
-            timeoutSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 3
       serviceAccountName: {{ template "opensearch.fullname" . }}-pod-scheduler
       {{- if .Values.podScheduler.priorityClassName }}
