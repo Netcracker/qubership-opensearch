@@ -39,6 +39,10 @@ RUN echo "Download OpenSearch plugins..." \
     exit 1; \
     fi
 
+RUN echo "Installing OpenSearch plugins..." \
+    && ${OPENSEARCH_HOME}/bin/opensearch-plugin install --batch analysis-icu \
+    && ${OPENSEARCH_HOME}/bin/opensearch-plugin install --batch analysis-kuromoji
+
 # Adapt grants
 RUN set -x \
     && chmod 777 ${OPENSEARCH_HOME} \
