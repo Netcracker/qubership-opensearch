@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # What is Qubership OpenSearch Curator?
 
 OpenSearch Curator helps you curate, or manage, your OpenSearch indices and snapshots by:

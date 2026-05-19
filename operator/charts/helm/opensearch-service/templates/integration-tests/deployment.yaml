@@ -1,4 +1,11 @@
 {{- if .Values.integrationTests.enabled }}
+{{- $s3AliasesData := fromYaml (include "backupDaemon.s3Aliases" .) }}
+{{- $defaultS3AliasName := "" }}
+{{- range $s3AliasesData.items }}
+  {{- if and .name .spec .spec.default }}
+    {{- $defaultS3AliasName = .name }}
+  {{- end }}
+{{- end }}
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -16,6 +23,7 @@ spec:
   strategy:
     type: RollingUpdate
   replicas: {{ template "opensearch.replicasForSingleService" . }}
+  progressDeadlineSeconds: {{ .Values.statusProvisioner.integrationTestsTimeout | default 300 }}
   template:
     metadata:
       labels:
@@ -59,7 +67,10 @@ spec:
                   fieldPath: metadata.namespace
             - name: TAGS
               value: {{ .Values.integrationTests.tags }}
-            {{- if and .Values.deployDescriptor .Values.opensearchIntegrationTests}}
+            {{- if .Values.integrationTests.monitoredImages }}
+            - name: MONITORED_IMAGES
+              value: {{ .Values.integrationTests.monitoredImages | quote }}
+            {{- else if and .Values.deployDescriptor .Values.opensearchIntegrationTests}}
             - name: MONITORED_IMAGES
               value: {{ include "opensearch-service.monitoredImages" . }}
             {{- end }}
@@ -89,6 +100,10 @@ spec:
                   name: {{ template "opensearch.fullname" . }}-secret
             - name: OPENSEARCH_MASTER_NODES_NAME
               value: {{ template "master-nodes" . }}
+            - name: S3_ALIASES_SECRET_NAME
+              value: {{ template "opensearch.fullname" . }}-s3-aliases
+            - name: S3_DEFAULT_ALIAS_NAME
+              value: {{ default "default" $defaultS3AliasName | quote }}
             - name: IDENTITY_PROVIDER_URL
               value: "{{ .Values.integrationTests.identityProviderUrl }}"
             - name: IDENTITY_PROVIDER_REGISTRATION_TOKEN
@@ -211,6 +226,37 @@ spec:
             {{- end }}
             - name: RANDOM_RUN_TRIGGER
               value: {{ randAlphaNum 10 | quote }}
+            {{- if .Values.integrationTests.atpReport.enabled }}
+            # ATP Storage variables for S3 integration
+            - name: ATP_REPORT_ENABLED
+              value: {{ .Values.integrationTests.atpReport.enabled | quote }}
+            - name: ATP_STORAGE_PROVIDER
+              value: {{ .Values.integrationTests.atpReport.atpStorage.provider | quote }}
+            - name: ATP_STORAGE_SERVER_URL
+              value: {{ .Values.integrationTests.atpReport.atpStorage.serverUrl | quote }}
+            - name: ATP_STORAGE_SERVER_UI_URL
+              value: {{ .Values.integrationTests.atpReport.atpStorage.serverUiUrl | quote }}
+            - name: ATP_STORAGE_BUCKET
+              value: {{ .Values.integrationTests.atpReport.atpStorage.bucket | quote }}
+            - name: ATP_STORAGE_REGION
+              value: {{ .Values.integrationTests.atpReport.atpStorage.region | quote }}
+            - name: ATP_STORAGE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-integration-tests-atp-storage-secret
+                  key: atp-storage-username
+            - name: ATP_STORAGE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "opensearch.fullname" . }}-integration-tests-atp-storage-secret
+                  key: atp-storage-password
+            - name: ATP_REPORT_VIEW_UI_URL
+              value: {{ .Values.integrationTests.atpReportViewUiUrl | quote }}
+            {{- end }}
+            - name: ENVIRONMENT_NAME
+              value: {{ .Values.integrationTests.environmentName | quote }}
+            - name: ENABLE_JIRA_INTEGRATION
+              value: {{ .Values.integrationTests.enableJiraIntegration | quote }}
           resources:
             requests:
               memory: {{ default "256Mi" .Values.integrationTests.resources.requests.memory }}

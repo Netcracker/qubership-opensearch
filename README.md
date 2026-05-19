@@ -45,6 +45,25 @@ Designed for creating resilient and secure OpenSearch clusters in a cloud-native
   helm install opensearch-service ./ -f sample.yaml -n <TARGET_NAMESPACE>
   ```
 
+### Integration tests and ATP Storage (S3)
+
+Integration tests can optionally upload results to an S3-compatible storage (ATP Storage).
+
+The defaults are defined in `operator/charts/helm/opensearch-service/values.yaml` under `integrationTests`:
+
+- `integrationTests.atpReport.enabled`: `false` - when `false`, ATP S3-related environment variables are not passed to the pod
+- `integrationTests.atpReport.atpStorage.bucket`: `""` - when empty, S3 upload is disabled and results stay local
+- `integrationTests.atpReport.atpStorage.serverUrl`: `"https://s3.amazonaws.com"`
+- `integrationTests.atpReport.atpStorage.serverUiUrl`: `""`
+- `integrationTests.atpReport.atpStorage.region`: `"us-east-1"`
+- `integrationTests.environmentName`: `"opensearch"`
+- `integrationTests.atpReportViewUiUrl`: `""`
+
+To enable upload, set `integrationTests.atpReport.enabled` to `true` and configure at least `integrationTests.atpReport.atpStorage.bucket` and credentials:
+
+- `integrationTests.atpReport.atpStorage.username`
+- `integrationTests.atpReport.atpStorage.password`
+
 ### Smoke tests
 
 There is no smoke tests.
