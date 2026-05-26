@@ -19,6 +19,14 @@ RUN set -x \
 # Upgrade all tools to avoid vulnerabilities
 RUN set -x && apk upgrade --no-cache --available
 
+# Upgrade tools from edge to avoid vulnerabilities
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
+    && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
+    && apk add --update --upgrade --no-cache \
+        net-snmp-tools net-snmp-libs net-snmp-agent-libs musl musl-utils libcrypto3 libssl3 \
+        setpriv libcap-utils libcap2 libcap-getcap libcap libexpat zlib iputils-arping iputils-clockdiff \
+        iputils iputils-ping iputils-tracepath openssl
+
 RUN rm /usr/lib/python3.12/EXTERNALLY-MANAGED
 
 # Install misc tools

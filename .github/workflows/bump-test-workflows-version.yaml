@@ -22,7 +22,7 @@ jobs:
           with:
             ref: main
             persist-credentials: true
-            token: ${{ secrets.GH_ACCESS_TOKEN }}
+            token: ${{ github.token }}
         - name: Update version
           env:
             GH_TOKEN: ${{ github.token }}

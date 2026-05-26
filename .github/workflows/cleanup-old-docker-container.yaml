@@ -64,4 +64,4 @@ jobs:
           dry-run: ${{ env.DRY_RUN }}
           debug: ${{ env.DEBUG }}
         env:
-          PACKAGE_TOKEN: ${{ secrets.GH_RWD_PACKAGE_TOKEN }}
+          PACKAGE_TOKEN: ${{ github.token }}
