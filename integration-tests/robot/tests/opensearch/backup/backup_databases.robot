@@ -83,9 +83,9 @@ Granular Backup
 
 Check Backup Status
     [Arguments]  ${backup_id}
-    ${response}=  GET On Session  curatorsession  /listbackups/${backup_id}
+    ${response}=  GET On Session  curatorsession  /jobstatus/${backup_id}
     ${content}=  Convert Json ${response.content} To Type
-    Should Be Equal As Strings  ${content['failed']}  False
+    Should Be Equal As Strings  ${content['status']}  Successful
 
 Granular Restore
     [Arguments]  ${backup_id}  ${dbs_list}  ${renames}={}  ${clean}=false
