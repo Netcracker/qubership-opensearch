@@ -211,7 +211,8 @@ Get OpenSearch Template
 
 Delete OpenSearch Template
     [Arguments]  ${template_name}
-    DELETE On Session  opensearch  /_template/${template_name}  expected_status=any
+    ${response}=  DELETE On Session  opensearch  /_template/${template_name}  expected_status=any
+    RETURN  ${response}
 
 Get OpenSearch Component Template
     [Arguments]  ${template_name}
@@ -220,7 +221,8 @@ Get OpenSearch Component Template
 
 Delete OpenSearch Component Template
     [Arguments]  ${template_name}
-    DELETE On Session  opensearch  /_component_template/${template_name}  expected_status=any
+    ${response}=  DELETE On Session  opensearch  /_component_template/${template_name}  expected_status=any
+    RETURN  ${response}
 
 Get OpenSearch Index Template
     [Arguments]  ${template_name}
@@ -229,7 +231,8 @@ Get OpenSearch Index Template
 
 Delete OpenSearch Index Template
     [Arguments]  ${template_name}
-    DELETE On Session  opensearch  /_index_template/${template_name}  expected_status=any
+    ${response}=  DELETE On Session  opensearch  /_index_template/${template_name}  expected_status=any
+    RETURN  ${response}
 
 Get OpenSearch Tasks
     ${response}=  GET On Session  opensearch  /_tasks  expected_status=any
