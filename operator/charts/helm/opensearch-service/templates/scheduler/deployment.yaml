@@ -28,6 +28,8 @@ spec:
 {{- with .Values.podScheduler.customLabels }}
   {{- toYaml . | nindent 8 -}}
 {{- end }}
+{{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
         component: opensearch-pod-scheduler
         name: {{ template "opensearch.fullname" . }}-pod-scheduler
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-pod-scheduler

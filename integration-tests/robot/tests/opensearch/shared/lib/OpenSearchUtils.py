@@ -78,13 +78,12 @@ class OpenSearchUtils:
     def get_command_to_corrupt_shard(self, uuid, shard_number):
         return self.template.format(uuid, shard_number)
 
-    def get_generated_test_case_data(self, test_case_name: str, index_name: str,
+    def get_generated_test_case_data(self, test_case_name: str,
                                      resources_folder="tests/opensearch/ha/test-data-resources", separator=" "):
         """
         The method looks up test case folder in the resource directory. There is an ability to use different separators
         for test case's folder name.
         :param test_case_name: the name of the test case
-        :param index_name: OpenSearch index name
         :param resources_folder: the relative path to common resource directory where all test cases folders are
         :param separator: one of the possible separators for test case names
         :return dictionary with three keys: index_create_file, index_update_file, index_settings_file. The values
@@ -103,7 +102,7 @@ class OpenSearchUtils:
                 break
         if not test_case_folder:
             raise Exception("Incorrect directory for test case data")
-        return self._find_generated_data_files(f'{resources_folder}/{test_case_folder}', index_name)
+        return self._find_generated_data_files(f'{resources_folder}/{test_case_folder}')
 
     def _transform_name_to_unified_format(self, name: str, separator=None):
         if not separator:
@@ -116,12 +115,11 @@ class OpenSearchUtils:
                 return separator
         return None
 
-    def _find_generated_data_files(self, directory, index_name):
+    def _find_generated_data_files(self, directory):
         data_files = {}
         for file in os.listdir(directory):
             file_path = f'{directory}/{file}'
             if self.json_keyword not in file:
-                self._set_index_in_file(file_path, index_name)
                 if self.create_keyword in file:
                     data_files['index_create_file'] = file_path
                 if self.update_keyword in file:
@@ -129,30 +127,3 @@ class OpenSearchUtils:
             if self.setting_keyword in file:
                 data_files['index_settings_file'] = file_path
         return data_files
-
-    def _set_index_in_file(self, file_path, index_name):
-        """
-        The method receives name of file which contains config or data for OpenSearch index.
-        For example, it is a binary file for POST request to OpenSearch to update index.
-        :param file_path: relative path to file
-        :param index_name: OpenSearch index name. For example, `cats`
-        """
-        f = open(file_path, 'r')
-        content = f.read()
-        f.close()
-        old = self._find_current_index(content)
-        new = self.index_keyword + index_name + self.quote
-        if not old or old == new:
-            return
-        new_content = content.replace(old, new)
-        f = open(file_path, 'w')
-        f.write(new_content)
-        f.close()
-
-    def _find_current_index(self, content):
-        start = content.find(self.index_keyword)
-        if start == -1:
-            return None
-        end = content.find(self.quote, start + len(self.index_keyword))
-        index_name = content[start: end + 1]
-        return index_name

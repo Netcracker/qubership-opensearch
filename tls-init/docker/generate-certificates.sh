@@ -1,13 +1,14 @@
 #!/bin/bash
+# shellcheck disable=SC2155,SC2086,SC2154,SC2309
 
 set -e
 
 log() {
-  echo ${1} >> log.txt
+  echo ${1} >> ${OPENSEARCH_CONFIGS}/log.txt
 }
 
 print_log() {
-  cat log.txt
+  cat ${OPENSEARCH_CONFIGS}/log.txt
   sleep 1m
 }
 
@@ -114,10 +115,10 @@ certs_path_are_legacy() {
 
   local type=$1
   local secret=$2
-  local secret_file="secret.json"
+  local secret_file="${OPENSEARCH_CONFIGS}/secret.json"
   curl -sSk -X GET -H "Authorization: Bearer $token" "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets/${secret}" > ${secret_file}
 
-  if [[ $(jq -r '.type?' ${secret_file}) == "Opaque" ]]; then
+  if [[ $(jq -r '.type?' "${secret_file}") == "Opaque" ]]; then
     log "Legacy type is used, need to migrate paths"
     echo true
     return
@@ -253,14 +254,14 @@ cert_expires() {
     if [[ $(certs_path_are_legacy ${type} ${secret}) == true ]]; then
       migrate_paths ${type} ${secret}
     fi
-    curl -sSk -X GET -H "Authorization: Bearer $token" "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets/${secret}" | jq --arg type "tls.crt" '.data[$type]' | tr -d '"' | base64 --decode > crt.pem
-    if [[ $(($(openssl x509 -enddate -noout -in crt.pem | awk '{print $4}') - $(date | awk '{print $6}'))) -lt 10  && "${RENEW_CERTS}" == "true" ]]; then
+    curl -sSk -X GET -H "Authorization: Bearer $token" "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/secrets/${secret}" | jq --arg type "tls.crt" '.data[$type]' | tr -d '"' | base64 --decode > ${OPENSEARCH_CONFIGS}/crt.pem
+    if [[ $(($(openssl x509 -enddate -noout -in ${OPENSEARCH_CONFIGS}/crt.pem | awk '{print $4}') - $(date | awk '{print $6}'))) -lt 10  && "${RENEW_CERTS}" == "true" ]]; then
       log "cert with type $1 was expired"
       echo true
     else
       echo false
     fi
-    rm crt.pem
+    rm ${OPENSEARCH_CONFIGS}/crt.pem
   else
     log "secret $2 not exists"
     echo true
@@ -271,8 +272,8 @@ delete_pods() {
   local response=$(curl -sSk -X GET -H "Authorization: Bearer $token" "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/pods/")
   local pods=$(echo "${response}" | jq ".items[].metadata.name")
   pods=$(echo $pods | tr -d '"')
-  local podsarray=( $pods )
-  for pod in ${podsarray[@]}; do
+  local podsarray=( "$pods" )
+  for pod in "${podsarray[@]}"; do
     if [[ ($pod == ${OPENSEARCH_FULLNAME}* || $pod == dbaas-${OPENSEARCH_FULLNAME}*) && ! $pod =~ "tls-init" ]]; then
       curl -sSk -X DELETE -H "Authorization: Bearer $token" "https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/${NAMESPACE}/pods/${pod}"
     fi

@@ -25,4 +25,6 @@ if [[ -n "$ELASTICSEARCH_CREDENTIALS" ]]; then
   export ELASTICSEARCH_PASSWORD=${password}
 fi
 
+mkdir -p "${MONITORING_LOGS}"
+
 /sbin/tini -- /entrypoint.sh telegraf

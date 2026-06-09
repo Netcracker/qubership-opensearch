@@ -200,7 +200,7 @@ spec:
 {{ toYaml . | indent 12 }}
     {{- end }}
           securityContext:
-            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
+            {{- include "opensearch-service.globalContainerSecurityContextRWRootFs" . | nindent 12 }}
           image: {{ template "opensearch.image" . }}
           imagePullPolicy: {{ .Values.opensearch.imagePullPolicy | default "Always" | quote }}
           ports:
@@ -213,8 +213,11 @@ spec:
             - containerPort: 9650
               name: rca
           volumeMounts:
+            {{- include "opensearch.tmpVolumeMount" . | nindent 12 }}
             - mountPath: /usr/share/opensearch/credentials
               name: credentials
+            - mountPath: /usr/share/opensearch/logs
+              name: logs
             - mountPath: /usr/share/opensearch/data
               name: pvc
               subPath: {{ .Values.opensearch.master.persistence.subPath }}
@@ -304,6 +307,10 @@ spec:
 {{ toYaml .Values.opensearch.master.extraContainers | indent 6 }}
 {{- end }}
       volumes:
+        {{- include "opensearch.tmpVolume" . | nindent 8 }}
+        - name: logs
+          emptyDir:
+            sizeLimit: 30Mi
         - name: config
           secret:
             secretName: {{ template "opensearch.fullname" . }}-config

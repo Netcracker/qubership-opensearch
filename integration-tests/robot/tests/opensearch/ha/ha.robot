@@ -20,7 +20,7 @@ Prepare Test
     ...  Check OpenSearch Is Green
     ${postfix}=  Generate Random String  5  [LOWER]
     Set Global Variable  ${index_name}  ${HA_TEST_INDEX_NAME}-${postfix}
-    &{data_files}=  Get Generated Test Case Data  ${TEST_NAME}  ${index_name}
+    &{data_files}=  Get Generated Test Case Data  ${TEST_NAME}
     Set Global Variable  ${data_files}
     Generate Data  ${data_files}
 
@@ -32,6 +32,7 @@ Generate Data
     ${response}=  Create OpenSearch Index  ${index_name}  data=${data}
     Should Be Equal As Strings  ${response.status_code}  200
     ${binary_data}=  Get Binary File  ${data_files.index_create_file}
+    ${binary_data}=  Replace String  ${binary_data}  ha_test_index  ${index_name}
     ${response}=  Bulk Update Index Data  ${index_name}  ${binary_data}  timeout=${timeout}
     Log  ${response.content}
     Should Be Equal As Strings  ${response.status_code}  200
@@ -52,6 +53,7 @@ Check Replica Shard Become Primary
 Check Replica Shard Is Relocated
     [Arguments]  ${index_name}  ${row}
     ${binary_data}=  Get Binary File  ${data_files.index_update_file}
+    ${binary_data}=  Replace String  ${binary_data}  ha_test_index  ${index_name}
     Bulk Update Data  ${binary_data}
     ${shards_distribution}=  Get Index Information  ${index_name}
     ${boolean_result}=  Is Replica Shard Relocated  ${shards_distribution}  ${row['shard']}  ${row['node']}
@@ -95,3 +97,10 @@ Data Files Corrupted On Replica Shard
     Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
     ...  Check Replica Shard Is Relocated  ${index_name}  ${row}
     [Teardown]  Delete OpenSearch Index  ${index_name}
+
+Test Container Hardening
+    [Tags]  ha  opensearch_ha  opensearch_container_hardening
+    [Setup]  None
+    ${part_of}=  Create List  opensearch-service
+    ${exclusions}=  Create Dictionary  _all=CH12  ${OPENSEARCH_MASTER_NODES_NAME}=CH4    ${OPENSEARCH_HOST}-client=CH4    ${OPENSEARCH_HOST}-data=CH4    ${OPENSEARCH_HOST}-arbiter=CH4
+    Check Container Hardening    ${part_of}    ${OPENSEARCH_NAMESPACE}    ${exclusions}

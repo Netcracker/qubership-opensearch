@@ -30,6 +30,7 @@ spec:
   {{- toYaml . | nindent 8 -}}
 {{- end }}
 {{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
         name: {{ template "opensearch.fullname" . }}-curator
         component: opensearch-curator
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-curator
@@ -41,6 +42,8 @@ spec:
       serviceAccountName: {{ template "opensearch.fullname" . }}-curator
       containers:
         - env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
             - name: NAMESPACE
               value: {{ .Release.Namespace }}
             - name: ES_HOST
@@ -233,6 +236,8 @@ spec:
             - protocol: TCP
               containerPort: {{ template "curator.port" . }}
         - env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
             - name: CLOUD_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -338,7 +343,7 @@ spec:
             secretName: {{ template "curator.s3.tlsSecretName" . }}
         {{ end }}
         {{- if $hasS3Aliases }}
-        - name: {{ template "opensearch.fullname" . }}-s3-aliases 
+        - name: {{ template "opensearch.fullname" . }}-s3-aliases
           secret:
             secretName: {{ template "opensearch.fullname" . }}-s3-aliases
         {{- end }}
