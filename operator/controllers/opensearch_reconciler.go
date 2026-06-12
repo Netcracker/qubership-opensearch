@@ -1104,6 +1104,11 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 		if !strings.HasPrefix(pvc.Name, prefix) {
 			continue
 		}
+		if strings.HasSuffix(pvc.Name, "-snapshots") {
+			r.logger.Info("Skipping non-StatefulSet PVC",
+				"pvc", pvc.Name)
+			continue
+		}
 		pvcs = append(pvcs, pvc)
 		cur := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
 		if desired.Cmp(cur) < 0 {
