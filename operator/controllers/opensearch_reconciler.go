@@ -1101,12 +1101,7 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 
 	for i := range pvcList.Items {
 		pvc := &pvcList.Items[i]
-		if !strings.HasPrefix(pvc.Name, prefix) {
-			continue
-		}
-		if strings.HasSuffix(pvc.Name, "-snapshots") {
-			r.logger.Info("Skipping non-StatefulSet PVC",
-				"pvc", pvc.Name)
+		if !strings.HasPrefix(pvc.Name, prefix) || strings.HasSuffix(pvc.Name, "-snapshots") {
 			continue
 		}
 		pvcs = append(pvcs, pvc)
