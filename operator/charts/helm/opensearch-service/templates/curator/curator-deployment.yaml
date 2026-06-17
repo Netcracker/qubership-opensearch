@@ -176,8 +176,10 @@ spec:
           image: {{ template "curator.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /health/live
               port: {{ template "curator.port" . }}
+              scheme: {{ eq (include "curator.tlsEnabled" .) "true" | ternary "HTTPS" "HTTP" }}
             failureThreshold: 5
             initialDelaySeconds: 30
             periodSeconds: 5
@@ -185,11 +187,11 @@ spec:
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
-              path: /health
+              path: /health/ready
               port: {{ template "curator.port" . }}
               scheme: {{ eq (include "curator.tlsEnabled" .) "true" | ternary "HTTPS" "HTTP" }}
             failureThreshold: 5
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 5
             successThreshold: 1
             timeoutSeconds: 5
@@ -272,15 +274,18 @@ spec:
                 - /bin/sh
                 - '-c'
                 - ps aux | grep "python3 indices_cleaner.py"
-            initialDelaySeconds: 30
+            initialDelaySeconds: 20
             timeoutSeconds: 5
             periodSeconds: 10
             successThreshold: 1
             failureThreshold: 5
           readinessProbe:
-            tcpSocket:
-              port:  {{ template "curator.port" . }}
-            initialDelaySeconds: 60
+            exec:
+              command:
+                - /bin/sh
+                - '-c'
+                - ps aux | grep "python3 indices_cleaner.py"
+            initialDelaySeconds: 20
             timeoutSeconds: 5
             periodSeconds: 10
             successThreshold: 1
