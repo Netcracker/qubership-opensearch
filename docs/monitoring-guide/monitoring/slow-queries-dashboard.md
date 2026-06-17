@@ -13,7 +13,7 @@ OpenSearch Slow Queries
 
 ### Overview
 
-![Dashboard](/docs/public/images/opensearch-slow-queries_overview.png)
+![Dashboard](/docs/images/opensearch-slow-queries_overview.png)
 
 <!-- markdownlint-disable line-length -->
 | Name | Description | Thresholds | Repeat |

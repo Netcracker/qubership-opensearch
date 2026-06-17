@@ -488,7 +488,7 @@ OpenSearch `arbiter` nodes installed to Kubernetes nodes different from `master`
 
 ## AWS
 
-For more information, refer to the [Integration With Amazon OpenSearch](/docs/public/managed/amazon.md#prerequisites) section.
+For more information, refer to the [Integration With Amazon OpenSearch](/docs/installation-guide/managed/amazon.md#prerequisites) section.
 
 # Best Practices and Recommendations
 
@@ -1775,7 +1775,7 @@ ESCAPE_SEQUENCE: true
 
 ### DR Scheme
 
-Refer to the [OpenSearch Disaster Recovery](/docs/public/disaster-recovery.md) section in the _Cloud Platform Disaster Recovery Guide_.
+Refer to the [OpenSearch Disaster Recovery](/docs/disaster-recovery-guide.md) section in the _Cloud Platform Disaster Recovery Guide_.
 
 ## Google Cloud Examples
 
@@ -1856,13 +1856,13 @@ ESCAPE_SEQUENCE: true
 
 ### DR Scheme
 
-Refer to Google Kubernetes Engine in the [OpenSearch Disaster Recovery](/docs/public/disaster-recovery.md#google-kubernetes-engine-features) section in the _Cloud Platform Disaster Recovery Guide_.
+Refer to Google Kubernetes Engine in the [OpenSearch Disaster Recovery](/docs/disaster-recovery-guide.md#google-kubernetes-engine-features) section in the _Cloud Platform Disaster Recovery Guide_.
 
 ## AWS Examples
 
 ### HA Scheme
 
-Refer to the [Integration With Amazon OpenSearch](/docs/public/managed/amazon.md) section.
+Refer to the [Integration With Amazon OpenSearch](/docs/installation-guide/managed/amazon.md) section.
 
 ### DR Scheme
 

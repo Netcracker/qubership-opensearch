@@ -13,7 +13,7 @@ OpenSearch Indices
 
 ### Overview
 
-![Dashboard](/docs/public/images/opensearch-indices_overview.png)
+![Dashboard](/docs/images/opensearch-indices_overview.png)
 
 <!-- markdownlint-disable line-length -->
 | Name | Description | Thresholds | Repeat |
@@ -23,7 +23,7 @@ OpenSearch Indices
 
 ### Indices Information
 
-![Dashboard](/docs/public/images/opensearch-indices_indices_information.png)
+![Dashboard](/docs/images/opensearch-indices_indices_information.png)
 
 <!-- markdownlint-disable line-length -->
 | Name | Description | Thresholds | Repeat |

@@ -47,18 +47,18 @@ The deployment procedure and additional features include the following:
 * Backup and restore data. <!-- #GFCFilterMarkerStart# -->For more information,
   refer to [OpenSearch Curator Guide](https://github.com/Netcracker/docker-elastic-curator/blob/main/README.md).<!-- #GFCFilterMarkerEnd# -->
 * Monitoring integration with Grafana Dashboard and Prometheus Alerts. For more information,
-  refer to the [OpenSearch Service Monitoring](/docs/public/monitoring.md) section in the _Cloud Platform Monitoring Guide_.
+  refer to the [OpenSearch Service Monitoring](/docs/monitoring-guide/monitoring.md) section in the _Cloud Platform Monitoring Guide_.
 * User Interface (UI) provided by OpenSearch dashboards.
 * DBaaS Adapter for OpenSearch integration. <!-- #GFCFilterMarkerStart# -->For more information,
   refer to [DBaaS Adapter Guide](https://github.com/Netcracker/dbaas-opensearch-adapter/blob/main/README.md).<!-- #GFCFilterMarkerEnd# -->
 * Disaster Recovery scheme with data replication. For more information,
-  refer to the [OpenSearch Disaster Recovery](/docs/public/disaster-recovery.md) section in the _Cloud Platform Disaster Recovery Guide_.
+  refer to the [OpenSearch Disaster Recovery](/docs/disaster-recovery-guide.md) section in the _Cloud Platform Disaster Recovery Guide_.
 
 # OpenSearch Components
 
 The following image illustrates the components of OpenSearch.
 
-![Application Overview](/docs/public/images/opensearch_components_overview.drawio.png)
+![Application Overview](/docs/images/opensearch_components_overview.drawio.png)
 
 ## OpenSearch Operator
 
@@ -135,7 +135,7 @@ The set of pre-install hooks that allow to prepare the environment for OpenSearc
 
 The following image shows the OpenSearch HA deployment scheme.
 
-![HA Scheme](/docs/public/images/opensearch_on_prem_deploy.drawio.png)
+![HA Scheme](/docs/images/opensearch_on_prem_deploy.drawio.png)
 
 Following the above picture, let us describe the main parts of the OpenSearch K8s deployment:
 
@@ -156,7 +156,7 @@ For a non-HA deployment scheme, it is possible to use one pod of the OpenSearch 
 
 The following image shows the OpenSearch HA deployment sheme in the separated mode.
 
-![HA Separated Scheme](/docs/public/images/opensearch_on_prem_deploy_separated.drawio.png)
+![HA Separated Scheme](/docs/images/opensearch_on_prem_deploy_separated.drawio.png)
 
 In the separated mode, it is possible to deploy OpenSearch pods with different roles and provide more load distribution:
 
@@ -169,7 +169,7 @@ In the separated mode, it is possible to deploy OpenSearch pods with different r
 The Disaster Recovery scheme of OpenSearch deployment assumes that two independent OpenSearch clusters are deployed for both sides on separate Kubernetes environments with indices replication between
 them.
 
-![DR Scheme](/docs/public/images/opensearch_dr_deploy.drawio.png)
+![DR Scheme](/docs/images/opensearch_dr_deploy.drawio.png)
 
 OpenSearch provides replication of indices data between the OpenSearch clusters via the Cross Cluster Replication plugin (red arrows).
 
@@ -186,7 +186,7 @@ Not Applicable; the default HA scheme is used for the deployment to Google Cloud
 The OpenSearch Service allows you to deploy OpenSearch supplementary services (Monitoring, DBaaS Adapter, Curator) without deploying OpenSearch, using the Amazon OpenSearch connection and credentials.
 Thus, the features and functions of these services are adapted to Amazon OpenSearch and available as for Qubership OpenSearch delivery.
 
-![AWS Scheme](/docs/public/images/opensearch_aws_deploy.drawio.png)
+![AWS Scheme](/docs/images/opensearch_aws_deploy.drawio.png)
 
 For more information, refer to the [Integration With Amazon OpenSearch](/docs/public/managed/amazon.md) section.
 

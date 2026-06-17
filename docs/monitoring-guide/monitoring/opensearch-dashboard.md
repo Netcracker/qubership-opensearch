@@ -11,7 +11,7 @@ InfluxDB dashboards for telegraf metrics
 
 ### OpenSearch cluster
 
-![Dashboard](/docs/public/images/opensearch-monitoring_cluster_overview.png)
+![Dashboard](/docs/images/opensearch-monitoring_cluster_overview.png)
 
 <!-- markdownlint-disable line-length -->
 | Name                            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Thresholds | Repeat |
@@ -28,7 +28,7 @@ InfluxDB dashboards for telegraf metrics
 
 ### OpenSearch shards
 
-![Dashboard](/docs/public/images/opensearch-monitoring_opensearch_shards.png)
+![Dashboard](/docs/images/opensearch-monitoring_opensearch_shards.png)
 
 <!-- markdownlint-disable line-length -->
 | Name                  | Description                                                                                                                                                                                                                                                                                                                                                                                                                        | Thresholds                                            | Repeat |
@@ -42,7 +42,7 @@ InfluxDB dashboards for telegraf metrics
 
 ### OpenSearch tasks
 
-![Dashboard](/docs/public/images/opensearch-monitoring_opensearch_tasks.png)
+![Dashboard](/docs/images/opensearch-monitoring_opensearch_tasks.png)
 
 <!-- markdownlint-disable line-length -->
 | Name                      | Description                                                    | Thresholds                                                          | Repeat |
@@ -53,7 +53,7 @@ InfluxDB dashboards for telegraf metrics
 
 ### Network metrics
 
-![Dashboard](/docs/public/images/opensearch-monitoring_network_metrics.png)
+![Dashboard](/docs/images/opensearch-monitoring_network_metrics.png)
 
 <!-- markdownlint-disable line-length -->
 | Name                       | Description                                                                                                                                                                                                                                                                                                                         | Thresholds | Repeat |
@@ -65,7 +65,7 @@ InfluxDB dashboards for telegraf metrics
 
 ### JVM heap and GC metrics
 
-![Dashboard](/docs/public/images/opensearch-monitoring_jvm_heap_and_gc_metrics.png)
+![Dashboard](/docs/images/opensearch-monitoring_jvm_heap_and_gc_metrics.png)
 
 <!-- markdownlint-disable line-length -->
 | Name                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Thresholds | Repeat |
@@ -78,7 +78,7 @@ InfluxDB dashboards for telegraf metrics
 
 ### Memory metrics
 
-![Dashboard](/docs/public/images/opensearch-monitoring_memory_metrics.png)
+![Dashboard](/docs/images/opensearch-monitoring_memory_metrics.png)
 
 <!-- markdownlint-disable line-length -->
 | Name                  | Description                                                                                                                                                                | Thresholds | Repeat |
@@ -89,7 +89,7 @@ InfluxDB dashboards for telegraf metrics
 
 ### Disk metrics
 
-![Dashboard](/docs/public/images/opensearch-monitoring_disk_metrics.png)
+![Dashboard](/docs/images/opensearch-monitoring_disk_metrics.png)
 
 <!-- markdownlint-disable line-length -->
 | Name                  | Description                                                                                                 | Thresholds | Repeat |
@@ -103,7 +103,7 @@ InfluxDB dashboards for telegraf metrics
 
 ### CPU metrics
 
-![Dashboard](/docs/public/images/opensearch-monitoring_cpu_metrics.png)
+![Dashboard](/docs/images/opensearch-monitoring_cpu_metrics.png)
 
 <!-- markdownlint-disable line-length -->
 | Name                     | Description                                            | Thresholds | Repeat |
@@ -115,7 +115,7 @@ InfluxDB dashboards for telegraf metrics
 
 ### Indices statistics
 
-![Dashboard](/docs/public/images/opensearch-monitoring_indices_statistics.png)
+![Dashboard](/docs/images/opensearch-monitoring_indices_statistics.png)
 
 <!-- markdownlint-disable line-length -->
 | Name                         | Description                                                                                                   | Thresholds | Repeat |
@@ -131,7 +131,7 @@ InfluxDB dashboards for telegraf metrics
 
 ### Thread pool queues and requests metrics
 
-![Dashboard](/docs/public/images/opensearch-monitoring_thread_pool_queues_and_requests_metrics.png)
+![Dashboard](/docs/images/opensearch-monitoring_thread_pool_queues_and_requests_metrics.png)
 
 <!-- markdownlint-disable line-length -->
 | Name               | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Thresholds | Repeat |
@@ -143,7 +143,7 @@ InfluxDB dashboards for telegraf metrics
 
 ### Backup
 
-![Dashboard](/docs/public/images/opensearch-monitoring_backup.png)
+![Dashboard](/docs/images/opensearch-monitoring_backup.png)
 
 <!-- markdownlint-disable line-length -->
 | Name                             | Description                                                                                                                                                                                                                                                   | Thresholds                                                          | Repeat |
@@ -164,7 +164,7 @@ InfluxDB dashboards for telegraf metrics
 
 ### DBaaS Health
 
-![Dashboard](/docs/public/images/opensearch-monitoring_dbaas_health.png)
+![Dashboard](/docs/images/opensearch-monitoring_dbaas_health.png)
 
 <!-- markdownlint-disable line-length -->
 | Name                                        | Description                                                  | Thresholds | Repeat |

@@ -23,11 +23,11 @@ the last metric value is used.
 
 ## Dashboard
 
-![Dashboard](/docs/public/images/opensearch-monitoring_dashboard.png)
+![Dashboard](/docs/images/opensearch-monitoring_dashboard.png)
 
 ## Metrics
 
-[Metrics Overview](/docs/public/monitoring/opensearch-dashboard.md)
+[Metrics Overview](/docs/public/monitoring-guide/opensearch-dashboard.md)
 
 # OpenSearch Indices
 
@@ -37,11 +37,11 @@ This section describes the `OpenSearch Indices` dashboard and its metrics.
 
 An overview of `OpenSearch Indices` dashboard is shown below.
 
-![Dashboard](/docs/public/images/opensearch-indices_dashboard.png)
+![Dashboard](/docs/images/opensearch-indices_dashboard.png)
 
 ## Metrics
 
-[Metrics Overview](/docs/public/monitoring/indices-dashboard.md)
+[Metrics Overview](/docs/public/monitoring-guide/indices-dashboard.md)
 
 # OpenSearch Slow Queries
 
@@ -51,11 +51,11 @@ This section describes the `OpenSearch Slow Queries` dashboard and its metrics.
 
 An overview of `OpenSearch Slow Queries` dashboard is shown below.
 
-![Dashboard](/docs/public/images/opensearch-slow-queries_dashboard.png)
+![Dashboard](/docs/images/opensearch-slow-queries_dashboard.png)
 
 ## Metrics
 
-[Metrics Overview](/docs/public/monitoring/slow-queries-dashboard.md)
+[Metrics Overview](/docs/monitoring-guide/slow-queries-dashboard.md)
 
 # Table of Metrics
 
