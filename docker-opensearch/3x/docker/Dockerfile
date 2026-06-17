@@ -31,6 +31,7 @@ else \
     exit 1; \
 fi
 
+RUN ${OPENSEARCH_HOME}/bin/opensearch-plugin install --batch --verbose analysis-icu analysis-kuromoji
 # Adapt grants
 RUN set -x \
     && chmod 777 ${OPENSEARCH_HOME} \
