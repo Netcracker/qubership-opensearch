@@ -1650,7 +1650,6 @@ Where:
 | `integrationTests.enableJiraIntegration`            | boolean | no        | false                      | Enable Jira integration (writes to marker file for external processing). |
 | `integrationTests.monitoredImages`                  | string  | no        | ""                         | Override `MONITORED_IMAGES` for `opensearch_images` test. Format: `type name containerName registry:port/image:tag, ...`. |
 
-
 | Parameter                                      | Type    | Mandatory | Default value | Description                                                                                                                |
 |------------------------------------------------|---------|-----------|---------------|----------------------------------------------------------------------------------------------------------------------------|
 | `resourceMigration.enabled`                    | boolean | no        | true          | Enables the resource migration pre-upgrade hook job.                                                                       |

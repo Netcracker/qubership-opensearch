@@ -1613,7 +1613,9 @@ If really required, OpenSearch settings can also be provided through `opensearch
 
 ### Description
 
-During an OpenSearch Service upgrade (especially from 2.x to 3.x), the Helm pre-deploy hook job `opensearch-migration-1x` may fail with a `BackoffLimitExceeded` error. This job is a Kubernetes Job that runs as a `pre-install`/`pre-upgrade` Helm hook and performs index migration for indices originally created on OpenSearch 1.x. If the cluster contains such indices, they must be reindexed before the upgrade to 3.x can proceed. When this migration fails, the entire Helm upgrade is blocked.
+During an OpenSearch Service upgrade (especially from 2.x to 3.x), the Helm pre-deploy hook job `opensearch-migration-1x` may fail with a `BackoffLimitExceeded` error. 
+This job is a Kubernetes Job that runs as a `pre-install`/`pre-upgrade` Helm hook and performs index migration for indices originally created on OpenSearch 1.x. 
+If the cluster contains such indices, they must be reindexed before the upgrade to 3.x can proceed. When this migration fails, the entire Helm upgrade is blocked.
 
 In **ArgoCD** deployments, this appears as a failed PreSync hook:
 
@@ -1652,7 +1654,8 @@ Error: UPGRADE FAILED: pre-upgrade hooks failed: 1 error occurred:
     ```
 
 2. **Common failure reasons:**
-    - The cluster contains indices created on OpenSearch 1.x that block the upgrade to 3.x. The migrator attempts to reindex them but may fail due to insufficient resources, connectivity issues, or incompatible index settings.
+    - The cluster contains indices created on OpenSearch 1.x that block the upgrade to 3.x. 
+      The migrator attempts to reindex them but may fail due to insufficient resources, connectivity issues, or incompatible index settings.
     - OpenSearch is not reachable from the migration pod (network or TLS issues).
     - Insufficient permissions or missing secrets.
 
@@ -1662,4 +1665,5 @@ Error: UPGRADE FAILED: pre-upgrade hooks failed: 1 error occurred:
 
 ### Recommendations
 
-Before upgrading OpenSearch from 2.x to 3.x, run the migration tool in **dry-run mode** to identify any 1.x indices that would block the upgrade. Review the dry-run output and plan the migration during a maintenance window. See the [Indices Migration](indices-migration.md) guide for the full procedure.
+Before upgrading OpenSearch from 2.x to 3.x, run the migration tool in **dry-run mode** to identify any 1.x indices that would block the upgrade. 
+Review the dry-run output and plan the migration during a maintenance window. See the [Indices Migration](indices-migration.md) guide for the full procedure.
