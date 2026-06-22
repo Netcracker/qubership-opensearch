@@ -12,7 +12,7 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   parentRefs:
-  {{- include "gateway.parentRefs" (list . .Values.opensearch.client.envoyGateway.parentRefs 443) | nindent 2 }}
+  {{- include "gateway.parentRefs" (list . .Values.opensearch.client.envoyGateway.parentRefs 443) | nindent 4 }}
 
   hostnames:
   {{- if .Values.opensearch.client.envoyGateway.host }}
@@ -30,7 +30,10 @@ spec:
             value: /
       backendRefs:
         - name: {{ $fullName }}-internal
+          group: ""
+          kind: Service
           port: 9200
+          weight: 1
 
 {{- if (eq (include "opensearch.tlsEnabled" .) "true") }}
 ---
@@ -70,7 +73,7 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   parentRefs:
-  {{- include "gateway.parentRefs" (list . .Values.opensearch.client.envoyGateway.parentRefs 80) | nindent 2 }}
+  {{- include "gateway.parentRefs" (list . .Values.opensearch.client.envoyGateway.parentRefs 80) | nindent 4 }}
 
   hostnames:
   {{- if .Values.opensearch.client.envoyGateway.host }}
