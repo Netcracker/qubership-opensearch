@@ -79,6 +79,7 @@ The following topics are covered in this chapter:
     * [Migration to OpenSearch 3.x (OpenSearch Service 2.x.x)](#migration-to-opensearch-3x-opensearch-service-2xx)
     * [OpenSearch Dashboards](#opensearch-dashboards)
     * [Migration to OpenSearch 2.x (OpenSearch Service 1.x.x)](#migration-to-opensearch-2x-opensearch-service-1xx)
+    * [Resource Migration](#resource-migration)
     * [Migration From OpenDistro Elasticsearch](#migration-from-opendistro-elasticsearch)
       * [Manual Migration Steps](#manual-migration-steps)
       * [Backup and Restore](#backup-and-restore)
@@ -1635,17 +1636,6 @@ Where:
 | `integrationTests.securityContext`               | object  | no        | {}                       | The pod-level security attributes and common container settings for the OpenSearch integration tests pod.                                                                                                                                                                                                                                                  |
 | `integrationTests.priorityClassName`             | string  | no        | ""                       | The priority class to be used by the OpenSearch integration tests pods. You should create the priority class beforehand. For more information about this feature, refer to [https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/](https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/).                       |
 
-## Resource Migration
-
-The resource migration job is a pre-install/pre-upgrade Helm hook that automatically detects and removes
-OpenSearch 1.x StatefulSets that are incompatible with OpenSearch 2.x. This is required when upgrading via
-ArgoCD, because ArgoCD's merge strategy cannot remove extra environment variables (such as `node.master`)
-from existing StatefulSets. The job deletes affected StatefulSets with `--cascade=orphan`, which preserves
-running pods while allowing Helm to recreate the StatefulSet with the correct 2.x spec.
-
-The job iterates over all configured OpenSearch StatefulSets (master, data, arbiter depending on deployment
-topology). If a StatefulSet does not exist or does not contain the `node.master` environment variable, it is
-skipped.
 
 | Parameter                                      | Type    | Mandatory | Default value | Description                                                                                                                |
 |------------------------------------------------|---------|-----------|---------------|----------------------------------------------------------------------------------------------------------------------------|
@@ -2097,6 +2087,18 @@ kubectl -n <namespace> delete statefulset <statefulset-name> --cascade=orphan
 ```
 
 For the full list of resource migration parameters, refer to the [Resource Migration](#resource-migration) section.
+
+### Resource Migration
+
+The resource migration job is a pre-install/pre-upgrade Helm hook that automatically detects and removes
+OpenSearch 1.x StatefulSets that are incompatible with OpenSearch 2.x. This is required when upgrading via
+ArgoCD, because ArgoCD's merge strategy cannot remove extra environment variables (such as `node.master`)
+from existing StatefulSets. The job deletes affected StatefulSets with `--cascade=orphan`, which preserves
+running pods while allowing Helm to recreate the StatefulSet with the correct 2.x spec.
+
+The job iterates over all configured OpenSearch StatefulSets (master, data, arbiter depending on deployment
+topology). If a StatefulSet does not exist or does not contain the `node.master` environment variable, it is
+skipped.
 
 ### Migration From OpenDistro Elasticsearch
 

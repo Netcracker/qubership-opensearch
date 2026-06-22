@@ -60,7 +60,7 @@ dashboards:
 #        hosts:
 #          - chart-example.local
   envoyGateway:
-    enabled: false
+    enabled: true
     host: ""
     parentRefs:
       - name: default-external-gateway

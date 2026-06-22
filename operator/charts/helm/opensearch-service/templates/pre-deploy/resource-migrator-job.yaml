@@ -20,7 +20,8 @@ spec:
       {{- if .Values.resourceMigration.runAsNonRoot }}
       securityContext:
         runAsNonRoot: true
-        seccompProfile: { type: RuntimeDefault }
+        seccompProfile:
+          type: RuntimeDefault
       {{- end }}
       containers:
         - name: migrator
@@ -54,7 +55,7 @@ spec:
 
                 # 'node.master' env is a marker of OpenSearch 1.x StatefulSets that must be
                 # recreated during upgrade to 2.x because ArgoCD merge cannot remove extra envs.
-                NODE_MASTER="$(printf '%s' "$STS_JSON" \
+                NODE_MASTER="$(echo "$STS_JSON \
                   | jq -r '[.spec.template.spec.containers[].env[]? | select(.name == "node.master")] | length' 2>/dev/null || echo "0")"
 
                 if [ "$NODE_MASTER" -gt 0 ]; then
