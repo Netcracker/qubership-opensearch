@@ -1196,18 +1196,6 @@ integrationTests:
   # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
   priorityClassName: ""
 
-resourceMigration:
-  enabled: true
-  resources:
-    requests:
-      memory: 64Mi
-      cpu: 20m
-    limits:
-      memory: 256Mi
-      cpu: 100m
-  imagePullPolicy: IfNotPresent
-  runAsNonRoot: true
-
   # ATP report upload (S3 under atpReport.atpStorage)
   atpReport:
     enabled: false
@@ -1239,6 +1227,18 @@ resourceMigration:
   # Format: "type name containerName registry:port/image:tag, ..."
   # Example: "statefulset opensearch-master opensearch ghcr.io:443/netcracker/qubership-docker-opensearch-3:main"
   monitoredImages: ""
+
+resourceMigration:
+  enabled: true
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 20m
+    limits:
+      memory: 256Mi
+      cpu: 100m
+  imagePullPolicy: IfNotPresent
+  runAsNonRoot: true
 
 groupMigration:
   enabled: true
