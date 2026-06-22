@@ -39,10 +39,10 @@ jobs:
           poll-interval: 20
   Opensearch-Pipeline:
     needs: Wait-for-images
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@feature/apps-hardening-scan
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@277bfa19072ddcbfe1e4df2253b9b70c61a1a68e # v1.13.1
     with:
       service_branch: '${{ github.head_ref || github.ref_name }}'
-      pipeline_branch: 'feature/apps-hardening-scan' #this value must match the value after '@' in 'uses'
+      pipeline_branch: '277bfa19072ddcbfe1e4df2253b9b70c61a1a68e' #this value must match the value after '@' in 'uses'
       runner_type: 'ubuntu-latest'
       scope: 'hardening'
     secrets:
