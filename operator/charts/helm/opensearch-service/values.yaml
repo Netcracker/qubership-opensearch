@@ -60,10 +60,12 @@ dashboards:
 #        hosts:
 #          - chart-example.local
   envoyGateway:
-    enabled: false
+    enabled: true
     host: ""
     parentRefs:
-      - name: default-external-gateway
+      - group: gateway.networking.k8s.io
+        kind: Gateway
+        name: default-external-gateway
         namespace: gateway-system
   service:
     type: ClusterIP
@@ -649,10 +651,12 @@ opensearch:
       #    hosts:
       #      - chart-example.local
     envoyGateway:
-      enabled: false
+      enabled: true
       host: ""
       parentRefs:
-        - name: default-external-gateway
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: default-external-gateway
           namespace: gateway-system
     resources:
       limits:

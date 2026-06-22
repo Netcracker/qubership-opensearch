@@ -11,8 +11,8 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   parentRefs:
-  {{- include "gateway.parentRefs" (list . .Values.dashboards.envoyGateway.parentRefs 443) | nindent 2 }}
-  
+  {{- include "gateway.parentRefs" (list . .Values.dashboards.envoyGateway.parentRefs 443) | nindent 4 }}
+
   hostnames:
   {{- if .Values.dashboards.envoyGateway.host }}
     - {{ .Values.dashboards.envoyGateway.host | quote }}
@@ -29,7 +29,10 @@ spec:
             value: /
       backendRefs:
         - name: {{ $serviceName }}
+          group: ""
+          kind: Service
           port: {{ .Values.dashboards.service.port }}
+          weight: 1
 
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -41,7 +44,7 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   parentRefs:
-  {{- include "gateway.parentRefs" (list . .Values.opensearch.client.envoyGateway.parentRefs 80) | nindent 2 }}
+  {{- include "gateway.parentRefs" (list . .Values.opensearch.client.envoyGateway.parentRefs 80) | nindent 4 }}
 
   hostnames:
   {{- if .Values.dashboards.envoyGateway.host }}
