@@ -28,6 +28,7 @@ spec:
   {{- toYaml . | nindent 8 -}}
 {{- end }}
 {{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
         component: opensearch-monitoring
         name: {{ template "opensearch.fullname" . }}-monitoring
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-monitoring
@@ -42,6 +43,8 @@ spec:
       serviceAccountName: {{ template "opensearch.fullname" . }}-monitoring
       containers:
         - env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
             - name: OS_PROJECT
               valueFrom:
                 fieldRef:
@@ -106,6 +109,8 @@ spec:
             {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
           name: {{ template "opensearch.fullname" . }}-monitoring
           volumeMounts:
+            - mountPath: "/tmp"
+              name: tmp
             - mountPath: "/etc/telegraf"
               name: config
             {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
@@ -164,6 +169,9 @@ spec:
             failureThreshold: 5
       {{- end }}
       volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 10Mi
         - name: config
           configMap:
             name: {{ template "opensearch.fullname" . }}-monitoring-configuration

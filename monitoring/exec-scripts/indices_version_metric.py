@@ -25,6 +25,7 @@ REQUEST_TIMEOUT = 7
 ELASTICSEARCH_USERNAME = os.getenv("ELASTICSEARCH_USERNAME")
 ELASTICSEARCH_PASSWORD = os.getenv("ELASTICSEARCH_PASSWORD")
 ROOT_CA_CERTIFICATE = os.getenv("ROOT_CA_CERTIFICATE")
+MONITORING_LOGS=os.getenv('MONITORING_LOGS')
 
 
 def __configure_logging(log):
@@ -34,7 +35,7 @@ def __configure_logging(log):
         datefmt="%Y-%m-%dT%H:%M:%S",
     )
     log_handler = RotatingFileHandler(
-        filename="/opt/elasticsearch-monitoring/exec-scripts/indices_version_metric.log",
+        filename=f"{MONITORING_LOGS}/indices_version_metric.log",
         maxBytes=50 * 1024,
         backupCount=5,
     )
@@ -46,7 +47,7 @@ def __configure_logging(log):
     )
     log.addHandler(log_handler)
     err_handler = RotatingFileHandler(
-        filename="/opt/elasticsearch-monitoring/exec-scripts/indices_version_metric.err",
+        filename=f"{MONITORING_LOGS}/indices_version_metric.err",
         maxBytes=50 * 1024,
         backupCount=5,
     )

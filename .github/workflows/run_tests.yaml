@@ -7,42 +7,48 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [main]
-    paths-ignore:
-      - "docs/**"
-      - "CODE-OF-CONDUCT.md"
-      - "CONTRIBUTING.md"
-      - "LICENSE"
-      - "README.md"
-      - "SECURITY.md"
   push:
     branches: [main]
-    paths-ignore:
-      - "docs/**"
-      - "CODE-OF-CONDUCT.md"
-      - "CONTRIBUTING.md"
-      - "LICENSE"
-      - "README.md"
-      - "SECURITY.md"
+
 
 jobs:
   Wait-for-images:
     runs-on: ubuntu-latest
     outputs:
-      conclusion: ${{ steps.wait.outputs.conclusion }}
+      skip_tests: ${{ steps.check.outputs.skip_tests }}
     steps:
+      - name: Check if dev_build.yml was triggered for this commit
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            SHA="${{ github.event.pull_request.head.sha }}"
+          else
+            SHA="${{ github.sha }}"
+          fi
+          RUNS=$(gh run list --workflow dev_build.yml --repo ${{ github.repository }} --commit $SHA)
+          SKIP_TESTS="false"
+          if [ -z "$RUNS" ]; then
+            SKIP_TESTS="true"
+          fi
+          echo SKIP_TESTS: $SKIP_TESTS
+          echo "skip_tests=$SKIP_TESTS" >> $GITHUB_OUTPUT
       - name: Wait for dev_build.yml to complete
-        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@3e428f45132119ce49d90f3770a45d4fe1d1078d  #v2.0.4
+        if: steps.check.outputs.skip_tests == 'false'
+        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@3e428f45132119ce49d90f3770a45d4fe1d1078d  # v2.0.4
         id: wait
         with:
           workflow: dev_build.yml
           token: ${{ secrets.GITHUB_TOKEN }}
           poll-interval: 20
+
   Opensearch-Pipeline:
     needs: Wait-for-images
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@0317a7311f0fdd1e6d492fb3a75d722835851b15 #v1.6.1
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@1f271170b900faa82f2585e6da24a72253e59b14 #v1.10.0
     with:
       service_branch: '${{ github.head_ref || github.ref_name }}'
-      pipeline_branch: '0317a7311f0fdd1e6d492fb3a75d722835851b15' #this value must match the value after '@' in 'uses'
+      pipeline_branch: '1f271170b900faa82f2585e6da24a72253e59b14' #this value must match the value after '@' in 'uses'
       runner_type: 'ubuntu-latest'
     secrets:
       AWS_S3_ACCESS_KEY_ID: ${{secrets.AWS_S3_ACCESS_KEY_ID}}

@@ -2,12 +2,6 @@
 
 set -e
 
-"${OPENSEARCH_HOME}"/bin/opensearch-plugin install \
-    --batch --verbose "file://${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-3.6.0.zip"
-"${OPENSEARCH_HOME}"/bin/opensearch-plugin install \
-    --batch --verbose "file://${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-3.6.0.zip"
-rm -rf "${OPENSEARCH_HOME}"/dist
-
 if [[ -n "$OPENSEARCH_SECURITY_CONFIG_PATH" ]]; then
     # Set internal users
     password=$("${OPENSEARCH_HOME}/plugins/opensearch-security/tools/hash.sh" -p "${OPENSEARCH_PASSWORD}" | grep -v "\*\*")

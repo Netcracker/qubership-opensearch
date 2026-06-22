@@ -127,7 +127,7 @@ jobs:
 
   Opensearch-Pipeline:
     needs: [build]
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@4cb7d7c09d0205268066b130c8c6205d9232507b #v1.4.1
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@e73ce64071a551c21f2a1c5f9edd14d445e61ce5 #v1.7.1
     with:
       service_branch: 'feature/integration-build'
       pipeline_branch: '4cb7d7c09d0205268066b130c8c6205d9232507b' #this value must match the value after '@' in 'uses'

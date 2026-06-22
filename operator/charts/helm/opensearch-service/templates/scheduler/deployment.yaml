@@ -28,6 +28,8 @@ spec:
 {{- with .Values.podScheduler.customLabels }}
   {{- toYaml . | nindent 8 -}}
 {{- end }}
+{{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
         component: opensearch-pod-scheduler
         name: {{ template "opensearch.fullname" . }}-pod-scheduler
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-pod-scheduler
@@ -93,30 +95,23 @@ spec:
             exec:
               command:
                 - /bin/bash
-                - -ec
+                - -c
                 - |
-                  test -f /tmp/last_beat
-                  now=$(date +%s)
-                  last=$(cat /tmp/last_beat || echo 0)
-                  [[ $(( now - last )) -lt 60 ]]
-                  kubectl --request-timeout=5s -n {{ .Release.Namespace }} auth can-i get pods >/dev/null
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
+                  kubectl get pods >/dev/null 2>&1
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 30
+            failureThreshold: 5
           livenessProbe:
             exec:
               command:
                 - /bin/bash
                 - -ec
                 - |
-                  test -f /tmp/last_beat
-                  now=$(date +%s)
-                  last=$(cat /tmp/last_beat || echo 0)
-                  [[ $(( now - last )) -lt 300 ]]
+                  pgrep -f kubectl >/dev/null || pgrep -f bash >/dev/null
             initialDelaySeconds: 60
             periodSeconds: 20
-            timeoutSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 3
       serviceAccountName: {{ template "opensearch.fullname" . }}-pod-scheduler
       {{- if .Values.podScheduler.priorityClassName }}

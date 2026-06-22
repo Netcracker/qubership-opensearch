@@ -24,19 +24,20 @@ REQUEST_TIMEOUT = 7
 ELASTICSEARCH_USERNAME = os.getenv('ELASTICSEARCH_USERNAME')
 ELASTICSEARCH_PASSWORD = os.getenv('ELASTICSEARCH_PASSWORD')
 ROOT_CA_CERTIFICATE = os.getenv('ROOT_CA_CERTIFICATE')
+MONITORING_LOGS=os.getenv('MONITORING_LOGS')
 
 
 def __configure_logging(log):
     log.setLevel(logging.DEBUG)
     formatter = logging.Formatter(fmt='[%(asctime)s,%(msecs)03d][%(levelname)s] %(message)s',
                                   datefmt='%Y-%m-%dT%H:%M:%S')
-    log_handler = RotatingFileHandler(filename='/opt/elasticsearch-monitoring/exec-scripts/replication_metric.log',
+    log_handler = RotatingFileHandler(filename=f'{MONITORING_LOGS}/replication_metric.log',
                                       maxBytes=50 * 1024,
                                       backupCount=5)
     log_handler.setFormatter(formatter)
     log_handler.setLevel(logging.DEBUG if os.getenv('ELASTICSEARCH_MONITORING_SCRIPT_DEBUG') else logging.INFO)
     log.addHandler(log_handler)
-    err_handler = RotatingFileHandler(filename='/opt/elasticsearch-monitoring/exec-scripts/replication_metric.err',
+    err_handler = RotatingFileHandler(filename=f'{MONITORING_LOGS}/replication_metric.err',
                                       maxBytes=50 * 1024,
                                       backupCount=5)
     err_handler.setFormatter(formatter)

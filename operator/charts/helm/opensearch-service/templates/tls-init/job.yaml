@@ -20,6 +20,7 @@ spec:
       name: {{ template "opensearch.fullname" . }}-tls-init
       labels:
 {{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
         name: {{ template "opensearch.fullname" . }}-tls-init
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-tls-init
     spec:
@@ -31,10 +32,17 @@ spec:
       serviceAccountName: {{ template "opensearch.fullname" . }}-tls-init
       securityContext:
         {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
+      volumes:
+        - name: config
+          emptyDir:
+            sizeLimit: 10Mi
       containers:
         - name: tls-init
           image: {{ template "tls-init.image" . }}
           imagePullPolicy: "{{ .Values.opensearch.imagePullPolicy | default "Always" }}"
+          volumeMounts:
+            - name: config
+              mountPath: /opt/opensearch-tls-init/config
           env:
             - name: OPENSEARCH_FULLNAME
               value: {{ template "opensearch.fullname" . }}

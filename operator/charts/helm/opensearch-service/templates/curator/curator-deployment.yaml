@@ -1,4 +1,6 @@
 {{- if .Values.curator.enabled }}
+{{- $s3AliasesData := fromYaml (include "backupDaemon.s3Aliases" .) }}
+{{- $hasS3Aliases := not (empty $s3AliasesData.items) }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -28,6 +30,7 @@ spec:
   {{- toYaml . | nindent 8 -}}
 {{- end }}
 {{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
         name: {{ template "opensearch.fullname" . }}-curator
         component: opensearch-curator
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-curator
@@ -39,6 +42,8 @@ spec:
       serviceAccountName: {{ template "opensearch.fullname" . }}-curator
       containers:
         - env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
             - name: NAMESPACE
               value: {{ .Release.Namespace }}
             - name: ES_HOST
@@ -71,6 +76,8 @@ spec:
               value: {{ .Values.opensearch.configDirectory | quote }}
             - name: SNAPSHOT_REPOSITORY_NAME
               value: {{ .Values.curator.snapshotRepositoryName | default "snapshots" }}
+            - name: S3_ALIASES_USED
+              value: {{ $hasS3Aliases | quote }}
           {{- if eq (include "dbaas.enabled" .) "true" }}
             - name: DBAAS_ADAPTER_ADDRESS
               value: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (include "dbaas-adapter.address" .) }}
@@ -199,6 +206,11 @@ spec:
           volumeMounts:
             - mountPath: /backup-storage
               name: backup-storage
+            {{- if $hasS3Aliases }}
+            - mountPath: /aliases/
+              name: {{ template "opensearch.fullname" . }}-s3-aliases
+              readOnly: true
+            {{- end }}
             {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - mountPath: /trusted-certs/root-ca.pem
               name: opensearch-certs
@@ -224,6 +236,8 @@ spec:
             - protocol: TCP
               containerPort: {{ template "curator.port" . }}
         - env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
             - name: CLOUD_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -328,6 +342,11 @@ spec:
           secret:
             secretName: {{ template "curator.s3.tlsSecretName" . }}
         {{ end }}
+        {{- if $hasS3Aliases }}
+        - name: {{ template "opensearch.fullname" . }}-s3-aliases
+          secret:
+            secretName: {{ template "opensearch.fullname" . }}-s3-aliases
+        {{- end }}
       {{- if .Values.curator.priorityClassName }}
       priorityClassName: {{ .Values.curator.priorityClassName | quote }}
       {{- end }}
