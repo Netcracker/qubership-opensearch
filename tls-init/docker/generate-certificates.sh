@@ -173,15 +173,15 @@ migrate_paths() {
   local type=$1
   local secret_name=$2
 
-  local secret_file="secret.json"
+  local secret_file="${OPENSEARCH_CONFIGS}/secret.json"
 
   local private_key_name=tls.key
   local root_ca_name=ca.crt
   local certificate_name=tls.crt
 
-  local tmp_tls_key=tmp-tls.key
-  local tmp_tls_crt=tmp-tls.crt
-  local tmp_ca_crt=tmp-ca.crt
+  local tmp_tls_key="${OPENSEARCH_CONFIGS}/tmp-tls.key"
+  local tmp_tls_crt="${OPENSEARCH_CONFIGS}/tmp-tls.crt"
+  local tmp_ca_crt="${OPENSEARCH_CONFIGS}/tmp-ca.crt"
 
   local secret_type="kubernetes.io/tls"
 

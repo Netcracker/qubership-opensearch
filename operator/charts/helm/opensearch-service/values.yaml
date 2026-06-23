@@ -651,7 +651,7 @@ opensearch:
       #    hosts:
       #      - chart-example.local
     envoyGateway:
-      enabled: false
+      enabled: true
       host: ""
       parentRefs:
         - group: gateway.networking.k8s.io
