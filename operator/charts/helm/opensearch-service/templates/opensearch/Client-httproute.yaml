@@ -1,4 +1,4 @@
-{{- if .Values.opensearch.client.envoyGateway.enabled }}
+{{- if and .Values.opensearch.client.envoyGateway.enabled .Values.opensearch.client.ingress.enabled }}
 {{- if and .Values.opensearch.client.enabled (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1") (eq .Values.PAAS_PLATFORM "KUBERNETES") -}}
 {{- if not .Values.global.externalOpensearch.enabled }}
 {{- $fullName := printf "%s" (include "opensearch.fullname" .) }}
@@ -85,7 +85,11 @@ spec:
   {{- end }}
 
   rules:
-    - filters:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
         - type: RequestRedirect
           requestRedirect:
             scheme: https
