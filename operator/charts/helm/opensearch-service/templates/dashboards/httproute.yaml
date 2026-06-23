@@ -1,5 +1,6 @@
-{{- if and .Values.dashboards.envoyGateway.enabled (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1") (eq .Values.PAAS_PLATFORM "KUBERNETES") -}}
-{{- if .Values.dashboards.enabled -}}
+{{- if and (not .Values.global.externalOpensearch.enabled) .Values.dashboards.enabled }}
+{{- if and .Values.dashboards.envoyGateway.enabled .Values.dashboards.ingress.enabled }}
+{{ if and (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1") (eq .Values.PAAS_PLATFORM "KUBERNETES") -}}
 {{- $serviceName := printf "%s-%s" (include "opensearch.fullname" .) "dashboards" }}
 
 apiVersion: gateway.networking.k8s.io/v1
@@ -44,7 +45,7 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   parentRefs:
-  {{- include "gateway.parentRefs" (list . .Values.opensearch.client.envoyGateway.parentRefs 80) | nindent 4 }}
+  {{- include "gateway.parentRefs" (list . .Values.dashboards.envoyGateway.parentRefs 80) | nindent 4 }}
 
   hostnames:
   {{- if .Values.dashboards.envoyGateway.host }}
@@ -56,11 +57,16 @@ spec:
   {{- end }}
 
   rules:
-    - filters:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
         - type: RequestRedirect
           requestRedirect:
             scheme: https
             statusCode: 301
 
+{{- end }}
 {{- end }}
 {{- end }}
