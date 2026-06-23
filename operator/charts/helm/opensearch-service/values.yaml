@@ -1081,7 +1081,7 @@ curator:
       memory: 256Mi
       cpu: 200m
     limits:
-      memory: 768Mi
+      memory: 512Mi
       cpu: 400m
 
   ## Node labels for pod assignment
@@ -1231,6 +1231,18 @@ integrationTests:
   # Format: "type name containerName registry:port/image:tag, ..."
   # Example: "statefulset opensearch-master opensearch ghcr.io:443/netcracker/qubership-docker-opensearch-3:main"
   monitoredImages: ""
+
+resourceMigration:
+  enabled: true
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 20m
+    limits:
+      memory: 256Mi
+      cpu: 100m
+  imagePullPolicy: IfNotPresent
+  runAsNonRoot: true
 
 groupMigration:
   enabled: true
