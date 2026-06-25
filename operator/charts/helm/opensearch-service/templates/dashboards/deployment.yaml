@@ -67,9 +67,6 @@ spec:
         - name: dashboards-tmp
           emptyDir:
             sizeLimit: 1Mi
-        - name: dashboards-config
-          emptyDir:
-            sizeLimit: 1Mi
         - name: config-injected
           configMap:
             name: {{ template "opensearch.fullname" . }}-dashboards-config
@@ -183,9 +180,6 @@ spec:
               mountPath: /usr/share/opensearch-dashboards/optimize
             - name: dashboards-tmp
               mountPath: /tmp/dashboards
-            - name: dashboards-config
-              mountPath: /usr/share/opensearch-dashboards/config/opensearch_dashboards.yml
-              subPath: opensearch_dashboards.yml
             - name: config-injected
               mountPath: /etc/opensearch-dashboards/config-injected
               readOnly: true
