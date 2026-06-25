@@ -2,6 +2,7 @@
 {{- $s3AliasesData := fromYaml (include "backupDaemon.s3Aliases" .) }}
 {{- $hasS3Aliases := not (empty $s3AliasesData.items) }}
 {{- $curatorPodSecretsMount := include "opensearch.podSecretsMountPath" (dict "service" "opensearch-curator") }}
+{{- $backupDaemonSecretsDir := printf "/etc/secrets/%s-backup-daemon-pod-secrets" (include "opensearch.fullname" .) }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -51,6 +52,8 @@ spec:
               value: {{ default (printf "%s-internal:9200" (include "opensearch.fullname" .)) (.Values.global.externalOpensearch.enabled | ternary (printf "%s:%s" (include "external.opensearch-host" .) (include "external.opensearch-port" .)) .Values.curator.opensearchHost) }}
             - name: OPENSEARCH_CURATOR_SECRETS_DIR
               value: {{ $curatorPodSecretsMount | quote }}
+            - name: BACKUP_DAEMON_SECRETS_DIR
+              value: {{ $backupDaemonSecretsDir | quote }}
             - name: TLS_HTTP_ENABLED
               value: "{{ or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}"
             - name: EXTERNAL_OPENSEARCH_ENABLED
@@ -175,6 +178,9 @@ spec:
             {{- end }}
             - name: opensearch-curator-pod-secrets
               mountPath: {{ $curatorPodSecretsMount | quote }}
+              readOnly: true
+            - name: backup-daemon-pod-secrets
+              mountPath: {{ $backupDaemonSecretsDir | quote }}
               readOnly: true
           ports:
             - protocol: TCP
@@ -308,6 +314,24 @@ spec:
                     - key: registration-auth-password
                       path: DBAAS_AGGREGATOR_REGISTRATION_PASSWORD
               {{- end }}
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  items:
+                    - key: username
+                      path: CURATOR_USERNAME
+                    - key: password
+                      path: CURATOR_PASSWORD
+        - name: backup-daemon-pod-secrets
+          projected:
+            defaultMode: 420
+            sources:
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  items:
+                    - key: username
+                      path: BACKUP_DAEMON_API_CREDENTIALS_USERNAME
+                    - key: password
+                      path: BACKUP_DAEMON_API_CREDENTIALS_PASSWORD
               {{- if and .Values.opensearch.snapshots.enabled .Values.opensearch.snapshots.s3.enabled }}
               - secret:
                   name: {{ template "opensearch.fullname" . }}-s3-secret
@@ -317,20 +341,6 @@ spec:
                     - key: s3-key-secret
                       path: S3_KEY_SECRET
               {{- end }}
-              - secret:
-                  name: {{ template "opensearch.fullname" . }}-curator-secret
-                  items:
-                    - key: username
-                      path: CURATOR_USERNAME
-                    - key: password
-                      path: CURATOR_PASSWORD
-              - secret:
-                  name: {{ template "opensearch.fullname" . }}-curator-secret
-                  items:
-                    - key: username
-                      path: BACKUP_DAEMON_API_CREDENTIALS_USERNAME
-                    - key: password
-                      path: BACKUP_DAEMON_API_CREDENTIALS_PASSWORD
       {{- if .Values.curator.priorityClassName }}
       priorityClassName: {{ .Values.curator.priorityClassName | quote }}
       {{- end }}
