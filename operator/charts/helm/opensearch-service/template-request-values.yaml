@@ -1,0 +1,100 @@
+global:
+  cloudIntegrationEnabled: false
+  tls:
+    enabled: true
+    generateCerts:
+      certProvider: cert-manager
+      clusterIssuerName: qa-issuer-self
+opensearch:
+  tls:
+    enabled: true
+  securityConfig:
+    authc:
+      basic:
+        username: admin
+        password: Root1234#
+  securityContextCustom:
+    runAsUser: 1000
+    fsGroup: 1000
+  master:
+    persistence:
+      storageClass: custom-csi-cinder-delete
+      size: 2Gi
+    resources:
+      requests:
+        cpu: 300m
+        memory: 2Gi
+      limits:
+        cpu: 900m
+        memory: 2Gi
+  snapshots:
+    enabled: true
+    size: 2Gi
+    s3:
+      enabled: true
+      pathStyleAccess: true
+      bucket: opensearch-platcert
+      url: http://minio.support-left-kubernetes.openshift.sdntest.netcracker.com/
+      keyId: admin
+      keySecret: Root1234#
+    s3Aliases:
+    - name: qatests3alias
+      spec:
+        default: true
+        storageBucket: test-alias-s3-opensearch
+        storageProvider: aws
+        storageRegion: us-east-1
+        storageServerUrl: "http://minio.support-left-kubernetes.openshift.sdntest.netcracker.com/"
+        storageUsername: admin
+        storageSecret: storage-location-default
+      secretContent:
+        storagePassword: Root1234#
+  client:
+    ingress:
+      enabled: true
+      hosts:
+        - opensearch-opensearch-service.platcert01.kubernetes.sdntest.netcracker.com
+curator:
+  enabled: true
+  username: backup
+  password: backup
+  securityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+dashboards:
+  enabled: true
+  ingress:
+    enabled: true
+    hosts:
+      - host: dashboards-opensearch-service.platcert01.kubernetes.sdntest.netcracker.com
+        paths:
+          - path: /
+dbaasAdapter:
+  enabled: true
+  dbaasAggregatorRegistrationAddress: http://dbaas-aggregator.dbaas-core:8080
+  dbaasAggregatorPhysicalDatabaseIdentifier: opensearch
+  opensearchRepo: snapshots
+  opensearchRepoRoot: /usr/share/opensearch/
+  dbaasUsername: dbaas-adapter
+  dbaasPassword: dbaas-adapter
+  registrationAuthUsername: cluster-dba
+  registrationAuthPassword: Bnmq5567_PO
+  securityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+monitoring:
+  enabled: true
+  includeIndices: true
+  slowQueries:
+    enabled: true
+    indicesPattern: "*"
+statusProvisioner:
+  lifetimeAfterCompletion: 60
+  podReadinessTimeout: 1500
+  integrationTestsTimeout: 5000
+integrationTests:
+  enabled: true
+  tags: smokeORopensearch_images
+  prometheusUrl: http://vmsingle-k8s.prometheus-operator:8429
+DEPLOY_W_HELM: true
+ESCAPE_SEQUENCE: "true"

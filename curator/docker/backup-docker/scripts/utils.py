@@ -17,6 +17,21 @@ import os
 
 import opensearchpy
 
+_DEFAULT_SECRETS_DIR = "/etc/secrets/opensearch-curator-pod-secrets"
+_SECRETS_DIR_ENV = "OPENSEARCH_CURATOR_SECRETS_DIR"
+
+
+def get_secret_value(key: str) -> str:
+  secrets_dir = os.getenv(_SECRETS_DIR_ENV, _DEFAULT_SECRETS_DIR)
+  if secrets_dir:
+    path = os.path.join(secrets_dir, key)
+    if os.path.isfile(path):
+      with open(path, encoding="utf-8") as handle:
+        value = handle.read().strip()
+        if value:
+          return value
+  return os.getenv(key, "")
+
 
 def extract_snapshot_name(folder):
   return os.path.basename(folder).lower()
@@ -37,8 +52,8 @@ def create_elasticsearch_url():
 
 
 def get_credentials():
-  user = os.environ.get('ES_USERNAME')
-  password = os.environ.get('ES_PASSWORD')
+  user = get_secret_value('ES_USERNAME')
+  password = get_secret_value('ES_PASSWORD')
   return user, password if user and password else None
 
 

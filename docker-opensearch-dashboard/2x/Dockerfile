@@ -23,7 +23,11 @@ RUN rm -rf /usr/share/opensearch-dashboards/node_modules/axios \
     && mkdir -p /usr/share/opensearch-dashboards/node_modules/axios \
     && tar -xzf /tmp/axios.tgz -C /usr/share/opensearch-dashboards/node_modules/axios --strip-components=1
 
+COPY docker/docker-entrypoint.sh /usr/share/opensearch-dashboards/qubership-docker-entrypoint.sh
+RUN chmod +x /usr/share/opensearch-dashboards/qubership-docker-entrypoint.sh
+
 USER 1000
 
-ENTRYPOINT ["./opensearch-dashboards-docker-entrypoint.sh"]
+WORKDIR /usr/share/opensearch-dashboards
+ENTRYPOINT ["./qubership-docker-entrypoint.sh"]
 CMD ["opensearch-dashboards"]

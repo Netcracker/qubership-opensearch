@@ -40,8 +40,8 @@ import (
 
 var (
 	dbaasAggregatorRegistrationAddress    = common.GetEnv("DBAAS_AGGREGATOR_REGISTRATION_ADDRESS", "http://dbaas-aggregator.dbaas:8080")
-	dbaasAggregatorRegistrationUsername   = common.GetEnv("DBAAS_AGGREGATOR_REGISTRATION_USERNAME", "cluster-dba")
-	dbaasAggregatorRegistrationPassword   = common.GetEnv("DBAAS_AGGREGATOR_REGISTRATION_PASSWORD", "")
+	dbaasAggregatorRegistrationUsername   = common.GetSecretValue(common.OpenSearchDbaasAdapterSecretsDirEnv, "DBAAS_AGGREGATOR_REGISTRATION_USERNAME", "cluster-dba")
+	dbaasAggregatorRegistrationPassword   = common.GetSecretValue(common.OpenSearchDbaasAdapterSecretsDirEnv, "DBAAS_AGGREGATOR_REGISTRATION_PASSWORD", "")
 	dbaasAggregatorRegistrationFixedDelay = common.GetIntEnv("DBAAS_AGGREGATOR_REGISTRATION_FIXED_DELAY_MS", 150000)
 	dbaasAggregatorRegistrationRetryTime  = common.GetIntEnv("DBAAS_AGGREGATOR_REGISTRATION_RETRY_TIME_MS", 60000)
 	dbaasAggregatorRegistrationRetryDelay = common.GetIntEnv("DBAAS_AGGREGATOR_REGISTRATION_RETRY_DELAY_MS", 5000)
@@ -50,8 +50,8 @@ var (
 	opensearchHost     = common.GetEnv("OPENSEARCH_HOST", "localhost")
 	opensearchPort     = common.GetIntEnv("OPENSEARCH_PORT", 9200)
 	opensearchProtocol = common.GetEnv("OPENSEARCH_PROTOCOL", common.Http)
-	opensearchUsername = common.GetEnv("OPENSEARCH_USERNAME", "opensearch")
-	opensearchPassword = common.GetEnv("OPENSEARCH_PASSWORD", "change")
+	opensearchUsername = common.GetSecretValue(common.OpenSearchDbaasAdapterSecretsDirEnv, "OPENSEARCH_USERNAME", "opensearch")
+	opensearchPassword = common.GetSecretValue(common.OpenSearchDbaasAdapterSecretsDirEnv, "OPENSEARCH_PASSWORD", "change")
 	opensearchRepo     = common.GetEnv("OPENSEARCH_REPO", "dbaas-backups-repository")
 	opensearchRepoRoot = common.GetEnv("OPENSEARCH_REPO_ROOT", "/usr/share/opensearch/")
 

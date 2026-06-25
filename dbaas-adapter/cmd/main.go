@@ -35,8 +35,8 @@ var (
 	tlsEnabled, _   = strconv.ParseBool(common.GetEnv("TLS_ENABLED", "false"))
 	adapterPort     = 8080
 	adapterProtocol = common.Http
-	adapterUsername = common.GetEnv("DBAAS_ADAPTER_USERNAME", "dbaas-aggregator")
-	adapterPassword = common.GetEnv("DBAAS_ADAPTER_PASSWORD", "dbaas-aggregator")
+	adapterUsername = common.GetSecretValue(common.OpenSearchDbaasAdapterSecretsDirEnv, "DBAAS_ADAPTER_USERNAME", "dbaas-aggregator")
+	adapterPassword = common.GetSecretValue(common.OpenSearchDbaasAdapterSecretsDirEnv, "DBAAS_ADAPTER_PASSWORD", "dbaas-aggregator")
 	adapterAddress  = common.GetEnv("DBAAS_ADAPTER_ADDRESS", "")
 
 	buildstamp  string

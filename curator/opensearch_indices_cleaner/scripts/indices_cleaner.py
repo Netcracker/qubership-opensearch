@@ -38,6 +38,18 @@ SCHEDULER_POSSIBLE_UNITS = [func for func in dir(schedule.Job)
 CONFIGURATION_KEYS = ['filter_kind', 'filter_value', 'filter_direction', 'filter_unit', 'filter_unit_count']
 
 
+def get_secret_value(key: str) -> str:
+  secrets_dir = os.getenv('OPENSEARCH_CURATOR_SECRETS_DIR', '/etc/secrets/opensearch-curator-pod-secrets')
+  if secrets_dir:
+    path = os.path.join(secrets_dir, key)
+    if os.path.isfile(path):
+      with open(path, encoding='utf-8') as handle:
+        value = handle.read().strip()
+        if value:
+          return value
+  return os.getenv(key, '')
+
+
 def _str2bool(v: str) -> bool:
     return v.lower() in ("yes", "true", "t", "1")
 
@@ -52,9 +64,8 @@ def create_elasticsearch_url():
 
 
 def get_credentials():
-    es_credentials = os.environ.get('ES_AUTH').split(":")
-    user = es_credentials[0]
-    password = es_credentials[1]
+    user = get_secret_value('ES_USERNAME')
+    password = get_secret_value('ES_PASSWORD')
     return user, password if user and password else None
 
 

@@ -9,8 +9,8 @@ Suite Setup       Prepare
 
 Library           S3BackupLibrary  url=%{S3_URL}
 ...               bucket=%{S3_BUCKET}
-...               key_id=%{S3_KEY_ID}
-...               key_secret=%{S3_KEY_SECRET}
+...               key_id=${S3_KEY_ID}
+...               key_secret=${S3_KEY_SECRET}
 
 *** Test Cases ***
 Full Backup And Restore On S3 Storage

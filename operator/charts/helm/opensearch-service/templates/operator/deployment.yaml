@@ -1,3 +1,4 @@
+{{- $serviceOperatorPodSecretsMount := include "opensearch.podSecretsMountPath" (dict "service" "opensearch-service-operator") }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -60,6 +61,9 @@ spec:
               name: dbaas-adapter-certs
               subPath: "ca.crt"
           {{- end }}
+            - name: opensearch-service-operator-pod-secrets
+              mountPath: {{ $serviceOperatorPodSecretsMount | quote }}
+              readOnly: true
           command:
             - /manager
           imagePullPolicy: Always
@@ -80,16 +84,8 @@ spec:
               {{ end }}
             - name: OPENSEARCH_NAME
               value: {{ template "opensearch.fullname" . }}
-            - name: OPENSEARCH_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: username
-                  name: {{ template "opensearch.fullname" . }}-secret
-            - name: OPENSEARCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: {{ template "opensearch.fullname" . }}-secret
+            - name: OPENSEARCH_SERVICE_OPERATOR_SECRETS_DIR
+              value: {{ $serviceOperatorPodSecretsMount | quote }}
             {{- if and (eq (include "opensearch.enableDisasterRecovery" .) "true") .Values.global.disasterRecovery.serviceExport.enabled }}
             - name: OPENSEARCH_GKE_SERVICE
               value: {{ template "opensearch-gke-service-name" . }}
@@ -217,6 +213,17 @@ spec:
           secret:
             secretName: {{ template "dbaas-adapter.tlsSecretName" . }}
         {{- end }}
+        - name: opensearch-service-operator-pod-secrets
+          projected:
+            defaultMode: 420
+            sources:
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-secret
+                  items:
+                    - key: username
+                      path: OPENSEARCH_USERNAME
+                    - key: password
+                      path: OPENSEARCH_PASSWORD
       securityContext:
         {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
         {{- with .Values.operator.securityContext }}

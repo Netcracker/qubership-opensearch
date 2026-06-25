@@ -17,7 +17,9 @@ package util
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 func GetIntEnvironmentVariable(varName string, defaultValue int) (int, error) {
@@ -46,4 +48,16 @@ func ArrayContains(slice []int32, searchElement int32) bool {
 		}
 	}
 	return false
+}
+
+const OpenSearchServiceOperatorSecretsDirEnv = "OPENSEARCH_SERVICE_OPERATOR_SECRETS_DIR"
+
+func GetSecretValue(secretsDirEnv, key string) string {
+	if dir := os.Getenv(secretsDirEnv); dir != "" {
+		data, err := os.ReadFile(filepath.Join(dir, key))
+		if err == nil {
+			return strings.TrimSpace(string(data))
+		}
+	}
+	return os.Getenv(key)
 }
