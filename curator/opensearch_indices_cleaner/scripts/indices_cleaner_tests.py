@@ -35,7 +35,8 @@ class SchedulerTest(unittest.TestCase):
         self.assertEqual('http://elasticsearch:9200', actual_result)
 
     def test_get_credentials(self):
-        os.environ.__setitem__('ES_AUTH', 'login:password')
+        os.environ.__setitem__('ES_USERNAME', 'login')
+        os.environ.__setitem__('ES_PASSWORD', 'password')
         self.assertEqual(('login', 'password'), indices_cleaner.get_credentials())
 
     def test_check_configuration_with_invalid_main_structure(self):
