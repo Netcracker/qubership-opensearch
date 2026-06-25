@@ -39,7 +39,17 @@ spec:
         name: {{ template "opensearch.fullname" . }}-integration-tests
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-integration-tests
       annotations:
-        checksum/opensearch-integration-tests-pod-secrets: {{ printf "%v-%v-%v-%v" (eq (include "dbaas.enabled" .) "true") .Values.curator.enabled (and .Values.opensearch.snapshots.enabled .Values.opensearch.snapshots.s3.enabled) .Values.integrationTests.atpReport.enabled | sha256sum }}
+        checksum/opensearch-secret: {{ include "opensearch.checksumSecret" (list . "/opensearch/secret.yaml") }}
+        checksum/integration-tests-secret: {{ include "opensearch.checksumSecret" (list . "/integration-tests/secret.yaml") }}
+        {{- if eq (include "dbaas.enabled" .) "true" }}
+        checksum/dbaas-adapter-secret: {{ include "opensearch.checksumSecret" (list . "/opensearch-dbaas-adapter/dbaas-adapter-secret.yaml") }}
+        {{- end }}
+        {{- if .Values.curator.enabled }}
+        checksum/curator-secret: {{ include "opensearch.checksumSecret" (list . "/curator/curator-secret.yaml") }}
+        {{- end }}
+        {{- if and .Values.opensearch.snapshots.enabled .Values.opensearch.snapshots.s3.enabled }}
+        checksum/s3-secret: {{ include "opensearch.checksumSecret" (list . "/opensearch/s3-secret.yaml") }}
+        {{- end }}
     spec:
       {{- if .Values.global.imagePullSecrets }}
       imagePullSecrets:

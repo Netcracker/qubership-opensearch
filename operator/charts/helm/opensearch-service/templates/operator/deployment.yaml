@@ -29,11 +29,15 @@ spec:
         name: {{ template "opensearch.fullname" . }}-service-operator
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-service-operator
         component: opensearch-service-operator
-      {{- if and (not .Values.global.externalOpensearch.enabled) .Values.global.velero.preHookBackupEnabled }}
       annotations:
+        checksum/opensearch-secret: {{ include "opensearch.checksumSecret" (list . "/opensearch/secret.yaml") }}
+        {{- if eq (include "dbaas.enabled" .) "true" }}
+        checksum/dbaas-adapter-secret: {{ include "opensearch.checksumSecret" (list . "/opensearch-dbaas-adapter/dbaas-adapter-secret.yaml") }}
+        {{- end }}
+        {{- if and (not .Values.global.externalOpensearch.enabled) .Values.global.velero.preHookBackupEnabled }}
         pre.hook.backup.velero.io/command: {{ template "opensearch.velero-pre-hook-backup-flush" . }}
         pre.hook.backup.velero.io/timeout: {{ .Values.global.velero.timeout | default "600s" }}
-      {{- end }}
+        {{- end }}
     spec:
       {{- if .Values.global.imagePullSecrets }}
       imagePullSecrets:
