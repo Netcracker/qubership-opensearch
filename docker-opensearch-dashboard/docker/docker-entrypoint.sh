@@ -4,10 +4,9 @@ set -e
 
 # 1. шаблон из ConfigMap (read-only mount)
 INJECTED_CONFIG="/etc/opensearch-dashboards/config-injected/opensearch_dashboards.yml"
-# 2. рабочая копия для подстановки секретов
-CONFIG_WORK_FILE="/tmp/dashboards/opensearch_dashboards.yml"
-# 3. итоговый конфиг, откуда читает OpenSearch Dashboards
-FINAL_CONFIG="/usr/share/opensearch-dashboards/config/opensearch_dashboards.yml"
+# Рабочий конфиг в /tmp/dashboards; symlink в образе указывает на него же из
+# /usr/share/opensearch-dashboards/config/opensearch_dashboards.yml
+CONFIG_FILE="/tmp/dashboards/opensearch_dashboards.yml"
 
 resolve_secret_value() {
   local env_name="$1"
@@ -73,12 +72,11 @@ if [[ ! -f "${INJECTED_CONFIG}" ]]; then
   exit 1
 fi
 
-mkdir -p "$(dirname "${CONFIG_WORK_FILE}")"
-cp "${INJECTED_CONFIG}" "${CONFIG_WORK_FILE}"
-process_config_file "${CONFIG_WORK_FILE}"
-cp "${CONFIG_WORK_FILE}" "${FINAL_CONFIG}"
+mkdir -p "$(dirname "${CONFIG_FILE}")"
+cp "${INJECTED_CONFIG}" "${CONFIG_FILE}"
+process_config_file "${CONFIG_FILE}"
 
-if grep -qE '__OPENSEARCH_USERNAME__|__OPENSEARCH_PASSWORD__' "${FINAL_CONFIG}"; then
+if grep -qE '__OPENSEARCH_USERNAME__|__OPENSEARCH_PASSWORD__' "${CONFIG_FILE}"; then
   echo "OpenSearch Dashboards config is missing required opensearch credentials after secret substitution" >&2
   exit 1
 fi
