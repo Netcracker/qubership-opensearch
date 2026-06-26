@@ -134,6 +134,10 @@ dashboards:
 global:
   clusterName: opensearch
 
+  # When true, credential Secrets are labeled for operator-driven pod restarts;
+  # Helm-only workloads use checksum annotations on pod templates.
+  autoRestartOnSecretChange: true
+
   cloudIntegrationEnabled: false
 
   imagePullSecrets: []

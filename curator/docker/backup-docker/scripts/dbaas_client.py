@@ -17,6 +17,8 @@ import os
 
 import requests
 
+from utils import get_secret_value
+
 DBASS_CERTS_PATHFILE = '/certs/dbaas-adapter/ca.crt'
 
 request_headers = {
@@ -40,8 +42,8 @@ class DbaasAggregatorClient:
     return host
 
   def get_credentials(self):
-    user = os.environ.get('DBAAS_AGGREGATOR_REGISTRATION_USERNAME')
-    password = os.environ.get('DBAAS_AGGREGATOR_REGISTRATION_PASSWORD')
+    user = get_secret_value('DBAAS_AGGREGATOR_REGISTRATION_USERNAME')
+    password = get_secret_value('DBAAS_AGGREGATOR_REGISTRATION_PASSWORD')
     return (user, password) if user and password else None
 
   def send_request(self, path, method, data):
@@ -70,8 +72,8 @@ class DbaasAdapterClient:
     return host
 
   def get_credentials(self):
-    user = os.environ.get('DBAAS_ADAPTER_USERNAME')
-    password = os.environ.get('DBAAS_ADAPTER_PASSWORD')
+    user = get_secret_value('DBAAS_ADAPTER_USERNAME')
+    password = get_secret_value('DBAAS_ADAPTER_PASSWORD')
     return (user, password) if user and password else None
 
   def send_request(self, path, method, data=None):

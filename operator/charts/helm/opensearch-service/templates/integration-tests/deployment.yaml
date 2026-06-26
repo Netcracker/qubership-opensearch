@@ -1,4 +1,5 @@
 {{- if .Values.integrationTests.enabled }}
+{{- $integrationTestsPodSecretsMount := include "opensearch.podSecretsMountPath" (dict "service" "opensearch-integration-tests") }}
 {{- $s3AliasesData := fromYaml (include "backupDaemon.s3Aliases" .) }}
 {{- $defaultS3AliasName := "" }}
 {{- range $s3AliasesData.items }}
@@ -37,6 +38,18 @@ spec:
 {{ include "opensearch-service.defaultLabels" . | indent 8 }}
         name: {{ template "opensearch.fullname" . }}-integration-tests
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-integration-tests
+      annotations:
+        checksum/opensearch-secret: {{ include "opensearch.checksumSecret" (list . "/opensearch/secret.yaml") }}
+        checksum/integration-tests-secret: {{ include "opensearch.checksumSecret" (list . "/integration-tests/secret.yaml") }}
+        {{- if eq (include "dbaas.enabled" .) "true" }}
+        checksum/dbaas-adapter-secret: {{ include "opensearch.checksumSecret" (list . "/opensearch-dbaas-adapter/dbaas-adapter-secret.yaml") }}
+        {{- end }}
+        {{- if .Values.curator.enabled }}
+        checksum/curator-secret: {{ include "opensearch.checksumSecret" (list . "/curator/curator-secret.yaml") }}
+        {{- end }}
+        {{- if and .Values.opensearch.snapshots.enabled .Values.opensearch.snapshots.s3.enabled }}
+        checksum/s3-secret: {{ include "opensearch.checksumSecret" (list . "/opensearch/s3-secret.yaml") }}
+        {{- end }}
     spec:
       {{- if .Values.global.imagePullSecrets }}
       imagePullSecrets:
@@ -92,16 +105,8 @@ spec:
             - name: EXTERNAL_OPENSEARCH
               value: "true"
               {{ end }}
-            - name: OPENSEARCH_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: username
-                  name: {{ template "opensearch.fullname" . }}-secret
-            - name: OPENSEARCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: {{ template "opensearch.fullname" . }}-secret
+            - name: INTEGRATION_TESTS_SECRETS_DIR
+              value: {{ $integrationTestsPodSecretsMount | quote }}
             - name: OPENSEARCH_MASTER_NODES_NAME
               value: {{ template "master-nodes" . }}
             - name: S3_ALIASES_SECRET_NAME
@@ -110,33 +115,8 @@ spec:
               value: {{ default "default" $defaultS3AliasName | quote }}
             - name: IDENTITY_PROVIDER_URL
               value: "{{ .Values.integrationTests.identityProviderUrl }}"
-            - name: IDENTITY_PROVIDER_REGISTRATION_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-integration-tests-secret
-                  key: idp-registration-token
-            - name: IDENTITY_PROVIDER_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-integration-tests-secret
-                  key: idp-username
-            - name: IDENTITY_PROVIDER_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-integration-tests-secret
-                  key: idp-password
             - name: PROMETHEUS_URL
               value: "{{ .Values.integrationTests.prometheusUrl }}"
-            - name: PROMETHEUS_USER
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-integration-tests-secret
-                  key: prometheus-user
-            - name: PROMETHEUS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-integration-tests-secret
-                  key: prometheus-password
             {{- if and (not .Values.global.externalOpensearch.enabled) .Values.monitoring.slowQueries.enabled }}
             - name: SLOW_QUERIES_INTERVAL_MINUTES
               value: "{{ default 5 .Values.monitoring.slowQueries.processingIntervalMinutes }}"
@@ -152,16 +132,6 @@ spec:
               value: {{ template "dbaas-adapter.protocol" . }}
             - name: OPENSEARCH_DBAAS_ADAPTER_REPOSITORY
               value: {{ .Values.dbaasAdapter.opensearchRepo | default "snapshots" }}
-            - name: OPENSEARCH_DBAAS_ADAPTER_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: username
-                  name: {{ template "dbaas-adapter.name" . }}-secret
-            - name: OPENSEARCH_DBAAS_ADAPTER_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: {{ template "dbaas-adapter.name" . }}-secret
             - name: OPENSEARCH_DBAAS_ADAPTER_API_VERSION
               value: {{ .Values.dbaasAdapter.apiVersion | quote }}
             {{- end }}
@@ -172,16 +142,6 @@ spec:
               value: {{ template "opensearch.fullname" . }}-curator
             - name: OPENSEARCH_CURATOR_PORT
               value: "{{ template "curator.port" . }}"
-            - name: OPENSEARCH_CURATOR_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: username
-                  name: {{ template "opensearch.fullname" . }}-curator-secret
-            - name: OPENSEARCH_CURATOR_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: {{ template "opensearch.fullname" . }}-curator-secret
             {{- end }}
             {{- if and .Values.opensearch.snapshots.enabled .Values.opensearch.snapshots.s3.enabled }}
             - name: S3_ENABLED
@@ -190,16 +150,6 @@ spec:
               value: {{ .Values.opensearch.snapshots.s3.url | quote }}
             - name: S3_BUCKET
               value: {{ .Values.opensearch.snapshots.s3.bucket | quote }}
-            - name: S3_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-s3-secret
-                  key: s3-key-id
-            - name: S3_KEY_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-s3-secret
-                  key: s3-key-secret
             {{ else }}
             - name: S3_ENABLED
               value: {{ .Values.opensearch.snapshots.s3.enabled | quote }}
@@ -244,16 +194,6 @@ spec:
               value: {{ .Values.integrationTests.atpReport.atpStorage.bucket | quote }}
             - name: ATP_STORAGE_REGION
               value: {{ .Values.integrationTests.atpReport.atpStorage.region | quote }}
-            - name: ATP_STORAGE_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-integration-tests-atp-storage-secret
-                  key: atp-storage-username
-            - name: ATP_STORAGE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-integration-tests-atp-storage-secret
-                  key: atp-storage-password
             - name: ATP_REPORT_VIEW_UI_URL
               value: {{ .Values.integrationTests.atpReportViewUiUrl | quote }}
             {{- end }}
@@ -290,6 +230,9 @@ spec:
               name: dbaas-adapter-certs
               subPath: "ca.crt"
             {{- end }}
+            - name: opensearch-integration-tests-pod-secrets
+              mountPath: {{ $integrationTestsPodSecretsMount | quote }}
+              readOnly: true
           terminationMessagePath: /dev/termination-log
           livenessProbe:
             exec:
@@ -331,4 +274,64 @@ spec:
           secret:
             secretName: {{ template "dbaas-adapter.tlsSecretName" . }}
         {{- end }}
+        - name: opensearch-integration-tests-pod-secrets
+          projected:
+            defaultMode: 420
+            sources:
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-secret
+                  items:
+                    - key: username
+                      path: OPENSEARCH_USERNAME
+                    - key: password
+                      path: OPENSEARCH_PASSWORD
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-integration-tests-secret
+                  items:
+                    - key: idp-registration-token
+                      path: IDENTITY_PROVIDER_REGISTRATION_TOKEN
+                    - key: idp-username
+                      path: IDENTITY_PROVIDER_USERNAME
+                    - key: idp-password
+                      path: IDENTITY_PROVIDER_PASSWORD
+                    - key: prometheus-user
+                      path: PROMETHEUS_USER
+                    - key: prometheus-password
+                      path: PROMETHEUS_PASSWORD
+              {{- if eq (include "dbaas.enabled" .) "true" }}
+              - secret:
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+                  items:
+                    - key: username
+                      path: OPENSEARCH_DBAAS_ADAPTER_USERNAME
+                    - key: password
+                      path: OPENSEARCH_DBAAS_ADAPTER_PASSWORD
+              {{- end }}
+              {{- if .Values.curator.enabled }}
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  items:
+                    - key: username
+                      path: OPENSEARCH_CURATOR_USERNAME
+                    - key: password
+                      path: OPENSEARCH_CURATOR_PASSWORD
+              {{- end }}
+              {{- if and .Values.opensearch.snapshots.enabled .Values.opensearch.snapshots.s3.enabled }}
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-s3-secret
+                  items:
+                    - key: s3-key-id
+                      path: S3_KEY_ID
+                    - key: s3-key-secret
+                      path: S3_KEY_SECRET
+              {{- end }}
+              {{- if .Values.integrationTests.atpReport.enabled }}
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-integration-tests-atp-storage-secret
+                  items:
+                    - key: atp-storage-username
+                      path: ATP_STORAGE_USERNAME
+                    - key: atp-storage-password
+                      path: ATP_STORAGE_PASSWORD
+              {{- end }}
   {{- end }}

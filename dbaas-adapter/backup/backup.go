@@ -44,8 +44,8 @@ var (
 	resourcePrefixAttributeName = "resource_prefix"
 	validate                    = validator.New()
 	backupServiceAddress        = common.GetEnv("CURATOR_ADDRESS", "")
-	backupServiceUser           = common.GetEnv("CURATOR_USERNAME", "")
-	backupServicePassword       = common.GetEnv("CURATOR_PASSWORD", "")
+	backupServiceUser           = common.GetSecretValue(common.OpenSearchDbaasAdapterSecretsDirEnv, "CURATOR_USERNAME", "")
+	backupServicePassword       = common.GetSecretValue(common.OpenSearchDbaasAdapterSecretsDirEnv, "CURATOR_PASSWORD", "")
 )
 
 const backupAPIv1 = "api/v1"

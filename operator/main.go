@@ -40,6 +40,7 @@ import (
 
 	qubershiporgv1 "github.com/Netcracker/qubership-opensearch/operator/api/v1"
 	"github.com/Netcracker/qubership-opensearch/operator/controllers"
+	"github.com/Netcracker/qubership-opensearch/operator/util"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -137,8 +138,8 @@ func main() {
 		os.Exit(1)
 	}
 	opensearchProtocol := os.Getenv(opensearchProtocolEnvVar)
-	opensearchUsername := os.Getenv(opensearchUsernameEnvVar)
-	opensearchPassword := os.Getenv(opensearchPasswordEnvVar)
+	opensearchUsername := util.GetSecretValue(util.OpenSearchServiceOperatorSecretsDirEnv, opensearchUsernameEnvVar)
+	opensearchPassword := util.GetSecretValue(util.OpenSearchServiceOperatorSecretsDirEnv, opensearchPasswordEnvVar)
 	replicationChecker := disasterrecovery.NewReplicationChecker(opensearchName, opensearchProtocol, opensearchUsername, opensearchPassword)
 
 	setupLog.Info("Starting disaster recovery REST server.")

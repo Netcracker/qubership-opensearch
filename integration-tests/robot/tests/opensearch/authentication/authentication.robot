@@ -1,17 +1,14 @@
 *** Variables ***
 ${IDENTITY_PROVIDER_URL}                 %{IDENTITY_PROVIDER_URL}
-${IDENTITY_PROVIDER_REGISTRATION_TOKEN}  %{IDENTITY_PROVIDER_REGISTRATION_TOKEN}
-${IDENTITY_PROVIDER_USERNAME}            %{IDENTITY_PROVIDER_USERNAME}
-${IDENTITY_PROVIDER_PASSWORD}            %{IDENTITY_PROVIDER_PASSWORD}
 ${CLIENT_NAME}                           opensearch-integration-tests-client
 
 *** Settings ***
+Resource  ../shared/keywords.robot
 Library  String
 Library  OAuthLibrary  url=${IDENTITY_PROVIDER_URL}
 ...                    registration_token=${IDENTITY_PROVIDER_REGISTRATION_TOKEN}
 ...                    username=${IDENTITY_PROVIDER_USERNAME}
 ...                    password=${IDENTITY_PROVIDER_PASSWORD}
-Resource  ../shared/keywords.robot
 
 *** Keywords ***
 Send Request With Basic Authentication

@@ -28,8 +28,24 @@ protocol = environ.get("OPENSEARCH_PROTOCOL", "http")
 host = environ.get("OPENSEARCH_HOST", "opensearch")
 port = environ.get("OPENSEARCH_PORT", "9200")
 namespace = environ.get("OPENSEARCH_NAMESPACE")
-username = environ.get("OPENSEARCH_USERNAME")
-password = environ.get("OPENSEARCH_PASSWORD")
+_SECRETS_DIR = environ.get(
+    "INTEGRATION_TESTS_SECRETS_DIR",
+    "/etc/secrets/opensearch-integration-tests-pod-secrets",
+)
+
+
+def _get_secret_value(key: str) -> str:
+    path = os.path.join(_SECRETS_DIR, key)
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8") as handle:
+            value = handle.read().strip()
+            if value:
+                return value
+    return environ.get(key, "")
+
+
+username = _get_secret_value("OPENSEARCH_USERNAME")
+password = _get_secret_value("OPENSEARCH_PASSWORD")
 external = environ.get("EXTERNAL_OPENSEARCH", False)
 timeout = 300
 

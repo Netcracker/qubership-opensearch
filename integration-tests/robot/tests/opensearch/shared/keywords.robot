@@ -2,12 +2,11 @@
 ${OPENSEARCH_HOST}               %{OPENSEARCH_HOST}
 ${OPENSEARCH_PORT}               %{OPENSEARCH_PORT}
 ${OPENSEARCH_PROTOCOL}           %{OPENSEARCH_PROTOCOL}
-${OPENSEARCH_USERNAME}           %{OPENSEARCH_USERNAME}
-${OPENSEARCH_PASSWORD}           %{OPENSEARCH_PASSWORD}
 ${OPENSEARCH_MASTER_NODES_NAME}  %{OPENSEARCH_MASTER_NODES_NAME}
 ${OPENSEARCH_NAMESPACE}          %{OPENSEARCH_NAMESPACE}
 
 *** Settings ***
+Variables  %{ROBOT_HOME}/SecretData.py
 Library  Collections
 Library  ./lib/FileSystemLibrary.py
 Library  ./lib/OpenSearchUtils.py

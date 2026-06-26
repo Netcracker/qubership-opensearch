@@ -19,11 +19,15 @@ has_http_port() {
     fi
 }
 
-if [ -f "/usr/share/opensearch/credentials/username" ]; then
+if [ -f "${OPENSEARCH_SECRETS_DIR:-/etc/secrets/opensearch-pod-secrets}/OPENSEARCH_USERNAME" ]; then
+    OPENSEARCH_USERNAME=$(tr -d '\r' < "${OPENSEARCH_SECRETS_DIR:-/etc/secrets/opensearch-pod-secrets}/OPENSEARCH_USERNAME")
+elif [ -f "/usr/share/opensearch/credentials/username" ]; then
     OPENSEARCH_USERNAME=$(cat /usr/share/opensearch/credentials/username)
 fi
 
-if [ -f "/usr/share/opensearch/credentials/password" ]; then
+if [ -f "${OPENSEARCH_SECRETS_DIR:-/etc/secrets/opensearch-pod-secrets}/OPENSEARCH_PASSWORD" ]; then
+    OPENSEARCH_PASSWORD=$(tr -d '\r' < "${OPENSEARCH_SECRETS_DIR:-/etc/secrets/opensearch-pod-secrets}/OPENSEARCH_PASSWORD")
+elif [ -f "/usr/share/opensearch/credentials/password" ]; then
     OPENSEARCH_PASSWORD=$(cat /usr/share/opensearch/credentials/password)
 fi
 #Handles Kubernetes container readiness probe.
