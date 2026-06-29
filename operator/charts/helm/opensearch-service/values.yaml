@@ -1049,8 +1049,8 @@ curator:
   opensearchHost: ""
 
   snapshotRepositoryName: ""
-  backupSchedule: ""
-  evictionPolicy: ""
+  backupSchedule: "0 0 * * *"
+  evictionPolicy: "0/1d,7d/delete"
   username: ""
   password: ""
 
