@@ -26,10 +26,10 @@ spec:
     metadata:
       labels:
 {{- with .Values.global.customLabels }}
-  {{- toYaml . | nindent 8 -}}
+  {{- toYaml . | nindent 8 }}
 {{- end }}
 {{- with .Values.curator.customLabels }}
-  {{- toYaml . | nindent 8 -}}
+  {{- toYaml . | nindent 8 }}
 {{- end }}
 {{ include "opensearch.labels.standard" . | indent 8 }}
 {{ include "opensearch-service.defaultLabels" . | indent 8 }}
@@ -80,14 +80,10 @@ spec:
             - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER
               value: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
           {{- end -}}
-          {{- if .Values.curator.backupSchedule }}
             - name: BACKUP_SCHEDULE
-              value: {{ .Values.curator.backupSchedule }}
-          {{- end }}
-          {{- if .Values.curator.evictionPolicy }}
+              value: {{ .Values.curator.backupSchedule | default "0 0 * * *" | quote }}
             - name: EVICTION_POLICY
-              value: {{ .Values.curator.evictionPolicy }}
-          {{- end }}
+              value: {{ .Values.curator.evictionPolicy | default "0/1d,7d/delete" | quote }}
           {{- if and .Values.opensearch.snapshots.enabled .Values.opensearch.snapshots.s3.enabled }}
             - name: S3_ENABLED
               value: {{ .Values.opensearch.snapshots.s3.enabled | quote }}
@@ -120,8 +116,10 @@ spec:
           image: {{ template "curator.image" . }}
           imagePullPolicy: {{ .Values.curator.imagePullPolicy | default "Always" | quote }}
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /health/live
               port: {{ template "curator.port" . }}
+              scheme: {{ eq (include "curator.tlsEnabled" .) "true" | ternary "HTTPS" "HTTP" }}
             failureThreshold: 5
             initialDelaySeconds: 30
             periodSeconds: 5
@@ -129,11 +127,11 @@ spec:
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
-              path: /health
+              path: /health/ready
               port: {{ template "curator.port" . }}
               scheme: {{ eq (include "curator.tlsEnabled" .) "true" | ternary "HTTPS" "HTTP" }}
             failureThreshold: 5
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 5
             successThreshold: 1
             timeoutSeconds: 5
@@ -212,15 +210,18 @@ spec:
                 - /bin/sh
                 - '-c'
                 - ps aux | grep "python3 indices_cleaner.py"
-            initialDelaySeconds: 30
+            initialDelaySeconds: 20
             timeoutSeconds: 5
             periodSeconds: 10
             successThreshold: 1
             failureThreshold: 5
           readinessProbe:
-            tcpSocket:
-              port:  {{ template "curator.port" . }}
-            initialDelaySeconds: 60
+            exec:
+              command:
+                - /bin/sh
+                - '-c'
+                - ps aux | grep "python3 indices_cleaner.py"
+            initialDelaySeconds: 20
             timeoutSeconds: 5
             periodSeconds: 10
             successThreshold: 1
@@ -351,7 +352,7 @@ spec:
       securityContext:
         {{- include "opensearch-service.globalPodSecurityContext" . | nindent 8 }}
         {{- with .Values.curator.securityContext }}
-          {{- toYaml . | nindent 8 -}}
+          {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- if and (ne (.Values.INFRA_OPENSEARCH_FS_GROUP | toString) "<nil>") .Values.global.cloudIntegrationEnabled }}
         fsGroup: {{ .Values.INFRA_OPENSEARCH_FS_GROUP }}

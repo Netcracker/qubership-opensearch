@@ -1147,7 +1147,7 @@ Configure OpenSearch statefulset names for rolling update mechanism in operator.
 */}}
 {{- define "opensearch.statefulsetNames" -}}
     {{- $lst := list }}
-    {{ if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled }}
+    {{- if and .Values.opensearch.data.enabled .Values.opensearch.data.dedicatedPod.enabled }}
         {{- $lst = append $lst (printf "%s-data" (include "opensearch.fullname" . )) }}
     {{- end }}
     {{- if .Values.opensearch.master.enabled }}
