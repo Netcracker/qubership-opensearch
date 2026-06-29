@@ -79,7 +79,7 @@ spec:
               value: {{ include "dbaas.registrationUrl" . | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
             - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER
               value: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
-          {{- end -}}
+          {{- end }}
             - name: BACKUP_SCHEDULE
               value: {{ .Values.curator.backupSchedule | default "0 0 * * *" | quote }}
             - name: EVICTION_POLICY
