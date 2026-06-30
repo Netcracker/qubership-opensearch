@@ -2,10 +2,7 @@
 
 set -e
 
-# 1. шаблон из ConfigMap (read-only mount)
 INJECTED_CONFIG="/etc/opensearch-dashboards/config-injected/opensearch_dashboards.yml"
-# Рабочий конфиг в /tmp/dashboards; symlink в образе указывает на него же из
-# /usr/share/opensearch-dashboards/config/opensearch_dashboards.yml
 CONFIG_FILE="/tmp/dashboards/opensearch_dashboards.yml"
 
 resolve_secret_value() {
@@ -31,7 +28,7 @@ quote_yaml() {
 
 process_config_file() {
   local file="$1"
-  local tmp
+  local tmp next
   tmp="$(mktemp "${file}.XXXXXX")"
 
   local placeholders=(
@@ -52,23 +49,25 @@ process_config_file() {
     value="${value%"${value##*[![:space:]]}"}"
     value="${value#"${value%%[![:space:]]*}"}"
 
+    next="${tmp}.new"
     if [[ -z "${value}" ]]; then
-      grep -Fv "${placeholder}" "${tmp}" > "${file}" || true
+      grep -Fv "${placeholder}" "${tmp}" > "${next}" || true
     else
       quoted="$(quote_yaml "${value}")"
       while IFS= read -r line || [[ -n "${line}" ]]; do
         line="${line//${placeholder}/${quoted}}"
         printf '%s\n' "${line}"
-      done < "${tmp}" > "${file}"
+      done < "${tmp}" > "${next}"
     fi
-    cp "${file}" "${tmp}"
+    mv "${next}" "${tmp}"
   done
 
+  cp "${tmp}" "${file}"
   rm -f "${tmp}"
 }
 
 if [[ ! -f "${INJECTED_CONFIG}" ]]; then
-  echo "OpenSearch Dashboards config template is missing: ${INJECTED_CONFIG}" >&2
+  echo "OpenSearch Dashboard config template is missing: ${INJECTED_CONFIG}" >&2
   exit 1
 fi
 

@@ -1,4 +1,4 @@
-FROM ghcr.io/netcracker/qubership-docker-integration-tests:feat-secrets_evs_reading
+FROM ghcr.io/netcracker/qubership-docker-integration-tests:0.5.5
 
 USER root
 
