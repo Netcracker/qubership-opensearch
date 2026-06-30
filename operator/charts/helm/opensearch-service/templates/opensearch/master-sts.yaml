@@ -1,6 +1,7 @@
 {{- if not .Values.global.externalOpensearch.enabled }}
 {{- $oldSecretName := printf "%s-secret-old" (include "opensearch.fullname" .) }}
 {{- $secretName := printf "%s-secret" (include "opensearch.fullname" .) }}
+{{- $opensearchPodSecretsMount := include "opensearch.podSecretsMountPath" (dict "service" "opensearch") }}
 {{- if and (lookup "v1" "Secret" .Release.Namespace $secretName) (not (lookup "v1" "Secret" .Release.Namespace $oldSecretName)) }}
 {{- if not .Values.opensearch.tls.enabled }}
 {{ fail "\nError: You cannot upgrade opensearch-service 1.0.0+ (with OpenSearch 2.x inside) over installed opensearch-service lower than 0.2.4 with disabled TLS for REST layer. \nThe following options are possible: \n1. Enable TLS with the property 'opensearch.tls.enabled': 'true'. \n2. Migrate to new version 1.0.0+ via version 0.2.4+ (install it firstly, and then install required one). \nFind more information in corresponding release documentaiton." }}
@@ -166,16 +167,8 @@ spec:
               value: {{ .Values.opensearch.securityConfig.path }}
             - name: OPENSEARCH_CONFIG_PATH
               value: {{ .Values.opensearch.configDirectory }}
-            - name: OPENSEARCH_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: username
-                  name: {{ template "opensearch.fullname" . }}-secret
-            - name: OPENSEARCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: {{ template "opensearch.fullname" . }}-secret
+            - name: OPENSEARCH_SECRETS_DIR
+              value: {{ $opensearchPodSecretsMount | quote }}
             - name: DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI
               value: "{{ not .Values.opensearch.performanceAnalyzerEnabled }}"
             - name: ALLOW_SECURITY_INITIALIZATION
@@ -216,6 +209,9 @@ spec:
             {{- include "opensearch.tmpVolumeMount" . | nindent 12 }}
             - mountPath: /usr/share/opensearch/credentials
               name: credentials
+            - mountPath: {{ $opensearchPodSecretsMount }}
+              name: opensearch-pod-secrets
+              readOnly: true
             - mountPath: /usr/share/opensearch/logs
               name: logs
             - mountPath: /usr/share/opensearch/data
@@ -317,6 +313,17 @@ spec:
         - name: credentials
           secret:
             secretName: {{ template "opensearch.fullname" . }}-secret-old
+        - name: opensearch-pod-secrets
+          projected:
+            defaultMode: 420
+            sources:
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-secret
+                  items:
+                    - key: username
+                      path: OPENSEARCH_USERNAME
+                    - key: password
+                      path: OPENSEARCH_PASSWORD
         - name: transport-certs
           secret:
             secretName: {{ template "opensearch.transport-cert-secret-name" . }}

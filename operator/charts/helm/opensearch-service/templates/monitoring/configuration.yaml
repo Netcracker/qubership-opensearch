@@ -89,6 +89,15 @@ data:
 
 
     ###############################################################################
+    #                            SECRET STORES                                    #
+    ###############################################################################
+
+    [[secretstores.docker]]
+      id = "monitoring_secrets"
+      path = "/etc/secrets/monitoring-pod-secrets"
+      dynamic = true
+
+    ###############################################################################
     #                            OUTPUT PLUGINS                                   #
     ###############################################################################
 
@@ -111,8 +120,8 @@ data:
       ## Write timeout (for the InfluxDB client), formatted as a string.
       ## If not provided, will default to 5s. 0s means no timeout (not recommended).
       timeout = "5s"
-      username = "$SM_DB_USERNAME"
-      password = "$SM_DB_PASSWORD"
+      username = "@{monitoring_secrets:sm_db_username}"
+      password = "@{monitoring_secrets:sm_db_password}"
       ## Set the user agent for HTTP POSTs (can be useful for log differentiation)
       # user_agent = "telegraf"
       ## Set UDP payload size, defaults to InfluxDB UDP Client default (512 bytes)
@@ -280,8 +289,8 @@ data:
     {{- end }}
 
       ## HTTP Basic Authentication username and password.
-      username = "$ELASTICSEARCH_USERNAME"
-      password = "$ELASTICSEARCH_PASSWORD"
+      username = "@{monitoring_secrets:ELASTICSEARCH_USERNAME}"
+      password = "@{monitoring_secrets:ELASTICSEARCH_PASSWORD}"
 
       ## Optional SSL Config
       # tls_ca = "/etc/telegraf/ca.pem"

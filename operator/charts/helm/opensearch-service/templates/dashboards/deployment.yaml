@@ -1,5 +1,6 @@
 {{- if  not .Values.global.externalOpensearch.enabled }}
 {{- if .Values.dashboards.enabled }}
+{{- $dashboardsPodSecretsMount := include "opensearch.podSecretsMountPath" (dict "service" "opensearch-dashboards") }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -38,9 +39,10 @@ spec:
         {{- range $key, $value := .Values.dashboards.podAnnotations }}
         {{ $key }}: {{ $value | quote }}
         {{- end }}
-        {{- /* This forces a restart if the configmap has changed */}}
         {{- if .Values.dashboards.config }}
         configchecksum: {{ include (print .Template.BasePath "/dashboards/configuration.yaml") . | sha256sum | trunc 63 }}
+        {{- else }}
+        configchecksum: {{ include (print .Template.BasePath "/dashboards/auto-configuration.yaml") . | sha256sum | trunc 63 }}
         {{- end }}
     spec:
       {{- if .Values.dashboards.priorityClassName }}
@@ -62,15 +64,38 @@ spec:
         - name: dashboards-optimize
           emptyDir:
             sizeLimit: 20Mi
+        - name: dashboards-tmp
+          emptyDir:
+            sizeLimit: 1Mi
+        - name: config-injected
+          configMap:
+            name: {{ template "opensearch.fullname" . }}-dashboards-config
+        - name: opensearch-dashboards-pod-secrets
+          projected:
+            defaultMode: 420
+            sources:
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-secret
+                  items:
+                    - key: username
+                      path: OPENSEARCH_USERNAME
+                    - key: password
+                      path: OPENSEARCH_PASSWORD
+              {{- if .Values.dashboards.opensearchAccount.secret }}
+              - secret:
+                  name: {{ .Values.dashboards.opensearchAccount.secret }}
+                  items:
+                    - key: cookie
+                      path: COOKIE_PASS
+                    {{- if .Values.dashboards.opensearchAccount.keyPassphrase.enabled }}
+                    - key: keypassphrase
+                      path: KEY_PASSPHRASE
+                    {{- end }}
+              {{- end }}
         {{- range .Values.dashboards.secretMounts }}
         - name: {{ .name }}
           secret:
             secretName: {{ .secretName }}
-        {{- end }}
-        {{- if .Values.dashboards.config }}
-        - name: config
-          configMap:
-            name: {{ template "opensearch.fullname" . }}-dashboards-config
         {{- end }}
         {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
         - name: opensearch-certs
@@ -96,8 +121,10 @@ spec:
       imagePullSecrets:
 {{ toYaml .Values.global.imagePullSecrets | indent 8 }}
       {{- end }}
+{{- with .Values.dashboards.extraInitContainers }}
       initContainers:
-{{ toYaml .Values.dashboards.extraInitContainers | indent 8 }}
+{{ toYaml . | indent 8 }}
+{{- end }}
       containers:
         - name: {{ template "opensearch.fullname" . }}-dashboards
           securityContext:
@@ -116,31 +143,8 @@ spec:
               {{- end }}
             - name: SERVER_HOST
               value: "{{ .Values.dashboards.serverHost }}"
-            - name: OPENSEARCH_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-secret
-                  key: username
-            - name: OPENSEARCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-secret
-                  key: password
-            {{- if .Values.dashboards.opensearchAccount.secret }}
-            {{- if .Values.dashboards.opensearchAccount.keyPassphrase.enabled }}
-            - name: KEY_PASSPHRASE
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.dashboards.opensearchAccount.secret }}
-                  key: keypassphrase
-            # 32-character random string to be used as cookie password by security plugin
-            {{- end }}
-            - name: COOKIE_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.dashboards.opensearchAccount.secret }}
-                  key: cookie
-            {{- end }}
+            - name: DASHBOARDS_SECRETS_DIR
+              value: {{ $dashboardsPodSecretsMount | quote }}
             {{- if .Values.dashboards.extraEnvs }}
 {{ toYaml .Values.dashboards.extraEnvs | indent 12 }}
             {{- end }}
@@ -174,17 +178,20 @@ spec:
               mountPath: /usr/share/opensearch-dashboards/data
             - name: dashboards-optimize
               mountPath: /usr/share/opensearch-dashboards/optimize
+            - name: dashboards-tmp
+              mountPath: /tmp/dashboards
+            - name: config-injected
+              mountPath: /etc/opensearch-dashboards/config-injected
+              readOnly: true
+            - name: opensearch-dashboards-pod-secrets
+              mountPath: {{ $dashboardsPodSecretsMount | quote }}
+              readOnly: true
             {{- range .Values.dashboards.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
               {{- if .subPath }}
               subPath: {{ .subPath }}
               {{- end }}
-            {{- end }}
-            {{- range $path, $config := .Values.dashboards.config }}
-            - name: config
-              mountPath: /usr/share/opensearch-dashboards/config/{{ $path }}
-              subPath: {{ $path }}
             {{- end }}
             {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - name: opensearch-certs

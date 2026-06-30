@@ -18,13 +18,6 @@ else
     export INSECURE_SKIP_VERIFY=true
 fi
 
-if [[ -n "$ELASTICSEARCH_CREDENTIALS" ]]; then
-  echo "Credentials are taken from ELASTICSEARCH_CREDENTIALS environment variable"
-  IFS=: read -r username password <<< "$ELASTICSEARCH_CREDENTIALS"
-  export ELASTICSEARCH_USERNAME=${username}
-  export ELASTICSEARCH_PASSWORD=${password}
-fi
-
-mkdir -p "${MONITORING_LOGS}"
+mkdir -p "${MONITORING_LOGS:-/tmp/monitoring/logs}"
 
 /sbin/tini -- /entrypoint.sh telegraf

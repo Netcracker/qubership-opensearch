@@ -2,6 +2,20 @@
 
 set -e
 
+resolve_secret_value() {
+  local env_name="$1"
+  local path="${OPENSEARCH_SECRETS_DIR:-/etc/secrets/opensearch-pod-secrets}/${env_name}"
+  if [[ -r "${path}" ]]; then
+    tr -d '\r' < "${path}"
+    return 0
+  fi
+  printf '%s' "${!env_name:-}"
+}
+
+OPENSEARCH_USERNAME="$(resolve_secret_value OPENSEARCH_USERNAME)"
+OPENSEARCH_PASSWORD="$(resolve_secret_value OPENSEARCH_PASSWORD)"
+export OPENSEARCH_USERNAME OPENSEARCH_PASSWORD
+
 if [[ -n "$OPENSEARCH_SECURITY_CONFIG_PATH" ]]; then
     # Set internal users
     password=$("${OPENSEARCH_HOME}/plugins/opensearch-security/tools/hash.sh" -p "${OPENSEARCH_PASSWORD}" | grep -v "\*\*")

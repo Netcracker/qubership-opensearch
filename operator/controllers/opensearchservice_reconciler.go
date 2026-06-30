@@ -35,6 +35,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/remotecommand"
+	"k8s.io/client-go/util/retry"
 	"k8s.io/utils/pointer"
 	"net/http"
 	"os"
@@ -291,18 +292,26 @@ func (r *OpenSearchServiceReconciler) updateDeployment(deployment *appsv1.Deploy
 // addAnnotationsToDeployment adds necessary annotations to deployment with specified name and namespace
 func (r *OpenSearchServiceReconciler) addAnnotationsToDeployment(name string, namespace string, annotations map[string]string,
 	logger logr.Logger) error {
-	deployment, err := r.findDeployment(name, namespace, logger)
-	if err != nil {
-		return err
-	}
-	if deployment.Spec.Template.Annotations == nil {
-		deployment.Spec.Template.Annotations = annotations
-	} else {
-		for key, value := range annotations {
-			deployment.Spec.Template.Annotations[key] = value
+	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		deployment, err := r.findDeployment(name, namespace, logger)
+		if err != nil {
+			return err
 		}
-	}
-	return r.updateDeployment(deployment, logger)
+		if deployment.Spec.Template.Annotations == nil {
+			deployment.Spec.Template.Annotations = map[string]string{}
+		}
+		changed := false
+		for key, value := range annotations {
+			if deployment.Spec.Template.Annotations[key] != value {
+				deployment.Spec.Template.Annotations[key] = value
+				changed = true
+			}
+		}
+		if !changed {
+			return nil
+		}
+		return r.updateDeployment(deployment, logger)
+	})
 }
 
 // findService returns the service found by name and namespace and error if it occurred

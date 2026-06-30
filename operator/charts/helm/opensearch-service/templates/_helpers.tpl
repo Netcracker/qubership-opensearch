@@ -1001,9 +1001,9 @@ Configure pod annotation for Velero pre-hook backup
 */}}
 {{- define "opensearch.velero-pre-hook-backup-flush" -}}
   {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
-    {{- printf "'[\"/bin/sh\", \"-c\", \"curl -u ${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD} ${OPENSEARCH_PROTOCOL:-https}://${OPENSEARCH_NAME}:9200/_flush --cacert /certs/crt.pem\"]'" }}
+    {{- printf "'[\"/bin/sh\", \"-c\", \"U=$(tr -d \\\"\\\\r\\\" < \\\"${OPENSEARCH_SERVICE_OPERATOR_SECRETS_DIR}/OPENSEARCH_USERNAME\\\" 2>/dev/null || echo \\\"$OPENSEARCH_USERNAME\\\"); P=$(tr -d \\\"\\\\r\\\" < \\\"${OPENSEARCH_SERVICE_OPERATOR_SECRETS_DIR}/OPENSEARCH_PASSWORD\\\" 2>/dev/null || echo \\\"$OPENSEARCH_PASSWORD\\\"); curl -u \\\"${U}:${P}\\\" ${OPENSEARCH_PROTOCOL:-https}://${OPENSEARCH_NAME}:9200/_flush --cacert /certs/crt.pem\"]'" }}
   {{- else }}
-    {{- printf "'[\"/bin/sh\", \"-c\", \"curl -u ${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD} ${OPENSEARCH_PROTOCOL:-http}://${OPENSEARCH_NAME}:9200/_flush\"]'" }}
+    {{- printf "'[\"/bin/sh\", \"-c\", \"U=$(tr -d \\\"\\\\r\\\" < \\\"${OPENSEARCH_SERVICE_OPERATOR_SECRETS_DIR}/OPENSEARCH_USERNAME\\\" 2>/dev/null || echo \\\"$OPENSEARCH_USERNAME\\\"); P=$(tr -d \\\"\\\\r\\\" < \\\"${OPENSEARCH_SERVICE_OPERATOR_SECRETS_DIR}/OPENSEARCH_PASSWORD\\\" 2>/dev/null || echo \\\"$OPENSEARCH_PASSWORD\\\"); curl -u \\\"${U}:${P}\\\" ${OPENSEARCH_PROTOCOL:-http}://${OPENSEARCH_NAME}:9200/_flush\"]'" }}
   {{- end }}
 {{- end -}}
 
@@ -1564,4 +1564,29 @@ Migration runs ONLY for upgrades when:
       {{- end -}}
     {{- end -}}
   {{- end -}}
+{{- end -}}
+
+{{/*
+Mount path for env→file migrated pod secrets (readOnly projected volume).
+*/}}
+{{- define "opensearch.podSecretsMountPath" -}}
+{{- printf "/etc/secrets/%s-pod-secrets" .service -}}
+{{- end -}}
+
+{{/*
+Label credential Secrets so the operator restarts dependent Deployments on data change.
+*/}}
+{{- define "opensearch.secretChangeLabels" -}}
+{{- if .Values.global.autoRestartOnSecretChange }}
+automation.infra/secret-change: "true"
+{{- end }}
+{{- end -}}
+
+{{/*
+Checksum of credential Secret templates for Helm-only workloads (no operator reconciler).
+*/}}
+{{- define "opensearch.checksumSecret" -}}
+{{- $root := index . 0 -}}
+{{- $template := index . 1 -}}
+{{ include (print $root.Template.BasePath $template) $root | sha256sum | trunc 63 }}
 {{- end -}}
