@@ -17,12 +17,10 @@ Suite Setup  Prepare
 Run Users Recovery By Dbaas Agent
     [Arguments]  ${properties}
     ${data}=  Set Variable  {"settings": {}, "connectionProperties": ${properties}}
-    ${response}=  Post Request  dbaas_admin_session  api/v2/dbaas/adapter/opensearch/users/restore-password  data=${data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  POST On Session  dbaas_admin_session  /api/v2/dbaas/adapter/opensearch/users/restore-password  data=${data}  headers=${headers}
 
 Get Users Recovery State By Dbaas Agent
-    ${response}=  Get Request  dbaas_admin_session  api/v2/dbaas/adapter/opensearch/users/restore-password/state  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  GET On Session  dbaas_admin_session  /api/v2/dbaas/adapter/opensearch/users/restore-password/state  headers=${headers}
     RETURN  ${response.content}
 
 Check Users Recovery State
