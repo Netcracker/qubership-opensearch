@@ -1,22 +1,19 @@
 *** Variables ***
 ${IDENTITY_PROVIDER_URL}                 %{IDENTITY_PROVIDER_URL}
-${IDENTITY_PROVIDER_REGISTRATION_TOKEN}  %{IDENTITY_PROVIDER_REGISTRATION_TOKEN}
-${IDENTITY_PROVIDER_USERNAME}            %{IDENTITY_PROVIDER_USERNAME}
-${IDENTITY_PROVIDER_PASSWORD}            %{IDENTITY_PROVIDER_PASSWORD}
 ${CLIENT_NAME}                           opensearch-integration-tests-client
 
 *** Settings ***
+Resource  ../shared/keywords.robot
 Library  String
 Library  OAuthLibrary  url=${IDENTITY_PROVIDER_URL}
 ...                    registration_token=${IDENTITY_PROVIDER_REGISTRATION_TOKEN}
 ...                    username=${IDENTITY_PROVIDER_USERNAME}
 ...                    password=${IDENTITY_PROVIDER_PASSWORD}
-Resource  ../shared/keywords.robot
 
 *** Keywords ***
 Send Request With Basic Authentication
     [Arguments]  ${path}
-    ${response}=  Get Request  opensearch  ${path}
+    ${response}=  GET On Session  opensearch  ${path}  expected_status=any
     RETURN  ${response}
 
 Register New Client
@@ -33,7 +30,7 @@ Get New Token
 Send Request With OAuth Token
     [Arguments]  ${endpoint}  ${token}  ${data}=${None}
     &{headers}=  Create Dictionary  Authorization=Bearer ${token}
-    ${response}=  Get Request  opensearch  ${endpoint}  headers=${headers}
+    ${response}=  GET On Session  opensearch  ${endpoint}  headers=${headers}  expected_status=any
     RETURN  ${response}
 
 *** Test Cases ***

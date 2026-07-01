@@ -12,9 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
+
+def _secrets_dir(environ) -> str:
+    return environ.get(
+        'INTEGRATION_TESTS_SECRETS_DIR',
+        '/etc/secrets/opensearch-integration-tests-pod-secrets',
+    )
+
+
+def secret_value_present(environ, key: str) -> bool:
+    path = os.path.join(_secrets_dir(environ), key)
+    if os.path.isfile(path):
+        with open(path, encoding='utf-8') as handle:
+            return bool(handle.read().strip())
+    return bool(environ.get(key))
+
+
 def check_that_parameters_are_presented(environ, *variable_names) -> bool:
     for variable in variable_names:
         if not environ.get(variable):
+            return False
+    return True
+
+
+def check_that_secret_parameters_are_presented(environ, *variable_names) -> bool:
+    for variable in variable_names:
+        if not secret_value_present(environ, variable):
             return False
     return True
 
@@ -25,12 +50,17 @@ def get_excluded_tags(environ) -> list:
                                                'OPENSEARCH_CURATOR_PORT'):
         return ['backup']
     excluded_tags = []
-    if not check_that_parameters_are_presented(environ,
-                                               'OPENSEARCH_CURATOR_USERNAME',
-                                               'OPENSEARCH_CURATOR_PASSWORD'):
+    if not check_that_secret_parameters_are_presented(
+            environ,
+            'OPENSEARCH_CURATOR_USERNAME',
+            'OPENSEARCH_CURATOR_PASSWORD',
+    ):
         excluded_tags.append('unauthorized_access')
     if "full_backup" not in environ.get('TAGS'):
         excluded_tags.append('full_backup')
     if environ.get('S3_ENABLED') != 'true':
         excluded_tags.append('backup_s3')
+    if not check_that_parameters_are_presented(environ, 'OPENSEARCH_DBAAS_ADAPTER_HOST') \
+            or environ.get('S3_ENABLED') != 'true':
+        excluded_tags.append('backup_v2')
     return excluded_tags

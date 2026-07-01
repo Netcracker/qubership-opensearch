@@ -2,8 +2,6 @@
 ${OPENSEARCH_CURATOR_PROTOCOL}   %{OPENSEARCH_CURATOR_PROTOCOL}
 ${OPENSEARCH_CURATOR_HOST}       %{OPENSEARCH_CURATOR_HOST}
 ${OPENSEARCH_CURATOR_PORT}       %{OPENSEARCH_CURATOR_PORT}
-${OPENSEARCH_CURATOR_USERNAME}   %{OPENSEARCH_CURATOR_USERNAME=}
-${OPENSEARCH_CURATOR_PASSWORD}   %{OPENSEARCH_CURATOR_PASSWORD=}
 ${RETRY_TIME}                    300s
 ${RETRY_INTERVAL}                5s
 
@@ -34,10 +32,10 @@ Prepare Databases
 
 Delete Databases
     FOR  ${db}  IN  ${database}  ${database_two}  ${renaming_database}
-        Delete OpenSearch Index  ${db}*
-        Delete OpenSearch Index Template  ${db}*
-        Delete OpenSearch Component Template  ${db}*
-        Delete OpenSearch Template  ${db}*
+        Delete OpenSearch Resource With Retry  Delete OpenSearch Index  ${db}*
+        Delete OpenSearch Resource With Retry  Delete OpenSearch Index Template  ${db}*
+        Delete OpenSearch Resource With Retry  Delete OpenSearch Component Template  ${db}*
+        Delete OpenSearch Resource With Retry  Delete OpenSearch Template  ${db}*
         ${response}=  Get OpenSearch Index  ${db}*
         Check Response Is Empty  ${response}
         ${response}=  Get OpenSearch Index Template  ${db}*
@@ -49,6 +47,16 @@ Delete Databases
         ${response}=  Get OpenSearch Alias  ${db}*
         Check Response Is Empty  ${response}
     END
+
+Delete OpenSearch Resource With Retry
+    [Arguments]  ${delete_keyword}  ${name}
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Delete OpenSearch Resource And Verify Status  ${delete_keyword}  ${name}
+
+Delete OpenSearch Resource And Verify Status
+    [Arguments]  ${delete_keyword}  ${name}
+    ${response}=  Run Keyword  ${delete_keyword}  ${name}
+    Should Be True  ${response.status_code} == 200 or ${response.status_code} == 404
 
 Create Index With Generated Data
     [Arguments]  ${index_name}  ${data}=${None}
@@ -66,36 +74,33 @@ Generate And Add Unique Data To Index By Id
 Granular Backup
     [Arguments]  ${databases}
     ${data}=  Set Variable  {"dbs":${databases}}
-    ${response}=  Post Request  curatorsession  /backup  data=${data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  POST On Session  curatorsession  /backup  data=${data}  headers=${headers}
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Backup Status  ${response.content}
     RETURN  ${response.text}
 
 Check Backup Status
     [Arguments]  ${backup_id}
-    ${response}=  Get Request  curatorsession  /listbackups/${backup_id}
+    ${response}=  GET On Session  curatorsession  /jobstatus/${backup_id}
     ${content}=  Convert Json ${response.content} To Type
-    Should Be Equal As Strings  ${content['failed']}  False
+    Should Be Equal As Strings  ${content['status']}  Successful
 
 Granular Restore
     [Arguments]  ${backup_id}  ${dbs_list}  ${renames}={}  ${clean}=false
-    ${restore_data}=  Set Variable  {"vault":"${backup_id}","dbs":${dbs_list},"changeDbNames":${renames},"clean":"${clean}"}
-    ${response}=  Post Request  curatorsession  /restore  data=${restore_data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
+    ${restore_data}=  Set Variable  {"vault":"${backup_id}","dbs":${dbs_list},"changeDbNames":${renames},"custom_vars":{"clean":"${clean}"}}
+    ${response}=  POST On Session  curatorsession  /restore  data=${restore_data}  headers=${headers}
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
     ...  Check Restore Status  ${response.content}
 
 Check Restore Status
     [Arguments]  ${task_id}
-    ${response}=  Get Request  curatorsession  /jobstatus/${task_id}
+    ${response}=  GET On Session  curatorsession  /jobstatus/${task_id}
     ${content}=  Convert Json ${response.content} To Type
     Should Be Equal As Strings  ${content['status']}  Successful
 
 Delete Backup
     [Arguments]  ${backup_id}
-    ${response}=  Post Request  curatorsession  /evict/${backup_id}
-    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  POST On Session  curatorsession  /evict/${backup_id}
 
 *** Test Cases ***
 Granular Backup And Restore With Alias

@@ -17,6 +17,7 @@ package server
 import (
 	"context"
 	"crypto/subtle"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Netcracker/dbaas-opensearch-adapter/backup"
@@ -39,8 +40,8 @@ import (
 
 var (
 	dbaasAggregatorRegistrationAddress    = common.GetEnv("DBAAS_AGGREGATOR_REGISTRATION_ADDRESS", "http://dbaas-aggregator.dbaas:8080")
-	dbaasAggregatorRegistrationUsername   = common.GetEnv("DBAAS_AGGREGATOR_REGISTRATION_USERNAME", "cluster-dba")
-	dbaasAggregatorRegistrationPassword   = common.GetEnv("DBAAS_AGGREGATOR_REGISTRATION_PASSWORD", "")
+	dbaasAggregatorRegistrationUsername   = common.GetSecretValue(common.OpenSearchDbaasAdapterSecretsDirEnv, "DBAAS_AGGREGATOR_REGISTRATION_USERNAME", "cluster-dba")
+	dbaasAggregatorRegistrationPassword   = common.GetSecretValue(common.OpenSearchDbaasAdapterSecretsDirEnv, "DBAAS_AGGREGATOR_REGISTRATION_PASSWORD", "")
 	dbaasAggregatorRegistrationFixedDelay = common.GetIntEnv("DBAAS_AGGREGATOR_REGISTRATION_FIXED_DELAY_MS", 150000)
 	dbaasAggregatorRegistrationRetryTime  = common.GetIntEnv("DBAAS_AGGREGATOR_REGISTRATION_RETRY_TIME_MS", 60000)
 	dbaasAggregatorRegistrationRetryDelay = common.GetIntEnv("DBAAS_AGGREGATOR_REGISTRATION_RETRY_DELAY_MS", 5000)
@@ -49,8 +50,8 @@ var (
 	opensearchHost     = common.GetEnv("OPENSEARCH_HOST", "localhost")
 	opensearchPort     = common.GetIntEnv("OPENSEARCH_PORT", 9200)
 	opensearchProtocol = common.GetEnv("OPENSEARCH_PROTOCOL", common.Http)
-	opensearchUsername = common.GetEnv("OPENSEARCH_USERNAME", "opensearch")
-	opensearchPassword = common.GetEnv("OPENSEARCH_PASSWORD", "change")
+	opensearchUsername = common.GetSecretValue(common.OpenSearchDbaasAdapterSecretsDirEnv, "OPENSEARCH_USERNAME", "opensearch")
+	opensearchPassword = common.GetSecretValue(common.OpenSearchDbaasAdapterSecretsDirEnv, "OPENSEARCH_PASSWORD", "change")
 	opensearchRepo     = common.GetEnv("OPENSEARCH_REPO", "dbaas-backups-repository")
 	opensearchRepoRoot = common.GetEnv("OPENSEARCH_REPO_ROOT", "/usr/share/opensearch/")
 
@@ -207,6 +208,30 @@ func Handlers(ctx context.Context, adapter common.Component) http.Handler {
 		r.Handle(fmt.Sprintf("%s/users/restore-password/state", basePath),
 			handlers.LoggingHandler(os.Stdout, authorizer(baseProvider.GetRecoveryStateHandler())),
 		).Methods(http.MethodGet)
+
+		r.Handle(fmt.Sprintf("%s/backups/backup", basePath),
+			RecoverMiddleware(handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.CollectBackupV2Handler()))),
+		).Methods(http.MethodPost)
+
+		r.Handle(fmt.Sprintf("%s/backups/backup/{backupId}", basePath),
+			RecoverMiddleware(handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.TrackBackupV2Handler()))),
+		).Methods(http.MethodGet)
+
+		r.Handle(fmt.Sprintf("%s/backups/backup/{backupId}/restore", basePath),
+			RecoverMiddleware(handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.RestoreBackupV2Handler()))),
+		).Methods(http.MethodPost)
+
+		r.Handle(fmt.Sprintf("%s/backups/restore/{restoreId}", basePath),
+			RecoverMiddleware(handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.TrackRestoreV2Handler()))),
+		).Methods(http.MethodGet)
+
+		r.Handle(fmt.Sprintf("%s/backups/backup/{backupId}", basePath),
+			RecoverMiddleware(handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.DeleteBackupV2Handler()))),
+		).Methods(http.MethodDelete)
+
+		r.Handle(fmt.Sprintf("%s/backups/restore/{restoreId}", basePath),
+			RecoverMiddleware(handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.DeleteRestoreV2Handler()))),
+		).Methods(http.MethodDelete)
 	}
 
 	return JsonContentType(handlers.CompressHandler(r))
@@ -214,20 +239,25 @@ func Handlers(ctx context.Context, adapter common.Component) http.Handler {
 
 func JsonContentType(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer func() { // error handler, when error occurred it sends request with http status 400 and body with error message
-			if err := recover(); err != nil {
-				strErr, ok := err.(string)
-				if ok {
-					http.Error(w, strErr, http.StatusBadRequest)
-				} else {
-					http.Error(w, "unrecognized error", http.StatusInternalServerError)
-				}
-
-				return
-			}
-		}()
 		w.Header().Set("Content-Type", "application/json")
 		h.ServeHTTP(w, r)
+	})
+}
+
+func RecoverMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := common.PrepareContext(r)
+		defer func() {
+			if recoveredErr := recover(); recoveredErr != nil {
+				common.GetLogger().ErrorContext(ctx, "Recovered from panic in request handler", slog.Any("error", recoveredErr))
+				w.WriteHeader(http.StatusInternalServerError)
+				_ = json.NewEncoder(w).Encode(dao.ServerErrorResponse{
+					Error:     "Internal server error",
+					RequestId: common.GetCtxStringValue(ctx, common.RequestIdKey),
+				})
+			}
+		}()
+		h.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 

@@ -211,7 +211,7 @@
     * [Alerts](#alerts-35)
     * [Stack trace](#stack-trace-33)
     * [How to solve](#how-to-solve-35)
-    * [Recommendations](#recommendations-34)
+    * [Recommendations](#recommendations-33)
 <!-- TOC -->
 
 ## Cluster Health
@@ -651,7 +651,7 @@ OpenSearch uses replica shards to provide failover capabilities, as well as to s
 
 ```text
 /go/pkg/mod/sigs.k8s.io/controller-runtime@v0.10.0/pkg/internal/controller/controller.go:227
-2022-08-17T10:54:48.543Z        ERROR   controller.opensearchservice    Reconciler error        {"reconciler group": "netcracker.com", "reconciler kind": "OpenSearchService", "name": "opensearch", "namespace": "platform-opensearch", "error": "some replication indicies are failed"}
+2022-08-17T10:54:48.543Z        ERROR   controller.opensearchservice    Reconciler error        {"reconciler group": "netcracker.com", "reconciler kind": "OpenSearchService", "name": "opensearch", "namespace": "platform-opensearch", "error": "some replication indices are failed"}
 ```
 
 ### How to solve
@@ -921,7 +921,7 @@ The CustomResourceDefinition "opensearchservices.netcracker.com" is invalid: spe
 To fix the issue, you need to find the following section in the CRD (`config/crd/old/netcracker.com_opensearchservices.yaml`):
 
 ```yaml
-#Comment it if you deploy to Kubernetes 1.11 (e.g OpenShift 3.11)
+#Comment it if you deploy to Kubernetes 1.11 (e.g. OpenShift 3.11)
 type: object
 ```
 
@@ -1050,7 +1050,7 @@ Otherwise, you have to regenerate TLS certificates with specified way (`CertMana
 
 ### Description
 
-DBaaS created users cannot login to OpenSearch and fails with authentication error.
+DBaaS created users cannot log in to OpenSearch and fails with authentication error.
 
 DBaaS user was not correctly created on the OpenSearch side while DBaaS thought it was.
 To check the real state of OpenSearch users you can reach the endpoint `{opensearch_host}/_plugins/_security/api/internalusers/`
@@ -1068,7 +1068,7 @@ Request action failed: Unexpected response status for RequestActionHandler.Reque
 
 ### How to solve
 
-  To resolve desynchronization of DBaaS database and OpenSearch users storage you can use the rollowing DBaaS restore API:
+  To resolve desynchronization of DBaaS database and OpenSearch users storage you can use the following DBaaS restore API:
 
 ```bash
 curl -u {dbaas_user}:{dbaas_password} -XPOST -H "Accept:application/json" -H  "Content-Type:application/json" http://dbaas-aggregator.dbaas:8080/api/v3/dbaas/internal/physical_databases/users/restore-password -d '
@@ -1083,7 +1083,7 @@ Then wait some time until users being synchronized.
 
 ### Recommendations
 
-There can be a lot of causes of that desynchronization and you need to contact support with your case and provide logs from DBaaS Adapter.
+There can be a lot of causes of that desynchronization, and you need to contact support with your case and provide logs from DBaaS Adapter.
 
 ## DBaaS Adapter.DBaaS Adapter Status Is Down/Warning
 
@@ -1457,7 +1457,7 @@ When command finished, you can check health
 url --user basic:basic -XGET localhost:9200 
 ```
 
-If after command, you have problem with healt yet, check opendistro_roles with this request, opendistro_roles should be empty:
+If after command, you have problem with health yet, check opendistro_roles with this request, opendistro_roles should be empty:
 
 ```text
     curl -XGET "https://localhost:9200/_plugins/_security/api/internalusers/<username>"

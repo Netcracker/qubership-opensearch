@@ -12,11 +12,22 @@ data:
     server:
       name: dashboards
       host: 0.0.0.0
-    {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
+      {{- if .Values.dashboards.opensearchAccount.keyPassphrase.enabled }}
+      ssl:
+        keyPassphrase: __KEY_PASSPHRASE__
+      {{- end }}
     opensearch:
+      username: __OPENSEARCH_USERNAME__
+      password: __OPENSEARCH_PASSWORD__
+      {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
       ssl:
         verificationMode: full
         certificateAuthorities: /usr/share/opensearch-dashboards/certs/opensearch-root-ca.pem
+      {{- end }}
+    {{- if .Values.dashboards.opensearchAccount.secret }}
+    opensearch_security:
+      cookie:
+        password: __COOKIE_PASS__
     {{- end }}
 {{- end -}}
 {{- end }}

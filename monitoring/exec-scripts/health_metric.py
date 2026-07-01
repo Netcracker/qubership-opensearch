@@ -20,23 +20,36 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+
+def get_secret_value(key: str) -> str:
+    secrets_dir = os.getenv('OPENSEARCH_MONITORING_SECRETS_DIR', '/etc/secrets/monitoring-pod-secrets')
+    if secrets_dir:
+        path = os.path.join(secrets_dir, key)
+        if os.path.isfile(path):
+            with open(path, encoding='utf-8') as handle:
+                value = handle.read().strip()
+                if value:
+                    return value
+    return os.getenv(key, '')
+
 REQUEST_TIMEOUT = 7
-ELASTICSEARCH_USERNAME = os.getenv('ELASTICSEARCH_USERNAME')
-ELASTICSEARCH_PASSWORD = os.getenv('ELASTICSEARCH_PASSWORD')
+ELASTICSEARCH_USERNAME = get_secret_value('ELASTICSEARCH_USERNAME')
+ELASTICSEARCH_PASSWORD = get_secret_value('ELASTICSEARCH_PASSWORD')
 ROOT_CA_CERTIFICATE = os.getenv('ROOT_CA_CERTIFICATE')
+MONITORING_LOGS=os.getenv('MONITORING_LOGS')
 
 
 def __configure_logging(log):
     log.setLevel(logging.DEBUG)
     formatter = logging.Formatter(fmt='[%(asctime)s,%(msecs)03d][%(levelname)s] %(message)s',
                                   datefmt='%Y-%m-%dT%H:%M:%S')
-    log_handler = RotatingFileHandler(filename='/opt/elasticsearch-monitoring/exec-scripts/health_metric.log',
+    log_handler = RotatingFileHandler(filename=f'{MONITORING_LOGS}/health_metric.log',
                                       maxBytes=50 * 1024,
                                       backupCount=5)
     log_handler.setFormatter(formatter)
     log_handler.setLevel(logging.DEBUG if os.getenv('ELASTICSEARCH_MONITORING_SCRIPT_DEBUG') else logging.INFO)
     log.addHandler(log_handler)
-    err_handler = RotatingFileHandler(filename='/opt/elasticsearch-monitoring/exec-scripts/health_metric.err',
+    err_handler = RotatingFileHandler(filename=f'{MONITORING_LOGS}/health_metric.err',
                                       maxBytes=50 * 1024,
                                       backupCount=5)
     err_handler.setFormatter(formatter)

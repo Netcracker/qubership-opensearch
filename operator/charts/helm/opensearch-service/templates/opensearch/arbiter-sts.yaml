@@ -1,5 +1,6 @@
 {{- if not .Values.global.externalOpensearch.enabled }}
 {{- if .Values.opensearch.arbiter.enabled }}
+{{- $opensearchPodSecretsMount := include "opensearch.podSecretsMountPath" (dict "service" "opensearch") }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -168,16 +169,8 @@ spec:
               value: {{ .Values.opensearch.securityConfig.path }}
             - name: OPENSEARCH_CONFIG_PATH
               value: {{ .Values.opensearch.configDirectory }}
-            - name: OPENSEARCH_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: username
-                  name: {{ template "opensearch.fullname" . }}-secret
-            - name: OPENSEARCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: {{ template "opensearch.fullname" . }}-secret
+            - name: OPENSEARCH_SECRETS_DIR
+              value: {{ $opensearchPodSecretsMount | quote }}
             - name: DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI
               value: "{{ not .Values.opensearch.performanceAnalyzerEnabled }}"
             - name: ALLOW_SECURITY_INITIALIZATION
@@ -188,7 +181,7 @@ spec:
           resources:
 {{ toYaml .Values.opensearch.arbiter.resources | indent 12 }}
           securityContext:
-            {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
+            {{- include "opensearch-service.globalContainerSecurityContextRWRootFs" . | nindent 12 }}
           readinessProbe:
         {{- if .Values.opensearch.arbiter.readinessProbe }}
 {{ toYaml .Values.opensearch.arbiter.readinessProbe | indent 12 }}
@@ -215,8 +208,14 @@ spec:
             - containerPort: 9650
               name: rca
           volumeMounts:
+            {{- include "opensearch.tmpVolumeMount" . | nindent 12 }}
+            - mountPath: /usr/share/opensearch/logs
+              name: logs
             - mountPath: /usr/share/opensearch/credentials
               name: credentials
+            - mountPath: {{ $opensearchPodSecretsMount }}
+              name: opensearch-pod-secrets
+              readOnly: true
             - mountPath: /usr/share/opensearch/data
               name: pvc
               subPath: {{ .Values.opensearch.arbiter.persistence.subPath }}
@@ -302,12 +301,27 @@ spec:
 {{ toYaml .Values.opensearch.arbiter.extraContainers | indent 8 }}
 {{- end }}
       volumes:
+        {{- include "opensearch.tmpVolume" . | nindent 8 }}
         - name: config
           secret:
             secretName: {{ template "opensearch.fullname" . }}-config
         - name: credentials
           secret:
             secretName:  {{ template "opensearch.fullname" . }}-secret-old
+        - name: opensearch-pod-secrets
+          projected:
+            defaultMode: 420
+            sources:
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-secret
+                  items:
+                    - key: username
+                      path: OPENSEARCH_USERNAME
+                    - key: password
+                      path: OPENSEARCH_PASSWORD
+        - name: logs
+          emptyDir:
+            sizeLimit: 30Mi
         - name: transport-certs
           secret:
             secretName: {{ template "opensearch.transport-cert-secret-name" . }}

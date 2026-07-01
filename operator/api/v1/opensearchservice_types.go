@@ -103,6 +103,7 @@ type DisasterRecovery struct {
 	ConfigMapName              string `json:"configMapName"`
 	ReplicationWatcherEnabled  bool   `json:"replicationWatcherEnabled,omitempty"`
 	ReplicationWatcherInterval int    `json:"replicationWatcherInterval,omitempty"`
+	DeleteFollowerIndex        bool   `json:"deleteFollowerIndex,omitempty"`
 }
 
 // OpenSearchServiceSpec defines the desired state of OpenSearchService

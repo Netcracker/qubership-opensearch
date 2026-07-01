@@ -1,4 +1,4 @@
-ARG OPENSEARCH_BASE='opensearchproject/opensearch:3.4.0'
+ARG OPENSEARCH_BASE='opensearchproject/opensearch:3.6.0'
 
 FROM $OPENSEARCH_BASE
 
@@ -19,18 +19,10 @@ RUN yum update --assumeyes --skip-broken \
     && yum clean all \
     && rm -rf /var/cache/yum/*
 
-RUN echo "Download OpenSearch plugins..." \
-&& curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-s3/3.4.0/repository-s3-3.4.0.zip" \
-    -o ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-3.4.0.zip \
-&& curl --create-dirs -s "https://artifacts.opensearch.org/releases/plugins/repository-gcs/3.4.0/repository-gcs-3.4.0.zip" \
-    -o ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-3.4.0.zip \
-&& if [ -f ${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-3.4.0.zip ] && [ -f ${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-3.4.0.zip ]; then \
-    echo "Plugins downloaded successfully."; \
-else \
-    echo "Plugin download failed"; \
-    exit 1; \
-fi
+RUN echo "Install OpenSearch plugins..." \
+    && ${OPENSEARCH_HOME}/bin/opensearch-plugin install --batch --verbose repository-s3 repository-gcs
 
+RUN ${OPENSEARCH_HOME}/bin/opensearch-plugin install --batch --verbose analysis-icu analysis-kuromoji
 # Adapt grants
 RUN set -x \
     && chmod 777 ${OPENSEARCH_HOME} \
@@ -44,7 +36,6 @@ RUN set -x \
         /usr/share/opensearch/data \
         /usr/share/opensearch/jdk \
         /usr/share/opensearch/plugins \
-        /usr/share/opensearch/dist \
         ; do \
             chmod -R 777 "$path"; \
         done

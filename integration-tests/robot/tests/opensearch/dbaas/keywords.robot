@@ -3,8 +3,6 @@ ${DBAAS_ADAPTER_TYPE}                    %{DBAAS_ADAPTER_TYPE}
 ${OPENSEARCH_DBAAS_ADAPTER_HOST}         %{OPENSEARCH_DBAAS_ADAPTER_HOST}
 ${OPENSEARCH_DBAAS_ADAPTER_PORT}         %{OPENSEARCH_DBAAS_ADAPTER_PORT}
 ${OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}     %{OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}
-${OPENSEARCH_DBAAS_ADAPTER_USERNAME}     %{OPENSEARCH_DBAAS_ADAPTER_USERNAME}
-${OPENSEARCH_DBAAS_ADAPTER_PASSWORD}     %{OPENSEARCH_DBAAS_ADAPTER_PASSWORD}
 ${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}  %{OPENSEARCH_DBAAS_ADAPTER_API_VERSION=v1}
 ${OPENSEARCH_HOST}                       %{OPENSEARCH_HOST}
 ${OPENSEARCH_PORT}                       %{OPENSEARCH_PORT}
@@ -35,13 +33,11 @@ Create Database Resource Prefix By Dbaas Agent
     &{data}=  Create Dictionary  settings=${settings}
     Run Keyword If  "${prefix}" != "${EMPTY}"  Set To Dictionary  ${data}  namePrefix=${prefix}
     Run Keyword If  ${metadata}  Set To Dictionary  ${data}  metadata=${metadata}
-    ${response}=  Post Request  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  data=${data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  201
+    ${response}=  POST On Session  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/databases  json=${data}  headers=${headers}
     ${content}=  Convert Json ${response.content} To Type
     RETURN  ${content}
 
 Delete Database Resource Prefix Dbaas Agent
     [Arguments]  ${prefix}
     ${data}=  Set Variable  [{"kind":"resourcePrefix","name":"${prefix}"}]
-    ${response}=  Post Request  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/resources/bulk-drop  data=${data}  headers=${headers}
-    Should Be Equal As Strings  ${response.status_code}  200
+    ${response}=  POST On Session  dbaas_admin_session  /api/${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/resources/bulk-drop  data=${data}  headers=${headers}

@@ -1,4 +1,5 @@
 {{ if and (not .Values.global.externalOpensearch.enabled) (eq (include "opensearch.shouldRunMigration" .) "true") }}
+{{- $migrationPodSecretsMount := include "opensearch.podSecretsMountPath" (dict "service" "opensearch-migration") }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -22,6 +23,7 @@ spec:
       name: {{ template "opensearch.fullname" . }}-migration-1x
       labels:
 {{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
         name: {{ template "opensearch.fullname" . }}-migration-1x
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-migration-1x
         component: migration
@@ -50,22 +52,14 @@ spec:
           args: []
           {{- end }}
           env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
             - name: NAMESPACE
               value: {{ .Release.Namespace }}
             - name: ES_HOST
               value: {{ default (printf "%s-internal:9200" (include "opensearch.fullname" .)) (.Values.global.externalOpensearch.enabled | ternary (printf "%s:%s" (include "external.opensearch-host" .) (include "external.opensearch-port" .)) .Values.curator.opensearchHost) }}
-            - name: ES_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-secret
-                  key: username
-            - name: ES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-secret
-                  key: password
-            - name: ES_AUTH
-              value: "$(ES_USERNAME):$(ES_PASSWORD)"
+            - name: OPENSEARCH_MIGRATION_SECRETS_DIR
+              value: {{ $migrationPodSecretsMount | quote }}
             - name: TLS_HTTP_ENABLED
               value: "{{ or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}"
             - name: EXTERNAL_OPENSEARCH_ENABLED
@@ -83,26 +77,6 @@ spec:
               value: {{ include "dbaas.registrationUrl" . | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
             - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER
               value: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
-            - name: DBAAS_ADAPTER_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: username
-                  name: {{ template "dbaas-adapter.name" . }}-secret
-            - name: DBAAS_ADAPTER_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: {{ template "dbaas-adapter.name" . }}-secret
-            - name: DBAAS_AGGREGATOR_REGISTRATION_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: registration-auth-username
-                  name: {{ template "dbaas-adapter.name" . }}-secret
-            - name: DBAAS_AGGREGATOR_REGISTRATION_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: registration-auth-password
-                  name: {{ template "dbaas-adapter.name" . }}-secret
             {{- end }}
             - name: OPENSEARCH_NAMESPACE
               value: {{ .Release.Namespace | quote }}
@@ -127,18 +101,11 @@ spec:
             {{- if .Values.curator.enabled }}
             - name: CURATOR_ADDRESS
               value: {{ (include "curator.address" .) }}
-            - name: CURATOR_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-curator-secret
-                  key: username
-            - name: CURATOR_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-curator-secret
-                  key: password
             {{- end }}
           volumeMounts:
+            - mountPath: {{ $migrationPodSecretsMount | quote }}
+              name: opensearch-migration-pod-secrets
+              readOnly: true
             {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - mountPath: /trusted-certs/root-ca.pem
               name: opensearch-certs
@@ -177,4 +144,37 @@ spec:
           secret:
             secretName: {{ template "dbaas-adapter.tlsSecretName" . }}
         {{- end }}
+        - name: opensearch-migration-pod-secrets
+          projected:
+            defaultMode: 420
+            sources:
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-secret
+                  items:
+                    - key: username
+                      path: ES_USERNAME
+                    - key: password
+                      path: ES_PASSWORD
+              {{- if eq (include "dbaas.enabled" .) "true" }}
+              - secret:
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+                  items:
+                    - key: username
+                      path: DBAAS_ADAPTER_USERNAME
+                    - key: password
+                      path: DBAAS_ADAPTER_PASSWORD
+                    - key: registration-auth-username
+                      path: DBAAS_AGGREGATOR_REGISTRATION_USERNAME
+                    - key: registration-auth-password
+                      path: DBAAS_AGGREGATOR_REGISTRATION_PASSWORD
+              {{- end }}
+              {{- if .Values.curator.enabled }}
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  items:
+                    - key: username
+                      path: CURATOR_USERNAME
+                    - key: password
+                      path: CURATOR_PASSWORD
+              {{- end }}
 {{- end }}

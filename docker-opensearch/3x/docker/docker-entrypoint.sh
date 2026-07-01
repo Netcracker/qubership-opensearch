@@ -2,11 +2,19 @@
 
 set -e
 
-"${OPENSEARCH_HOME}"/bin/opensearch-plugin install \
-    --batch --verbose "file://${OPENSEARCH_HOME}/dist/repository-s3/repository-s3-3.4.0.zip"
-"${OPENSEARCH_HOME}"/bin/opensearch-plugin install \
-    --batch --verbose "file://${OPENSEARCH_HOME}/dist/repository-gcs/repository-gcs-3.4.0.zip"
-rm -rf "${OPENSEARCH_HOME}"/dist
+resolve_secret_value() {
+  local env_name="$1"
+  local path="${OPENSEARCH_SECRETS_DIR:-/etc/secrets/opensearch-pod-secrets}/${env_name}"
+  if [[ -r "${path}" ]]; then
+    tr -d '\r' < "${path}"
+    return 0
+  fi
+  printf '%s' "${!env_name:-}"
+}
+
+OPENSEARCH_USERNAME="$(resolve_secret_value OPENSEARCH_USERNAME)"
+OPENSEARCH_PASSWORD="$(resolve_secret_value OPENSEARCH_PASSWORD)"
+export OPENSEARCH_USERNAME OPENSEARCH_PASSWORD
 
 if [[ -n "$OPENSEARCH_SECURITY_CONFIG_PATH" ]]; then
     # Set internal users

@@ -47,6 +47,7 @@ func TestGetRoleWithAdminPermission(t *testing.T) {
 		ClusterManageIndexTemplatePermissions,
 		ClusterManageAliasesPermissions,
 		"indices:admin/resize",
+		IndicesAdminRefreshPermission,
 	}
 	role, err := baseProvider.GetRole(name)
 	assert.Empty(t, err)

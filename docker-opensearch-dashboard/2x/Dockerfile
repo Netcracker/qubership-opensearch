@@ -23,7 +23,13 @@ RUN rm -rf /usr/share/opensearch-dashboards/node_modules/axios \
     && mkdir -p /usr/share/opensearch-dashboards/node_modules/axios \
     && tar -xzf /tmp/axios.tgz -C /usr/share/opensearch-dashboards/node_modules/axios --strip-components=1
 
+RUN rm -f /usr/share/opensearch-dashboards/config/opensearch_dashboards.yml \
+    && ln -s /tmp/dashboards/opensearch_dashboards.yml /usr/share/opensearch-dashboards/config/opensearch_dashboards.yml
+
+COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 USER 1000
 
-ENTRYPOINT ["./opensearch-dashboards-docker-entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["opensearch-dashboards"]

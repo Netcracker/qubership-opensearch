@@ -792,7 +792,7 @@ func (r OpenSearchReconciler) updateAuditConfiguration(restClient *util.RestClie
 		return err
 	}
 	auditConfig.Config.Audit["disabled_rest_categories"] = r.cr.Spec.OpenSearch.DisabledRestCategories
-	body, _ := json.Marshal(auditConfig.Config)
+	body, err := json.Marshal(auditConfig.Config)
 	if err != nil {
 		log.Error(err, "An error occurred during marshalling audit config")
 		return err
@@ -1101,7 +1101,7 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 
 	for i := range pvcList.Items {
 		pvc := &pvcList.Items[i]
-		if !strings.HasPrefix(pvc.Name, prefix) {
+		if !strings.HasPrefix(pvc.Name, prefix) || strings.HasSuffix(pvc.Name, "-snapshots") {
 			continue
 		}
 		pvcs = append(pvcs, pvc)

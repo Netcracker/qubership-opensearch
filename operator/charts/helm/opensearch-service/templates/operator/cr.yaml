@@ -107,4 +107,5 @@ spec:
     noWait: true
     replicationWatcherEnabled: {{ .Values.global.disasterRecovery.replicationWatcherEnabled }}
     replicationWatcherInterval: {{ .Values.global.disasterRecovery.replicationWatcherIntervalSeconds }}
+    deleteFollowerIndex: {{ .Values.global.disasterRecovery.deleteFollowerIndex }}
   {{- end }}

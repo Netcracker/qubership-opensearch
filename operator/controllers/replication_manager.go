@@ -18,12 +18,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Netcracker/qubership-opensearch/operator/util"
-	"github.com/go-logr/logr"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/Netcracker/qubership-opensearch/operator/util"
+	"github.com/go-logr/logr"
 )
 
 const (

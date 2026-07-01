@@ -1,0 +1,72 @@
+{{- if and (not .Values.global.externalOpensearch.enabled) .Values.dashboards.enabled }}
+{{- if and .Values.dashboards.envoyGateway.enabled .Values.dashboards.ingress.enabled }}
+{{ if and (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1") (eq .Values.PAAS_PLATFORM "KUBERNETES") -}}
+{{- $serviceName := printf "%s-%s" (include "opensearch.fullname" .) "dashboards" }}
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $serviceName }}-httproute
+  labels:
+    {{- include "opensearch.labels.standard" . | nindent 4 }}
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+spec:
+  parentRefs:
+  {{- include "gateway.parentRefs" (list . .Values.dashboards.envoyGateway.parentRefs 443) | nindent 4 }}
+
+  hostnames:
+  {{- if .Values.dashboards.envoyGateway.host }}
+    - {{ .Values.dashboards.envoyGateway.host | quote }}
+  {{- else }}
+  {{- range .Values.dashboards.ingress.hosts }}
+    - {{ .host | quote }}
+  {{- end }}
+  {{- end }}
+
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ $serviceName }}
+          group: ""
+          kind: Service
+          port: {{ .Values.dashboards.service.port }}
+          weight: 1
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $serviceName }}-redirect
+  labels:
+    {{- include "opensearch.labels.standard" . | nindent 4 }}
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+spec:
+  parentRefs:
+  {{- include "gateway.parentRefs" (list . .Values.dashboards.envoyGateway.parentRefs 80) | nindent 4 }}
+
+  hostnames:
+  {{- if .Values.dashboards.envoyGateway.host }}
+    - {{ .Values.dashboards.envoyGateway.host | quote }}
+  {{- else }}
+  {{- range .Values.dashboards.ingress.hosts }}
+    - {{ .host | quote }}
+  {{- end }}
+  {{- end }}
+
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+
+{{- end }}
+{{- end }}
+{{- end }}

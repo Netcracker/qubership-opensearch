@@ -1,4 +1,5 @@
 {{- if (eq (include "monitoring.enabled" .) "true") }}
+{{- $monitoringPodSecretsMount := include "opensearch.podSecretsMountPath" (dict "service" "monitoring") }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -28,6 +29,7 @@ spec:
   {{- toYaml . | nindent 8 -}}
 {{- end }}
 {{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
         component: opensearch-monitoring
         name: {{ template "opensearch.fullname" . }}-monitoring
         app.kubernetes.io/name: {{ template "opensearch.fullname" . }}-monitoring
@@ -42,6 +44,8 @@ spec:
       serviceAccountName: {{ template "opensearch.fullname" . }}-monitoring
       containers:
         - env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
             - name: OS_PROJECT
               valueFrom:
                 fieldRef:
@@ -71,27 +75,11 @@ spec:
               value: {{ .Values.monitoring.smDbHost }}
             - name: SM_DB_NAME
               value: {{ .Values.monitoring.smDbName }}
-            - name: SM_DB_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-monitoring-secret
-                  key: sm-db-username
-            - name: SM_DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-monitoring-secret
-                  key: sm-db-password
           {{- end }}
-            - name: ELASTICSEARCH_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: username
-                  name: {{ template "opensearch.fullname" . }}-secret
-            - name: ELASTICSEARCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: {{ template "opensearch.fullname" . }}-secret
+            - name: OPENSEARCH_MONITORING_SECRETS_DIR
+              value: {{ $monitoringPodSecretsMount | quote }}
+            - name: MONITORING_LOGS
+              value: /tmp/monitoring/logs
             {{- if and (not .Values.global.externalOpensearch.enabled) .Values.monitoring.slowQueries.enabled }}
             - name: SLOW_QUERIES_TOP_NUMBER
               value: {{ default 10 .Values.monitoring.slowQueries.topNumber | quote }}
@@ -106,8 +94,13 @@ spec:
             {{- include "opensearch-service.globalContainerSecurityContext" . | nindent 12 }}
           name: {{ template "opensearch.fullname" . }}-monitoring
           volumeMounts:
+            - mountPath: "/tmp"
+              name: tmp
             - mountPath: "/etc/telegraf"
               name: config
+            - mountPath: {{ $monitoringPodSecretsMount | quote }}
+              name: monitoring-pod-secrets
+              readOnly: true
             {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - mountPath: /trusted-certs/root-ca.pem
               name: opensearch-certs
@@ -164,12 +157,35 @@ spec:
             failureThreshold: 5
       {{- end }}
       volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 10Mi
         - name: config
           configMap:
             name: {{ template "opensearch.fullname" . }}-monitoring-configuration
             items:
               - key: config
                 path: telegraf.conf
+        - name: monitoring-pod-secrets
+          projected:
+            defaultMode: 420
+            sources:
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-secret
+                  items:
+                    - key: username
+                      path: ELASTICSEARCH_USERNAME
+                    - key: password
+                      path: ELASTICSEARCH_PASSWORD
+              {{- if (eq .Values.monitoring.monitoringType "influxdb") }}
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-monitoring-secret
+                  items:
+                    - key: sm-db-username
+                      path: sm_db_username
+                    - key: sm-db-password
+                      path: sm_db_password
+              {{- end }}
         {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
         - name: opensearch-certs
           secret:

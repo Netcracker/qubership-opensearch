@@ -1,6 +1,7 @@
-FROM telegraf:1.37-alpine
+FROM telegraf:1.38-alpine
 
-ENV ELASTICSEARCH_MONITORING_HOME=/opt/elasticsearch-monitoring
+ENV ELASTICSEARCH_MONITORING_HOME=/opt/elasticsearch-monitoring \
+    MONITORING_LOGS=/tmp/monitoring/logs
 
 RUN mkdir -p ${ELASTICSEARCH_MONITORING_HOME}
 

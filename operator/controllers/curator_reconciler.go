@@ -20,7 +20,8 @@ import (
 )
 
 const (
-	curatorSecretHashName = "secret.curator"
+	curatorSecretHashName      = "secret.curator"
+	curatorDbaasSecretHashName = "secret.curator.dbaasAdapter"
 )
 
 type CuratorReconciler struct {
@@ -45,11 +46,24 @@ func (r CuratorReconciler) Reconcile() error {
 		return err
 	}
 
+	var dbaasAdapterSecretHash string
+	if r.cr.Spec.DbaasAdapter != nil {
+		dbaasAdapterSecretHash, err =
+			r.reconciler.calculateSecretDataHash(r.cr.Spec.DbaasAdapter.SecretName, curatorDbaasSecretHashName, r.cr, r.logger)
+		if err != nil {
+			return err
+		}
+	}
+
 	if r.reconciler.ResourceHashes[opensearchSecretHashName] != "" && r.reconciler.ResourceHashes[opensearchSecretHashName] != opensearchSecretHash ||
-		r.reconciler.ResourceHashes[curatorSecretHashName] != "" && r.reconciler.ResourceHashes[curatorSecretHashName] != curatorSecretHash {
+		r.reconciler.ResourceHashes[curatorSecretHashName] != "" && r.reconciler.ResourceHashes[curatorSecretHashName] != curatorSecretHash ||
+		r.cr.Spec.DbaasAdapter != nil && r.reconciler.ResourceHashes[curatorDbaasSecretHashName] != "" && r.reconciler.ResourceHashes[curatorDbaasSecretHashName] != dbaasAdapterSecretHash {
 		annotations := map[string]string{
 			opensearchSecretHashName: opensearchSecretHash,
 			curatorSecretHashName:    curatorSecretHash,
+		}
+		if r.cr.Spec.DbaasAdapter != nil {
+			annotations[curatorDbaasSecretHashName] = dbaasAdapterSecretHash
 		}
 
 		if err := r.reconciler.addAnnotationsToDeployment(r.cr.Spec.Curator.Name, r.cr.Namespace, annotations, r.logger); err != nil {
@@ -58,6 +72,9 @@ func (r CuratorReconciler) Reconcile() error {
 	}
 
 	r.reconciler.ResourceHashes[curatorSecretHashName] = curatorSecretHash
+	if r.cr.Spec.DbaasAdapter != nil {
+		r.reconciler.ResourceHashes[curatorDbaasSecretHashName] = dbaasAdapterSecretHash
+	}
 	return nil
 }
 

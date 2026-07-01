@@ -59,7 +59,14 @@ dashboards:
 #      - secretName: chart-example-tls
 #        hosts:
 #          - chart-example.local
-
+  envoyGateway:
+    enabled: true
+    host: ""
+    parentRefs:
+      - group: gateway.networking.k8s.io
+        kind: Gateway
+        name: default-external-gateway
+        namespace: gateway-system
   service:
     type: ClusterIP
     port: 5601
@@ -127,6 +134,10 @@ dashboards:
 global:
   clusterName: opensearch
 
+  # When true, credential Secrets are labeled for operator-driven pod restarts;
+  # Helm-only workloads use checksum annotations on pod templates.
+  autoRestartOnSecretChange: true
+
   cloudIntegrationEnabled: false
 
   imagePullSecrets: []
@@ -185,6 +196,7 @@ global:
       customAudience: "sm-services"
     mode: ""
     indicesPattern: "*"
+    deleteFollowerIndex: true
     remoteCluster: ""
     siteManagerEnabled: true
     siteManagerApiGroup: "netcracker.com"
@@ -209,6 +221,7 @@ operator:
   dockerImage: ghcr.io/netcracker/qubership-opensearch-operator:main
   replicas: 1
   reconcilePeriod: 60
+  logLevel: info
 
   ## Tolerations for pod assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
@@ -641,6 +654,14 @@ opensearch:
       #  - secretName: chart-example-tls
       #    hosts:
       #      - chart-example.local
+    envoyGateway:
+      enabled: true
+      host: ""
+      parentRefs:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: default-external-gateway
+          namespace: gateway-system
     resources:
       limits:
         cpu: 1
@@ -686,6 +707,18 @@ opensearch:
     persistentVolumeClaim: ""
     storageClass: ""
     size: 5Gi
+    s3Aliases: []
+    # - name: default
+    #   spec:
+    #     default: true
+    #     storageBucket: backup-restore-bucket
+    #     storageProvider: aws
+    #     storageRegion: us-east-1
+    #     storageServerUrl: "https://s3.example.com"
+    #     storageUsername: name
+    #     storageSecret: storage-location-default
+    #   secretContent:
+    #     storagePassword: pass
     s3:
       enabled: false
       pathStyleAccess: false
@@ -1020,8 +1053,8 @@ curator:
   opensearchHost: ""
 
   snapshotRepositoryName: ""
-  backupSchedule: ""
-  evictionPolicy: ""
+  backupSchedule: "0 0 * * *"
+  evictionPolicy: "0/1d,7d/delete"
   username: ""
   password: ""
 
@@ -1052,8 +1085,8 @@ curator:
       memory: 256Mi
       cpu: 200m
     limits:
-      memory: 256Mi
-      cpu: 200m
+      memory: 768Mi
+      cpu: 400m
 
   ## Node labels for pod assignment
   ## ref: https://kubernetes.io/docs/user-guide/node-selection/
@@ -1171,6 +1204,38 @@ integrationTests:
   # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
   priorityClassName: ""
 
+  # ATP report upload (S3 under atpReport.atpStorage)
+  atpReport:
+    enabled: false
+    atpStorage:
+      # S3 provider type: aws (for real AWS S3), minio, s3 (for S3-compatible with custom endpoint)
+      provider: "aws"
+      # S3 API server URL (e.g., https://s3.amazonaws.com or https://minio.example.com)
+      serverUrl: "https://s3.amazonaws.com"
+      # S3 UI URL for browsing results (e.g., https://minio.example.com)
+      serverUiUrl: ""
+      # S3 bucket name. If empty - S3 integration is disabled and results stay local
+      bucket: ""
+      # S3 region (required for AWS S3)
+      region: "us-east-1"
+      # S3 credentials (stored in secret when atpReport.enabled)
+      username: ""
+      password: ""
+
+  # URL for viewing Allure reports (e.g., https://reports.example.com)
+  atpReportViewUiUrl: ""
+
+  # Environment name for organizing test results path in S3
+  environmentName: "opensearch"
+
+  # Enable Jira integration (writes to marker file for external processing)
+  enableJiraIntegration: false
+
+  # Override MONITORED_IMAGES for opensearch_images test
+  # Format: "type name containerName registry:port/image:tag, ..."
+  # Example: "statefulset opensearch-master opensearch ghcr.io:443/netcracker/qubership-docker-opensearch-3:main"
+  monitoredImages: ""
+
 groupMigration:
   enabled: true
   oldGroupPrefix: "qubership.org/"
@@ -1200,7 +1265,7 @@ migration:
       cpu: 100m
     limits:
       memory: 512Mi
-      cpu: 500m  
+      cpu: 500m
 
 nameOverride: "opensearch"
 fullnameOverride: "opensearch"

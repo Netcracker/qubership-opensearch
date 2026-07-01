@@ -1,4 +1,5 @@
 {{- if eq (include "dbaas.enabled" .) "true" }}
+{{- $dbaasAdapterPodSecretsMount := include "opensearch.podSecretsMountPath" (dict "service" "opensearch-dbaas-adapter") }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -28,6 +29,7 @@ spec:
   {{- toYaml . | nindent 8 -}}
 {{- end }}
 {{ include "opensearch.labels.standard" . | indent 8 }}
+{{ include "opensearch-service.defaultLabels" . | indent 8 }}
         name: {{ template "dbaas-adapter.name" . }}
         component: dbaas-opensearch-adapter
         app.kubernetes.io/name: {{ template "dbaas-adapter.name" . }}
@@ -40,34 +42,16 @@ spec:
         - env:
             - name: DBAAS_ADAPTER_ADDRESS
               value: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (include "dbaas-adapter.address" .) }}
-            - name: DBAAS_ADAPTER_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: username
-                  name: {{ template "dbaas-adapter.name" . }}-secret
-            - name: DBAAS_ADAPTER_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: {{ template "dbaas-adapter.name" . }}-secret
+            - name: OPENSEARCH_DBAAS_ADAPTER_SECRETS_DIR
+              value: {{ $dbaasAdapterPodSecretsMount | quote }}
             - name: API_VERSION
               value: {{ .Values.dbaasAdapter.apiVersion | quote }}
             - name: DBAAS_AGGREGATOR_REGISTRATION_ADDRESS
               value: {{ include "dbaas.registrationUrl" . | default (printf "%s://dbaas-aggregator.dbaas:%s" (include "dbaas-adapter.protocol" .) (include "dbaas-adapter.port" .)) }}
             - name: DBAAS_AGGREGATOR_PHYSICAL_DATABASE_IDENTIFIER
               value: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
-            - name: DBAAS_AGGREGATOR_REGISTRATION_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: registration-auth-username
-                  name: {{ template "dbaas-adapter.name" . }}-secret
             - name: REGISTRATION_ENABLED
               value: {{ .Values.dbaasAdapter.registrationEnabled | quote }}
-            - name: DBAAS_AGGREGATOR_REGISTRATION_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: registration-auth-password
-                  name: {{ template "dbaas-adapter.name" . }}-secret
             - name: OPENSEARCH_HOST
               value: {{ default (printf "%s.%s" (include "opensearch.fullname" .) .Release.Namespace) (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-host" .) .Values.dbaasAdapter.opensearchHost) }}
             - name: OPENSEARCH_PORT
@@ -78,16 +62,6 @@ spec:
               value: {{ .Values.dbaasAdapter.opensearchRepo | default "snapshots" }}
             - name: OPENSEARCH_REPO_ROOT
               value: {{ .Values.dbaasAdapter.opensearchRepoRoot | default "/usr/share/opensearch" }}
-            - name: OPENSEARCH_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: username
-                  name: {{ template "opensearch.fullname" . }}-secret
-            - name: OPENSEARCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: {{ template "opensearch.fullname" . }}-secret
             - name: LABELS_FILE_LOCATION_NAME
               value: "dbaas.physical_databases.registration.labels.json"
             - name: LABELS_FILE_LOCATION_DIR
@@ -97,16 +71,6 @@ spec:
             {{- if .Values.curator.enabled }}
             - name: CURATOR_ADDRESS
               value: {{ (include "curator.address" .) }}
-            - name: CURATOR_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-curator-secret
-                  key: username
-            - name: CURATOR_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "opensearch.fullname" . }}-curator-secret
-                  key: password
             {{- end }}
             - name: CHECK_PREFIXES_UNIQUE_ENABLED
               value: "{{ .Values.dbaasAdapter.prefixUniqueEnabled }}"
@@ -151,6 +115,9 @@ spec:
             - mountPath: /tls/curator
               name: curator-certs
             {{- end }}
+            - mountPath: {{ $dbaasAdapterPodSecretsMount | quote }}
+              name: opensearch-dbaas-adapter-pod-secrets
+              readOnly: true
           ports:
             - protocol: TCP
               containerPort: {{ template "dbaas-adapter.port" . }}
@@ -173,6 +140,37 @@ spec:
           secret:
             secretName: {{ template "curator.certSecretName" . }}
         {{- end }}
+        - name: opensearch-dbaas-adapter-pod-secrets
+          projected:
+            defaultMode: 420
+            sources:
+              - secret:
+                  name: {{ template "dbaas-adapter.name" . }}-secret
+                  items:
+                    - key: username
+                      path: DBAAS_ADAPTER_USERNAME
+                    - key: password
+                      path: DBAAS_ADAPTER_PASSWORD
+                    - key: registration-auth-username
+                      path: DBAAS_AGGREGATOR_REGISTRATION_USERNAME
+                    - key: registration-auth-password
+                      path: DBAAS_AGGREGATOR_REGISTRATION_PASSWORD
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-secret
+                  items:
+                    - key: username
+                      path: OPENSEARCH_USERNAME
+                    - key: password
+                      path: OPENSEARCH_PASSWORD
+              {{- if .Values.curator.enabled }}
+              - secret:
+                  name: {{ template "opensearch.fullname" . }}-curator-secret
+                  items:
+                    - key: username
+                      path: CURATOR_USERNAME
+                    - key: password
+                      path: CURATOR_PASSWORD
+              {{- end }}
       {{- if .Values.dbaasAdapter.priorityClassName }}
       priorityClassName: {{ .Values.dbaasAdapter.priorityClassName | quote }}
       {{- end }}
