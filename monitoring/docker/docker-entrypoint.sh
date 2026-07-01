@@ -26,15 +26,12 @@ escape_toml_string() {
 
 process_config_file() {
   local file="$1"
-  local tmp next
-  tmp="$(mktemp "${file}.XXXXXX")"
+  local next
 
   local placeholders=(
     "__ELASTICSEARCH_USERNAME__:ELASTICSEARCH_USERNAME"
     "__ELASTICSEARCH_PASSWORD__:ELASTICSEARCH_PASSWORD"
   )
-
-  cp "${file}" "${tmp}"
 
   local entry placeholder secret_name value escaped
   for entry in "${placeholders[@]}"; do
@@ -45,21 +42,18 @@ process_config_file() {
     value="${value%"${value##*[![:space:]]}"}"
     value="${value#"${value%%[![:space:]]*}"}"
 
-    next="${tmp}.new"
+    next="${file}.new"
     if [[ -z "${value}" ]]; then
-      grep -Fv "${placeholder}" "${tmp}" > "${next}" || true
+      grep -Fv "${placeholder}" "${file}" > "${next}" || true
     else
       escaped="$(escape_toml_string "${value}")"
       while IFS= read -r line || [[ -n "${line}" ]]; do
         line="${line//${placeholder}/${escaped}}"
         printf '%s\n' "${line}"
-      done < "${tmp}" > "${next}"
+      done < "${file}" > "${next}"
     fi
-    mv "${next}" "${tmp}"
+    mv "${next}" "${file}"
   done
-
-  cp "${tmp}" "${file}"
-  rm -f "${tmp}"
 }
 
 if [[ ${ELASTICSEARCH_PROTOCOL} == "https" ]]; then
