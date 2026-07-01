@@ -289,8 +289,10 @@ data:
     {{- end }}
 
       ## HTTP Basic Authentication username and password.
-      username = "@{monitoring_secrets:ELASTICSEARCH_USERNAME}"
-      password = "@{monitoring_secrets:ELASTICSEARCH_PASSWORD}"
+      ## inputs.elasticsearch has no secret-store support; credentials are substituted
+      ## from mounted secret files in docker-entrypoint.sh before Telegraf starts.
+      username = "__ELASTICSEARCH_USERNAME__"
+      password = "__ELASTICSEARCH_PASSWORD__"
 
       ## Optional SSL Config
       # tls_ca = "/etc/telegraf/ca.pem"
