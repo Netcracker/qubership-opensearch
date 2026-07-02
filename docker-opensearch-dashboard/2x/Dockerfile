@@ -1,4 +1,4 @@
-FROM opensearchproject/opensearch-dashboards:2.19.4
+FROM opensearchproject/opensearch-dashboards:2.19.6
 
 USER 0:0
 

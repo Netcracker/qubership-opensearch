@@ -1,4 +1,4 @@
-ARG OPENSEARCH_BASE='opensearchproject/opensearch:2.19.4'
+ARG OPENSEARCH_BASE='opensearchproject/opensearch:2.19.6'
 
 FROM $OPENSEARCH_BASE
 
@@ -22,9 +22,9 @@ RUN yum update --assumeyes --skip-broken \
 # CCR plugin upgrade is required for each OpenSearch upgrade
 RUN echo "Replacing Cross Cluster Replication plugin..." \
     && rm -rf ${OPENSEARCH_HOME}/plugins/opensearch-cross-cluster-replication/* \
-    && curl --create-dirs -s -L "https://github.com/Netcracker/opensearch-cross-cluster-replication-patches/releases/download/2.19.4.0-1/opensearch-cross-cluster-replication-2.19.4.0-11.zip" \
-    -o ${OPENSEARCH_HOME}/dist/ccr/opensearch-cross-cluster-replication-2.19.4.zip \
-    && unzip ${OPENSEARCH_HOME}/dist/ccr/opensearch-cross-cluster-replication-2.19.4.zip -d ${OPENSEARCH_HOME}/plugins/opensearch-cross-cluster-replication \
+    && curl --create-dirs -s -L "https://github.com/Netcracker/opensearch-cross-cluster-replication-patches/releases/download/2.19.6.0-1/opensearch-cross-cluster-replication-2.19.6.0-17.zip" \
+    -o ${OPENSEARCH_HOME}/dist/ccr/opensearch-cross-cluster-replication-2.19.6.zip \
+    && unzip ${OPENSEARCH_HOME}/dist/ccr/opensearch-cross-cluster-replication-2.19.6.zip -d ${OPENSEARCH_HOME}/plugins/opensearch-cross-cluster-replication \
     && rm -rf ${OPENSEARCH_HOME}/dist
 
 RUN echo "Install OpenSearch plugins..." \
