@@ -31,7 +31,6 @@ spec:
           args:
             - |
               set -euo pipefail
-
               command -v jq >/dev/null 2>&1 || { echo "[resource-migrator] jq is required"; exit 1; }
 
               KUBECTL="kubectl"
