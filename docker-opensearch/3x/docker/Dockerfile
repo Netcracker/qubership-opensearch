@@ -1,4 +1,4 @@
-ARG OPENSEARCH_BASE='opensearchproject/opensearch:3.6.0'
+ARG OPENSEARCH_BASE='opensearchproject/opensearch:3.7.0'
 
 FROM $OPENSEARCH_BASE
 

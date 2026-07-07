@@ -1,4 +1,4 @@
-FROM ghcr.io/netcracker/qubership-docker-integration-tests:0.5.5
+FROM ghcr.io/netcracker/qubership-docker-integration-tests:0.5.6
 
 USER root
 
@@ -21,10 +21,8 @@ RUN set -x \
     && apk add --no-cache curl \
     && rm -rf /var/cache/apk/*
 
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories \
-    && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
-    && apk add --update --upgrade --no-cache \
-        libcurl curl
+RUN apk add --update --upgrade --no-cache \
+    libcurl curl
 
 RUN set -x && apk add --update --no-cache apk-tools && apk upgrade --no-cache --available
 

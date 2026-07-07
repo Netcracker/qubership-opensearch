@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.26.3-alpine3.23 as builder
+FROM --platform=$BUILDPLATFORM golang:1.26.4-alpine3.24 as builder
 ARG BUILDPLATFORM
 ARG TARGETOS
 ARG TARGETARCH
@@ -16,7 +16,7 @@ RUN go mod download
 COPY curator/docker/backup-docker/indices_migration_tool/main.go main.go
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o migration_tool main.go
 
-FROM ghcr.io/netcracker/qubership-backup-daemon-go:0.1.17
+FROM ghcr.io/netcracker/qubership-backup-daemon-go:0.1.18
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -43,7 +43,7 @@ RUN apk add --no-cache wget python3 py3-pip \
         elasticsearch==7.17.12 \
         curator-opensearch==0.0.13 \
         "Flask<2.1" \
-        "Werkzeug<2.1" \
+        "Werkzeug==2.3.8" \
         urllib3 \
         "click<8"
 
@@ -72,11 +72,9 @@ RUN set -x \
 
 RUN chmod +x ${ELASTICSEARCH_CURATOR_HOME}/*
 
-# Upgrade tools from edge to avoid vulnerabilities
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories  \
-    && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
-    && apk add --update --upgrade --no-cache \
-        pcre2 libcurl curl
+# Upgrade tools to avoid vulnerabilities
+RUN apk add --update --upgrade --no-cache \
+    pcre2 libcurl curl
 
 USER 1000:0
 
