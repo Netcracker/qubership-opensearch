@@ -79,6 +79,7 @@ The following topics are covered in this chapter:
     * [Migration to OpenSearch 3.x (OpenSearch Service 2.x.x)](#migration-to-opensearch-3x-opensearch-service-2xx)
     * [OpenSearch Dashboards](#opensearch-dashboards)
     * [Migration to OpenSearch 2.x (OpenSearch Service 1.x.x)](#migration-to-opensearch-2x-opensearch-service-1xx)
+    * [Resource Migration](#resource-migration)
     * [Migration From OpenDistro Elasticsearch](#migration-from-opendistro-elasticsearch)
       * [Manual Migration Steps](#manual-migration-steps)
       * [Backup and Restore](#backup-and-restore)
@@ -1649,6 +1650,16 @@ Where:
 | `integrationTests.enableJiraIntegration`            | boolean | no        | false                      | Enable Jira integration (writes to marker file for external processing). |
 | `integrationTests.monitoredImages`                  | string  | no        | ""                         | Override `MONITORED_IMAGES` for `opensearch_images` test. Format: `type name containerName registry:port/image:tag, ...`. |
 
+| Parameter                                      | Type    | Mandatory | Default value | Description                                                                                                                |
+|------------------------------------------------|---------|-----------|---------------|----------------------------------------------------------------------------------------------------------------------------|
+| `resourceMigration.enabled`                    | boolean | no        | true          | Enables the resource migration pre-upgrade hook job.                                                                       |
+| `resourceMigration.resources.requests.cpu`     | string  | no        | 20m           | The minimum number of CPUs the resource migration container should use.                                                    |
+| `resourceMigration.resources.requests.memory`  | string  | no        | 64Mi          | The minimum amount of memory the resource migration container should use.                                                  |
+| `resourceMigration.resources.limits.cpu`       | string  | no        | 100m          | The maximum number of CPUs the resource migration container should use.                                                    |
+| `resourceMigration.resources.limits.memory`    | string  | no        | 256Mi         | The maximum amount of memory the resource migration container should use.                                                  |
+| `resourceMigration.imagePullPolicy`            | string  | no        | IfNotPresent  | The image pull policy for the resource migration container.                                                                |
+| `resourceMigration.runAsNonRoot`               | boolean | no        | true          | If `true`, applies restricted security context (non-root, read-only filesystem, drops all capabilities) to the job pod.    |
+
 ### Tags Description
 
 This section contains information about integration test tags that can be used in order to test OpenSearch service. You can use the following tags:
@@ -2067,6 +2078,40 @@ If you need migrate to OpenSearch Service `1.x.x` (with OpenSearch 2.x) from pre
 * Depending on the installed OpenSearch Service version:
   * if `0.2.4` (or newest) version installed just proceed with upgrade.
   * if version before `0.2.4` installed, you need previously upgrade to version `0.2.4` to migrate security configuration to new format and then install required `1.x.x` version.
+
+**ArgoCD upgrades:**
+
+When upgrading from OpenSearch 1.x to 2.x via ArgoCD, the StatefulSet spec changes significantly (for example,
+the `node.master` environment variable is replaced by `node.roles`). ArgoCD's merge strategy cannot remove
+these extra environment variables from existing StatefulSets, which causes the upgrade to fail.
+
+To handle this automatically, the chart includes a **resource migration** pre-upgrade hook
+(`resourceMigration.enabled: true` by default). This hook inspects each OpenSearch StatefulSet for the
+`node.master` environment variable (a marker of the 1.x spec). If found, it deletes the StatefulSet with
+`--cascade=orphan`, preserving the running pods while allowing the new StatefulSet to be created with the
+correct 2.x spec.
+
+No manual intervention is required as long as `resourceMigration.enabled` is `true`. If you prefer to handle
+the StatefulSet cleanup manually, set `resourceMigration.enabled: false` and delete the affected StatefulSets
+yourself before upgrading:
+
+```bash
+kubectl -n <namespace> delete statefulset <statefulset-name> --cascade=orphan
+```
+
+For the full list of resource migration parameters, refer to the [Resource Migration](#resource-migration) section.
+
+### Resource Migration
+
+The resource migration job is a pre-install/pre-upgrade Helm hook that automatically detects and removes
+OpenSearch 1.x StatefulSets that are incompatible with OpenSearch 2.x. This is required when upgrading via
+ArgoCD, because ArgoCD's merge strategy cannot remove extra environment variables (such as `node.master`)
+from existing StatefulSets. The job deletes affected StatefulSets with `--cascade=orphan`, which preserves
+running pods while allowing Helm to recreate the StatefulSet with the correct 2.x spec.
+
+The job iterates over all configured OpenSearch StatefulSets (master, data, arbiter depending on deployment
+topology). If a StatefulSet does not exist or does not contain the `node.master` environment variable, it is
+skipped.
 
 ### Migration From OpenDistro Elasticsearch
 
