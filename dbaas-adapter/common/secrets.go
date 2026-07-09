@@ -22,7 +22,6 @@ import (
 
 const OpenSearchDbaasAdapterSecretsDirEnv = "OPENSEARCH_DBAAS_ADAPTER_SECRETS_DIR"
 const OpenSearchCuratorSecretsDirEnv = "OPENSEARCH_CURATOR_SECRETS_DIR"
-const OpenSearchMigrationSecretsDirEnv = "OPENSEARCH_MIGRATION_SECRETS_DIR"
 
 func GetSecretValue(secretsDirEnv, key, fallback string) string {
 	if dir := os.Getenv(secretsDirEnv); dir != "" {
