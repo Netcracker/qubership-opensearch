@@ -1,5 +1,5 @@
 {{ if and (not .Values.global.externalOpensearch.enabled) (eq (include "opensearch.shouldRunMigration" .) "true") }}
-{{- $migrationPodSecretsMount := include "opensearch.podSecretsMountPath" (dict "service" "opensearch-migration") }}
+{{- $curatorPodSecretsMount := include "opensearch.podSecretsMountPath" (dict "service" "opensearch-curator") }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -58,8 +58,8 @@ spec:
               value: {{ .Release.Namespace }}
             - name: ES_HOST
               value: {{ default (printf "%s-internal:9200" (include "opensearch.fullname" .)) (.Values.global.externalOpensearch.enabled | ternary (printf "%s:%s" (include "external.opensearch-host" .) (include "external.opensearch-port" .)) .Values.curator.opensearchHost) }}
-            - name: OPENSEARCH_MIGRATION_SECRETS_DIR
-              value: {{ $migrationPodSecretsMount | quote }}
+            - name: OPENSEARCH_CURATOR_SECRETS_DIR
+              value: {{ $curatorPodSecretsMount | quote }}
             - name: TLS_HTTP_ENABLED
               value: "{{ or (eq (include "external.tlsEnabled" .) "true") (eq (include "opensearch.tlsEnabled" .) "true") }}"
             - name: EXTERNAL_OPENSEARCH_ENABLED
@@ -103,8 +103,8 @@ spec:
               value: {{ (include "curator.address" .) }}
             {{- end }}
           volumeMounts:
-            - mountPath: {{ $migrationPodSecretsMount | quote }}
-              name: opensearch-migration-pod-secrets
+            - mountPath: {{ $curatorPodSecretsMount | quote }}
+              name: opensearch-curator-pod-secrets
               readOnly: true
             {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
             - mountPath: /trusted-certs/root-ca.pem
@@ -144,7 +144,7 @@ spec:
           secret:
             secretName: {{ template "dbaas-adapter.tlsSecretName" . }}
         {{- end }}
-        - name: opensearch-migration-pod-secrets
+        - name: opensearch-curator-pod-secrets
           projected:
             defaultMode: 420
             sources:
