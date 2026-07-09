@@ -1,0 +1,37 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "config:best-practices",
+    "schedule:weekly"
+  ],
+  "packageRules": [
+    {
+      "description": "Update Go version everywhere at once: build image, go.mod and GitHub Actions workflows",
+      "groupName": "Go",
+      "matchDatasources": [
+        "docker",
+        "github-tags",
+        "github-releases",
+        "golang-version",
+        "gomod"
+      ],
+      "matchPackageNames": [
+        "go",
+        "golang",
+        "actions/go-versions",
+        "actions/setup-go"
+      ]
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["\\.github/workflows/.+\\.ya?ml$"],
+      "matchStrings": [
+        "pipeline_branch:\\s+[\"'](?<currentDigest>[a-f0-9]+)[\"']\\s+#\\s*(?<currentValue>v\\S+)\\s+renovate:\\s+depName=(?<depName>\\S+)"
+      ],
+      "datasourceTemplate": "github-tags"
+    }
+  ]
+}
