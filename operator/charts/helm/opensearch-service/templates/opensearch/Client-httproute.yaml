@@ -12,7 +12,6 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   parentRefs:
-  {{- include "gateway.parentRefs" (list . .Values.opensearch.client.envoyGateway.parentRefs 443) | nindent 4 }}
 
   hostnames:
   {{- if .Values.opensearch.client.envoyGateway.host }}
@@ -73,8 +72,6 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   parentRefs:
-  {{- include "gateway.parentRefs" (list . .Values.opensearch.client.envoyGateway.parentRefs 80) | nindent 4 }}
-
   hostnames:
   {{- if .Values.opensearch.client.envoyGateway.host }}
     - {{ .Values.opensearch.client.envoyGateway.host | quote }}
