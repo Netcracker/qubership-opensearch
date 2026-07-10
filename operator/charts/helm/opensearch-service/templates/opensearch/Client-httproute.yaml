@@ -12,6 +12,7 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   parentRefs:
+  {{- include "gateway.parentRefs" (list . .Values.dashboards.envoyGateway.parentRefs (ternary 443 80 (.Values.global.tls.enabled))) | nindent 4 }}
 
   hostnames:
   {{- if .Values.opensearch.client.envoyGateway.host }}
