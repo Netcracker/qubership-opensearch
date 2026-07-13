@@ -37,3 +37,17 @@ func GetSecretValue(secretsDirEnv, key, fallback string) string {
 	}
 	return fallback
 }
+
+// GetCuratorCredentials resolves backup-daemon basic-auth credentials.
+// dbaas-adapter mounts them under OPENSEARCH_DBAAS_ADAPTER_SECRETS_DIR; curator
+// and migration workloads mount the same keys under OPENSEARCH_CURATOR_SECRETS_DIR.
+func GetCuratorCredentials() (username, password string) {
+	for _, secretsDirEnv := range []string{OpenSearchDbaasAdapterSecretsDirEnv, OpenSearchCuratorSecretsDirEnv} {
+		username = GetSecretValue(secretsDirEnv, "CURATOR_USERNAME", "")
+		password = GetSecretValue(secretsDirEnv, "CURATOR_PASSWORD", "")
+		if username != "" && password != "" {
+			return username, password
+		}
+	}
+	return "", ""
+}

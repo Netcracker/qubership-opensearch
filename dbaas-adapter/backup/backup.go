@@ -40,12 +40,11 @@ import (
 )
 
 var (
-	logger                      = common.GetLogger()
+	logger               = common.GetLogger()
 	resourcePrefixAttributeName = "resource_prefix"
-	validate                    = validator.New()
-	backupServiceAddress        = common.GetEnv("CURATOR_ADDRESS", "")
-	backupServiceUser           = common.GetSecretValue(common.OpenSearchDbaasAdapterSecretsDirEnv, "CURATOR_USERNAME", "")
-	backupServicePassword       = common.GetSecretValue(common.OpenSearchDbaasAdapterSecretsDirEnv, "CURATOR_PASSWORD", "")
+	validate             = validator.New()
+	backupServiceAddress = common.GetEnv("CURATOR_ADDRESS", "")
+	backupServiceUser, backupServicePassword = common.GetCuratorCredentials()
 )
 
 const backupAPIv1 = "api/v1"
