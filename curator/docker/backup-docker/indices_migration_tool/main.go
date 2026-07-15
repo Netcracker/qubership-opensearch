@@ -294,7 +294,7 @@ func (m *MigrationTool) CollectInappropriateIndices(ctx context.Context) ([]stri
 			continue
 		}
 		oneXAll = append(oneXAll, idx)
-		if !strings.HasPrefix(idx, ".") {
+		if !strings.HasPrefix(idx, ".") && !strings.HasPrefix(idx, "top_queries") {
 			oneXBackup = append(oneXBackup, idx)
 		}
 	}
