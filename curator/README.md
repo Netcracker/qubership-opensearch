@@ -207,6 +207,12 @@ As a result you receive JSON with information:
     "ts": timestamp of backup
 ```
 
+## Data Validation Marker
+
+Curator supports the Backup Daemon [Data Validation Marker API](https://github.com/Netcracker/qubership-backup-daemon-go#data-validation-marker-api). It allows an external component (for example, Cloud Backuper) to record which backup was last validated and to retrieve that record later.
+
+The marker is stored in a dedicated OpenSearch index `system.backup-restore-markers` as a single document with a fixed identifier (`current`), so only the most recent marker is kept. The index is created automatically on the first `set` operation with `number_of_shards: 1` with default replica.
+
 ## Scheduled snapshots cleanup
 
 Curator is able to perform scheduled snapshots cleanup. However, it is not possible to provide common template that can be easily configured for different use cases.
