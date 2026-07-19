@@ -22,7 +22,7 @@ from opensearchpy import NotFoundError, RequestError
 import utils
 
 # Dedicated index that keeps the single data-validation marker.
-#Since a marker records which backup was
+# Since a marker records which backup was
 # validated, it must travel with the backup/restore lifecycle itself so that
 # restoring a backup restores the marker that was current at that time.
 MARKER_INDEX_NAME = 'system.backup-restore-markers'
@@ -70,8 +70,6 @@ class Marker:
     logging.info('Data validation marker is set to "%s"', marker)
 
   def get_marker(self) -> str:
-    # The marker index may legitimately not exist yet (no marker has ever been
-    # set). In that case there is simply no marker to return.
     if not self._client.indices.exists(index=MARKER_INDEX_NAME):
       logging.info('Marker index "%s" does not exist, no marker is set',
                    MARKER_INDEX_NAME)
@@ -92,8 +90,6 @@ class Marker:
                                   body=MARKER_INDEX_BODY)
       logging.info('Marker index "%s" created', MARKER_INDEX_NAME)
     except RequestError as error:
-      # The index could have been created concurrently between the existence
-      # check and the create call; treat that as success.
       if _is_already_exists_error(error):
         logging.info('Marker index "%s" already exists', MARKER_INDEX_NAME)
       else:
