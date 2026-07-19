@@ -61,8 +61,7 @@ class CuratorTests(unittest.TestCase):
         'template': {
           'settings': {
             'index': {
-              'number_of_shards': '2',
-              'number_of_replicas': '1'}
+              'number_of_shards': '2'}
           },
           'aliases': {'temporary': {}}
         },
@@ -77,8 +76,7 @@ class CuratorTests(unittest.TestCase):
         'template': {
           'settings': {
             'index': {
-              'number_of_shards': '2',
-              'number_of_replicas': '1'}
+              'number_of_shards': '2'}
           },
           'aliases': {'constant': {}}
         },
@@ -214,7 +212,6 @@ class MarkerTests(unittest.TestCase):
     self.assertEqual(create_kwargs['index'], MARKER_INDEX_NAME)
     index_settings = create_kwargs['body']['settings']['index']
     self.assertEqual(index_settings['number_of_shards'], 1)
-    self.assertEqual(index_settings['number_of_replicas'], 1)
 
     mock_client.index.assert_called_once()
     _, index_kwargs = mock_client.index.call_args
