@@ -100,6 +100,17 @@ Check Backup Absence By OpenSearch
     ${backup_id_in_lowercase}=  Convert To Lowercase  ${backup_id}
     ${response}=  GET On Session  opensearch  /_snapshot/snapshots/${backup_id_in_lowercase}  headers=${headers}  expected_status=404
 
+Set Backup Marker
+    [Arguments]  ${marker}
+    ${data}=  Set Variable  {"marker":"${marker}"}
+    ${response}=  POST On Session  curatorsession  /api/v1/data-validation/marker  data=${data}  headers=${headers}
+    RETURN  ${response}
+
+Get Backup Marker
+    ${response}=  GET On Session  curatorsession  /api/v1/data-validation/marker  headers=${headers}
+    ${content}=  Convert Json ${response.content} To Type
+    RETURN  ${content['marker']}
+
 Create Index With Generated Data
     [Arguments]  ${index_name}
     ${response}=  Create OpenSearch Index  ${index_name}

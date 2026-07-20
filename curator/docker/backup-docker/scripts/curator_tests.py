@@ -19,6 +19,7 @@ import utils
 from unittest.mock import mock_open, patch
 from restore import Restore
 from backup import Backup
+from marker import Marker, MARKER_INDEX_NAME, MARKER_DOCUMENT_ID
 
 
 class CuratorTests(unittest.TestCase):
@@ -60,8 +61,7 @@ class CuratorTests(unittest.TestCase):
         'template': {
           'settings': {
             'index': {
-              'number_of_shards': '2',
-              'number_of_replicas': '1'}
+              'number_of_shards': '2'}
           },
           'aliases': {'temporary': {}}
         },
@@ -76,8 +76,7 @@ class CuratorTests(unittest.TestCase):
         'template': {
           'settings': {
             'index': {
-              'number_of_shards': '2',
-              'number_of_replicas': '1'}
+              'number_of_shards': '2'}
           },
           'aliases': {'constant': {}}
         },
@@ -196,3 +195,76 @@ class CuratorTests(unittest.TestCase):
     }
     self.assertEqual(renamed_template, expected_template)
     mock_prepare_client.assert_called_once()
+
+
+class MarkerTests(unittest.TestCase):
+
+  @patch('utils.prepare_elasticsearch_client')
+  def test_set_marker_creates_index_when_absent(self, mock_prepare_client):
+    mock_client = mock_prepare_client.return_value
+    mock_client.indices.exists.return_value = False
+    marker = Marker()
+
+    marker.set_marker('my-backup/2024-01-15T12:00:00Z')
+
+    mock_client.indices.create.assert_called_once()
+    _, create_kwargs = mock_client.indices.create.call_args
+    self.assertEqual(create_kwargs['index'], MARKER_INDEX_NAME)
+    index_settings = create_kwargs['body']['settings']['index']
+    self.assertEqual(index_settings['number_of_shards'], 1)
+
+    mock_client.index.assert_called_once()
+    _, index_kwargs = mock_client.index.call_args
+    self.assertEqual(index_kwargs['index'], MARKER_INDEX_NAME)
+    self.assertEqual(index_kwargs['id'], MARKER_DOCUMENT_ID)
+    self.assertEqual(index_kwargs['body']['marker'],
+                     'my-backup/2024-01-15T12:00:00Z')
+    self.assertTrue(index_kwargs['refresh'])
+
+  @patch('utils.prepare_elasticsearch_client')
+  def test_set_marker_reuses_existing_index(self, mock_prepare_client):
+    mock_client = mock_prepare_client.return_value
+    mock_client.indices.exists.return_value = True
+    marker = Marker()
+
+    marker.set_marker('my-backup/2024-01-15T12:00:00Z')
+
+    mock_client.indices.create.assert_not_called()
+    mock_client.index.assert_called_once()
+
+  @patch('utils.prepare_elasticsearch_client')
+  def test_set_marker_empty_value_raises(self, mock_prepare_client):
+    marker = Marker()
+    with self.assertRaises(ValueError):
+      marker.set_marker('')
+    mock_prepare_client.return_value.index.assert_not_called()
+
+  @patch('utils.prepare_elasticsearch_client')
+  def test_get_marker_returns_value(self, mock_prepare_client):
+    mock_client = mock_prepare_client.return_value
+    mock_client.indices.exists.return_value = True
+    mock_client.get.return_value = {
+      '_source': {'marker': 'my-backup/2024-01-15T12:00:00Z'}}
+    marker = Marker()
+
+    self.assertEqual(marker.get_marker(),
+                     'my-backup/2024-01-15T12:00:00Z')
+
+  @patch('utils.prepare_elasticsearch_client')
+  def test_get_marker_missing_index_returns_empty(self, mock_prepare_client):
+    mock_client = mock_prepare_client.return_value
+    mock_client.indices.exists.return_value = False
+    marker = Marker()
+
+    self.assertEqual(marker.get_marker(), '')
+    mock_client.get.assert_not_called()
+
+  @patch('utils.prepare_elasticsearch_client')
+  def test_get_marker_missing_document_returns_empty(self, mock_prepare_client):
+    from opensearchpy import NotFoundError
+    mock_client = mock_prepare_client.return_value
+    mock_client.indices.exists.return_value = True
+    mock_client.get.side_effect = NotFoundError(404, 'not_found', {})
+    marker = Marker()
+
+    self.assertEqual(marker.get_marker(), '')
