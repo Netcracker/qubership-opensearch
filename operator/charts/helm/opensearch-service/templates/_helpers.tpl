@@ -1574,15 +1574,6 @@ Mount path for env→file migrated pod secrets (readOnly projected volume).
 {{- end -}}
 
 {{/*
-Label credential Secrets so the operator restarts dependent Deployments on data change.
-*/}}
-{{- define "opensearch.secretChangeLabels" -}}
-{{- if .Values.global.autoRestartOnSecretChange }}
-automation.infra/secret-change: "true"
-{{- end }}
-{{- end -}}
-
-{{/*
 Checksum of credential Secret templates for Helm-only workloads (no operator reconciler).
 */}}
 {{- define "opensearch.checksumSecret" -}}
