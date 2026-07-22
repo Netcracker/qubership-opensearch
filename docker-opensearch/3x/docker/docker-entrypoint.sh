@@ -58,12 +58,27 @@ if [[ "$(ls $PUBLIC_CERTS_DIR)" ]]; then
     done;
 fi
 
+OS_TRUST_ANCHORS_DIR=/etc/pki/ca-trust/source/anchors
+
 if [[ "$(ls $S3_CERTS_DIR)" ]]; then
     for filename in "$S3_CERTS_DIR"/*; do
         echo "Import $filename certificate to Java cacerts"
         keytool -import -trustcacerts -keystore "$DESTINATION_KEYSTORE_PATH" -storepass changeit -noprompt -alias "$filename" -file "$filename"
         keytool -import -trustcacerts -keystore "$KEYSTORE_PATH" -storepass changeit -noprompt -alias "$filename" -file "$filename"
     done;
+
+    # The async client of repository-s3 plugin (AWS CRT) is a native library which does not
+    # use the JVM truststore and trusts only the OS trust store, so S3 certificates must be
+    # imported there as well, otherwise repository verification and snapshot deletion fail
+    if [[ -w "$OS_TRUST_ANCHORS_DIR" ]]; then
+        for filename in "$S3_CERTS_DIR"/*; do
+            echo "Import $filename certificate to OS trust store"
+            cp "$filename" "$OS_TRUST_ANCHORS_DIR/s3-$(basename "$filename")"
+        done;
+        update-ca-trust extract || echo "WARNING: failed to update OS trust store, S3 connections with custom certificates may fail"
+    else
+        echo "WARNING: $OS_TRUST_ANCHORS_DIR is not writable, S3 certificates are not imported to OS trust store"
+    fi
 fi
 
 exec "$@"

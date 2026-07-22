@@ -24,6 +24,8 @@ RUN echo "Install OpenSearch plugins..." \
 
 RUN ${OPENSEARCH_HOME}/bin/opensearch-plugin install --batch --verbose analysis-icu analysis-kuromoji
 # Adapt grants
+# /etc/pki/ca-trust must be writable so that docker-entrypoint.sh can add custom S3 CA
+# certificates to the OS trust store used by the native AWS CRT client of repository-s3
 RUN set -x \
     && chmod 777 ${OPENSEARCH_HOME} \
     && chmod +x ${OPENSEARCH_HOME}/bin/*.sh \
@@ -36,6 +38,7 @@ RUN set -x \
         /usr/share/opensearch/data \
         /usr/share/opensearch/jdk \
         /usr/share/opensearch/plugins \
+        /etc/pki/ca-trust \
         ; do \
             chmod -R 777 "$path"; \
         done
