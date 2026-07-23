@@ -22,7 +22,7 @@ spec:
     matchLabels:
       name: {{ template "opensearch.fullname" . }}-integration-tests
   strategy:
-    type: RollingUpdate
+    type: Recreate
   replicas: {{ template "opensearch.replicasForSingleService" . }}
   progressDeadlineSeconds: {{ .Values.statusProvisioner.integrationTestsTimeout | default 300 }}
   template:

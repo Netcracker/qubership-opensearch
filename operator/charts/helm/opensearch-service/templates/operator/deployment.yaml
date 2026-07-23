@@ -15,6 +15,8 @@ spec:
     matchLabels:
       name: {{ template "opensearch.fullname" . }}-service-operator
       component: opensearch-service-operator
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
