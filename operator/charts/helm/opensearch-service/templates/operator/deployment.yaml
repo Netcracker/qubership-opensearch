@@ -17,6 +17,7 @@ spec:
       component: opensearch-service-operator
   strategy:
     type: Recreate
+    rollingUpdate: null
   template:
     metadata:
       labels:

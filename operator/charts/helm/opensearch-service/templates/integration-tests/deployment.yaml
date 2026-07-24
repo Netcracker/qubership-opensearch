@@ -23,6 +23,7 @@ spec:
       name: {{ template "opensearch.fullname" . }}-integration-tests
   strategy:
     type: Recreate
+    rollingUpdate: null
   replicas: {{ template "opensearch.replicasForSingleService" . }}
   progressDeadlineSeconds: {{ .Values.statusProvisioner.integrationTestsTimeout | default 300 }}
   template:
