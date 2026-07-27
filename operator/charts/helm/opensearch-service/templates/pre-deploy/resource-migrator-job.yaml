@@ -35,6 +35,32 @@ spec:
 
               KUBECTL="kubectl"
               NS="{{ .Release.Namespace }}"
+
+              patch_deployment_strategy() {
+                DEPLOYMENT_NAME="$1"
+                DEPLOYMENT_JSON="$($KUBECTL -n "$NS" get deployment "$DEPLOYMENT_NAME" -o json 2>/dev/null || true)"
+                if [ -z "$DEPLOYMENT_JSON" ]; then
+                  echo "[resource-migrator] Deployment $DEPLOYMENT_NAME does not exist, skipping"
+                  return
+                fi
+                HAS_ROLLING="$(printf '%s' "$DEPLOYMENT_JSON" | jq '.spec.strategy.rollingUpdate != null')"
+                if [ "$HAS_ROLLING" = "true" ]; then
+                  echo "[resource-migrator] Deployment $DEPLOYMENT_NAME has stale rollingUpdate block, patching to Recreate strategy"
+                  if $KUBECTL -n "$NS" patch deployment "$DEPLOYMENT_NAME" \
+                      --type=json -p='[{"op":"replace","path":"/spec/strategy/type","value":"Recreate"},{"op":"remove","path":"/spec/strategy/rollingUpdate"}]'; then
+                    echo "[resource-migrator] Deployment $DEPLOYMENT_NAME patched successfully"
+                  else
+                    echo "[resource-migrator][ERROR] Failed to patch deployment $DEPLOYMENT_NAME"
+                    exit 1
+                  fi
+                else
+                  echo "[resource-migrator] Deployment $DEPLOYMENT_NAME: no rollingUpdate block, skipping"
+                fi
+              }
+
+              patch_deployment_strategy "{{ template "opensearch.fullname" . }}-service-operator"
+              patch_deployment_strategy "{{ template "opensearch.fullname" . }}-integration-tests"
+
               STATEFULSET_NAMES="{{ trim (include "opensearch.statefulsetNames" .) }}"
 
               if [ -z "$STATEFULSET_NAMES" ]; then
