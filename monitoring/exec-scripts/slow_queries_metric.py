@@ -56,14 +56,22 @@ def __configure_logging(log):
 """
 
 """
-Slow log message example:
+Slow log message can arrive in two shapes depending on the OpenSearch version.
+
+OpenSearch 2.x (there is no `request_id` field):
+[WARN], 2023-07-27T08:03:43, [opensearch-2], [my-supper-index][0] took[12.4ms], took_millis[12], total_hits[0
+hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[1], source[{"query":{ "match":{"phrase":{
+"query":"heuristic","operator":"OR","prefix_length":0,"max_expansions":50, "fuzzy_transpositions":true,
+"lenient":false,"zero_terms_query":"NONE","auto_generate_synonyms_phrase_query":true,"boost":1.0}}}}], id[],
+
+OpenSearch 3.x (a trailing `request_id` field is appended):
 [WARN], 2023-07-27T08:03:43, [opensearch-2], [my-supper-index][0] took[12.4ms], took_millis[12], total_hits[0
 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[1], source[{"query":{ "match":{"phrase":{
 "query":"heuristic","operator":"OR","prefix_length":0,"max_expansions":50, "fuzzy_transpositions":true,
 "lenient":false,"zero_terms_query":"NONE","auto_generate_synonyms_phrase_query":true,"boost":1.0}}}}], id[],
 request_id[0bcf833c6c1b59d10aad96010bc56eaf]
 
-Converted SlowLogRecord object:
+Converted SlowLogRecord object (3.x example):
     log_level = "WARN"
     time = "2019-10-24T19:48:51,012"
     node = "opensearch-2"
@@ -74,18 +82,19 @@ Converted SlowLogRecord object:
     total_hits = "0"
     stats = ""
     search_type = "QUERY_THEN_FETCH"
-    total_shards[1]
+    total_shards = "1"
     source = "{"query":{"match":{"phrase":{"query":"heuristic","operator":"OR","prefix_length":0,"max_expansions":50,
     "fuzzy_transpositions":true,"lenient":false,"zero_terms_query":"NONE","auto_generate_synonyms_phrase_query":true,
     "boost":1.0}}}}"
     id = ""
-    request_id = "0bcf833c6c1b59d10aad96010bc56eaf"
+    request_id = "0bcf833c6c1b59d10aad96010bc56eaf"  # None for 2.x records
 """
 
 
 class SlowLogRecord:
     def __init__(self, data: []):
-        if len(data) != 14:
+        # 13 fields for OpenSearch 2.x records, 14 for 3.x records (with trailing `request_id`).
+        if len(data) not in (13, 14):
             raise ValueError
         (
             self.log_level,
@@ -100,15 +109,18 @@ class SlowLogRecord:
             self.search_type,
             self.total_shards,
             self.source,
-            self.id_,
-            self.request_id
-        ) = data
+            self.id_
+        ) = data[:13]
+        self.request_id = data[13] if len(data) == 14 else None
 
     def __str__(self):
-        return (f'[{self.log_level}], {self.time}, [{self.node}], [{self.index}][{self.shard}] took[{self.took}], '
-                f'took_millis[{self.took_millis}], total_hits[{self.total_hits} hits], stats[{self.stats}], '
-                f'search_type[{self.search_type}], total_shards[{self.total_shards}], source[{self.source}], '
-                f'id[{self.id_}], request_id[{self.request_id}]')
+        record = (f'[{self.log_level}], {self.time}, [{self.node}], [{self.index}][{self.shard}] took[{self.took}], '
+                  f'took_millis[{self.took_millis}], total_hits[{self.total_hits} hits], stats[{self.stats}], '
+                  f'search_type[{self.search_type}], total_shards[{self.total_shards}], source[{self.source}], '
+                  f'id[{self.id_}]')
+        if self.request_id is not None:
+            record += f', request_id[{self.request_id}]'
+        return record
 
     def __eq__(self, other):
         if isinstance(other, SlowLogRecord):
@@ -151,7 +163,9 @@ def _extract_values_from_brackets(element: str) -> list:
 
 def convert_slow_log_record(record: str) -> Optional[SlowLogRecord]:
     elements = record.strip(', ').split(', ')
-    if len(elements) != 12:
+    # 11 elements for OpenSearch 2.x records (ends with `id[]`),
+    # 12 elements for 3.x records (with trailing `request_id[...]`).
+    if len(elements) not in (11, 12):
         logger.warning(f'Unable to parse the record, because it has incorrect format: {record}')
         return None
 

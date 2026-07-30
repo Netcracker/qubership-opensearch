@@ -63,14 +63,14 @@ Delete Backup V2 If Exists
     Run Keyword If  "${backup_id}" != "${None}"  Run Keyword And Ignore Error  Delete Backup V2  ${backup_id}  ${blob_path}
 
 Ensure S3 Aliases Config Available
-    ${secret_exists}=  Run Keyword And Return Status  Check Secret  ${S3_ALIASES_SECRET_NAME}  ${OPENSEARCH_NAMESPACE}
+    ${secret_exists}=  Run Keyword And Return Status  Get Secret  ${S3_ALIASES_SECRET_NAME}  ${OPENSEARCH_NAMESPACE}
     Pass Execution If  not ${secret_exists}  S3 aliases secret is absent, skip alias routing test
-    ${secret}=  Check Secret  ${S3_ALIASES_SECRET_NAME}  ${OPENSEARCH_NAMESPACE}
+    ${secret}=  Get Secret  ${S3_ALIASES_SECRET_NAME}  ${OPENSEARCH_NAMESPACE}
     ${has_alias_config}=  Evaluate  bool($secret.data) and 's3_aliases.json' in $secret.data and bool($secret.data['s3_aliases.json'])
     Pass Execution If  not ${has_alias_config}  S3 aliases config is empty, skip alias routing test
 
 Get Default S3 Alias Config
-    ${secret}=  Check Secret  ${S3_ALIASES_SECRET_NAME}  ${OPENSEARCH_NAMESPACE}
+    ${secret}=  Get Secret  ${S3_ALIASES_SECRET_NAME}  ${OPENSEARCH_NAMESPACE}
     ${aliases_base64}=  Set Variable  ${secret.data['s3_aliases.json']}
     ${aliases_json}=  Evaluate  base64.b64decode($aliases_base64).decode("utf-8")  modules=base64
     ${aliases}=  Convert Json ${aliases_json} To Type

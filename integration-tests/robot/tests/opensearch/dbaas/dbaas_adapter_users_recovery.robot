@@ -2,15 +2,15 @@
 ${RETRY_TIME}                            60s
 ${RETRY_INTERVAL}                        5s
 ${SLEEP_TIME}                            5s
+${CHECK_RESULT_RETRY_COUNT}              15x
+${CHECK_RESULT_RETRY_INTERVAL}           5s
 ${secret_name}                           opensearch-secret
 ${secret_name_old}                       opensearch-secret-old
-${status}                                {"status":"UP","opensearchHealth":{"status":"UP"},"dbaasAggregatorHealth":{"status":"OK"}}
 ${host}                                  ${OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}://${OPENSEARCH_DBAAS_ADAPTER_HOST}:${OPENSEARCH_DBAAS_ADAPTER_PORT}/health
 
 *** Settings ***
 Library    Process
 Resource  ./keywords.robot
-Variables    variables.py
 Suite Setup  Prepare
 
 *** Keywords ***
@@ -27,20 +27,25 @@ Check Users Recovery State
     ${state}=  Get Users Recovery State By Dbaas Agent
     Should Be Equal As Strings  ${state}  done
 
+DBaaS Adapter Is Up
+    ${health} =  GET On Session  dbaas_admin_session  /health
+    Should Be Equal As Strings  ${health}  {"status":"UP","opensearchHealth":{"status":"UP"},"dbaasAggregatorHealth":{"status":"OK"}}
+
+Check DBaaS Adapter State
+    Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
+    ...  DBaaS Adapter Is Up
+
 *** Test Cases ***
 Change Password for User and Healthcheck Dbaas Pod
     [Tags]   dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
-    ${response}=  Check Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
-    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret
-    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
-    ${response}=  Check Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
-    Should Be Equal As Strings  ${response.metadata.name}  opensearch-secret-old
-    Sleep  150s
-    ${health}=  Run Process  curl  ${host}  shell=True
-    Log  \nOutput: ${health.stdout}   console=yes
-    Should Be Equal As Strings  ${health.stdout}  ${status}
-    ${response}=  Change Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body_default}
-    Sleep  150s
+    ${secret}=  Get Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
+    ${secret_body}=  Set Variable  {'data': {'password': 'UUEtZ29vZC1wYXNzd29yZDEhLUFU', 'username': 'T3BlbnNlYXJjaC1hZG1pbjEhLUFU'}}
+    ${response}=  Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${secret_body}
+    ${old_secret}=  Get Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
+    Should Be Equal As Strings  ${old_secret.data}  ${secret_body}
+    Check DBaaS Adapter State
+    [Teardown]  Run Keywords    Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${secret.data}
+    ...  AND  Check DBaaS Adapter State
 
 Recover Users In OpenSearch
     [Tags]  dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2

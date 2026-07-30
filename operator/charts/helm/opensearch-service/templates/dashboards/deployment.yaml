@@ -160,17 +160,17 @@ spec:
             tcpSocket:
               port: {{ .Values.dashboards.service.port }}
             initialDelaySeconds: 60
-            periodSeconds: 15
+            periodSeconds: 20
             timeoutSeconds: 5
             failureThreshold: 10
           readinessProbe:
             tcpSocket:
               port: {{ .Values.dashboards.service.port }}
             initialDelaySeconds: 70
-            periodSeconds: 15
+            periodSeconds: 20
             timeoutSeconds: 5
             successThreshold: 1
-            failureThreshold: 5
+            failureThreshold: 10
           resources:
 {{ toYaml .Values.dashboards.resources | indent 12 }}
           volumeMounts:

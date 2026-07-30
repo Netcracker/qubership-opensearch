@@ -5,8 +5,8 @@ actions:
     options:
       repository: ${SNAPSHOT_REPOSITORY_NAME}
       disable_action: false
+      ignore_empty_list: True
     filters:
-    - filtertype: pattern
-      kind: prefix
-      value: ${SNAPSHOT_NAME}
-      exclude:
+      - filtertype: pattern
+        kind: prefix
+        value: ${SNAPSHOT_NAME}
