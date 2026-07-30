@@ -10,6 +10,7 @@ Library  String
 Resource  ../shared/keywords.robot
 Suite Setup  Prepare
 Test Setup  Prepare Test
+Suite Teardown  Delete All Sessions
 
 *** Keywords ***
 Prepare
@@ -45,7 +46,7 @@ Check Master Node Changed
 
 Check Replica Shard Become Primary
     [Arguments]  ${index_name}  ${row}
-    ${content}=  Search Document  ${index_name}
+    Force Merge Index  ${index_name}
     ${shards_distribution}=  Get Index Information  ${index_name}
     ${boolean_result}=  Replica Shard Become Primary  ${shards_distribution}  ${row['shard']}  ${row['replica_service']}
     Should Be True  ${boolean_result}
@@ -79,7 +80,6 @@ Data Files Corrupted On Primary Shard
     ${row}=  Get Primary Shard Description To Corrupt  ${index_information}
     ${command}=  Get Command To Corrupt Shard  ${uuid}  ${row['shard']}
     Execute Command In Pod  ${row['node']}  ${OPENSEARCH_NAMESPACE}  ${command}
-    Sleep  ${SLEEP_TIME}
     # OpenSearch doesn’t detect problems with data files before reading.
     # After several requests OpenSearch reassigns shard with corrupted files and all requests finish successfully.
     Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
@@ -93,7 +93,6 @@ Data Files Corrupted On Replica Shard
     ${row}=  Get Replica Shard Description To Corrupt  ${index_information}
     ${command}=  Get Command to Corrupt Shard  ${uuid}  ${row['shard']}
     Execute Command In Pod  ${row['node']}  ${OPENSEARCH_NAMESPACE}  ${command}
-    Sleep  ${SLEEP_TIME}
     Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
     ...  Check Replica Shard Is Relocated  ${index_name}  ${row}
     [Teardown]  Delete OpenSearch Index  ${index_name}

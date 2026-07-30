@@ -9,6 +9,7 @@ Library  OAuthLibrary  url=${IDENTITY_PROVIDER_URL}
 ...                    registration_token=${IDENTITY_PROVIDER_REGISTRATION_TOKEN}
 ...                    username=${IDENTITY_PROVIDER_USERNAME}
 ...                    password=${IDENTITY_PROVIDER_PASSWORD}
+Suite Teardown  Delete All Sessions
 
 *** Keywords ***
 Send Request With Basic Authentication

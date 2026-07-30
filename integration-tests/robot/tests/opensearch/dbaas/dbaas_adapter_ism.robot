@@ -5,6 +5,7 @@ ${RETRY_INTERVAL}    20s
 *** Settings ***
 Resource  ./keywords.robot
 Suite Setup  Prepare
+Suite Teardown  Delete All Sessions
 
 *** Keywords ***
 Set ISM Job Interval

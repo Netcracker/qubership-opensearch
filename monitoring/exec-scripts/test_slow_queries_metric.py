@@ -21,11 +21,19 @@ from slow_queries_metric import convert_slow_log_record, _process_log_records, f
 CURRENT_DATE = "2023-08-21T13:44:04"
 SLOW_LOGS_FILENAME = "/opt/elasticsearch-monitoring/exec-scripts/test_resources/slow_logs.log"
 
+# OpenSearch 3.x record: has a trailing `request_id` field.
 log_record = ('[WARN ], 2023-07-27T08:00:43, [opensearch-1], [test-index-1][0] took[12.4ms], took_millis[12], '
               'total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[1], '
               'source[{"query":{"match":{"phrase":{"query":"heuristic","operator":"OR","prefix_length":0,'
               '"max_expansions":50,"fuzzy_transpositions":true,"lenient":false,"zero_terms_query":"NONE",'
               '"auto_generate_synonyms_phrase_query":true,"boost":1.0}}}}], id[], request_id[3076c8407ed7cbfd1521f28ac261b3f9]')
+
+# OpenSearch 2.x record: ends with `id[]`, there is no `request_id` field.
+log_record_2x = ('[WARN ], 2023-07-27T08:00:43, [opensearch-1], [test-index-1][0] took[12.4ms], took_millis[12], '
+                 'total_hits[0 hits], stats[], search_type[QUERY_THEN_FETCH], total_shards[1], '
+                 'source[{"query":{"match":{"phrase":{"query":"heuristic","operator":"OR","prefix_length":0,'
+                 '"max_expansions":50,"fuzzy_transpositions":true,"lenient":false,"zero_terms_query":"NONE",'
+                 '"auto_generate_synonyms_phrase_query":true,"boost":1.0}}}}], id[]')
 
 class TestSlowQueriesMetric(unittest.TestCase):
 
@@ -48,6 +56,27 @@ class TestSlowQueriesMetric(unittest.TestCase):
                          '"auto_generate_synonyms_phrase_query":true,"boost":1.0}}}}')
         self.assertEqual(record.id_, '')
         self.assertEqual(record.request_id, '3076c8407ed7cbfd1521f28ac261b3f9')
+
+    def test_slow_log_conversion_without_request_id(self):
+        record = convert_slow_log_record(log_record_2x)
+        self.assertEqual(record.log_level, 'WARN ')
+        self.assertEqual(record.time, '2023-07-27T08:00:43')
+        self.assertEqual(record.node, 'opensearch-1')
+        self.assertEqual(record.index, 'test-index-1')
+        self.assertEqual(record.shard, '0')
+        self.assertEqual(record.took, '12.4ms')
+        self.assertEqual(record.took_millis, '12')
+        self.assertEqual(record.total_hits, '0')
+        self.assertEqual(record.stats, '')
+        self.assertEqual(record.search_type, 'QUERY_THEN_FETCH')
+        self.assertEqual(record.total_shards, '1')
+        self.assertEqual(record.source,
+                         '{"query":{"match":{"phrase":{"query":"heuristic","operator":"OR","prefix_length":0,'
+                         '"max_expansions":50,"fuzzy_transpositions":true,"lenient":false,"zero_terms_query":"NONE",'
+                         '"auto_generate_synonyms_phrase_query":true,"boost":1.0}}}}')
+        self.assertEqual(record.id_, '')
+        self.assertIsNone(record.request_id)
+        self.assertEqual(str(record), log_record_2x)
 
     def test_processing_log_records(self):
         time_to_stop = datetime.fromisoformat("2023-08-21T13:48:35") - timedelta(minutes=5)
