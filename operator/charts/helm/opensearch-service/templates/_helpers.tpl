@@ -1204,6 +1204,18 @@ Snapshot storage class from various places.
 {{- end -}}
 
 {{/*
+Snapshot storage class from various places.
+*/}}
+{{- define "curator.snapshot.storageClassName" -}}
+  {{- if and (ne (.Values.STORAGE_RWX_CLASS | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
+    {{- .Values.STORAGE_RWX_CLASS -}}
+  {{- else -}}
+    {{- .Values.curator.snapshots.storageClass -}}
+  {{- end -}}
+{{- end -}}
+
+
+{{/*
 Master replicas from various places.
 */}}
 {{- define "opensearch.master.replicas" -}}
