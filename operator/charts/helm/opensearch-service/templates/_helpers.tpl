@@ -1207,10 +1207,10 @@ Snapshot storage class from various places.
 Snapshot storage class from various places.
 */}}
 {{- define "curator.snapshot.storageClassName" -}}
-  {{- if and (ne (.Values.STORAGE_RWX_CLASS | toString) "<nil>") .Values.global.cloudIntegrationEnabled -}}
-    {{- .Values.STORAGE_RWX_CLASS -}}
-  {{- else -}}
+  {{- if .Values.curator.snapshots.enabled -}}
     {{- .Values.curator.snapshots.storageClass -}}
+  {{- else -}}
+    {{- .Values.opensearch.master.storageClass}}
   {{- end -}}
 {{- end -}}
 
