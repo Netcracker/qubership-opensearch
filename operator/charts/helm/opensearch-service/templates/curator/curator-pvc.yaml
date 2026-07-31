@@ -1,0 +1,20 @@
+{{- if or (not .Values.opensearch.snapshots.enabled) .Values.opensearch.snapshots.s3.enabled }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-{{ template "opensearch.fullname" . }}-curator
+  labels:
+    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.curator.snapshots.size | default "1Gi" }}
+  {{- if .Values.curator.snapshots.persistentVolume }}
+  volumeName: {{ .Values.curator.snapshots.persistentVolume }}
+  {{- end }}
+  storageClassName: "{{ include "curator.snapshot.storageClassName" .}}"
+{{- end }}
