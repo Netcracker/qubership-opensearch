@@ -58,8 +58,43 @@ spec:
                 fi
               }
 
+              # OpenSearch old curator Deployment declared its probes with a 'tcpSocket'
+              # handler. The new chart uses 'httpGet/exec' handlers. A Helm strategic
+              # merge keeps the stale 'tcpSocket' field, producing a probe with two
+              # handler types, which Kubernetes rejects.
+              patch_deployment_probes() {
+                DEPLOYMENT_NAME="$1"
+                DEPLOYMENT_JSON="$($KUBECTL -n "$NS" get deployment "$DEPLOYMENT_NAME" -o json 2>/dev/null || true)"
+                if [ -z "$DEPLOYMENT_JSON" ]; then
+                  echo "[resource-migrator] Deployment $DEPLOYMENT_NAME does not exist, skipping probe migration"
+                  return
+                fi
+                PATCH_OPS="$(printf '%s' "$DEPLOYMENT_JSON" | jq -c '
+                  [ .spec.template.spec.containers
+                    | to_entries[]
+                    | .key as $ci
+                    | .value
+                    | ("livenessProbe","readinessProbe") as $probe
+                    | select(.[$probe].tcpSocket != null)
+                    | {op:"remove", path:("/spec/template/spec/containers/" + ($ci|tostring) + "/" + $probe)}
+                  ]')"
+                if [ "$PATCH_OPS" = "[]" ] || [ -z "$PATCH_OPS" ]; then
+                  echo "[resource-migrator] Deployment $DEPLOYMENT_NAME: no stale tcpSocket probe handlers, skipping"
+                  return
+                fi
+                echo "[resource-migrator] Deployment $DEPLOYMENT_NAME has stale tcpSocket probe handlers, removing: $PATCH_OPS"
+                if $KUBECTL -n "$NS" patch deployment "$DEPLOYMENT_NAME" --type=json -p="$PATCH_OPS"; then
+                  echo "[resource-migrator] Deployment $DEPLOYMENT_NAME probes patched successfully"
+                else
+                  echo "[resource-migrator][ERROR] Failed to patch probes of deployment $DEPLOYMENT_NAME"
+                  exit 1
+                fi
+              }
+
               patch_deployment_strategy "{{ template "opensearch.fullname" . }}-service-operator"
               patch_deployment_strategy "{{ template "opensearch.fullname" . }}-integration-tests"
+
+              patch_deployment_probes "{{ template "opensearch.fullname" . }}-curator"
 
               STATEFULSET_NAMES="{{ trim (include "opensearch.statefulsetNames" .) }}"
 
