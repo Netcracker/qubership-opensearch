@@ -1070,7 +1070,7 @@ curator:
       additionalIpAddresses: []
 
   snapshots:
-    enabled: true
+    enabled: false
     repositoryName: "snapshots"
     persistentVolume: ""
     persistentVolumeClaim: ""
