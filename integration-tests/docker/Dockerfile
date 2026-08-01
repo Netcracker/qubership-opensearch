@@ -1,4 +1,4 @@
-FROM ghcr.io/netcracker/qubership-docker-integration-tests:feature-add_tini_wrapper
+FROM ghcr.io/netcracker/qubership-docker-integration-tests:bugfix-add_retry_to_write_status
 
 USER root
 
