@@ -1210,7 +1210,7 @@ Snapshot storage class from various places.
   {{- if .Values.curator.snapshots.enabled -}}
     {{- .Values.curator.snapshots.storageClass -}}
   {{- else -}}
-    {{- .Values.opensearch.master.storageClass}}
+    {{- .Values.opensearch.master.persistence.storageClass}}
   {{- end -}}
 {{- end -}}
 
