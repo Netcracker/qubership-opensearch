@@ -1207,7 +1207,7 @@ Snapshot storage class from various places.
 Snapshot storage class from various places.
 */}}
 {{- define "curator.snapshot.storageClassName" -}}
-  {{- if .Values.curator.snapshots.enabled -}}
+  {{- if .Values.curator.snapshots.storageClass -}}
     {{- .Values.curator.snapshots.storageClass -}}
   {{- else -}}
     {{- .Values.opensearch.master.persistence.storageClass}}
