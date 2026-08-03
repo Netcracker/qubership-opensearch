@@ -1214,7 +1214,6 @@ Snapshot storage class from various places.
   {{- end -}}
 {{- end -}}
 
-
 {{/*
 Master replicas from various places.
 */}}
