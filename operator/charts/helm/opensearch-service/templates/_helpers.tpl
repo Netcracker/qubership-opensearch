@@ -1203,6 +1203,12 @@ Snapshot storage class from various places.
   {{- end -}}
 {{- end -}}
 
+{{- if or (not .Values.opensearch.snapshots.enabled) .Values.opensearch.snapshots.s3.enabled }}
+  {{- if and (not .Values.curator.snapshots.storageClass) (not .Values.opensearch.master.persistence.storageClass) }}
+    {{- fail "Configuration error: either .Values.curator.snapshots.storageClass or .Values.opensearch.master.persistence.storageClass must be specified." }}
+  {{- end }}
+{{- end }}
+
 {{/*
 Snapshot storage class from various places.
 */}}
