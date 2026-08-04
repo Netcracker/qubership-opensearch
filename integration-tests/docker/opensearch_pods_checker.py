@@ -47,7 +47,7 @@ def _get_secret_value(key: str) -> str:
 username = _get_secret_value("OPENSEARCH_USERNAME")
 password = _get_secret_value("OPENSEARCH_PASSWORD")
 external = environ.get("EXTERNAL_OPENSEARCH", False)
-timeout = 300
+timeout = int(sys.argv[1]) if len(sys.argv) > 1 else 300
 
 if __name__ == '__main__':
     try:
