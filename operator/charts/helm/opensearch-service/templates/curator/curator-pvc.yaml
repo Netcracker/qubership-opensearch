@@ -13,8 +13,5 @@ spec:
   resources:
     requests:
       storage: {{ .Values.curator.storage.size | default "1Gi" }}
-  {{- if .Values.curator.storage.persistentVolume }}
-  volumeName: {{ .Values.curator.storage.persistentVolume }}
-  {{- end }}
   storageClassName: "{{ include "curator.storage.storageClassName" .}}"
 {{- end }}
