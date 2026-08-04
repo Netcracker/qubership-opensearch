@@ -1,4 +1,4 @@
-{{- if or (not .Values.opensearch.snapshots.enabled) .Values.opensearch.snapshots.s3.enabled }}
+{{- if .Values.curator.enabled }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -12,9 +12,9 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.curator.snapshots.size | default "1Gi" }}
-  {{- if .Values.curator.snapshots.persistentVolume }}
-  volumeName: {{ .Values.curator.snapshots.persistentVolume }}
+      storage: {{ .Values.curator.storage.size | default "1Gi" }}
+  {{- if .Values.curator.storage.persistentVolume }}
+  volumeName: {{ .Values.curator.storage.persistentVolume }}
   {{- end }}
-  storageClassName: "{{ include "curator.snapshot.storageClassName" .}}"
+  storageClassName: "{{ include "curator.storage.storageClassName" .}}"
 {{- end }}

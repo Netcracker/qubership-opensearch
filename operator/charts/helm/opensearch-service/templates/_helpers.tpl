@@ -1203,20 +1203,15 @@ Snapshot storage class from various places.
   {{- end -}}
 {{- end -}}
 
-{{- if or (not .Values.opensearch.snapshots.enabled) .Values.opensearch.snapshots.s3.enabled }}
-  {{- if and (not .Values.curator.snapshots.storageClass) (not .Values.opensearch.master.persistence.storageClass) }}
-    {{- fail "Configuration error: either .Values.curator.snapshots.storageClass or .Values.opensearch.master.persistence.storageClass must be specified." }}
-  {{- end }}
-{{- end }}
 
 {{/*
 Snapshot storage class from various places.
 */}}
-{{- define "curator.snapshot.storageClassName" -}}
-  {{- if .Values.curator.snapshots.storageClass -}}
-    {{- .Values.curator.snapshots.storageClass -}}
+{{- define "curator.storage.storageClassName" -}}
+  {{- if .Values.curator.storage.storageClass -}}
+    {{- .Values.curator.storage.storageClass -}}
   {{- else -}}
-    {{- .Values.opensearch.master.persistence.storageClass}}
+    {{- include "opensearch.master.storageClassName" . -}}
   {{- end -}}
 {{- end -}}
 

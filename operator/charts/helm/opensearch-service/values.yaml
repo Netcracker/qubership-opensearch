@@ -1069,14 +1069,12 @@ curator:
       additionalDnsNames: []
       additionalIpAddresses: []
 
-  snapshots:
-    enabled: false
-    repositoryName: "snapshots"
+  storage:
+    enabled: true
     persistentVolume: ""
     persistentVolumeClaim: ""
     storageClass: ""
     size: 5Gi
-    s3Aliases: [ ]
 
   indicesCleanerSchedulerUnit: ""
   indicesCleanerSchedulerUnitCount: ""

@@ -4,6 +4,11 @@
 {{- if and .Values.deployDescriptor .Values.dockerOpensearch (ne (.Values.DEPLOY_W_HELM | toString) "true") }}
   {{- fail "OpenSearch requires `DEPLOY_W_HELM` parameter to be set to `true` for App Deployer" }}
 {{- end }}
+{{- if .Values.curator.enabled }}
+  {{- if and (not .Values.curator.storage.storageClass)  (empty (include "opensearch.master.storageClassName" . | trim)) }}
+    {{- fail "Configuration error: either .Values.curator.snapshots.storageClass or .Values.opensearch.master.persistence.storageClass must be specified." }}
+  {{- end }}
+{{- end }}
 apiVersion: netcracker.com/v1
 kind: OpenSearchService
 metadata:
