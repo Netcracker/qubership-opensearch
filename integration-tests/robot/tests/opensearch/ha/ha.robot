@@ -97,10 +97,3 @@ Data Files Corrupted On Replica Shard
     Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
     ...  Check Replica Shard Is Relocated  ${index_name}  ${row}
     [Teardown]  Delete OpenSearch Index  ${index_name}
-
-Test Container Hardening
-    [Tags]  ha  opensearch_ha  opensearch_container_hardening
-    [Setup]  None
-    ${part_of}=  Create List  opensearch-service
-    ${exclusions}=  Create Dictionary  _all=CH12  ${OPENSEARCH_MASTER_NODES_NAME}=CH4    ${OPENSEARCH_HOST}-client=CH4    ${OPENSEARCH_HOST}-data=CH4    ${OPENSEARCH_HOST}-arbiter=CH4
-    Check Container Hardening    ${part_of}    ${OPENSEARCH_NAMESPACE}    ${exclusions}

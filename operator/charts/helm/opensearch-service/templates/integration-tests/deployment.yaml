@@ -109,6 +109,8 @@ spec:
               value: {{ $integrationTestsPodSecretsMount | quote }}
             - name: OPENSEARCH_MASTER_NODES_NAME
               value: {{ template "master-nodes" . }}
+            - name: HARDENING_EXCLUSIONS
+              value: {{ include "opensearch-service.hardeningExclusions" . | trim | quote }}
             - name: S3_ALIASES_SECRET_NAME
               value: {{ template "opensearch.fullname" . }}-s3-aliases
             - name: S3_DEFAULT_ALIAS_NAME

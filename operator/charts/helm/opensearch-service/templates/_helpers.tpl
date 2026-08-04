@@ -1348,6 +1348,32 @@ Ingress host for OpenSearch
   {{- end -}}
 {{- end -}}
 
+{{/*
+Container hardening rules to exclude per OpenSearch node
+*/}}
+{{- define "opensearch-service.hardeningExclusions" }}
+    {{- $rules := list "CH4" }}
+    {{- if .Values.opensearch.sysctl.enabled }}
+        {{- $rules = concat $rules (list "CH1" "CH2" "CH5") }}
+    {{- end }}
+    {{- $clientRuleString := $rules | uniq | sortAlpha | join "," }}
+    {{- if .Values.opensearch.fixmount.enabled }}
+        {{- $rules = concat $rules (list "CH1" "CH5") }}
+    {{- end }}
+    {{- $ruleString := $rules | uniq | sortAlpha | join "," }}
+
+    {{- $exclusions := dict (include "master-nodes" .) $ruleString }}
+    {{- if eq (include "opensearch.useDataNodes" .) "true" }}
+        {{- $_ := set $exclusions (printf "%s-data" (include "opensearch.fullname" .)) $ruleString }}
+    {{- end }}
+    {{- if and .Values.opensearch.client.enabled .Values.opensearch.client.dedicatedPod.enabled }}
+        {{- $_ := set $exclusions (printf "%s-client" (include "opensearch.fullname" .)) $clientRuleString }}
+    {{- end }}
+    {{- if .Values.opensearch.arbiter.enabled }}
+        {{- $_ := set $exclusions (printf "%s-arbiter" (include "opensearch.fullname" .)) $ruleString }}
+    {{- end }}
+    {{- $exclusions | toJson }}
+{{- end }}
 
 {{- define "opensearch-service.monitoredImages" -}}
   {{- printf "deployment %s-service-operator %s-service-operator %s, " (include "opensearch.fullname" .) (include "opensearch.fullname" .) (include "operator.image" . ) -}}

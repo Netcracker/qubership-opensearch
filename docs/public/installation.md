@@ -1744,6 +1744,7 @@ This section contains information about integration test tags that can be used i
     * `ha_data_files_corrupted_on_primary_shard` tag runs `Data Files Corrupted On Primary Shard` test.
     * `ha_data_files_corrupted_on_replica_shard` tag runs `Data Files Corrupted On Replica Shard` test.
 * `opensearch_images` tag runs `Test Hardcoded Images` test.
+* `hardening` tag runs `Test Container Hardening` test.
 
 # Installation
 
