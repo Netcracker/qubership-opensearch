@@ -101,12 +101,12 @@ Update Document ${document} For Index ${index_name}
 
 Search Document
     [Arguments]  ${index_name}  ${timeout}=${None}
-    ${response}=  GET On Session  opensearch  /${index_name}/_search?size=50  timeout=${timeout}
+    ${response}=  GET On Session  opensearch  /${index_name}/_search  params=size=50  timeout=${timeout}
     RETURN  ${response.content}
 
 Force Merge Index
     [Arguments]  ${index_name}
-    ${response}=  POST On Session  opensearch  /${index_name}/_forcemerge?max_num_segments=1  expected_status=anything
+    ${response}=  POST On Session  opensearch  /${index_name}/_forcemerge  params=max_num_segments=1  expected_status=any
     RETURN  ${response}
 
 Search Document By Field

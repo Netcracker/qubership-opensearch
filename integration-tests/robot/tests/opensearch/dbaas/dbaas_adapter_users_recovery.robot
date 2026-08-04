@@ -29,7 +29,7 @@ Check Users Recovery State
 
 DBaaS Adapter Is Up
     ${health} =  GET On Session  dbaas_admin_session  /health
-    Should Be Equal As Strings  ${health}  {"status":"UP","opensearchHealth":{"status":"UP"},"dbaasAggregatorHealth":{"status":"OK"}}
+    Should Be Equal As Strings  ${health.content}  {"status":"UP","opensearchHealth":{"status":"UP"},"dbaasAggregatorHealth":{"status":"OK"}}
 
 Check DBaaS Adapter State
     Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
@@ -39,7 +39,7 @@ Check DBaaS Adapter State
 Change Password for User and Healthcheck Dbaas Pod
     [Tags]   dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
     ${secret}=  Get Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
-    ${secret_body}=  Set Variable  {'data': {'password': 'UUEtZ29vZC1wYXNzd29yZDEhLUFU', 'username': 'T3BlbnNlYXJjaC1hZG1pbjEhLUFU'}}
+    ${secret_body}=  Set Variable  {"data": {"password": "UUEtZ29vZC1wYXNzd29yZDEhLUFU", "username": "T3BlbnNlYXJjaC1hZG1pbjEhLUFU"}}
     ${response}=  Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${secret_body}
     ${old_secret}=  Get Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal As Strings  ${old_secret.data}  ${secret_body}
