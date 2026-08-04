@@ -1070,11 +1070,9 @@ curator:
       additionalIpAddresses: []
 
   storage:
-    enabled: true
-    persistentVolume: ""
     persistentVolumeClaim: ""
     storageClass: ""
-    size: 5Gi
+    size: 1Gi
 
   indicesCleanerSchedulerUnit: ""
   indicesCleanerSchedulerUnitCount: ""

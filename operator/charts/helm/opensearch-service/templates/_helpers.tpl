@@ -1208,11 +1208,7 @@ Snapshot storage class from various places.
 Snapshot storage class from various places.
 */}}
 {{- define "curator.storage.storageClassName" -}}
-  {{- if .Values.curator.storage.storageClass -}}
-    {{- .Values.curator.storage.storageClass -}}
-  {{- else -}}
-    {{- include "opensearch.master.storageClassName" . -}}
-  {{- end -}}
+  {{- coalesce .Values.curator.storage.storageClass (include "opensearch.master.storageClassName" .) -}}
 {{- end -}}
 
 {{/*

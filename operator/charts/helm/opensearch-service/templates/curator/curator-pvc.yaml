@@ -1,4 +1,4 @@
-{{- if .Values.curator.enabled }}
+{{- if and (not .Values.opensearch.snapshots.enabled) .Values.curator.enabled }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
