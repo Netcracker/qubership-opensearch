@@ -1,4 +1,4 @@
-{{- if and (or (not .Values.opensearch.snapshots.enabled) .Values.opensearch.snapshots.s3.enabled) .Values.curator.enabled }}
+{{- if and .Values.curator.enabled (or (not .Values.opensearch.snapshots.enabled) .Values.opensearch.snapshots.s3.enabled) (not .Values.curator.storage.persistentVolumeClaim) }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
