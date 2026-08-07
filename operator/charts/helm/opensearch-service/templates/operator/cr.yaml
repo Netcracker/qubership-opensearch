@@ -6,7 +6,6 @@
 {{- end }}
 {{- if and .Values.curator.enabled (or (not .Values.opensearch.snapshots.enabled) .Values.opensearch.snapshots.s3.enabled) }}
   {{- if and
-      (empty (include "opensearch.master.storageClassName" . | trim))
       (empty (include "curator.storage.storageClassName" . | trim))
   }}
     {{- fail "Either opensearch.master.storageClassName or curator.storage.storageClassName must be specified." }}
