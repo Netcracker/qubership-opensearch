@@ -15,6 +15,9 @@ metadata:
     {{- include "opensearch-service.defaultLabels" $ | nindent 4 }}
   annotations:
     "helm.sh/resource-policy": keep
+    {{- range $key, $value := mustMerge (dict) $.Values.opensearch.arbiter.persistence.annotations $.Values.pvc.metadata.annotations }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
 spec:
   accessModes:
     - ReadWriteOnce

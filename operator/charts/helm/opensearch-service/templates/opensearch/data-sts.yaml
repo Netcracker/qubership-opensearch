@@ -283,7 +283,7 @@ spec:
     - metadata:
         name: pvc
         annotations:
-        {{- range $key, $value := .Values.opensearch.data.persistence.annotations }}
+        {{- range $key, $value := mustMerge (dict) .Values.opensearch.data.persistence.annotations .Values.pvc.metadata.annotations }}
           {{ $key }}: {{ $value }}
         {{- end }}
       spec:

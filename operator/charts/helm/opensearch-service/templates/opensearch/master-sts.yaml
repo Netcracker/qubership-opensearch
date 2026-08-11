@@ -443,7 +443,7 @@ spec:
     - metadata:
         name: pvc
         annotations:
-        {{- range $key, $value := .Values.opensearch.master.persistence.annotations }}
+        {{- range $key, $value := mustMerge (dict) .Values.opensearch.master.persistence.annotations .Values.pvc.metadata.annotations }}
           {{ $key }}: {{ $value }}
         {{- end }}
       spec:

@@ -268,8 +268,8 @@ opensearch:
     path: "/usr/share/opensearch/config/opensearch-security"
     authc:
       basic:
-        username: "Admin1234!"
-        password: "Admin1234!"
+        username: ""
+        password: ""
       oidc:
         subject_key: preferred_username
         openid_connect_url: ""
@@ -1278,6 +1278,11 @@ migration:
     limits:
       memory: 512Mi
       cpu: 500m
+
+pvc:
+  metadata:
+    annotations: {}
+#      argocd.argoproj.io/sync-options: Prune=false
 
 nameOverride: "opensearch"
 fullnameOverride: "opensearch"
