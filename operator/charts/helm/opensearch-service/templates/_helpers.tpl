@@ -1203,6 +1203,14 @@ Snapshot storage class from various places.
   {{- end -}}
 {{- end -}}
 
+
+{{/*
+Snapshot storage class from various places.
+*/}}
+{{- define "curator.storage.storageClassName" -}}
+  {{- coalesce .Values.curator.storage.storageClass (include "opensearch.master.storageClassName" .) -}}
+{{- end -}}
+
 {{/*
 Master replicas from various places.
 */}}

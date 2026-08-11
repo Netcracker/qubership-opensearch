@@ -1069,6 +1069,11 @@ curator:
       additionalDnsNames: []
       additionalIpAddresses: []
 
+  storage:
+    persistentVolumeClaim: ""
+    storageClass: ""
+    size: 1Gi
+
   indicesCleanerSchedulerUnit: ""
   indicesCleanerSchedulerUnitCount: ""
   indicesCleanerConfigurationKey: "patterns_to_delete"
