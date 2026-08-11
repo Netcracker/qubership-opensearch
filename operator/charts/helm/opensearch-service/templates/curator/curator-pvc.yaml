@@ -7,6 +7,9 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
   annotations:
     "helm.sh/resource-policy": keep
+    {{- if .Values.pvc.metadata.annotations }}
+{{ toYaml .Values.pvc.metadata.annotations | indent 4 }}
+    {{- end }}
 spec:
   accessModes:
     - ReadWriteOnce

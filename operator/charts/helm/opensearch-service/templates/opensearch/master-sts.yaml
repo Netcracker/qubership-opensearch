@@ -443,8 +443,8 @@ spec:
     - metadata:
         name: pvc
         annotations:
-        {{- range $key, $value := .Values.opensearch.master.persistence.annotations }}
-          {{ $key }}: {{ $value }}
+        {{- range $key, $value := (include "opensearch.master.persistence.annotations" . | fromJson) }}
+          {{ $key }}: {{ $value | quote }}
         {{- end }}
       spec:
         accessModes:

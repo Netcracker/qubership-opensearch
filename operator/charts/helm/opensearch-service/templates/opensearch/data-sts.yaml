@@ -283,8 +283,8 @@ spec:
     - metadata:
         name: pvc
         annotations:
-        {{- range $key, $value := .Values.opensearch.data.persistence.annotations }}
-          {{ $key }}: {{ $value }}
+        {{- range $key, $value := (include "opensearch.data.persistence.annotations" . | fromJson) }}
+          {{ $key }}: {{ $value | quote }}
         {{- end }}
       spec:
         accessModes:

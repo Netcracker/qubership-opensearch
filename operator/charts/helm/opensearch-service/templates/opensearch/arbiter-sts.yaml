@@ -436,8 +436,8 @@ spec:
     - metadata:
         name: pvc
         annotations:
-        {{- range $key, $value := .Values.opensearch.arbiter.persistence.annotations }}
-          {{ $key }}: {{ $value }}
+        {{- range $key, $value := (include "opensearch.arbiter.persistence.annotations" . | fromJson) }}
+          {{ $key }}: {{ $value | quote }}
         {{- end }}
       spec:
         accessModes:

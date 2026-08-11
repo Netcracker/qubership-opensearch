@@ -1212,6 +1212,27 @@ Snapshot storage class from various places.
 {{- end -}}
 
 {{/*
+Annotations for master Persistent Volume Claim
+*/}}
+{{- define "opensearch.master.persistence.annotations" -}}
+  {{ mustMerge (dict) .Values.opensearch.master.persistence.annotations .Values.pvc.metadata.annotations | toJson }}
+{{- end }}
+
+{{/*
+Annotations for data Persistent Volume Claim
+*/}}
+{{- define "opensearch.data.persistence.annotations" -}}
+  {{ mustMerge (dict) .Values.opensearch.data.persistence.annotations .Values.pvc.metadata.annotations | toJson }}
+{{- end }}
+
+{{/*
+Annotations for arbiter Persistent Volume Claim
+*/}}
+{{- define "opensearch.arbiter.persistence.annotations" -}}
+  {{ mustMerge (dict) .Values.opensearch.arbiter.persistence.annotations .Values.pvc.metadata.annotations | toJson }}
+{{- end }}
+
+{{/*
 Master replicas from various places.
 */}}
 {{- define "opensearch.master.replicas" -}}
