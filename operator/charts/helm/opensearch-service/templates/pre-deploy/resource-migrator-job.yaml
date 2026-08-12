@@ -60,6 +60,7 @@ spec:
 
               patch_deployment_strategy "{{ template "opensearch.fullname" . }}-service-operator"
               patch_deployment_strategy "{{ template "opensearch.fullname" . }}-integration-tests"
+              patch_deployment_strategy "{{ template "opensearch.fullname" . }}-curator"
 
               STATEFULSET_NAMES="{{ trim (include "opensearch.statefulsetNames" .) }}"
 

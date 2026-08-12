@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strconv"
 	"strings"
 	"time"
 
@@ -1108,7 +1109,10 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 
 	for i := range pvcList.Items {
 		pvc := &pvcList.Items[i]
-		if !strings.HasPrefix(pvc.Name, prefix) || strings.HasSuffix(pvc.Name, "-snapshots") {
+		if !strings.HasPrefix(pvc.Name, prefix) {
+			continue
+		}
+		if _, err := strconv.Atoi(strings.TrimPrefix(pvc.Name, prefix)); err != nil {
 			continue
 		}
 		pvcs = append(pvcs, pvc)
