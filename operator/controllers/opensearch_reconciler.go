@@ -25,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strconv"
+	"regexp"
 	"strings"
 	"time"
 
@@ -1093,7 +1093,10 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 		return nil
 	}
 
-	prefix := claimTemplateName + "-" + sts.Name + "-"
+	pvcNamePattern, err := regexp.Compile(fmt.Sprintf(`^%s-%s-\d+$`, claimTemplateName, sts.Name))
+	if err != nil {
+		return err
+	}
 
 	wantReplicas := *sts.Spec.Replicas
 	if sts.Spec.Replicas == nil {
@@ -1109,10 +1112,7 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 
 	for i := range pvcList.Items {
 		pvc := &pvcList.Items[i]
-		if !strings.HasPrefix(pvc.Name, prefix) {
-			continue
-		}
-		if _, err := strconv.Atoi(strings.TrimPrefix(pvc.Name, prefix)); err != nil {
+		if !pvcNamePattern.MatchString(pvc.Name) {
 			continue
 		}
 		pvcs = append(pvcs, pvc)
