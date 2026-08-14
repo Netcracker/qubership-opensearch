@@ -76,7 +76,7 @@ jobs:
           fi
 
       - name: Create tags for images
-        uses: netcracker/qubership-workflow-hub/actions/metadata-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@b6bee6f61fdc8b367777c1173fc852a58878a6a7  # v2.5.0
         id: meta
         with:
           default-template: "{{ref-name}}"
@@ -87,7 +87,7 @@ jobs:
 
       - name: Set opensearch Major Version
         id: set-opensearch-major-version
-        uses: netcracker/qubership-workflow-hub/actions/metadata-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
+        uses: netcracker/qubership-workflow-hub/actions/metadata-action@b6bee6f61fdc8b367777c1173fc852a58878a6a7  # v2.5.0
         with:
           ref: ${{ env.OPENSEARCH_VERSION }}
           default-template: "{{ref-name}}"
