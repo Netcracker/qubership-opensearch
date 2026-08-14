@@ -16,12 +16,13 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/Netcracker/qubership-opensearch/operator/util"
-	"github.com/go-logr/logr"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/Netcracker/qubership-opensearch/operator/util"
+	"github.com/go-logr/logr"
 )
 
 const (
@@ -40,20 +41,25 @@ type SlowLogIndicesHelper struct {
 type SlowLogIndicesWatcher struct {
 	lock  *sync.Mutex
 	State *string
+	// generation identifies the currently active watch goroutine.
+	generation *int
 }
 
 func NewSlowLogIndicesWatcher(mutex *sync.Mutex) SlowLogIndicesWatcher {
 	state := stoppedWatcherState
+	generation := 0
 	return SlowLogIndicesWatcher{
-		lock:  mutex,
-		State: &state,
+		lock:       mutex,
+		State:      &state,
+		generation: &generation,
 	}
 }
 
 func (sliw SlowLogIndicesWatcher) start(helper SlowLogIndicesHelper, indicesPattern string, minSeconds int) {
 	sliw.stop(helper)
 	*sliw.State = runningWatcherState
-	go sliw.watch(helper, indicesPattern, minSeconds)
+	*sliw.generation++
+	go sliw.watch(helper, indicesPattern, minSeconds, *sliw.generation)
 }
 
 func (sliw SlowLogIndicesWatcher) stop(helper SlowLogIndicesHelper) {
@@ -63,15 +69,16 @@ func (sliw SlowLogIndicesWatcher) stop(helper SlowLogIndicesHelper) {
 	}
 }
 
-func (sliw SlowLogIndicesWatcher) watch(helper SlowLogIndicesHelper, indicesPattern string, minSeconds int) {
-	sliw.lock.Lock()
-	defer sliw.lock.Unlock()
+func (sliw SlowLogIndicesWatcher) watch(helper SlowLogIndicesHelper, indicesPattern string, minSeconds int, generation int) {
 	for {
-		if *sliw.State == stoppedWatcherState {
+		sliw.lock.Lock()
+		if *sliw.State == stoppedWatcherState || *sliw.generation != generation {
+			sliw.lock.Unlock()
 			helper.logger.Info("SlowLog Indices Watcher is stopped, exit from watch loop")
 			return
 		}
 		sliw.addSlowLogSetting(helper, indicesPattern, minSeconds)
+		sliw.lock.Unlock()
 		time.Sleep(watchInterval)
 	}
 }

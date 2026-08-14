@@ -21,6 +21,11 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
 	opensearchservice "github.com/Netcracker/qubership-opensearch/operator/api/v1"
 	"github.com/Netcracker/qubership-opensearch/operator/util"
 	"github.com/go-logr/logr"
@@ -37,13 +42,9 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/utils/pointer"
-	"net/http"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	kubeconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"strings"
-	"time"
 )
 
 const (
@@ -84,17 +85,20 @@ func (r *OpenSearchServiceReconciler) watchSecret(secretName string, cr *opensea
 	secret, err := r.findSecret(secretName, cr.Namespace, logger)
 	if err != nil {
 		return nil, err
-	} else {
-		// Check if there's an existing owner reference
-		if existing := metav1.GetControllerOf(secret); existing != nil && !referSameObject(existing.Name, existing.APIVersion, existing.Kind, cr.Name, cr.APIVersion, cr.Kind) {
-			secret.OwnerReferences = nil
+	}
+	// Check if there's an existing owner reference
+	if existing := metav1.GetControllerOf(secret); existing != nil {
+		if referSameObject(existing.Name, existing.APIVersion, existing.Kind, cr.Name, cr.APIVersion, cr.Kind) {
+			// The controller reference is already set, so there is nothing to update
+			return secret, nil
 		}
-		if err := controllerutil.SetControllerReference(cr, secret, r.Scheme); err != nil {
-			return nil, err
-		}
-		if err := r.updateSecret(secret, logger); err != nil {
-			return nil, err
-		}
+		secret.OwnerReferences = nil
+	}
+	if err := controllerutil.SetControllerReference(cr, secret, r.Scheme); err != nil {
+		return nil, err
+	}
+	if err := r.updateSecret(secret, logger); err != nil {
+		return nil, err
 	}
 	return secret, nil
 }

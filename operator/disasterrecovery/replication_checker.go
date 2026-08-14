@@ -20,12 +20,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Netcracker/qubership-opensearch/operator/util"
 	"net/http"
 	"os"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/Netcracker/qubership-opensearch/operator/util"
 )
 
 const (
@@ -34,6 +35,8 @@ const (
 	indexReplicationStatusPattern = "_plugins/_replication/%s/_status"
 	failedStatus                  = "FAILED"
 	opensearchHostEnvVar          = "OPENSEARCH_HOST"
+	opensearchUsernameKey         = "OPENSEARCH_USERNAME"
+	opensearchPasswordKey         = "OPENSEARCH_PASSWORD"
 )
 
 type RuleStats struct {
@@ -59,13 +62,9 @@ type Index struct {
 	Health string `json:"health"`
 }
 
-func NewReplicationChecker(opensearchName string, opensearchProtocol string, username string, password string) ReplicationChecker {
-	var credentials util.Credentials
-	if username != "" && password != "" {
-		credentials = util.NewCredentials(username, password)
-	}
+func NewReplicationChecker(opensearchName string, opensearchProtocol string) ReplicationChecker {
 	url := createUrl(opensearchProtocol, opensearchName, 9200)
-	restClient := util.NewRestClient(url, configureClient(), credentials)
+	restClient := util.NewRestClient(url, configureClient(), readOpenSearchCredentials())
 	return ReplicationChecker{
 		restClient: *restClient,
 	}
@@ -77,11 +76,25 @@ func NewReplicationCheckerWithClient(restClient util.RestClient) ReplicationChec
 	}
 }
 
+// readOpenSearchCredentials reads OpenSearch credentials from the projected
+// Secret volume mounted into the operator pod.
+func readOpenSearchCredentials() util.Credentials {
+	username := util.GetSecretValue(util.OpenSearchServiceOperatorSecretsDirEnv, opensearchUsernameKey)
+	password := util.GetSecretValue(util.OpenSearchServiceOperatorSecretsDirEnv, opensearchPasswordKey)
+	if username != "" && password != "" {
+		return util.NewCredentials(username, password)
+	}
+	return util.Credentials{}
+}
+
 type ReplicationChecker struct {
 	restClient util.RestClient
 }
 
 func (rc ReplicationChecker) CheckReplication() (string, error) {
+	// read credentials on every check to rotate them without restarting the operator
+	rc.restClient.SetCredentials(readOpenSearchCredentials())
+
 	statusCode, responseBody, err := rc.restClient.SendRequest(http.MethodGet, "_plugins/_replication/autofollow_stats", nil)
 	if err != nil {
 		log.Error(err, "An error occurred during autofollow_stats HTTP request")
