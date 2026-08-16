@@ -22,6 +22,9 @@ COPY controllers controllers/
 COPY disasterrecovery disasterrecovery/
 COPY util util/
 
+# Run unit tests before building — fails the image build if any test fails
+RUN go test -tags unit ./... -count=1
+
 # Build
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o manager main.go
 
