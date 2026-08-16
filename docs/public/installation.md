@@ -572,7 +572,8 @@ PUT /_cluster/settings
 
 ### Global Index Settings by Pattern
 
-The `opensearch.indexSettings` parameter lets you declaratively apply and maintain index-level settings across all non-system indices matching a name pattern. The operator applies these settings every 60 seconds, which means settings are re-applied to any new indices that appear after deployment.
+The `opensearch.indexSettings` parameter lets you declaratively apply and maintain index-level settings across all non-system indices matching a name pattern.
+The operator applies these settings every 60 seconds, which means settings are re-applied to any new indices that appear after deployment.
 
 Each entry in the array has two fields:
 
@@ -606,7 +607,8 @@ opensearch:
         index.translog.flush_threshold_size: "1gb"
 ```
 
-**Important:** Removing a key from `settings` does **not** reset it in OpenSearch. The setting retains its last applied value until explicitly reset. To reset a setting to the OpenSearch default, set its value to `null`:
+**Important:** Removing a key from `settings` does **not** reset it in OpenSearch. The setting retains its last applied value until explicitly reset.
+To reset a setting to the OpenSearch default, set its value to `null`:
 
 ```yaml
 opensearch:
