@@ -444,6 +444,9 @@ func (r *OpenSearchServiceReconciler) createHttpClient() http.Client {
 	retryClient.HTTPClient = &http.Client{Timeout: httpClientTimeout}
 	retryClient.RetryMax = httpClientRetryMax
 	retryClient.RetryWaitMax = httpClientRetryWaitMax
+	if !strings.EqualFold(os.Getenv("LOG_LEVEL"), "debug") {
+		retryClient.Logger = nil
+	}
 	return *retryClient.StandardClient()
 }
 

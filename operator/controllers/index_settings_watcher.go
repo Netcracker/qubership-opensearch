@@ -81,7 +81,7 @@ func (isw IndexSettingsWatcher) applyAllSettings(helper IndexSettingsHelper, ent
 			helper.logger.Error(err, "unable to apply index settings", "pattern", entry.Pattern)
 			continue
 		}
-		helper.logger.Info(fmt.Sprintf("Applied index settings for pattern '%s': status %d, response: %s",
+		helper.logger.V(1).Info(fmt.Sprintf("Applied index settings for pattern '%s': status %d, response: %s",
 			entry.Pattern, statusCode, string(responseBody)))
 	}
 }

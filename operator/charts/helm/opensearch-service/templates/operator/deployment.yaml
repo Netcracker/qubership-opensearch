@@ -72,6 +72,8 @@ spec:
               readOnly: true
           command:
             - /manager
+          args:
+            - --zap-log-level={{ default "info" .Values.operator.logLevel }}
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
