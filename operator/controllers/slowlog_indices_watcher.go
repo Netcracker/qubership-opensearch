@@ -29,7 +29,7 @@ const (
 	indicesExceptSystemPatternTemplate = "%s,-.*"
 	runningWatcherState                = "running"
 	stoppedWatcherState                = "stopped"
-	watchInterval                      = 60 * time.Second
+	watchInterval                      = 300 * time.Second
 )
 
 type SlowLogIndicesHelper struct {

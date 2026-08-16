@@ -24,7 +24,7 @@ The system SHALL periodically apply the configured settings to all non-system in
 
 #### Scenario: Settings applied on watcher tick
 
-- **WHEN** the watcher goroutine ticks (every 60 seconds)
+- **WHEN** the watcher goroutine ticks (every 300 seconds)
 - **THEN** for each entry in `indexSettings`, the operator issues a PUT `<pattern>,-.*/_settings` call with the configured settings map as the request body
 
 #### Scenario: Entries applied in declaration order
