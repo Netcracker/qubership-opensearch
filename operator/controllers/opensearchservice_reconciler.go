@@ -67,6 +67,7 @@ type OpenSearchServiceReconciler struct {
 	ResourceHashes        map[string]string
 	ReplicationWatcher    ReplicationWatcher
 	SlowLogIndicesWatcher SlowLogIndicesWatcher
+	IndexSettingsWatcher  IndexSettingsWatcher
 	StatusUpdater         util.StatusUpdater
 }
 
