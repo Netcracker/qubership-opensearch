@@ -63,6 +63,10 @@ spec:
     {{- if .Values.opensearch.master.persistence.enabled }}
     storageSize: {{ .Values.opensearch.master.persistence.size }}
     {{- end }}
+    {{- if .Values.opensearch.indexSettings }}
+    indexSettings:
+      {{- toYaml .Values.opensearch.indexSettings | nindent 4 }}
+    {{- end }}
     {{- if and .Values.opensearch.securityConfig.config.securityConfigSecret .Values.opensearch.securityConfig.config.data }}
     securityConfigurationName: {{ .Values.opensearch.securityConfig.config.securityConfigSecret }}
     {{- else }}
