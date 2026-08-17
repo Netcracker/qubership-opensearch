@@ -1499,20 +1499,17 @@ Restricted environment.
 {{- define "gateway.parentRefs" -}}
 {{- $root := index . 0 -}}
 {{- $refs := index . 1 | default list -}}
-{{- $port := index . 2 -}}
 {{- if and $root.Values.GATEWAY_SYSTEM_NAME $root.Values.GATEWAY_SYSTEM_NAMESPACE }}
 - group: gateway.networking.k8s.io
   kind: Gateway
   name: {{ $root.Values.GATEWAY_SYSTEM_NAME }}
   namespace: {{ $root.Values.GATEWAY_SYSTEM_NAMESPACE }}
-  port: {{ $port }}
 {{- else if gt (len $refs) 0 }}
 {{- range $refs }}
 - group: gateway.networking.k8s.io
   kind: Gateway
   name: {{ .name }}
   namespace: {{ .namespace }}
-  port: {{ $port }}
 {{- end }}
 {{- end }}
 {{- end -}}
