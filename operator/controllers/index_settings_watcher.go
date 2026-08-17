@@ -26,6 +26,10 @@ import (
 	"time"
 )
 
+const (
+	indexSettingsWatchInterval = 300 * time.Second
+)
+
 type IndexSettingsHelper struct {
 	logger     logr.Logger
 	restClient *util.RestClient
@@ -63,7 +67,7 @@ func (isw IndexSettingsWatcher) watch(helper IndexSettingsHelper, entries []open
 			return
 		}
 		isw.applyAllSettings(helper, entries)
-		time.Sleep(watchInterval)
+		time.Sleep(indexSettingsWatchInterval)
 	}
 }
 
