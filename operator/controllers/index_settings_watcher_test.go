@@ -21,6 +21,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -44,11 +45,11 @@ func newTestHelper(server *httptest.Server) IndexSettingsHelper {
 	}
 }
 
-func TestNewIndexSettingsWatcher_InitialStateIsStopped(t *testing.T) {
+func TestNewIndexSettingsWatcher_InitiallyNotRunning(t *testing.T) {
 	var mu sync.Mutex
 	w := NewIndexSettingsWatcher(&mu)
-	if *w.State != stoppedWatcherState {
-		t.Errorf("expected initial state %q, got %q", stoppedWatcherState, *w.State)
+	if w.isRunning() {
+		t.Error("expected a freshly created watcher to not be running")
 	}
 }
 
@@ -230,7 +231,7 @@ func TestApplyAllSettings_HTTPError_ContinuesToNextEntry(t *testing.T) {
 	}
 }
 
-func TestWatcher_StartSetsRunningState(t *testing.T) {
+func TestWatcher_StartMarksWatcherRunning(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(`{}`))
@@ -247,14 +248,14 @@ func TestWatcher_StartSetsRunningState(t *testing.T) {
 
 	// Give the goroutine time to transition to running before we check.
 	time.Sleep(20 * time.Millisecond)
-	if *w.State != runningWatcherState {
-		t.Errorf("expected state %q after start, got %q", runningWatcherState, *w.State)
+	if !w.isRunning() {
+		t.Error("expected the watcher to be running after start()")
 	}
 
 	w.stop()
 }
 
-func TestWatcher_StopSetsStoppedState(t *testing.T) {
+func TestWatcher_StopMarksWatcherNotRunning(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(`{}`))
@@ -271,12 +272,88 @@ func TestWatcher_StopSetsStoppedState(t *testing.T) {
 	time.Sleep(20 * time.Millisecond)
 
 	w.stop()
-
-	// After stop() the state flag is set immediately; the goroutine exits when it
-	// next wakes and checks the flag (within watchInterval). We only assert the flag.
-	if *w.State != stoppedWatcherState {
-		t.Errorf("expected state %q after stop, got %q", stoppedWatcherState, *w.State)
+	if w.isRunning() {
+		t.Error("expected the watcher to not be running after stop()")
 	}
+
+	// stop() cancels the watch loop's context, so the goroutine should exit
+	// promptly (well before indexSettingsWatchInterval) and release the lock,
+	// instead of lingering until it wakes up from its sleep.
+	locked := make(chan struct{})
+	go func() {
+		mu.Lock()
+		mu.Unlock()
+		close(locked)
+	}()
+	select {
+	case <-locked:
+	case <-time.After(2 * time.Second):
+		t.Fatal("watch goroutine did not exit and release the lock promptly after stop()")
+	}
+}
+
+// TestWatcher_RestartPicksUpNewEntries reproduces the previously reported bug:
+// calling start() again while a watch loop is already running (e.g. because
+// CR's indexSettings changed) used to leak the old goroutine forever with its
+// stale entries, since start() -> stop() set the state to "stopped" and then
+// immediately overwrote it back to "running" before the sleeping old
+// goroutine ever got a chance to observe "stopped". With context-based
+// cancellation, the old goroutine must exit immediately and the new one must
+// take over and apply the new entries.
+func TestWatcher_RestartPicksUpNewEntries(t *testing.T) {
+	var mu sync.Mutex
+	var paths []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		paths = append(paths, r.URL.RequestURI())
+		mu.Unlock()
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{}`))
+	}))
+	defer server.Close()
+
+	var wMu sync.Mutex
+	w := NewIndexSettingsWatcher(&wMu)
+
+	oldEntries := []opensearchservice.IndexSettingEntry{
+		{Pattern: "old*", Settings: map[string]interface{}{"k": "v1"}},
+	}
+	w.start(newTestHelper(server), oldEntries)
+	time.Sleep(20 * time.Millisecond)
+
+	// The initial start() legitimately issues one request for oldEntries;
+	// anything with "old*" from this point on would mean the stale goroutine
+	// kept looping after the restart below.
+	mu.Lock()
+	pathsBeforeRestart := len(paths)
+	mu.Unlock()
+
+	newEntries := []opensearchservice.IndexSettingEntry{
+		{Pattern: "new*", Settings: map[string]interface{}{"k": "v2"}},
+	}
+	w.start(newTestHelper(server), newEntries)
+
+	// Give the new watch loop a chance to run at least once.
+	time.Sleep(50 * time.Millisecond)
+
+	mu.Lock()
+	defer mu.Unlock()
+	for _, p := range paths[pathsBeforeRestart:] {
+		if strings.Contains(p, "old*") {
+			t.Errorf("stale watch loop with old entries kept running after restart, got request %q", p)
+		}
+	}
+	found := false
+	for _, p := range paths[pathsBeforeRestart:] {
+		if strings.Contains(p, "new*") {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("expected the restarted watcher to apply new entries, got requests: %v", paths)
+	}
+
+	w.stop()
 }
 
 func TestWatcher_NoEntriesNoRequests(t *testing.T) {

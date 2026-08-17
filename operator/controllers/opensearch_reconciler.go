@@ -612,7 +612,7 @@ func (r OpenSearchReconciler) reconcileIndexSettings() error {
 		return err
 	}
 	if r.reconciler.ResourceHashes[opensearchIndexSettingsHashName] == indexSettingsHash &&
-		*r.reconciler.IndexSettingsWatcher.State == runningWatcherState {
+		r.reconciler.IndexSettingsWatcher.isRunning() {
 		return nil
 	}
 	r.reconciler.ResourceHashes[opensearchIndexSettingsHashName] = indexSettingsHash

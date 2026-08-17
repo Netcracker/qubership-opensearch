@@ -16,6 +16,7 @@ package controllers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	opensearchservice "github.com/Netcracker/qubership-opensearch/operator/api/v1"
@@ -36,39 +37,49 @@ type IndexSettingsHelper struct {
 }
 
 type IndexSettingsWatcher struct {
-	lock  *sync.Mutex
-	State *string
+	lock   *sync.Mutex
+	cancel *context.CancelFunc
 }
 
 func NewIndexSettingsWatcher(mutex *sync.Mutex) IndexSettingsWatcher {
-	state := stoppedWatcherState
+	var cancel context.CancelFunc
 	return IndexSettingsWatcher{
-		lock:  mutex,
-		State: &state,
+		lock:   mutex,
+		cancel: &cancel,
 	}
+}
+
+// isRunning reports whether a watch loop is supposed to be running. A loop
+// already cancelled by stop() can still be finishing its current apply cycle.
+func (isw IndexSettingsWatcher) isRunning() bool {
+	return *isw.cancel != nil
 }
 
 func (isw IndexSettingsWatcher) start(helper IndexSettingsHelper, entries []opensearchservice.IndexSettingEntry) {
 	isw.stop()
-	*isw.State = runningWatcherState
-	go isw.watch(helper, entries)
+	ctx, cancel := context.WithCancel(context.Background())
+	*isw.cancel = cancel
+	go isw.watch(ctx, helper, entries)
 }
 
 func (isw IndexSettingsWatcher) stop() {
-	*isw.State = stoppedWatcherState
+	if *isw.cancel != nil {
+		(*isw.cancel)()
+		*isw.cancel = nil
+	}
 }
 
-func (isw IndexSettingsWatcher) watch(helper IndexSettingsHelper, entries []opensearchservice.IndexSettingEntry) {
+func (isw IndexSettingsWatcher) watch(ctx context.Context, helper IndexSettingsHelper, entries []opensearchservice.IndexSettingEntry) {
 	isw.lock.Lock()
 	defer isw.lock.Unlock()
-	for {
-		if *isw.State == stoppedWatcherState {
-			helper.logger.Info("Index Settings Watcher is stopped, exit from watch loop")
-			return
-		}
+	for ctx.Err() == nil {
 		isw.applyAllSettings(helper, entries)
-		time.Sleep(indexSettingsWatchInterval)
+		select {
+		case <-ctx.Done():
+		case <-time.After(indexSettingsWatchInterval):
+		}
 	}
+	helper.logger.Info("Index Settings Watcher is stopped, exit from watch loop")
 }
 
 func (isw IndexSettingsWatcher) applyAllSettings(helper IndexSettingsHelper, entries []opensearchservice.IndexSettingEntry) {
