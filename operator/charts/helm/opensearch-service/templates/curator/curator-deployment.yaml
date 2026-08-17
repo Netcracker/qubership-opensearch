@@ -17,6 +17,8 @@ metadata:
   name: {{ template "opensearch.fullname" . }}-curator
 spec:
   replicas: {{ template "opensearch.replicasForSingleService" . }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
 {{ include "opensearch.labels.selector" . | indent 6 }}
