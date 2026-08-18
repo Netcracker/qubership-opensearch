@@ -136,6 +136,19 @@ spec:
                   type: array
                 imageVariant:
                   type: string
+                indexSettings:
+                  items:
+                    properties:
+                      pattern:
+                        type: string
+                      settings:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                    required:
+                    - pattern
+                    - settings
+                    type: object
+                  type: array
                 masterStsName:
                   type: string
                 readinessTimeout:

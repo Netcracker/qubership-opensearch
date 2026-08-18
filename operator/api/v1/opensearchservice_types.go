@@ -22,18 +22,25 @@ import (
 
 // OpenSearch structure defines parameters necessary for interaction with OpenSearch
 type OpenSearch struct {
-	DedicatedClientPod        bool       `json:"dedicatedClientPod"`
-	DedicatedDataPod          bool       `json:"dedicatedDataPod"`
-	Snapshots                 *Snapshots `json:"snapshots,omitempty"`
-	SecurityConfigurationName string     `json:"securityConfigurationName"`
-	CompatibilityModeEnabled  bool       `json:"compatibilityModeEnabled,omitempty"`
-	RollingUpdate             bool       `json:"rollingUpdate,omitempty"`
-	StatefulSetNames          string     `json:"statefulSetNames,omitempty"`
-	ReadinessTimeout          string     `json:"readinessTimeout,omitempty"`
-	DisabledRestCategories    []string   `json:"disabledRestCategories,omitempty"`
-	ImageVariant              string     `json:"imageVariant,omitempty"`
-	StorageSize               string     `json:"storageSize,omitempty"`
-	MasterStsName             string     `json:"masterStsName,omitempty"`
+	DedicatedClientPod        bool                 `json:"dedicatedClientPod"`
+	DedicatedDataPod          bool                 `json:"dedicatedDataPod"`
+	Snapshots                 *Snapshots           `json:"snapshots,omitempty"`
+	SecurityConfigurationName string               `json:"securityConfigurationName"`
+	CompatibilityModeEnabled  bool                 `json:"compatibilityModeEnabled,omitempty"`
+	RollingUpdate             bool                 `json:"rollingUpdate,omitempty"`
+	StatefulSetNames          string               `json:"statefulSetNames,omitempty"`
+	ReadinessTimeout          string               `json:"readinessTimeout,omitempty"`
+	DisabledRestCategories    []string             `json:"disabledRestCategories,omitempty"`
+	ImageVariant              string               `json:"imageVariant,omitempty"`
+	StorageSize               string               `json:"storageSize,omitempty"`
+	MasterStsName             string               `json:"masterStsName,omitempty"`
+	IndexSettings             []IndexSettingEntry  `json:"indexSettings,omitempty"`
+}
+
+// IndexSettingEntry defines index settings to apply to all non-system indices matching Pattern.
+type IndexSettingEntry struct {
+	Pattern  string                 `json:"pattern"`
+	Settings map[string]interface{} `json:"settings"`
 }
 
 type ExternalOpenSearch struct {

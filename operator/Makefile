@@ -104,8 +104,12 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: test
-test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
+test: manifests generate fmt vet envtest ## Run all tests (unit + integration; requires envtest).
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test -tags unit,integration ./... -coverprofile cover.out
+
+.PHONY: unit-test
+unit-test: fmt vet ## Run unit tests (no envtest or cluster required).
+	go test -tags unit ./... -v -count=1
 
 ##@ Build
 

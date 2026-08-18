@@ -111,12 +111,14 @@ func main() {
 
 	var mutex sync.Mutex
 	var mutexTwo sync.Mutex
+	var mutexThree sync.Mutex
 	if err = (&controllers.OpenSearchServiceReconciler{
 		Client:                mgr.GetClient(),
 		Scheme:                mgr.GetScheme(),
 		ResourceHashes:        map[string]string{},
 		ReplicationWatcher:    controllers.NewReplicationWatcher(&mutex),
 		SlowLogIndicesWatcher: controllers.NewSlowLogIndicesWatcher(&mutexTwo),
+		IndexSettingsWatcher:  controllers.NewIndexSettingsWatcher(&mutexThree),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "OpenSearchService")
 		os.Exit(1)

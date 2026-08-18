@@ -570,6 +570,54 @@ PUT /_cluster/settings
 
 ## Index Configurations
 
+### Global Index Settings by Pattern
+
+The `opensearch.indexSettings` parameter lets you declaratively apply and maintain index-level settings across all non-system indices matching a name pattern.
+The operator applies these settings every 300 seconds, which means settings are re-applied to any new indices that appear after deployment.
+
+Each entry in the array has two fields:
+
+- `pattern` — an OpenSearch index name pattern (e.g. `*` for all indices, `*data*` for indices containing `data`).
+- `settings` — a flat map of index setting keys to values.
+
+Entries are applied in order. When multiple entries match the same index, later entries override earlier ones for the keys they specify.
+
+System indices (names starting with `.`) are always excluded and are never modified.
+
+**Example:**
+
+```yaml
+opensearch:
+  config:
+    cluster.routing.allocation.node_concurrent_outgoing_recoveries: 2
+    cluster.routing.allocation.node_concurrent_incoming_recoveries: 2
+    indices.recovery.max_bytes_per_sec: "20mb"
+
+  indexSettings:
+    - pattern: "*"
+      settings:
+        index.translog.durability: "async"
+        index.translog.sync_interval: "30s"
+        index.translog.flush_threshold_size: "1gb"
+
+    - pattern: "*data*"
+      settings:
+        index.translog.durability: "async"
+        index.translog.sync_interval: "15s"
+        index.translog.flush_threshold_size: "1gb"
+```
+
+**Important:** Removing a key from `settings` does **not** reset it in OpenSearch. The setting retains its last applied value until explicitly reset.
+To reset a setting to the OpenSearch default, set its value to `null`:
+
+```yaml
+opensearch:
+  indexSettings:
+    - pattern: "*"
+      settings:
+        index.translog.sync_interval: null
+```
+
 ### Number of Shards
 
 The overall goal of choosing a number of shards is to distribute an index evenly across all data nodes in the cluster. However, these shards should not be too large or too numerous.
@@ -653,6 +701,16 @@ operator:
       cpu: 100m
       memory: 256Mi
 opensearch:
+  config:
+    cluster.routing.allocation.node_concurrent_outgoing_recoveries: 2
+    cluster.routing.allocation.node_concurrent_incoming_recoveries: 2
+    indices.recovery.max_bytes_per_sec: "20mb"
+  indexSettings:
+    - pattern: "*"
+      settings:
+        index.translog.durability: "async"
+        index.translog.sync_interval: "30s"
+        index.translog.flush_threshold_size: "1gb"
   master:
     javaOpts: "-Xms2048m -Xmx2048m"
     resources:
@@ -1205,6 +1263,7 @@ Where:
 | `opensearch.tlsInit.resources.limits.memory`                  | string  | no        | 128Mi                                                                      | The maximum amount of memory the job for TLS initialization should use.                                                                                                                                                                                                                                                |
 | `opensearch.audit`                                            | object  | no        | {}                                                                         | The configuration of audit properties for OpenSearch. For more information, see [Audit Guide](/docs/public/audit.md).                                                                                                                                                                                                  |
 | `opensearch.config`                                           | object  | no        | See in [values.yaml](/operator/charts/helm/opensearch-service/values.yaml) | The configuration of common properties for OpenSearch (`opensearch.yml`). For more information, see [Modifying the YAML files](https://opensearch.org/docs/latest/security/configuration/yaml/#opensearchyml).                                                                                                         |
+| `opensearch.indexSettings`                                    | array   | no        | []                                                                         | A list of index setting entries to apply periodically (every 300 seconds) to all non-system indices matching each `pattern`. Each entry has a `pattern` field (OpenSearch index name pattern, e.g. `*` or `*data*`) and a `settings` field (a map of index setting keys to values). Entries are applied in order; later entries override earlier ones for overlapping indices. System indices (names starting with `.`) are always excluded. **Important:** removing a key from `settings` does NOT reset it in OpenSearch — you must set the value to `null` to reset it to the OpenSearch default (e.g. `index.translog.sync_interval: null`). |
 | `opensearch.log4jConfig`                                      | object  | no        | {}                                                                         | The configuration of `log4j` properties for OpenSearch (`log4j2.properties`).                                                                                                                                                                                                                                          |
 | `opensearch.loggingConfig`                                    | object  | no        | See in [values.yaml](/operator/charts/helm/opensearch-service/values.yaml) | The configuration of logging properties for OpenSearch (`logging.yml`).                                                                                                                                                                                                                                                |
 | `opensearch.transportKeyPassphrase.enabled`                   | boolean | no        | false                                                                      | Whether OpenSearch transport key passphrase is required.                                                                                                                                                                                                                                                               |

@@ -40,8 +40,9 @@ import (
 )
 
 const (
-	opensearchConfigHashName       = "config.opensearch"
-	opensearchRoleMappingsHashName = "rolemappings"
+	opensearchConfigHashName        = "config.opensearch"
+	opensearchRoleMappingsHashName  = "rolemappings"
+	opensearchIndexSettingsHashName = "spec.opensearch.indexSettings"
 	certificateFilePath            = "/certs/crt.pem"
 	healthCheckInterval            = 30 * time.Second
 	healthCheckTimeout             = 5 * time.Minute
@@ -599,7 +600,40 @@ func (r OpenSearchReconciler) Configure() error {
 		}
 	}
 
-	return r.updateCompatibilityMode(restClient)
+	if err = r.updateCompatibilityMode(restClient); err != nil {
+		return err
+	}
+
+	return r.reconcileIndexSettings()
+}
+
+func (r OpenSearchReconciler) reconcileIndexSettings() error {
+	indexSettingsHash, err := util.Hash(r.cr.Spec.OpenSearch.IndexSettings)
+	if err != nil {
+		return err
+	}
+	if r.reconciler.ResourceHashes[opensearchIndexSettingsHashName] == indexSettingsHash &&
+		r.reconciler.IndexSettingsWatcher.isRunning() {
+		return nil
+	}
+	r.reconciler.ResourceHashes[opensearchIndexSettingsHashName] = indexSettingsHash
+	helper := r.prepareIndexSettingsHelper()
+	if len(r.cr.Spec.OpenSearch.IndexSettings) > 0 {
+		r.reconciler.IndexSettingsWatcher.start(helper, r.cr.Spec.OpenSearch.IndexSettings)
+	} else {
+		r.reconciler.IndexSettingsWatcher.stop()
+	}
+	return nil
+}
+
+func (r OpenSearchReconciler) prepareIndexSettingsHelper() IndexSettingsHelper {
+	url := r.reconciler.createUrl(r.cr.Name, opensearchHttpPort)
+	client, _ := r.reconciler.configureClient()
+	credentials := r.reconciler.parseOpenSearchCredentials(r.cr, r.logger)
+	return IndexSettingsHelper{
+		logger:     r.logger,
+		restClient: util.NewRestClient(url, client, credentials),
+	}
 }
 
 func (r OpenSearchReconciler) processSecurity() (*util.RestClient, error) {

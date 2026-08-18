@@ -805,6 +805,22 @@ opensearch:
     # TLS Configuration Transport Layer truststore
     plugins.security.ssl.transport.truststore_filepath: cacerts
 
+  # indexSettings defines index-level settings to apply periodically to all non-system indices
+  # matching each pattern. Set a value to null to reset it to the OpenSearch default.
+  # Entries are applied in order; later entries override earlier ones on overlapping indices.
+  # Example:
+  # indexSettings:
+  #   - pattern: "*"
+  #     settings:
+  #       index.translog.durability: "async"
+  #       index.translog.sync_interval: "30s"
+  #       index.translog.flush_threshold_size: "1gb"
+  #   - pattern: "*bss*"
+  #     settings:
+  #       index.translog.durability: "async"
+  #       index.translog.sync_interval: "15s"
+  indexSettings: []
+
   log4jConfig: {}
 
   loggingConfig:

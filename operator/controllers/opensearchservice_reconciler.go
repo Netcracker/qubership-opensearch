@@ -67,6 +67,7 @@ type OpenSearchServiceReconciler struct {
 	ResourceHashes        map[string]string
 	ReplicationWatcher    ReplicationWatcher
 	SlowLogIndicesWatcher SlowLogIndicesWatcher
+	IndexSettingsWatcher  IndexSettingsWatcher
 	StatusUpdater         util.StatusUpdater
 }
 
@@ -443,6 +444,9 @@ func (r *OpenSearchServiceReconciler) createHttpClient() http.Client {
 	retryClient.HTTPClient = &http.Client{Timeout: httpClientTimeout}
 	retryClient.RetryMax = httpClientRetryMax
 	retryClient.RetryWaitMax = httpClientRetryWaitMax
+	if !strings.EqualFold(os.Getenv("LOG_LEVEL"), "debug") {
+		retryClient.Logger = nil
+	}
 	return *retryClient.StandardClient()
 }
 
