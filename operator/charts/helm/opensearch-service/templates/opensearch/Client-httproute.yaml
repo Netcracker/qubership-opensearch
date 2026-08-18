@@ -12,7 +12,7 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
 spec:
   parentRefs:
-  {{- include "gateway.parentRefs" (list . .Values.opensearch.client.envoyGateway.parentRefs (ternary 443 80 (.Values.global.tls.enabled))) | nindent 4 }}
+  {{- include "gateway.parentRefs" (list . .Values.opensearch.client.envoyGateway.parentRefs) | nindent 4 }}
 
   hostnames:
   {{- if .Values.opensearch.client.envoyGateway.host }}
@@ -62,38 +62,6 @@ spec:
       - group: ""
         kind: Secret
         name: {{ include "opensearch.rest-cert-secret-name" . }}
-
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: {{ $fullName }}-redirect
-  labels:
-    {{- include "opensearch.labels.standard" . | nindent 4 }}
-    {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
-spec:
-  parentRefs:
-  {{- include "gateway.parentRefs" (list . .Values.opensearch.client.envoyGateway.parentRefs 80) | nindent 4 }}
-  hostnames:
-  {{- if .Values.opensearch.client.envoyGateway.host }}
-    - {{ .Values.opensearch.client.envoyGateway.host | quote }}
-  {{- else }}
-  {{- range .Values.opensearch.client.ingress.hosts }}
-    - {{ . | quote }}
-  {{- end }}
-  {{- end }}
-
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      filters:
-        - type: RequestRedirect
-          requestRedirect:
-            scheme: https
-            statusCode: 301
-
 {{- end }}
 {{- end }}
 {{- end }}
