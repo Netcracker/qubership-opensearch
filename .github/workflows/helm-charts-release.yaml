@@ -81,7 +81,7 @@ jobs:
         run: |
           echo "IMAGE=${{ matrix.component.name }}" >> $GITHUB_ENV
       - name: Docker build
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@5a557213e92e3d22d0292330c4817c82af6704d2 #v2.1.2
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@b6bee6f61fdc8b367777c1173fc852a58878a6a7 #v2.5.0
         with:
           ref: ${{ github.ref }}
           download-artifact: false
@@ -151,7 +151,7 @@ jobs:
           echo "IMAGE_VERSION=${IMAGE_VER}" >> $GITHUB_ENV
 
       - name: Docker build
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@5a557213e92e3d22d0292330c4817c82af6704d2 #v2.1.2
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@b6bee6f61fdc8b367777c1173fc852a58878a6a7 #v2.5.0
         with:
           ref: release-${{ inputs.release }}
           download-artifact: false

@@ -113,7 +113,7 @@ jobs:
           IMAGE_TAG="${OPENSEARCH_CUSTOM_IMAGE,,}"
           echo "IMAGE_TAG=${IMAGE_TAG#*:}" >> "$GITHUB_ENV"
       - name: Docker
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@8d542a426ce561c7dce745f6b9cee068d1d7e101  # v2.0.10
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@b6bee6f61fdc8b367777c1173fc852a58878a6a7  # v2.5.0
         with:
           ref: ${{ env.INTEGRATION_BUILD_BRANCH }}
           dry-run: false
