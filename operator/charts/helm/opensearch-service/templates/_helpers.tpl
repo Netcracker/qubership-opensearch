@@ -1586,12 +1586,3 @@ Label credential Secrets so the operator restarts dependent Deployments on data 
 automation.infra/secret-change: "true"
 {{- end }}
 {{- end -}}
-
-{{/*
-Checksum of credential Secret templates for Helm-only workloads (no operator reconciler).
-*/}}
-{{- define "opensearch.checksumSecret" -}}
-{{- $root := index . 0 -}}
-{{- $template := index . 1 -}}
-{{ include (print $root.Template.BasePath $template) $root | sha256sum | trunc 63 }}
-{{- end -}}

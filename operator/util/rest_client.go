@@ -47,6 +47,10 @@ func NewRestClient(url string, httpClient http.Client, credentials Credentials) 
 	}
 }
 
+func (rc *RestClient) SetCredentials(credentials Credentials) {
+	rc.credentials = credentials
+}
+
 func (rc RestClient) SendRequest(method string, path string, body io.Reader) (int, []byte, error) {
 	return rc.SendBasicRequest(method, path, body, true)
 }

@@ -20,10 +20,11 @@ import (
 	"os"
 	"strings"
 
+	"sync"
+
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
-	"sync"
 
 	"github.com/Netcracker/qubership-opensearch/operator/disasterrecovery"
 
@@ -40,15 +41,12 @@ import (
 
 	qubershiporgv1 "github.com/Netcracker/qubership-opensearch/operator/api/v1"
 	"github.com/Netcracker/qubership-opensearch/operator/controllers"
-	"github.com/Netcracker/qubership-opensearch/operator/util"
 	//+kubebuilder:scaffold:imports
 )
 
 const (
 	opensearchProtocolEnvVar = "OPENSEARCH_PROTOCOL"
 	opensearchNameEnvVar     = "OPENSEARCH_NAME"
-	opensearchUsernameEnvVar = "OPENSEARCH_USERNAME"
-	opensearchPasswordEnvVar = "OPENSEARCH_PASSWORD"
 )
 
 var (
@@ -140,9 +138,7 @@ func main() {
 		os.Exit(1)
 	}
 	opensearchProtocol := os.Getenv(opensearchProtocolEnvVar)
-	opensearchUsername := util.GetSecretValue(util.OpenSearchServiceOperatorSecretsDirEnv, opensearchUsernameEnvVar)
-	opensearchPassword := util.GetSecretValue(util.OpenSearchServiceOperatorSecretsDirEnv, opensearchPasswordEnvVar)
-	replicationChecker := disasterrecovery.NewReplicationChecker(opensearchName, opensearchProtocol, opensearchUsername, opensearchPassword)
+	replicationChecker := disasterrecovery.NewReplicationChecker(opensearchName, opensearchProtocol)
 
 	setupLog.Info("Starting disaster recovery REST server.")
 	go func() {

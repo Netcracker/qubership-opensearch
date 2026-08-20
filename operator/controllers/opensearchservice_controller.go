@@ -17,6 +17,9 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/Netcracker/qubership-opensearch/operator/util"
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
@@ -24,12 +27,10 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
-	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -42,7 +43,6 @@ const (
 	maxRateLimiterDelay              = 60
 	minRateLimiterDelay              = 5
 	opensearchSecretHashName         = "secret.opensearch"
-	opensearchOldSecretHashName      = "secret.opensearch.old"
 	opensearchServiceConditionReason = "ReconcileCycleStatus"
 )
 
@@ -123,7 +123,15 @@ func (r *OpenSearchServiceReconciler) Reconcile(ctx context.Context, request ctr
 		}
 	}()
 
-	opensearchSecretName := fmt.Sprintf("%s-secret", instance.Name)
+	opensearchSecretName := fmt.Sprintf(secretPattern, instance.Name)
+	if instance.Spec.ExternalOpenSearch == nil {
+		// Use old OpenSearch secret with actual credentials for subsidiary components restart
+		opensearchSecretName = fmt.Sprintf(oldSecretPattern, instance.Name)
+		_, err = r.watchSecret(fmt.Sprintf(secretPattern, instance.Name), instance, log)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
 	opensearchSecretHash, err = r.calculateSecretDataHash(opensearchSecretName, opensearchSecretHashName, instance, log)
 	if err != nil {
 		return ctrl.Result{}, err
