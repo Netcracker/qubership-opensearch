@@ -42,7 +42,7 @@ Produce Slow Query Metric
 
     Should Be Equal As Strings  ${metric['index']}  ${index_name}
     Should Be Equal As Strings  ${metric['shard']}  0
-    Should Be Equal As Strings  ${metric['query']}  {}
+    Should Be Equal As Strings  ${metric['query']}  {"size":50}
     Should Be Equal As Strings  ${metric['total_hits']}  1
 
     [Teardown]  Delete OpenSearch Index  ${index_name}

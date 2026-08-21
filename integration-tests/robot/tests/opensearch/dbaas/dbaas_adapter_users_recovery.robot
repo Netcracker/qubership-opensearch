@@ -27,6 +27,11 @@ Check Users Recovery State
     ${state}=  Get Users Recovery State By Dbaas Agent
     Should Be Equal As Strings  ${state}  done
 
+Credentials Change Is Applied
+    [Arguments]  ${expected_data}
+    ${old_secret}=  Get Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
+    Should Be Equal  ${old_secret.data}  ${expected_data}
+
 DBaaS Adapter Is Up
     ${health} =  GET On Session  dbaas_admin_session  /health
     Should Be Equal As Strings  ${health.content}  {"status":"UP","opensearchHealth":{"status":"UP"},"dbaasAggregatorHealth":{"status":"OK"}}
@@ -39,12 +44,12 @@ Check DBaaS Adapter State
 Change Password for User and Healthcheck Dbaas Pod
     [Tags]   dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
     ${secret}=  Get Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
-    ${secret_body}=  Set Variable  {"data": {"password": "UUEtZ29vZC1wYXNzd29yZDEhLUFU", "username": "T3BlbnNlYXJjaC1hZG1pbjEhLUFU"}}
-    ${response}=  Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${secret_body}
-    ${old_secret}=  Get Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
-    Should Be Equal As Strings  ${old_secret.data}  ${secret_body}
+    ${new_data}=  Create Dictionary  password=UUEtZ29vZC1wYXNzd29yZDEhLUFU  username=T3BlbnNlYXJjaC1hZG1pbjEhLUFU
+    Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${{ {"data": $new_data} }}
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Credentials Change Is Applied  ${new_data}
     Check DBaaS Adapter State
-    [Teardown]  Run Keywords    Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${secret.data}
+    [Teardown]  Run Keywords    Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${{ {"data": $secret.data} }}
     ...  AND  Check DBaaS Adapter State
 
 Recover Users In OpenSearch
