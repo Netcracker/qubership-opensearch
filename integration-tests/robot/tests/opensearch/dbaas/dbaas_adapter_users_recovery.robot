@@ -27,7 +27,13 @@ Check Users Recovery State
     ${state}=  Get Users Recovery State By Dbaas Agent
     Should Be Equal As Strings  ${state}  done
 
-Credentials Change Is Applied
+Update Secret
+    [Arguments]  ${data}
+    Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${{ {"data": $data} }}
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Credentials Are Updated  ${new_data}
+
+Credentials Are Updated
     [Arguments]  ${expected_data}
     ${old_secret}=  Get Secret  ${secret_name_old}  ${OPENSEARCH_NAMESPACE}
     Should Be Equal  ${old_secret.data}  ${expected_data}
@@ -45,11 +51,9 @@ Change Password for User and Healthcheck Dbaas Pod
     [Tags]   dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
     ${secret}=  Get Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
     ${new_data}=  Create Dictionary  password=UUEtZ29vZC1wYXNzd29yZDEhLUFU  username=T3BlbnNlYXJjaC1hZG1pbjEhLUFU
-    Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${{ {"data": $new_data} }}
-    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
-    ...  Credentials Change Is Applied  ${new_data}
+    Update Secret  ${{ {"data": $new_data} }}
     Check DBaaS Adapter State
-    [Teardown]  Run Keywords    Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${{ {"data": $secret.data} }}
+    [Teardown]  Run Keywords  Update Secret  ${{ {"data": $secret.data} }}
     ...  AND  Check DBaaS Adapter State
 
 Recover Users In OpenSearch
