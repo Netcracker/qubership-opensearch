@@ -1180,7 +1180,7 @@ validateOpensearchUpgrade:
 
 integrationTests:
   enabled: false
-  dockerImage: ghcr.io/netcracker/qubership-opensearch-integration-tests:main
+  dockerImage: ghcr.io/netcracker/qubership-opensearch-integration-tests:feat_add_tests_passrate_json
   statusWritingEnabled: true
   isShortStatusMessage: true
   secrets:
