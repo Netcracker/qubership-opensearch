@@ -1212,24 +1212,42 @@ Snapshot storage class from various places.
 {{- end -}}
 
 {{/*
+Stringify an annotations map: Kubernetes annotations are always strings, so coerce every value
+(numbers, booleans) to a string.
+*/}}
+{{- define "opensearch.stringifyAnnotations" -}}
+{{- range $key, $value := . -}}
+{{ $key }}: {{ $value | toString | quote }}
+{{- end -}}
+{{- end }}
+
+{{/*
 Annotations for master Persistent Volume Claim
 */}}
 {{- define "opensearch.master.persistence.annotations" -}}
-  {{ mustMerge (dict) .Values.opensearch.master.persistence.annotations .Values.pvc.metadata.annotations | toJson }}
+{{- include "opensearch.stringifyAnnotations" (mustMerge (dict) .Values.opensearch.master.persistence.annotations .Values.pvc.metadata.annotations) -}}
 {{- end }}
 
 {{/*
 Annotations for data Persistent Volume Claim
 */}}
 {{- define "opensearch.data.persistence.annotations" -}}
-  {{ mustMerge (dict) .Values.opensearch.data.persistence.annotations .Values.pvc.metadata.annotations | toJson }}
+{{- include "opensearch.stringifyAnnotations" (mustMerge (dict) .Values.opensearch.data.persistence.annotations .Values.pvc.metadata.annotations) -}}
 {{- end }}
 
 {{/*
 Annotations for arbiter Persistent Volume Claim
 */}}
 {{- define "opensearch.arbiter.persistence.annotations" -}}
-  {{ mustMerge (dict) .Values.opensearch.arbiter.persistence.annotations .Values.pvc.metadata.annotations | toJson }}
+{{- include "opensearch.stringifyAnnotations" (mustMerge (dict) .Values.opensearch.arbiter.persistence.annotations .Values.pvc.metadata.annotations) -}}
+{{- end }}
+
+{{/*
+Annotations for standalone Persistent Volume Claims (curator, snapshots) that only receive the
+global 'pvc.metadata.annotations'.
+*/}}
+{{- define "opensearch.pvc.metadata.annotations" -}}
+{{- include "opensearch.stringifyAnnotations" (.Values.pvc.metadata.annotations | default (dict)) -}}
 {{- end }}
 
 {{/*

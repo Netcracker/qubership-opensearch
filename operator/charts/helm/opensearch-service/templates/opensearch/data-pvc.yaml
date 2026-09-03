@@ -15,9 +15,7 @@ metadata:
     {{- include "opensearch-service.defaultLabels" $ | nindent 4 }}
   annotations:
     "helm.sh/resource-policy": keep
-  {{- range $key, $value := (include "opensearch.data.persistence.annotations" . | fromJson) }}
-    {{ $key }}: {{ $value | quote }}
-  {{- end }}
+    {{- include "opensearch.data.persistence.annotations" $ | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteOnce

@@ -25,6 +25,13 @@ spec:
       {{- end }}
       containers:
         - name: migrator
+          env:
+            - name: MASTER_PVC_ANNOTATIONS
+              value: {{ include "opensearch.master.persistence.annotations" . | fromYaml | toJson | quote }}
+            - name: DATA_PVC_ANNOTATIONS
+              value: {{ include "opensearch.data.persistence.annotations" . | fromYaml | toJson | quote }}
+            - name: ARBITER_PVC_ANNOTATIONS
+              value: {{ include "opensearch.arbiter.persistence.annotations" . | fromYaml | toJson | quote }}
           image: {{ template "kubectl.image" . }}
           imagePullPolicy: {{ .Values.resourceMigration.imagePullPolicy | default "IfNotPresent" }}
           command: ["/bin/sh","-c"]
@@ -119,17 +126,22 @@ spec:
                   | jq -r '[.spec.template.spec.containers[].env[]? | select(.name == "node.master")] | length' 2>/dev/null || echo "0")"
 
                 case "$STS_NAME" in
-                  "$MASTER_STS_NAME")  DESIRED_PVC_ANN='{{ include "opensearch.master.persistence.annotations" . }}' ;;
-                  "$DATA_STS_NAME")    DESIRED_PVC_ANN='{{ include "opensearch.data.persistence.annotations" . }}' ;;
-                  "$ARBITER_STS_NAME") DESIRED_PVC_ANN='{{ include "opensearch.arbiter.persistence.annotations" . }}' ;;
+                  "$MASTER_STS_NAME")  DESIRED_PVC_ANN="$MASTER_PVC_ANNOTATIONS" ;;
+                  "$DATA_STS_NAME")    DESIRED_PVC_ANN="$DATA_PVC_ANNOTATIONS" ;;
+                  "$ARBITER_STS_NAME") DESIRED_PVC_ANN="$ARBITER_PVC_ANNOTATIONS" ;;
                   *)                   DESIRED_PVC_ANN='{}' ;;
                 esac
-                ACTUAL_PVC_ANN="$(printf '%s' "$STS_JSON" | jq -cS '.spec.volumeClaimTemplates[0].metadata.annotations // {}')"
-                DESIRED_PVC_ANN="$(printf '%s' "$DESIRED_PVC_ANN" | jq -cS '.')"
                 PVC_ANN_DRIFT=0
-                if [ "$ACTUAL_PVC_ANN" != "$DESIRED_PVC_ANN" ]; then
-                  annotate_pvcs "$STS_NAME" "$DESIRED_PVC_ANN" "$ACTUAL_PVC_ANN"
-                  PVC_ANN_DRIFT=1
+                HAS_VCT="$(printf '%s' "$STS_JSON" | jq -r '(.spec.volumeClaimTemplates // []) | length')"
+                if [ "$HAS_VCT" -gt 0 ]; then
+                  ACTUAL_PVC_ANN="$(printf '%s' "$STS_JSON" | jq -cS '.spec.volumeClaimTemplates[0].metadata.annotations // {}')"
+                  DESIRED_PVC_ANN="$(printf '%s' "$DESIRED_PVC_ANN" | jq -cS '.')"
+                  if [ "$ACTUAL_PVC_ANN" != "$DESIRED_PVC_ANN" ]; then
+                    annotate_pvcs "$STS_NAME" "$DESIRED_PVC_ANN" "$ACTUAL_PVC_ANN"
+                    PVC_ANN_DRIFT=1
+                  fi
+                else
+                  echo "[resource-migrator] StatefulSet $STS_NAME has no volumeClaimTemplates, skipping PVC annotation reconciliation"
                 fi
 
                 if [ "$NODE_MASTER" -gt 0 ] || [ "$PVC_ANN_DRIFT" -eq 1 ]; then
