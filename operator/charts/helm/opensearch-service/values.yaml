@@ -1300,6 +1300,11 @@ migration:
       memory: 512Mi
       cpu: 500m
 
+pvc:
+  metadata:
+    annotations: {}
+#      argocd.argoproj.io/sync-options: Prune=false
+
 nameOverride: "opensearch"
 fullnameOverride: "opensearch"
 

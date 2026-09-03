@@ -442,10 +442,7 @@ spec:
   volumeClaimTemplates:
     - metadata:
         name: pvc
-        annotations:
-        {{- range $key, $value := .Values.opensearch.master.persistence.annotations }}
-          {{ $key }}: {{ $value }}
-        {{- end }}
+        annotations: {{- include "opensearch.master.persistence.annotations" . | nindent 10 }}
       spec:
         accessModes:
       {{- range .Values.opensearch.master.persistence.accessModes }}

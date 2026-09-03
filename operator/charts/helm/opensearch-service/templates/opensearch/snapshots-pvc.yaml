@@ -8,6 +8,7 @@ metadata:
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
   annotations:
     "helm.sh/resource-policy": keep
+    {{- include "opensearch.pvc.metadata.annotations" . | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteMany

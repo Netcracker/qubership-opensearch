@@ -25,6 +25,13 @@ spec:
       {{- end }}
       containers:
         - name: migrator
+          env:
+            - name: MASTER_PVC_ANNOTATIONS
+              value: {{ include "opensearch.master.persistence.annotations" . | fromYaml | toJson | quote }}
+            - name: DATA_PVC_ANNOTATIONS
+              value: {{ include "opensearch.data.persistence.annotations" . | fromYaml | toJson | quote }}
+            - name: ARBITER_PVC_ANNOTATIONS
+              value: {{ include "opensearch.arbiter.persistence.annotations" . | fromYaml | toJson | quote }}
           image: {{ template "kubectl.image" . }}
           imagePullPolicy: {{ .Values.resourceMigration.imagePullPolicy | default "IfNotPresent" }}
           command: ["/bin/sh","-c"]
@@ -62,6 +69,40 @@ spec:
               patch_deployment_strategy "{{ template "opensearch.fullname" . }}-integration-tests"
               patch_deployment_strategy "{{ template "opensearch.fullname" . }}-curator"
 
+              annotate_pvcs() {
+                STATEFULSET_NAME="$1"
+                DESIRED_ANNOTATIONS="$2"
+                ACTUAL_ANNOTATIONS="$3"
+                PATCH=$(jq -cn --argjson desired "$DESIRED_ANNOTATIONS" \
+                               --argjson old     "$ACTUAL_ANNOTATIONS" '
+                        def stale: ($old | keys) - ($desired | keys);
+
+                        reduce stale[] as $key ($desired; .[$key] = null)
+                        | { metadata: { annotations: . } }
+                ')
+                PVCS="$($KUBECTL -n "$NS" get pvc \
+                  -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' \
+                  | grep -E "^pvc-${STATEFULSET_NAME}-[0-9]+$" || true)"
+                if [ -z "$PVCS" ]; then
+                  echo "[resource-migrator] No PVCs found for statefulset $STATEFULSET_NAME"
+                  return 0
+                fi
+                unset IFS
+                for PVC in $PVCS; do
+                  echo "[resource-migrator] Annotating PVC $PVC"
+                  if $KUBECTL -n "$NS" patch pvc "$PVC" --type=merge -p "$PATCH"; then
+                    echo "[resource-migrator] PVC $PVC patched successfully"
+                  else
+                    echo "[resource-migrator][ERROR] Failed to patch PVC $PVC"
+                    exit 1
+                  fi
+                done
+              }
+
+              MASTER_STS_NAME="{{ include "master-nodes" . }}"
+              DATA_STS_NAME="{{ template "opensearch.fullname" . }}-data"
+              ARBITER_STS_NAME="{{ template "opensearch.fullname" . }}-arbiter"
+
               STATEFULSET_NAMES="{{ trim (include "opensearch.statefulsetNames" .) }}"
 
               if [ -z "$STATEFULSET_NAMES" ]; then
@@ -84,8 +125,32 @@ spec:
                 NODE_MASTER="$(printf '%s' "$STS_JSON" \
                   | jq -r '[.spec.template.spec.containers[].env[]? | select(.name == "node.master")] | length' 2>/dev/null || echo "0")"
 
-                if [ "$NODE_MASTER" -gt 0 ]; then
-                  echo "[resource-migrator] StatefulSet $STS_NAME contains 'node.master' env (OpenSearch 1.x)"
+                case "$STS_NAME" in
+                  "$MASTER_STS_NAME")  DESIRED_PVC_ANN="$MASTER_PVC_ANNOTATIONS" ;;
+                  "$DATA_STS_NAME")    DESIRED_PVC_ANN="$DATA_PVC_ANNOTATIONS" ;;
+                  "$ARBITER_STS_NAME") DESIRED_PVC_ANN="$ARBITER_PVC_ANNOTATIONS" ;;
+                  *)                   DESIRED_PVC_ANN='{}' ;;
+                esac
+                PVC_ANN_DRIFT=0
+                HAS_VCT="$(printf '%s' "$STS_JSON" | jq -r '(.spec.volumeClaimTemplates // []) | length')"
+                if [ "$HAS_VCT" -gt 0 ]; then
+                  ACTUAL_PVC_ANN="$(printf '%s' "$STS_JSON" | jq -cS '.spec.volumeClaimTemplates[0].metadata.annotations // {}')"
+                  DESIRED_PVC_ANN="$(printf '%s' "$DESIRED_PVC_ANN" | jq -cS '.')"
+                  if [ "$ACTUAL_PVC_ANN" != "$DESIRED_PVC_ANN" ]; then
+                    annotate_pvcs "$STS_NAME" "$DESIRED_PVC_ANN" "$ACTUAL_PVC_ANN"
+                    PVC_ANN_DRIFT=1
+                  fi
+                else
+                  echo "[resource-migrator] StatefulSet $STS_NAME has no volumeClaimTemplates, skipping PVC annotation reconciliation"
+                fi
+
+                if [ "$NODE_MASTER" -gt 0 ] || [ "$PVC_ANN_DRIFT" -eq 1 ]; then
+                  if [ "$NODE_MASTER" -gt 0 ]; then
+                    echo "[resource-migrator] StatefulSet $STS_NAME contains 'node.master' env (OpenSearch 1.x)"
+                  fi
+                  if [ "$PVC_ANN_DRIFT" -eq 1 ]; then
+                    echo "[resource-migrator] StatefulSet $STS_NAME volumeClaimTemplates annotations changed (actual=$ACTUAL_PVC_ANN desired=$DESIRED_PVC_ANN)"
+                  fi
                   echo "[resource-migrator] Deleting StatefulSet $STS_NAME with --cascade=orphan"
                   if $KUBECTL -n "$NS" delete statefulset "$STS_NAME" --cascade=orphan --ignore-not-found=true; then
                     echo "[resource-migrator] StatefulSet $STS_NAME deleted successfully"
@@ -94,7 +159,7 @@ spec:
                     exit 1
                   fi
                 else
-                  echo "[resource-migrator] StatefulSet $STS_NAME: no 'node.master' env found, skipping"
+                  echo "[resource-migrator] StatefulSet $STS_NAME: no recreation needed, skipping"
                 fi
               done
 
