@@ -134,10 +134,6 @@ dashboards:
 global:
   clusterName: opensearch
 
-  # When true, credential Secrets are labeled for operator-driven pod restarts;
-  # Helm-only workloads use checksum annotations on pod templates.
-  autoRestartOnSecretChange: true
-
   cloudIntegrationEnabled: false
 
   imagePullSecrets: []
@@ -730,8 +726,6 @@ opensearch:
       region: ""
       sslSecretName: ""
       sslCert: ""
-      chunkedEncoding: false
-      disableSslVerification: false
       gcs:
         secretName: ""
         secretKey: ""
@@ -1169,15 +1163,6 @@ updateResourcesJob:
       cpu: "150m"
   securityContext: {}
 
-validateOpensearchUpgrade:
-  resources:
-    requests:
-      memory: "75Mi"
-      cpu: "75m"
-    limits:
-      memory: "150Mi"
-      cpu: "150m"
-
 integrationTests:
   enabled: false
   dockerImage: ghcr.io/netcracker/qubership-opensearch-integration-tests:main
@@ -1318,6 +1303,6 @@ DELIMITER: "-"
 # Artifact descriptor version which is installed.
 ARTIFACT_DESCRIPTOR_VERSION: ""  # TO_BE_REPLACED
 
-INFRA_RESTRICTED_ENVIRONMENT: "false"
+INFRA_RESTRICTED_ENVIRONMENT: false
 
 DEPLOY_W_HELM: "true"

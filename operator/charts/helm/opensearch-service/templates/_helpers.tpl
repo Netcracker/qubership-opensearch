@@ -929,6 +929,7 @@ Find an OpenSearch Dashboards image in various places.
     {{- $image := include "opensearch.image" . }}
     {{- if eq (regexFind "opensearch-[0-9]+" $image) "opensearch-3" }}3{{- else }}2{{- end }}
 {{- end -}}
+
 {{/*
 Find an OpenSearch image in various places.
 */}}
@@ -1615,13 +1616,4 @@ Mount path for env→file migrated pod secrets (readOnly projected volume).
 */}}
 {{- define "opensearch.podSecretsMountPath" -}}
 {{- printf "/etc/secrets/%s-pod-secrets" .service -}}
-{{- end -}}
-
-{{/*
-Label credential Secrets so the operator restarts dependent Deployments on data change.
-*/}}
-{{- define "opensearch.secretChangeLabels" -}}
-{{- if .Values.global.autoRestartOnSecretChange }}
-automation.infra/secret-change: "true"
-{{- end }}
 {{- end -}}
