@@ -56,8 +56,6 @@ spec:
         basePath: {{ default "" .Values.opensearch.snapshots.s3.basePath | quote }}
         region: {{ default "default" .Values.opensearch.snapshots.s3.region | quote }}
         secretName: {{ template "opensearch.fullname" . }}-s3-secret
-        chunkedEncoding: {{ .Values.opensearch.snapshots.s3.chunkedEncoding }}
-        disableSslVerification: {{ .Values.opensearch.snapshots.s3.disableSslVerification }}
       {{- end }}
     {{- end }}
     {{- if .Values.opensearch.master.persistence.enabled }}
