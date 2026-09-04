@@ -50,7 +50,7 @@ jobs:
       service_branch: '${{ github.head_ref || github.ref_name }}'
       pipeline_branch: '9fcb2de51b4d510b52ffca883515bdb388cbc16f' # v1.14.0 renovate: depName=Netcracker/qubership-test-pipelines
       runner_type: 'ubuntu-latest'
-      scope: 'nightly'
+      scope: 'pr'
       allure: true
       verify_timeout_minutes: 30
     secrets:
