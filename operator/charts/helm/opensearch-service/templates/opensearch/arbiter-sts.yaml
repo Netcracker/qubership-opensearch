@@ -435,10 +435,7 @@ spec:
   volumeClaimTemplates:
     - metadata:
         name: pvc
-        annotations:
-        {{- range $key, $value := .Values.opensearch.arbiter.persistence.annotations }}
-          {{ $key }}: {{ $value }}
-        {{- end }}
+        annotations: {{- include "opensearch.arbiter.persistence.annotations" . | nindent 10 }}
       spec:
         accessModes:
       {{- range .Values.opensearch.arbiter.persistence.accessModes }}

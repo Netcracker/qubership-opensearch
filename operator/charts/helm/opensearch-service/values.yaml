@@ -12,10 +12,10 @@ dashboards:
   resources:
     requests:
       cpu: "100m"
-      memory: "512M"
+      memory: "512Mi"
     limits:
       cpu: "100m"
-      memory: "512M"
+      memory: "512Mi"
 
   opensearchHosts: ""
 
@@ -133,10 +133,6 @@ dashboards:
 
 global:
   clusterName: opensearch
-
-  # When true, credential Secrets are labeled for operator-driven pod restarts;
-  # Helm-only workloads use checksum annotations on pod templates.
-  autoRestartOnSecretChange: true
 
   cloudIntegrationEnabled: false
 
@@ -268,8 +264,8 @@ opensearch:
     path: "/usr/share/opensearch/config/opensearch-security"
     authc:
       basic:
-        username: "Admin1234!"
-        password: "Admin1234!"
+        username: ""
+        password: ""
       oidc:
         subject_key: preferred_username
         openid_connect_url: ""
@@ -730,8 +726,6 @@ opensearch:
       region: ""
       sslSecretName: ""
       sslCert: ""
-      chunkedEncoding: false
-      disableSslVerification: false
       gcs:
         secretName: ""
         secretKey: ""
@@ -1169,15 +1163,6 @@ updateResourcesJob:
       cpu: "150m"
   securityContext: {}
 
-validateOpensearchUpgrade:
-  resources:
-    requests:
-      memory: "75Mi"
-      cpu: "75m"
-    limits:
-      memory: "150Mi"
-      cpu: "150m"
-
 integrationTests:
   enabled: false
   dockerImage: ghcr.io/netcracker/qubership-opensearch-integration-tests:main
@@ -1300,6 +1285,11 @@ migration:
       memory: 512Mi
       cpu: 500m
 
+pvc:
+  metadata:
+    annotations: {}
+#      argocd.argoproj.io/sync-options: Prune=false
+
 nameOverride: "opensearch"
 fullnameOverride: "opensearch"
 
@@ -1313,6 +1303,6 @@ DELIMITER: "-"
 # Artifact descriptor version which is installed.
 ARTIFACT_DESCRIPTOR_VERSION: ""  # TO_BE_REPLACED
 
-INFRA_RESTRICTED_ENVIRONMENT: "false"
+INFRA_RESTRICTED_ENVIRONMENT: false
 
 DEPLOY_W_HELM: "true"

@@ -6,6 +6,7 @@ ${SLEEP_TIME}             5s
 Library  String
 Resource  ../shared/keywords.robot
 Suite Setup  Prepare
+Suite Teardown  Delete All Sessions
 
 *** Keywords ***
 Prepare

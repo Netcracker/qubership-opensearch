@@ -929,6 +929,7 @@ Find an OpenSearch Dashboards image in various places.
     {{- $image := include "opensearch.image" . }}
     {{- if eq (regexFind "opensearch-[0-9]+" $image) "opensearch-3" }}3{{- else }}2{{- end }}
 {{- end -}}
+
 {{/*
 Find an OpenSearch image in various places.
 */}}
@@ -1210,6 +1211,45 @@ Snapshot storage class from various places.
 {{- define "curator.storage.storageClassName" -}}
   {{- coalesce .Values.curator.storage.storageClass (include "opensearch.master.storageClassName" .) -}}
 {{- end -}}
+
+{{/*
+Stringify an annotations map: Kubernetes annotations are always strings, so coerce every value
+(numbers, booleans) to a string.
+*/}}
+{{- define "opensearch.stringifyAnnotations" -}}
+{{- range $key, $value := . -}}
+{{ $key }}: {{ $value | toString | quote }}
+{{ end -}}
+{{- end }}
+
+{{/*
+Annotations for master Persistent Volume Claim
+*/}}
+{{- define "opensearch.master.persistence.annotations" -}}
+{{- include "opensearch.stringifyAnnotations" (mustMerge (dict) .Values.opensearch.master.persistence.annotations .Values.pvc.metadata.annotations) | trim -}}
+{{- end }}
+
+{{/*
+Annotations for data Persistent Volume Claim
+*/}}
+{{- define "opensearch.data.persistence.annotations" -}}
+{{- include "opensearch.stringifyAnnotations" (mustMerge (dict) .Values.opensearch.data.persistence.annotations .Values.pvc.metadata.annotations) | trim -}}
+{{- end }}
+
+{{/*
+Annotations for arbiter Persistent Volume Claim
+*/}}
+{{- define "opensearch.arbiter.persistence.annotations" -}}
+{{- include "opensearch.stringifyAnnotations" (mustMerge (dict) .Values.opensearch.arbiter.persistence.annotations .Values.pvc.metadata.annotations) | trim -}}
+{{- end }}
+
+{{/*
+Annotations for standalone Persistent Volume Claims (curator, snapshots) that only receive the
+global 'pvc.metadata.annotations'.
+*/}}
+{{- define "opensearch.pvc.metadata.annotations" -}}
+{{- include "opensearch.stringifyAnnotations" (.Values.pvc.metadata.annotations | default (dict)) | trim -}}
+{{- end }}
 
 {{/*
 Master replicas from various places.
@@ -1576,13 +1616,4 @@ Mount path for env→file migrated pod secrets (readOnly projected volume).
 */}}
 {{- define "opensearch.podSecretsMountPath" -}}
 {{- printf "/etc/secrets/%s-pod-secrets" .service -}}
-{{- end -}}
-
-{{/*
-Label credential Secrets so the operator restarts dependent Deployments on data change.
-*/}}
-{{- define "opensearch.secretChangeLabels" -}}
-{{- if .Values.global.autoRestartOnSecretChange }}
-automation.infra/secret-change: "true"
-{{- end }}
 {{- end -}}

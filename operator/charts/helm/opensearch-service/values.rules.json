@@ -1,0 +1,9 @@
+{
+  "^(.*).resources.(requests|limits).cpu$": {
+    "comment": "Add flag for all CPU parameters",
+    "add": {
+      "comment": "don't use type field, because it breaks backward compatibility"
+    },
+    "remove": ["type"]
+  }
+}

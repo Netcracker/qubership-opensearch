@@ -6,6 +6,7 @@ Resource  ../shared/keywords.robot
 Resource  backup_keywords.robot
 Suite Setup  Prepare
 Test Teardown  Delete Data  ${OPENSEARCH_BACKUP_INDEX}
+Suite Teardown  Delete All Sessions
 
 *** Test Cases ***
 Find Backup By Timestamp

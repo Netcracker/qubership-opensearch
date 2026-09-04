@@ -14,6 +14,7 @@ Library  DateTime
 Library  String
 Resource  ../shared/keywords.robot
 Test Setup  Prepare
+Suite Teardown  Delete All Sessions
 
 *** Keywords ***
 Prepare

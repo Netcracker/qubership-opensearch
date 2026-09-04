@@ -16,6 +16,7 @@ ${RETRY_INTERVAL}                         10s
 Resource          ../shared/keywords.robot
 Resource          backup_keywords.robot
 Suite Setup       Prepare
+Suite Teardown    Delete All Sessions
 
 *** Keywords ***
 Prepare
@@ -40,7 +41,7 @@ Get Track Id
 Create Backup V2
     [Arguments]  ${database_name}  ${blob_path}=${BACKUP_BLOB_PATH}
     ${data}=  Set Variable  {"storageName":"${BACKUP_STORAGE_NAME}","blobPath":"${blob_path}","databases":[{"databaseName":"${database_name}"}]}
-    ${response}=  Post Request  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup  data=${data}  headers=${headers}
+    ${response}=  POST On Session  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  202
     ${backup_id}=  Get Track Id  ${response.content}
     Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
@@ -49,13 +50,13 @@ Create Backup V2
 
 Check Backup Status V2
     [Arguments]  ${backup_id}  ${blob_path}=${BACKUP_BLOB_PATH}
-    ${response}=  Get Request  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}?blobPath=${blob_path}  headers=${headers}
+    ${response}=  GET On Session  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}?blobPath=${blob_path}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     Should Contain  str(${response.content})  completed
 
 Delete Backup V2
     [Arguments]  ${backup_id}  ${blob_path}=${BACKUP_BLOB_PATH}
-    ${response}=  Delete Request  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}?blobPath=${blob_path}  headers=${headers}
+    ${response}=  DELETE On Session  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}?blobPath=${blob_path}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  204
 
 Delete Backup V2 If Exists
@@ -63,14 +64,14 @@ Delete Backup V2 If Exists
     Run Keyword If  "${backup_id}" != "${None}"  Run Keyword And Ignore Error  Delete Backup V2  ${backup_id}  ${blob_path}
 
 Ensure S3 Aliases Config Available
-    ${secret_exists}=  Run Keyword And Return Status  Check Secret  ${S3_ALIASES_SECRET_NAME}  ${OPENSEARCH_NAMESPACE}
+    ${secret_exists}=  Run Keyword And Return Status  Get Secret  ${S3_ALIASES_SECRET_NAME}  ${OPENSEARCH_NAMESPACE}
     Pass Execution If  not ${secret_exists}  S3 aliases secret is absent, skip alias routing test
-    ${secret}=  Check Secret  ${S3_ALIASES_SECRET_NAME}  ${OPENSEARCH_NAMESPACE}
+    ${secret}=  Get Secret  ${S3_ALIASES_SECRET_NAME}  ${OPENSEARCH_NAMESPACE}
     ${has_alias_config}=  Evaluate  bool($secret.data) and 's3_aliases.json' in $secret.data and bool($secret.data['s3_aliases.json'])
     Pass Execution If  not ${has_alias_config}  S3 aliases config is empty, skip alias routing test
 
 Get Default S3 Alias Config
-    ${secret}=  Check Secret  ${S3_ALIASES_SECRET_NAME}  ${OPENSEARCH_NAMESPACE}
+    ${secret}=  Get Secret  ${S3_ALIASES_SECRET_NAME}  ${OPENSEARCH_NAMESPACE}
     ${aliases_base64}=  Set Variable  ${secret.data['s3_aliases.json']}
     ${aliases_json}=  Evaluate  base64.b64decode($aliases_base64).decode("utf-8")  modules=base64
     ${aliases}=  Convert Json ${aliases_json} To Type

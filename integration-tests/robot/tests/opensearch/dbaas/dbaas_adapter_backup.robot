@@ -5,7 +5,7 @@ ${OPENSEARCH_DBAAS_ADAPTER_PORT}         %{OPENSEARCH_DBAAS_ADAPTER_PORT}
 ${OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}     %{OPENSEARCH_DBAAS_ADAPTER_PROTOCOL}
 ${OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}   %{OPENSEARCH_DBAAS_ADAPTER_REPOSITORY}
 ${OPENSEARCH_DBAAS_ADAPTER_API_VERSION}  %{OPENSEARCH_DBAAS_ADAPTER_API_VERSION=v1}
-${RETRY_TIME}                            20s
+${RETRY_TIME}                            40s
 ${RETRY_INTERVAL}                        1s
 
 *** Settings ***
@@ -13,6 +13,7 @@ Library  DateTime
 Library  String
 Resource  ../shared/keywords.robot
 Suite Setup  Prepare
+Suite Teardown  Delete All Sessions
 
 *** Keywords ***
 Prepare

@@ -9,6 +9,7 @@ ${RETRY_INTERVAL}                5s
 Resource  ../shared/keywords.robot
 Suite Setup  Prepare
 Test Setup  Prepare Databases
+Suite Teardown  Delete All Sessions
 
 *** Keywords ***
 Prepare
