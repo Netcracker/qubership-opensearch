@@ -27,6 +27,8 @@ environ = os.environ
 protocol = environ.get("OPENSEARCH_PROTOCOL", "http")
 host = environ.get("OPENSEARCH_HOST", "opensearch")
 port = environ.get("OPENSEARCH_PORT", "9200")
+dbaas_adapter = environ.get("OPENSEARCH_DBAAS_ADAPTER_HOST")
+curator = environ.get("OPENSEARCH_CURATOR_HOST")
 namespace = environ.get("OPENSEARCH_NAMESPACE")
 _SECRETS_DIR = environ.get(
     "INTEGRATION_TESTS_SECRETS_DIR",
@@ -49,6 +51,44 @@ password = _get_secret_value("OPENSEARCH_PASSWORD")
 external = environ.get("EXTERNAL_OPENSEARCH", False)
 timeout = int(sys.argv[1]) if len(sys.argv) > 1 else 300
 
+
+def are_deployments_ready(platform_library, names) -> bool:
+    deployments = 0
+    ready_deployments = 0
+    for name in names:
+        deployments += platform_library.get_deployment_entities_count_for_service(namespace, name, label="name")
+        ready_deployments += platform_library.get_active_deployment_entities_count_for_service(namespace, name, label="name")
+    print(f'[Check status: {names}] deployments: {deployments}, ready deployments: {ready_deployments}')
+    return deployments == ready_deployments and deployments != 0
+
+
+def is_opensearch_ready(platform_library, url, auth) -> bool:
+    try:
+        wait_for_replicas_readiness = False
+        if not external:
+            stateful_set_names = platform_library.get_stateful_set_names_by_label(namespace, host, 'app')
+            for stateful_set_name in stateful_set_names:
+                stateful_set = platform_library.get_stateful_set(stateful_set_name, namespace)
+                if not stateful_set.status.replicas \
+                        or stateful_set.status.replicas != stateful_set.status.ready_replicas \
+                        or stateful_set.status.replicas != stateful_set.status.updated_replicas:
+                    print(f'{stateful_set_name} is not ready yet')
+                    wait_for_replicas_readiness = True
+                    break
+        if wait_for_replicas_readiness:
+            return False
+        verify = ROOT_CA_CERT_PATH if protocol == 'https' and os.path.exists(ROOT_CA_CERT_PATH) else None
+        response = requests.get(url, auth=auth, verify=verify)
+        if response.status_code == 200:
+            status = json.loads(response.content.decode('utf-8'))[0]['status']
+            if status == 'green' or (external and status == 'yellow'):
+                print('OpenSearch is ready. Waiting for subsidiary components')
+                return True
+    except Exception as e:
+        print(f'Connection with OpenSearch has not established yet: {e}')
+    return False
+
+
 if __name__ == '__main__':
     try:
         platform_library = PlatformLibrary(managed_by_operator="true")
@@ -59,30 +99,14 @@ if __name__ == '__main__':
     auth = None
     if username and password:
         auth = (username, password)
+    components = list(filter(None, (dbaas_adapter, curator)))
+    main_service_ready = False
     while timeout > time.time() - start_time:
         time.sleep(10)
-        try:
-            wait_for_replicas_readiness = False
-            if not external:
-                stateful_set_names = platform_library.get_stateful_set_names_by_label(namespace, host, 'app')
-                for stateful_set_name in stateful_set_names:
-                    stateful_set = platform_library.get_stateful_set(stateful_set_name, namespace)
-                    if not stateful_set.status.replicas \
-                            or stateful_set.status.replicas != stateful_set.status.ready_replicas \
-                            or stateful_set.status.replicas != stateful_set.status.updated_replicas:
-                        print(f'{stateful_set_name} is not ready yet')
-                        wait_for_replicas_readiness = True
-                        break
-            if wait_for_replicas_readiness:
-                continue
-            verify = ROOT_CA_CERT_PATH if protocol == 'https' and os.path.exists(ROOT_CA_CERT_PATH) else None
-            response = requests.get(url, auth=auth, verify=verify)
-            if response.status_code == 200:
-                status = json.loads(response.content.decode('utf-8'))[0]['status']
-                if status == 'green' or (external and status == 'yellow'):
-                    print('OpenSearch is ready. Waiting for subsidiary components for 30 seconds')
-                    time.sleep(30)
-                    exit(0)
-        except Exception as e:
-            print(f'Connection with OpenSearch has not established yet: {e}')
+        if not main_service_ready:
+            main_service_ready = is_opensearch_ready(platform_library, url, auth)
+            continue
+        if not components or are_deployments_ready(platform_library, components):
+            print('All components are ready.')
+            exit(0)
     exit(1)

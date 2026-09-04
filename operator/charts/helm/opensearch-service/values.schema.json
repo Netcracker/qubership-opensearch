@@ -63,7 +63,7 @@
                                 },
                                 "memory": {
                                     "type": "string",
-                                    "default": "512M",
+                                    "default": "512Mi",
                                     "$id": "#/properties/dashboards/properties/resources/properties/requests/properties/memory",
                                     "title": "The dashboards.resources.requests.memory schema",
                                     "description": "The minimum amount of memory the dashboards' container should use"
@@ -85,7 +85,7 @@
                                 },
                                 "memory": {
                                     "type": "string",
-                                    "default": "512M",
+                                    "default": "512Mi",
                                     "$id": "#/properties/dashboards/properties/resources/properties/limits/properties/memory",
                                     "title": "The dashboards.resources.limits.memory schema",
                                     "description": "The maximum amount of memory the dashboards' container should use"
@@ -1187,14 +1187,14 @@
                                     "properties": {
                                         "username": {
                                             "type": "string",
-                                            "default": "Admin1234!",
+                                            "default": "",
                                             "$id": "#/properties/opensearch/properties/securityConfig/properties/authc/properties/basic/properties/username",
                                             "title": "The opensearch.securityConfig.authc.basic.username schema",
                                             "description": "The username of the OpenSearch user with `admin` privileges"
                                         },
                                         "password": {
                                             "type": "string",
-                                            "default": "Admin1234!",
+                                            "default": "",
                                             "$id": "#/properties/opensearch/properties/securityConfig/properties/authc/properties/basic/properties/password",
                                             "title": "The opensearch.securityConfig.authc.basic.password schema",
                                             "description": "The password of the OpenSearch user with `admin` privileges"
@@ -5154,6 +5154,29 @@
             "$id": "#/properties/migration",
             "title": "The migration schema",
             "description": "migration parameters"
+        },
+        "pvc": {
+            "type": "object",
+            "properties": {
+                "metadata": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object",
+                            "default": {},
+                            "$id": "#/properties/pvc/properties/metadata/properties/annotations",
+                            "title": "The pvc.metadata.annotations schema",
+                            "description": "The annotations added to all OpenSearch persistent volume claims (master, arbiter, data nodes and curator/snapshots)"
+                        }
+                    },
+                    "$id": "#/properties/pvc/properties/metadata",
+                    "title": "The pvc.metadata schema",
+                    "description": "pvc.metadata parameters"
+                }
+            },
+            "$id": "#/properties/pvc",
+            "title": "The pvc schema",
+            "description": "pvc parameters"
         },
         "nameOverride": {
             "type": "string",

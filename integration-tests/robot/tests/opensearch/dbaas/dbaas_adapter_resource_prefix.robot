@@ -7,6 +7,7 @@ ${SLEEP_TIME}                            5s
 *** Settings ***
 Resource  ./keywords.robot
 Suite Setup  Prepare
+Suite Teardown  Delete All Sessions
 
 *** Keywords ***
 Change User Password By Dbaas Agent

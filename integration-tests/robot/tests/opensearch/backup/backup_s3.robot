@@ -6,7 +6,7 @@ ${BACKUP_STORAGE_PATH}       /backup-storage
 Resource          ../shared/keywords.robot
 Resource          backup_keywords.robot
 Suite Setup       Prepare
-
+Suite Teardown    Delete All Sessions
 Library           S3BackupLibrary  url=%{S3_URL}
 ...               bucket=%{S3_BUCKET}
 ...               key_id=${S3_KEY_ID}

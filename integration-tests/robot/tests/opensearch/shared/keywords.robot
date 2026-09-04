@@ -20,16 +20,6 @@ Prepare OpenSearch
     [Arguments]  ${need_auth}=True
     Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}  ${need_auth}
 
-Check Secret
-    [Arguments]  ${secret_name}  ${OPENSEARCH_NAMESPACE}
-    ${response}=  Get Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}
-    RETURN  ${response}
-
-Change Secret
-    [Arguments]  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
-    ${response}=  Patch Secret  ${secret_name}  ${OPENSEARCH_NAMESPACE}  ${body}
-    RETURN  ${response}
-
 Login To OpenSearch
     [Arguments]  ${username}  ${password}  ${need_auth}=True
     ${auth}=  Run Keyword If  ${need_auth}  Create List  ${username}  ${password}
@@ -111,8 +101,13 @@ Update Document ${document} For Index ${index_name}
 
 Search Document
     [Arguments]  ${index_name}  ${timeout}=${None}
-    ${response}=  GET On Session  opensearch  /${index_name}/_search  timeout=${timeout}
+    ${response}=  GET On Session  opensearch  /${index_name}/_search  params=size=50  timeout=${timeout}
     RETURN  ${response.content}
+
+Force Merge Index
+    [Arguments]  ${index_name}
+    ${response}=  POST On Session  opensearch  /${index_name}/_forcemerge  params=max_num_segments=1  expected_status=any
+    RETURN  ${response}
 
 Search Document By Field
     [Arguments]  ${index_name}  ${field_name}  ${field_value}
