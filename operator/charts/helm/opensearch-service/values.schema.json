@@ -990,6 +990,7 @@
                     "description": "The pod-level security attributes and common container settings for all pods that are related to the OpenSearch Service"
                 }
             },
+            "additionalProperties": true,
             "$id": "#/properties/global",
             "title": "The global schema",
             "description": "global parameters"
