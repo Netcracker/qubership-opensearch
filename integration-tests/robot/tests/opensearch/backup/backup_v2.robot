@@ -50,13 +50,15 @@ Create Backup V2
 
 Check Backup Status V2
     [Arguments]  ${backup_id}  ${blob_path}=${BACKUP_BLOB_PATH}
-    ${response}=  GET On Session  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}?blobPath=${blob_path}  headers=${headers}
+    ${params}=  Create Dictionary  blobPath=${blob_path}
+    ${response}=  GET On Session  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}  params=${params}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     Should Contain  str(${response.content})  completed
 
 Delete Backup V2
     [Arguments]  ${backup_id}  ${blob_path}=${BACKUP_BLOB_PATH}
-    ${response}=  DELETE On Session  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}?blobPath=${blob_path}  headers=${headers}
+    ${params}=  Create Dictionary  blobPath=${blob_path}
+    ${response}=  DELETE On Session  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}  params=${params}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  204
 
 Delete Backup V2 If Exists
