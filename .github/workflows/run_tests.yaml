@@ -36,7 +36,7 @@ jobs:
           echo "skip_tests=$SKIP_TESTS" >> $GITHUB_OUTPUT
       - name: Wait for dev_build.yml to complete
         if: steps.check.outputs.skip_tests == 'false'
-        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@3e428f45132119ce49d90f3770a45d4fe1d1078d  # v2.0.4
+        uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@4ce44398bac0a6f82e55aeb4a753aada3530de5b  # v2.7.1
         id: wait
         with:
           workflow: dev_build.yml
