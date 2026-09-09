@@ -1,6 +1,5 @@
 *** Variables ***
 ${OPENSEARCH_BACKUP_V2_INDEX}             opensearch_backup_v2_index
-${BACKUP_STORAGE_NAME}                    s3
 ${BACKUP_BLOB_PATH}                       /backup-storage/v2
 ${BACKUP_BLOB_PATH_ALIAS_TEST}            /backup-storage/v2-alias-default
 ${S3_ALIASES_SECRET_NAME}                 %{S3_ALIASES_SECRET_NAME=opensearch-s3-aliases}
@@ -40,7 +39,7 @@ Get Track Id
 
 Create Backup V2
     [Arguments]  ${database_name}  ${blob_path}=${BACKUP_BLOB_PATH}
-    ${data}=  Set Variable  {"storageName":"${BACKUP_STORAGE_NAME}","blobPath":"${blob_path}","databases":[{"databaseName":"${database_name}"}]}
+    ${data}=  Set Variable  {"storageName":"${S3_DEFAULT_ALIAS_NAME}","blobPath":"${blob_path}","databases":[{"databaseName":"${database_name}"}]}
     ${response}=  POST On Session  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup  data=${data}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  202
     ${backup_id}=  Get Track Id  ${response.content}
@@ -50,13 +49,15 @@ Create Backup V2
 
 Check Backup Status V2
     [Arguments]  ${backup_id}  ${blob_path}=${BACKUP_BLOB_PATH}
-    ${response}=  GET On Session  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}?blobPath=${blob_path}  headers=${headers}
+    ${params}=  Create Dictionary  blobPath=${blob_path}
+    ${response}=  GET On Session  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}  params=${params}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  200
     Should Contain  str(${response.content})  completed
 
 Delete Backup V2
     [Arguments]  ${backup_id}  ${blob_path}=${BACKUP_BLOB_PATH}
-    ${response}=  DELETE On Session  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}?blobPath=${blob_path}  headers=${headers}
+    ${params}=  Create Dictionary  blobPath=${blob_path}
+    ${response}=  DELETE On Session  dbaas_v2_session  /api/v2/dbaas/adapter/${DBAAS_ADAPTER_TYPE}/backups/backup/${backup_id}  params=${params}  headers=${headers}
     Should Be Equal As Strings  ${response.status_code}  204
 
 Delete Backup V2 If Exists
@@ -75,9 +76,7 @@ Get Default S3 Alias Config
     ${aliases_base64}=  Set Variable  ${secret.data['s3_aliases.json']}
     ${aliases_json}=  Evaluate  base64.b64decode($aliases_base64).decode("utf-8")  modules=base64
     ${aliases}=  Convert Json ${aliases_json} To Type
-    ${default_alias_name}=  Evaluate  next((name for name, cfg in $aliases.items() if cfg.get("default") is True), None)
-    ${default_alias_name}=  Run Keyword If  "${default_alias_name}" == "${None}"  Set Variable  ${S3_DEFAULT_ALIAS_NAME}  ELSE  Set Variable  ${default_alias_name}
-    ${default_alias}=  Evaluate  $aliases.get($default_alias_name)
+    ${default_alias}=  Evaluate  $aliases.get($S3_DEFAULT_ALIAS_NAME)
     Should Not Be Equal  ${default_alias}  ${None}
     RETURN  ${default_alias}
 
