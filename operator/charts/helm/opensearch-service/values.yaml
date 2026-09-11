@@ -14,7 +14,7 @@ dashboards:
       cpu: "100m"
       memory: "512Mi"
     limits:
-      cpu: "100m"
+      cpu: "200m"
       memory: "512Mi"
 
   opensearchHosts: ""
