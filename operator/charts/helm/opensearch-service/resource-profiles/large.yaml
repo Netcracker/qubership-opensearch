@@ -1,6 +1,6 @@
 dashboards.resources.requests.cpu: 100m
 dashboards.resources.requests.memory: 512M
-dashboards.resources.limits.cpu: 100m
+dashboards.resources.limits.cpu: 200m
 dashboards.resources.limits.memory: 512M
 global.disasterRecovery.resources.requests.cpu: 50m
 global.disasterRecovery.resources.requests.memory: 128Mi
