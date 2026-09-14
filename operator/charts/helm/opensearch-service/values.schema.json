@@ -77,7 +77,7 @@
                             "type": "object",
                             "properties": {
                                 "cpu": {
-                                    "default": "100m",
+                                    "default": "200m",
                                     "$id": "#/properties/dashboards/properties/resources/properties/limits/properties/cpu",
                                     "title": "The dashboards.resources.limits.cpu schema",
                                     "description": "The maximum number of CPUs the dashboards' container should use",
