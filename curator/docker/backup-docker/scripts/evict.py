@@ -36,13 +36,10 @@ class Evict:
 
   def evict(self):
     snapshot_name = utils.extract_snapshot_name(self._storage_folder)
-    logging.info('folder=%s snapshot=%s repository=%s',
-                 self._storage_folder, snapshot_name, SNAPSHOT_REPOSITORY_NAME)
-
     client = utils.prepare_elasticsearch_client()
     snapshot_list = curator.SnapshotList(client=client, repository=SNAPSHOT_REPOSITORY_NAME)
     snapshot_list.filter_by_regex(kind="regex", value=snapshot_name, exclude=False)
-    logging.info('matched snapshots: %s', list(getattr(snapshot_list, 'snapshots', []) or []))
+    matched = list(getattr(snapshot_list, 'snapshots', []) or [])
 
     try:
       shutil.rmtree(self._storage_folder)
@@ -50,12 +47,17 @@ class Evict:
     except FileNotFoundError:
       logging.info('Directory does not exists or already deleted')
 
-    logging.info('deleting snapshots via curator')
+    if not matched:
+      logging.warning('OpenSearch snapshot %s does not exist in repository %s',
+                      snapshot_name, SNAPSHOT_REPOSITORY_NAME)
+      return
+
+    logging.info('Deleting snapshots via OpenSearch Curator')
     delete_action = curator.DeleteSnapshots(slo=snapshot_list)
     try:
       delete_action.do_action()
     except Exception:
-      logging.exception('snapshot delete failed for %s in repository %s',
+      logging.exception('Snapshot delete failed for %s in repository %s',
                         snapshot_name, SNAPSHOT_REPOSITORY_NAME)
       raise
 
@@ -66,7 +68,6 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   logging.info('Backup eviction has started.')
-
   evict_instance = Evict()
 
   evict_instance.evict()
