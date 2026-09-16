@@ -47,6 +47,19 @@ Check DBaaS Adapter State
     Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
     ...  DBaaS Adapter Is Up
 
+OpenSearch Accepts Credentials
+    [Arguments]  ${username}  ${password}
+    Login To OpenSearch  ${username}  ${password}
+    ${response}=  GET On Session  opensearch  /_cat/health  params=h=status  expected_status=any
+    Should Be Equal As Strings  ${response.status_code}  200
+
+Restore OpenSearch Secret
+    [Arguments]  ${data}
+    Update Secret  ${data}
+    Check DBaaS Adapter State
+    Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
+    ...  OpenSearch Accepts Credentials  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}
+
 *** Test Cases ***
 Change Password for User and Healthcheck Dbaas Pod
     [Tags]   dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
@@ -54,8 +67,9 @@ Change Password for User and Healthcheck Dbaas Pod
     ${new_data}=  Create Dictionary  password=UUEtZ29vZC1wYXNzd29yZDEhLUFU  username=T3BlbnNlYXJjaC1hZG1pbjEhLUFU
     Update Secret  ${new_data}
     Check DBaaS Adapter State
-    [Teardown]  Run Keywords  Update Secret  ${secret.data}
-    ...  AND  Check DBaaS Adapter State
+    Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
+    ...  OpenSearch Accepts Credentials  OpenSearch-admin1!-AT  QA-good-password1!-AT
+    [Teardown]  Restore OpenSearch Secret  ${secret.data}
 
 Recover Users In OpenSearch
     [Tags]  dbaas  dbaas_opensearch  dbaas_recovery  dbaas_recover_users  dbaas_v2
