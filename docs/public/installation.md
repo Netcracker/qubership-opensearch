@@ -686,7 +686,7 @@ dashboards:
       cpu: 100m
       memory: 512M
     limits:
-      cpu: 100m
+      cpu: 200m
       memory: 512M
 global:
   disasterRecovery:
@@ -814,7 +814,7 @@ dashboards:
       cpu: 100m
       memory: 512M
     limits:
-      cpu: 100m
+      cpu: 200m
       memory: 512M
 global:
   disasterRecovery:
@@ -934,7 +934,7 @@ dashboards:
       cpu: 100m
       memory: 512M
     limits:
-      cpu: 100m
+      cpu: 200m
       memory: 512M
 global:
   disasterRecovery:
@@ -1134,7 +1134,7 @@ This section lists the configurable parameters of the OpenSearch chart and their
 | `dashboards.replicas`                                | integer | no        | 1                                                                            | The number of dashboards' instances.                                                                                                                                                                                                                                                                               |
 | `dashboards.resources.requests.cpu`                  | string  | no        | 100m                                                                         | The minimum number of CPUs the dashboards' container should use.                                                                                                                                                                                                                                                   |
 | `dashboards.resources.requests.memory`               | string  | no        | 512M                                                                         | The minimum amount of memory the dashboards' container should use.                                                                                                                                                                                                                                                 |
-| `dashboards.resources.limits.cpu`                    | string  | no        | 100m                                                                         | The maximum number of CPUs the dashboards' container should use.                                                                                                                                                                                                                                                   |
+| `dashboards.resources.limits.cpu`                    | string  | no        | 200m                                                                         | The maximum number of CPUs the dashboards' container should use.                                                                                                                                                                                                                                                   |
 | `dashboards.resources.limits.memory`                 | string  | no        | 512M                                                                         | The maximum amount of memory the dashboards' container should use.                                                                                                                                                                                                                                                 |
 | `dashboards.opensearchHosts`                         | string  | no        | `<protocol>://<name>-internal:9200`                                          | The OpenSearch hosts for dashboards to connect.                                                                                                                                                                                                                                                                    |
 | `dashboards.secretMounts`                            | list    | no        | []                                                                           | The list of secrets and their paths to mount inside the dashboards' pod.                                                                                                                                                                                                                                           |
