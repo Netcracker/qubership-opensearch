@@ -27,6 +27,7 @@ loggingLevel = logging.INFO
 logging.basicConfig(level=loggingLevel,
                     format='[%(asctime)s,%(msecs)03d][%(levelname)s][category=Evict] %(message)s',
                     datefmt='%Y-%m-%dT%H:%M:%S')
+logging.getLogger('curator').setLevel(loggingLevel)
 
 class Evict:
 
@@ -34,17 +35,31 @@ class Evict:
     self._storage_folder = args.folder
 
   def evict(self):
+    snapshot_name = utils.extract_snapshot_name(self._storage_folder)
     client = utils.prepare_elasticsearch_client()
     snapshot_list = curator.SnapshotList(client=client, repository=SNAPSHOT_REPOSITORY_NAME)
-    snapshot_list.filter_by_regex(kind="regex", value=utils.extract_snapshot_name(self._storage_folder), exclude=False)
+    snapshot_list.filter_by_regex(kind="regex", value=snapshot_name, exclude=False)
+    matched = list(getattr(snapshot_list, 'snapshots', []) or [])
+
     try:
       shutil.rmtree(self._storage_folder)
+      logging.info('local folder deleted: %s', self._storage_folder)
     except FileNotFoundError:
       logging.info('Directory does not exists or already deleted')
 
-    delete_action = curator.DeleteSnapshots(slo=snapshot_list)
+    if not matched:
+      logging.warning('OpenSearch snapshot %s does not exist in repository %s',
+                      snapshot_name, SNAPSHOT_REPOSITORY_NAME)
+      return
 
-    delete_action.do_action()
+    logging.info('Deleting snapshots via OpenSearch Curator')
+    delete_action = curator.DeleteSnapshots(slo=snapshot_list)
+    try:
+      delete_action.do_action()
+    except Exception:
+      logging.exception('Snapshot delete failed for %s in repository %s',
+                        snapshot_name, SNAPSHOT_REPOSITORY_NAME)
+      raise
 
 
 if __name__ == "__main__":
@@ -53,7 +68,6 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   logging.info('Backup eviction has started.')
-
   evict_instance = Evict()
 
   evict_instance.evict()
