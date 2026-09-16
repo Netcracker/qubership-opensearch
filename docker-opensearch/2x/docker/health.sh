@@ -62,6 +62,9 @@ readiness_probe() {
                 log "gcs key already added to keystore or there is no need to add gcs key."
             fi
                 log "localhost is available."
+        else
+            log "Error: OpenSearch is not ready yet: , '/_cat/health' returned http status code [$http_status_code]"
+            exit 1
         fi
     fi
     log "[readiness-probe] stop"
