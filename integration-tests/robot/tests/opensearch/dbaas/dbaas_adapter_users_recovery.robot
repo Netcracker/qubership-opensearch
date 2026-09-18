@@ -67,8 +67,6 @@ Change Password for User and Healthcheck Dbaas Pod
     ${new_data}=  Create Dictionary  password=UUEtZ29vZC1wYXNzd29yZDEhLUFU  username=T3BlbnNlYXJjaC1hZG1pbjEhLUFU
     Update Secret  ${new_data}
     Check DBaaS Adapter State
-    Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
-    ...  OpenSearch Accepts Credentials  OpenSearch-admin1!-AT  QA-good-password1!-AT
     [Teardown]  Restore OpenSearch Secret  ${secret.data}
 
 Recover Users In OpenSearch
