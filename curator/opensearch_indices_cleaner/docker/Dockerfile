@@ -1,4 +1,4 @@
-FROM python:3.14-alpine3.24
+FROM python:3.14-alpine3.24@sha256:9e9fde4d32eedce0b661d9ab91e826b62dddf28e928c230ec55f1866cac66b01
 
 ENV ELASTICSEARCH_INDICES_CLEANER_HOME=/opt/elasticsearch-indices-cleaner
 
