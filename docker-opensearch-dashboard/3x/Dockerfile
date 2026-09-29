@@ -2,6 +2,11 @@ FROM opensearchproject/opensearch-dashboards:3.7.0
 
 USER 0
 
+# Upgrade OS packages to avoid vulnerabilities
+RUN yum update --assumeyes --skip-broken \
+    && yum clean all \
+    && rm -rf /var/cache/yum/*
+
 RUN rm -f /usr/share/opensearch-dashboards/config/opensearch_dashboards.yml \
     && ln -s /tmp/dashboards/opensearch_dashboards.yml /usr/share/opensearch-dashboards/config/opensearch_dashboards.yml
 
