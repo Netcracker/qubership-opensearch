@@ -1,4 +1,4 @@
-FROM ghcr.io/netcracker/qubership-docker-integration-tests:fix_vulnerabilities_26_4
+FROM ghcr.io/netcracker/qubership-docker-integration-tests:fix-vulnerabilities_26_4
 
 USER root
 
