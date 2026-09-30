@@ -2,6 +2,9 @@ FROM opensearchproject/opensearch-dashboards:2.19.6
 
 USER 0:0
 
+RUN yum update --assumeyes --skip-broken \
+    && yum clean all \
+    && rm -rf /var/cache/yum/*
 
 ADD https://registry.npmjs.org/form-data/-/form-data-4.0.4.tgz /tmp/form-data.tgz
 ADD https://registry.npmjs.org/axios/-/axios-0.30.1.tgz /tmp/axios.tgz
