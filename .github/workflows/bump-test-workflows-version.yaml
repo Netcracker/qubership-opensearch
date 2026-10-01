@@ -18,7 +18,7 @@ jobs:
             echo "latest_release_tag=${latest_release_tag}" >> $GITHUB_ENV
             echo "latest_release_tag_sha=${latest_release_tag_sha}" >> $GITHUB_ENV
         - name: checkout
-          uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+          uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
           with:
             ref: main
             persist-credentials: true
