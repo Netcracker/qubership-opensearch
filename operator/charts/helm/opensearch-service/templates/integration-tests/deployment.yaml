@@ -244,7 +244,7 @@ spec:
       volumes:
         - name: tmp
           emptyDir:
-            sizeLimit: 10Mi
+            sizeLimit: 50Mi
         - name: output
           emptyDir: {}
         {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
