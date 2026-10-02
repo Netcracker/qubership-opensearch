@@ -1,4 +1,4 @@
-ARG OPENSEARCH_BASE='opensearchproject/opensearch:2.19.6'
+ARG OPENSEARCH_BASE='opensearchproject/opensearch:2.19.6@sha256:e321cb03c643874c42240458a618db56bc1e4fc143b10c41bec653542bc6851b'
 
 FROM $OPENSEARCH_BASE
 
