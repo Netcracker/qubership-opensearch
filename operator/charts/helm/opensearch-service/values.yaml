@@ -317,7 +317,7 @@ opensearch:
 #      readOnly: true
 
   initContainer:
-    dockerImage: busybox:1.35.0
+    dockerImage: busybox:1.38.0@sha256:fd7dc98638c8e305f4dc34e979f1c0fdfdcaeb0fbf8fcff77ae834b6da3d7e6e
 
   ## Set optimal sysctl. This requires privilege. Can be disabled if
   ## the system has already been preconfigured.
