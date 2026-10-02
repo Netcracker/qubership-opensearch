@@ -58,7 +58,7 @@ jobs:
           component-name: ${{ matrix.component.name }}
           component-tag: ${{ env.TAG_NAME }}
           access-token: ${{secrets.GITHUB_TOKEN}}
-      - uses: actions/delete-package-versions@v5
+      - uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5
         with:
           package-name: ${{ matrix.component.name }}
           package-type: 'container'
