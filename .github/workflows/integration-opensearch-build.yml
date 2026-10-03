@@ -37,7 +37,7 @@ jobs:
         run: |
           echo "${PAYLOADS}"
       - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ env.TARGET_REF }}
           fetch-depth: 0
@@ -113,7 +113,7 @@ jobs:
           IMAGE_TAG="${OPENSEARCH_CUSTOM_IMAGE,,}"
           echo "IMAGE_TAG=${IMAGE_TAG#*:}" >> "$GITHUB_ENV"
       - name: Docker
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@4ce44398bac0a6f82e55aeb4a753aada3530de5b  # v2.7.1
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@0eefd4976131d113c986281eed8bc642b6da303d  # v2.8.1
         with:
           ref: ${{ env.INTEGRATION_BUILD_BRANCH }}
           dry-run: false

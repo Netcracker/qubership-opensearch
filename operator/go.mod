@@ -3,7 +3,7 @@ module github.com/Netcracker/qubership-opensearch/operator
 go 1.26.4
 
 require (
-	github.com/go-logr/logr v1.4.3
+	github.com/go-logr/logr v1.4.4
 	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.1
 	github.com/hashicorp/go-retryablehttp v0.7.8
@@ -13,7 +13,7 @@ require (
 	k8s.io/api v0.35.0
 	k8s.io/apimachinery v0.37.0
 	k8s.io/client-go v0.35.0
-	k8s.io/utils v0.0.0-20260626114624-be93311217bd
+	k8s.io/utils v0.0.0-20260707023825-cf1189d6abe3
 	sigs.k8s.io/controller-runtime v0.23.3
 )
 

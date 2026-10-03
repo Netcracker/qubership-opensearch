@@ -38,7 +38,7 @@ jobs:
       CONFIG_FILE: .qubership/docker-build-config.cfg
     steps:
       - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
 
@@ -81,7 +81,7 @@ jobs:
         run: |
           echo "IMAGE=${{ matrix.component.name }}" >> $GITHUB_ENV
       - name: Docker build
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@4ce44398bac0a6f82e55aeb4a753aada3530de5b # v2.7.1
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@0eefd4976131d113c986281eed8bc642b6da303d # v2.8.1
         with:
           ref: ${{ github.ref }}
           download-artifact: false
@@ -103,7 +103,7 @@ jobs:
       charts-artifact: ${{ steps.update-versions.outputs.released-chart-atrifact }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: true
@@ -151,7 +151,7 @@ jobs:
           echo "IMAGE_VERSION=${IMAGE_VER}" >> $GITHUB_ENV
 
       - name: Docker build
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@4ce44398bac0a6f82e55aeb4a753aada3530de5b # v2.7.1
+        uses: netcracker/qubership-workflow-hub/actions/docker-action@0eefd4976131d113c986281eed8bc642b6da303d # v2.8.1
         with:
           ref: release-${{ inputs.release }}
           download-artifact: false
@@ -171,7 +171,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0
           ref: release-${{ inputs.release }}
@@ -194,7 +194,7 @@ jobs:
         with:
           artifact-ids: ${{ needs.chart-release.outputs.charts-artifact }}
       - name: "Upload Assets"
-        uses: netcracker/qubership-workflow-hub/actions/assets-action@4ce44398bac0a6f82e55aeb4a753aada3530de5b # v2.7.1
+        uses: netcracker/qubership-workflow-hub/actions/assets-action@0eefd4976131d113c986281eed8bc642b6da303d # v2.8.1
         with:
           tag: ${{ inputs.release }}
           item-path: "./*.tgz"
