@@ -1,6 +1,6 @@
 dashboards:
   enabled: false
-  dockerImage: ghcr.io/netcracker/qubership-opensearch-dashboard-3:main
+  dockerImage: ghcr.io/netcracker/qubership-opensearch-dashboard-3:main@sha256:406bb71087505561c67ecb527e4913a2480e10373fcf1d644c4eb0663e2de4fb
   dockerImageDashboard2: ghcr.io/netcracker/qubership-opensearch-dashboard-2:main
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
@@ -171,7 +171,7 @@ global:
     create: false
 
   disasterRecovery:
-    image: ghcr.io/netcracker/qubership-disaster-recovery-daemon:main
+    image: ghcr.io/netcracker/qubership-disaster-recovery-daemon:main@sha256:944f9da4905fa489fe278dd701dc2cc8bfbffd6cb939b6f43d14de015473fff4
     tls:
       enabled: false
       certificates:
@@ -214,7 +214,7 @@ global:
   securityContext: {}
 
 operator:
-  dockerImage: ghcr.io/netcracker/qubership-opensearch-operator:main
+  dockerImage: ghcr.io/netcracker/qubership-opensearch-operator:main@sha256:cfdf9665acc69d287e21314d38e71fbfd5274db2e4758de9b0387e8837c325e8
   replicas: 1
   reconcilePeriod: 60
   logLevel: info
@@ -844,9 +844,9 @@ opensearch:
 
   maxMapCount: 262144
 
-  dockerImage: ghcr.io/netcracker/qubership-docker-opensearch-3:main
-  opensearch2dockerImage: ghcr.io/netcracker/qubership-docker-opensearch-2:main
-  dockerTlsInitImage: ghcr.io/netcracker/qubership-opensearch-tls-init:main
+  dockerImage: ghcr.io/netcracker/qubership-docker-opensearch-3:main@sha256:6d133150b04d55719245671f42f4d7dceea47f2a0fbad1b988521e27ad18b7b4
+  opensearch2dockerImage: ghcr.io/netcracker/qubership-docker-opensearch-2:main@sha256:7eb6d4413d146990b8b8533a18441782cf4b1e4107a06e5f3af27888e1ab2c7b
+  dockerTlsInitImage: ghcr.io/netcracker/qubership-opensearch-tls-init:main@sha256:ff02f8d434e29afa3388f26481d35c3350e5da3638bf4cbe2155a5d8edf52129
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
@@ -871,7 +871,7 @@ opensearch:
 
 podScheduler:
   enabled: true
-  dockerImage: ghcr.io/netcracker/qubership-docker-kubectl:main
+  dockerImage: ghcr.io/netcracker/qubership-docker-kubectl:main@sha256:571eda404de2a3b302e86a57fd1efbf08f94b52b885488bdf0d42ab29bf191a0
   affinity: {}
   nodeSelector: {}
   resources:
@@ -890,7 +890,7 @@ podScheduler:
 
 monitoring:
   enabled: false
-  dockerImage: ghcr.io/netcracker/qubership-opensearch-monitoring:main
+  dockerImage: ghcr.io/netcracker/qubership-opensearch-monitoring:main@sha256:6ebf9b8699204c5ea912e037627e441e63ac4aad42c1bc8a378332da3b50df51
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
@@ -967,7 +967,7 @@ monitoring:
 # DBaaS adapter based on OpenSearch client
 dbaasAdapter:
   enabled: false
-  dockerImage: ghcr.io/netcracker/qubership-opensearch-dbaas-adapter:main
+  dockerImage: ghcr.io/netcracker/qubership-opensearch-dbaas-adapter:main@sha256:595a01d540438ed606b9db9f7dbfb2412da3a8d2e7906510bfcc2b6ada49750e
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
@@ -1054,8 +1054,8 @@ dbaasAdapter:
 
 curator:
   enabled: false
-  dockerImage: ghcr.io/netcracker/qubership-opensearch-curator:main
-  dockerIndicesCleanerImage: ghcr.io/netcracker/qubership-opensearch-indices-cleaner:main
+  dockerImage: ghcr.io/netcracker/qubership-opensearch-curator:main@sha256:763eaafaa90c72050991de13d976f801e0cc032626a709a79015c82d3bedbdc6
+  dockerIndicesCleanerImage: ghcr.io/netcracker/qubership-opensearch-indices-cleaner:main@sha256:b61020d28b45da73f19e36019a630cdb48578149795a54d45a11e11d7b93a849
   ## Specifies the image pull policy. Can be "Always" or "IfNotPresent" or "Never".
   ## Default to "Always".
   imagePullPolicy: ""
@@ -1138,7 +1138,7 @@ curator:
 
 statusProvisioner:
   enabled: true
-  dockerImage: ghcr.io/netcracker/qubership-deployment-status-provisioner:main
+  dockerImage: ghcr.io/netcracker/qubership-deployment-status-provisioner:main@sha256:db58cce3e8e8eb00a7d74840d58d2379640aaeecab39fbb760efcf754eb20a9a
   lifetimeAfterCompletion: 600
   podReadinessTimeout: 800
   crProcessingTimeout: 600
@@ -1165,7 +1165,7 @@ updateResourcesJob:
 
 integrationTests:
   enabled: false
-  dockerImage: ghcr.io/netcracker/qubership-opensearch-integration-tests:main
+  dockerImage: ghcr.io/netcracker/qubership-opensearch-integration-tests:main@sha256:13ee4cc57e125f3bb79ad254aa18444e49bab8a57c4c309cb8c56e306371af2b
   statusWritingEnabled: true
   isShortStatusMessage: true
   secrets:
@@ -1266,7 +1266,7 @@ groupMigration:
     limits:
       memory: 256Mi
       cpu: 100m
-  image: "ghcr.io/netcracker/qubership-docker-kubectl:main"
+  image: "ghcr.io/netcracker/qubership-docker-kubectl:main@sha256:571eda404de2a3b302e86a57fd1efbf08f94b52b885488bdf0d42ab29bf191a0"
   imagePullPolicy: Always
   runAsNonRoot: true
 

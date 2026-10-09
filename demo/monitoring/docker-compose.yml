@@ -1,7 +1,7 @@
 version: '2'
 services:
   influxdb:
-    image: influxdb:1.8.9
+    image: influxdb:1.8.9@sha256:b00d3c730d4b5dad8ec18ea298d67fdc1840dca37f27f5c1f7036eb291bd6d42
     ports:
       - 8086:8086
     environment:
@@ -28,7 +28,7 @@ services:
 #    volumes:
 #      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
   grafana:
-    image: grafana/grafana:7.3.6
+    image: grafana/grafana:7.3.6@sha256:1ff2070acde25450fc52613ca75519a6e74e57bb7e614210c1324002048682e4
     ports:
       - 3000:3000
     user: "0"
