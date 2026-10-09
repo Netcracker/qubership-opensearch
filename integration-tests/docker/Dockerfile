@@ -1,5 +1,4 @@
-FROM ghcr.io/netcracker/qubership-docker-integration-tests:fix-vulnerabilities_26_4
-
+FROM ghcr.io/netcracker/qubership-docker-integration-tests:0.6.2
 USER root
 
 ENV ROBOT_OUTPUT=/opt/robot/output \
