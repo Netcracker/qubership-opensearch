@@ -45,7 +45,7 @@ jobs:
 
   Opensearch-Pipeline:
     needs: Wait-for-images
-    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@e1905f040398e9ae733b0cefa7e7793b6204ecfe # v1.16.0
+    uses: Netcracker/qubership-test-pipelines/.github/workflows/opensearch.yaml@abc191433a739748f08da3689db071a5e4ac79a8 # v1.17.0
     with:
       service_branch: '${{ github.head_ref || github.ref_name }}'
       pipeline_branch: 'e1905f040398e9ae733b0cefa7e7793b6204ecfe' # v1.16.0 renovate: depName=Netcracker/qubership-test-pipelines
