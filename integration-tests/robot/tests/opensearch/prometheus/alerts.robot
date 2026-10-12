@@ -28,8 +28,7 @@ Check That Prometheus Alert Is Inactive
 
 Scale Up Master Stateful Set
     [Arguments]  ${replicas}
-    Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
-    ...  Set Replicas For Stateful Set  ${OPENSEARCH_MASTER_NODES_NAME}  ${OPENSEARCH_NAMESPACE}  ${replicas}
+    Set Replicas For Stateful Set  ${OPENSEARCH_MASTER_NODES_NAME}  ${OPENSEARCH_NAMESPACE}  ${replicas}
     Sleep  ${SLEEP_TIME}
     ${result}=  Check Service Of Stateful Sets Is Scaled  ${OPENSEARCH_MASTER_NODES_NAME}  ${OPENSEARCH_NAMESPACE}
     Should Be True  ${result}
@@ -41,8 +40,7 @@ OpenSearch Is Degraded Alert
     [Tags]  opensearch  prometheus  opensearch_prometheus_alert  opensearch_is_degraded_alert
     ${replicas}=  Get Stateful Set Replica Counts  ${OPENSEARCH_MASTER_NODES_NAME}  ${OPENSEARCH_NAMESPACE}
     Pass Execution If  ${replicas} < 3  OpenSearch cluster has less than 3 master nodes
-    Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
-    ...  Scale Down Stateful Set  ${OPENSEARCH_MASTER_NODES_NAME}  ${OPENSEARCH_NAMESPACE}
+    Scale Down Stateful Set  ${OPENSEARCH_MASTER_NODES_NAME}  ${OPENSEARCH_NAMESPACE}
     Wait Until Keyword Succeeds  ${ALERT_RETRY_TIME}  ${ALERT_RETRY_INTERVAL}
     ...  Check That Prometheus Alert Is Active  ${OPENSEARCH_IS_DEGRADED_ALERT_NAME}
     Scale Up Master Stateful Set  ${replicas}
@@ -54,8 +52,9 @@ OpenSearch Is Down Alert
     [Tags]  opensearch  prometheus  opensearch_prometheus_alert  opensearch_is_down_alert
     ${replicas}=  Get Stateful Set Replica Counts  ${OPENSEARCH_MASTER_NODES_NAME}  ${OPENSEARCH_NAMESPACE}
     Pass Execution If  ${replicas} < 3  OpenSearch cluster has less than 3 master nodes
-    Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
-    ...  Set Replicas For Stateful Set  ${OPENSEARCH_MASTER_NODES_NAME}  ${OPENSEARCH_NAMESPACE}  1
+    # TODO: Scale down to 1 replica instead of 0 after https://github.com/opensearch-project/OpenSearch/issues/19150 is fixed.
+    # Until then, the cluster can't become green, because promoted primaries on the surviving node are not in primary mode.
+    Set Replicas For Stateful Set  ${OPENSEARCH_MASTER_NODES_NAME}  ${OPENSEARCH_NAMESPACE}  0
     Wait Until Keyword Succeeds  ${ALERT_RETRY_TIME}  ${ALERT_RETRY_INTERVAL}
     ...  Check That Prometheus Alert Is Active  ${OPENSEARCH_IS_DOWN_ALERT_NAME}
     Scale Up Master Stateful Set  ${replicas}
