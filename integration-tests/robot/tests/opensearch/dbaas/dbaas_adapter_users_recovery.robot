@@ -48,8 +48,7 @@ Check DBaaS Adapter State
     ...  DBaaS Adapter Is Up
 
 OpenSearch Accepts Credentials
-    [Arguments]  ${username}  ${password}
-    Login To OpenSearch  ${username}  ${password}
+    Prepare OpenSearch
     ${response}=  GET On Session  opensearch  /_cat/health  params=h=status  expected_status=any
     Should Be Equal As Strings  ${response.status_code}  200
 
@@ -58,7 +57,7 @@ Restore OpenSearch Secret
     Update Secret  ${data}
     Check DBaaS Adapter State
     Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
-    ...  OpenSearch Accepts Credentials  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}
+    ...  OpenSearch Accepts Credentials
 
 *** Test Cases ***
 Change Password for User and Healthcheck Dbaas Pod
