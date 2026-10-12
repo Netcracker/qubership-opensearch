@@ -31,7 +31,8 @@ Full Backup And Restore On S3 Storage
     Delete Backup  ${backup_id}
     ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}    backup_id=${backup_id}
     Should Not Be True  ${backup_file_exist}
-    [Teardown]  Run Keywords  Delete Data  ${OPENSEARCH_BACKUP_INDEX}  AND  Delete Backup If Exists  ${backup_id}
+    [Teardown]  Run Keywords  Delete Data  ${OPENSEARCH_BACKUP_INDEX}
+    ...  AND  Run Keyword If Test Failed  Delete Backup If Exists  ${backup_id}
 
 Granular Backup And Restore On S3 Storage
     [Tags]  opensearch  backup  backup_s3  granular_backup  granular_backup_s3
@@ -57,4 +58,5 @@ Granular Backup And Restore On S3 Storage
     Delete Backup  ${backup_id}
     ${backup_file_exist}=  Check Backup Exists    path=${BACKUP_STORAGE_PATH}/granular    backup_id=${backup_id}
     Should Not Be True  ${backup_file_exist}
-    [Teardown]  Run Keywords  Delete Data  ${OPENSEARCH_BACKUP_INDEX}  AND  Delete Backup If Exists  ${backup_id}
+    [Teardown]  Run Keywords  Delete Data  ${OPENSEARCH_BACKUP_INDEX}
+    ...  AND  Run Keyword If Test Failed  Delete Backup If Exists  ${backup_id}

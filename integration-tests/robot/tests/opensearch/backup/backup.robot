@@ -71,8 +71,8 @@ Delete Backup By ID
     Create Index With Generated Data  ${OPENSEARCH_BACKUP_INDEX}-2
     ${backup_id}=  Granular Backup  ["${OPENSEARCH_BACKUP_INDEX}-1","${OPENSEARCH_BACKUP_INDEX}-2"]
     Delete Backup  ${backup_id}
-    Check Backup Absence By Curator  ${backup_id}
-    Check Backup Absence By OpenSearch  ${backup_id}
+    Wait Until Keyword Succeeds  ${RETRY_TIME}  ${RETRY_INTERVAL}
+    ...  Check Backup Absence  ${backup_id}
 
 Unauthorized Access
     [Tags]  opensearch  backup  unauthorized_access

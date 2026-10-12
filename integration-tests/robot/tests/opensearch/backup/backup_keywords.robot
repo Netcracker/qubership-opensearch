@@ -91,6 +91,11 @@ Check Restore Status
     ${content}=  Convert Json ${response.content} To Type
     Should Be Equal As Strings  ${content['status']}  Successful
 
+Check Backup Absence
+    [Arguments]  ${backup_id}
+    Check Backup Absence By Curator  ${backup_id}
+    Check Backup Absence By OpenSearch  ${backup_id}
+
 Check Backup Absence By Curator
     [Arguments]  ${backup_id}
     ${response}=  GET On Session  curatorsession  /listbackups/${backup_id}  expected_status=404
