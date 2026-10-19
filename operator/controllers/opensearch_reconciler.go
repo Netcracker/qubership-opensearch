@@ -1217,7 +1217,7 @@ func (r OpenSearchReconciler) needRestartAfterPVCResize(ctx context.Context, sta
 			continue
 		}
 		if ok, msg := pvcHasResizePending(&pvc); ok {
-			r.logger.Info("PVC has FileSystemResizePending state; rolling restart required",
+			r.logger.Info("PVC resize is pending; rolling restart required",
 				"pvc", pvc.Name,
 				"capacity", capacity.String(),
 				"desired", desired.String(),
@@ -1227,7 +1227,7 @@ func (r OpenSearchReconciler) needRestartAfterPVCResize(ctx context.Context, sta
 		}
 
 		return false, fmt.Errorf(
-			"PVC %s capacity is below desired but FileSystemResizePending is not set (capacity=%s desired=%s)",
+			"PVC %s capacity is below desired but resize is not pending (capacity=%s desired=%s)",
 			pvc.Name, capacity.String(), desired.String(),
 		)
 	}
@@ -1236,7 +1236,7 @@ func (r OpenSearchReconciler) needRestartAfterPVCResize(ctx context.Context, sta
 
 func pvcHasResizePending(pvc *corev1.PersistentVolumeClaim) (bool, string) {
 	for _, c := range pvc.Status.Conditions {
-		if c.Type == corev1.PersistentVolumeClaimFileSystemResizePending && c.Status == corev1.ConditionTrue {
+		if c.Type == corev1.PersistentVolumeClaimResizing || c.Type == corev1.PersistentVolumeClaimFileSystemResizePending {
 			return true, c.Message
 		}
 	}
