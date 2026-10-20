@@ -18,14 +18,8 @@ Library  json
 *** Keywords ***
 Prepare OpenSearch
     [Arguments]  ${need_auth}=True
-    Run Keyword If  ${need_auth}  Wait Until Keyword Succeeds  20x  10s  Login To OpenSearch With Reloaded Variables
-    ...  ELSE  Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}  False
-
-Login To OpenSearch With Reloaded Variables
-    Import Variables  %{ROBOT_HOME}/SecretData.py
-    Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}
-    ${response}=  GET On Session  opensearch  /_cat/health  params=h=status  expected_status=any
-    Should Be Equal As Strings  ${response.status_code}  200
+    Run Keyword If  ${need_auth}  Import Variables  %{ROBOT_HOME}/SecretData.py
+    Login To OpenSearch  ${OPENSEARCH_USERNAME}  ${OPENSEARCH_PASSWORD}  ${need_auth}
 
 Login To OpenSearch
     [Arguments]  ${username}  ${password}  ${need_auth}=True
