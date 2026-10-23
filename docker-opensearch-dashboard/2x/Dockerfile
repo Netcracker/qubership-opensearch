@@ -1,4 +1,4 @@
-FROM opensearchproject/opensearch-dashboards:2.19.6
+FROM opensearchproject/opensearch-dashboards:2.19.6@sha256:c365df98e5bbbc4bd05234be77294716ff0b84c36384ca2afdeb606741d9ae47
 
 USER 0:0
 
