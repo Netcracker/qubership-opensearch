@@ -983,6 +983,11 @@ dbaasAdapter:
   registrationAuthPassword: ""
   physicalDatabasesLabels: {}
   registrationEnabled: false
+  # Declarative registration is used automatically when PhysicalDatabase CRD is available in the cluster.
+  # In this case DBaaS Operator registers physical database and the adapter does not register itself.
+  declarativeRegistration:
+    # The namespace where DBaaS Operator is installed
+    operatorNamespace: dbaas
 
   opensearchHost: ""
   opensearchPort: 9200

@@ -1318,6 +1318,18 @@ DBaaS registration URL from various places.
 {{- end -}}
 
 {{/*
+Whether physical database is registered declaratively by DBaaS Operator using PhysicalDatabase custom resource.
+It is true when DBaaS adapter is installed and PhysicalDatabase CRD is available in the cluster.
+*/}}
+{{- define "dbaas.declarativeRegistration.enabled" -}}
+  {{- if and (eq (include "dbaas.enabled" .) "true") (.Capabilities.APIVersions.Has "dbaas.netcracker.com/v1/PhysicalDatabase") -}}
+    {{- printf "true" -}}
+  {{- else -}}
+    {{- printf "false" -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
 DBaaS registration username from various places.
 */}}
 {{- define "dbaas.registrationUsername" -}}
