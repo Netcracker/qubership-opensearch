@@ -411,10 +411,8 @@ You can increase the size of a Persistent Volume Claim (PVC) when the underlying
 Ensure the StorageClass has `allowVolumeExpansion: true`. Then:
 
 1. Update the size in your Helm values (for example, `opensearch.master.persistence.size`) to the desired larger value.
-2. Upgrade the release so the PVC spec is updated.
-3. The cluster may resize the volume in place: 
-    if the filesystem supports it, the new space becomes available without recreating the PVC or the pod. 
-    If your environment requires it, you may need to restart the pod so the mount reflects the new size.
+2. Upgrade the release so the operator requests the new PVC size.
+3. When a volume reports a pending resize, the operator holds that OpenSearch pod down (the pod object stays until the disk can expand), then brings it back. The pod must become Ready and the cluster must be green before the next pod is held. The PVC itself is not recreated.
 
 **Persistent Volume reduction is not supported**
 

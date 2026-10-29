@@ -1366,6 +1366,13 @@ func (r OpenSearchReconciler) ensurePVCResizeFinalizer(ctx context.Context, pod 
 func (r OpenSearchReconciler) removePVCResizeFinalizer(ctx context.Context, podName string) error {
 	var last error
 	for attempt := 0; attempt < 3; attempt++ {
+		hasFinalizer, err := r.podHasPVCResizeFinalizer(podName)
+		if err != nil {
+			return err
+		}
+		if !hasFinalizer {
+			return nil
+		}
 		pod, err := r.reconciler.findPod(podName, r.cr.Namespace, r.logger)
 		if apierrors.IsNotFound(err) {
 			return nil
@@ -1373,16 +1380,9 @@ func (r OpenSearchReconciler) removePVCResizeFinalizer(ctx context.Context, podN
 		if err != nil {
 			return err
 		}
-		if !slices.Contains(pod.Finalizers, pvcResizeFinalizer) {
-			return nil
-		}
-		finalizers := make([]string, 0, len(pod.Finalizers))
-		for _, finalizer := range pod.Finalizers {
-			if finalizer != pvcResizeFinalizer {
-				finalizers = append(finalizers, finalizer)
-			}
-		}
-		pod.Finalizers = finalizers
+		pod.Finalizers = slices.DeleteFunc(pod.Finalizers, func(finalizer string) bool {
+			return finalizer == pvcResizeFinalizer
+		})
 		last = r.reconciler.Client.Update(ctx, pod)
 		if last == nil || apierrors.IsNotFound(last) {
 			return nil
