@@ -412,7 +412,8 @@ Ensure the StorageClass has `allowVolumeExpansion: true`. Then:
 
 1. Update the size in your Helm values (for example, `opensearch.master.persistence.size`) to the desired larger value.
 2. Upgrade the release so the operator requests the new PVC size.
-3. When a volume reports a pending resize, the operator holds that OpenSearch pod down, then brings it back. The pod must become Ready and the cluster must be green before the next pod is held. The PVC itself is not recreated.
+3. When a volume reports a pending resize, the operator holds that OpenSearch pod down, then brings it back.
+The pod must become Ready and the cluster must be green before the next pod is held. The PVC itself is not recreated.
 
 **Persistent Volume reduction is not supported**
 
