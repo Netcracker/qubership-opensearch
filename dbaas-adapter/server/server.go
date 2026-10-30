@@ -59,6 +59,10 @@ var (
 	labelsLocationDir = common.GetEnv("LABELS_FILE_LOCATION_DIR", "/app/config/")
 	//nolint:errcheck
 	registrationEnabled, _ = strconv.ParseBool(common.GetEnv("REGISTRATION_ENABLED", "false"))
+	// declarativeRegistrationEnabled disables legacy self-registration, because DBaaS Operator registers
+	// physical database using the PhysicalDatabase custom resource and the descriptor endpoint.
+	//nolint:errcheck
+	declarativeRegistrationEnabled, _ = strconv.ParseBool(common.GetEnv("DBAAS_DECLARATIVE_REGISTRATION_ENABLED", "false"))
 )
 
 const certificatesFolder = "/tls"
@@ -122,17 +126,26 @@ func Handlers(ctx context.Context, adapter common.Component) http.Handler {
 	if err != nil {
 		return nil
 	}
-	registrationProvider := startRegistration(adapter.Address, adapter.Credentials.Username,
-		adapter.Credentials.Password, baseProvider)
+	var registrationProvider *physical.RegistrationProvider
+	apiVersion := common.ApiV2
+	aggregatorHealth := &common.ComponentHealth{Status: "OK"} // registration is done by DBaaS Operator
+	if declarativeRegistrationEnabled {
+		baseProvider.ApiVersion = apiVersion
+	} else {
+		registrationProvider = startRegistration(adapter.Address, adapter.Credentials.Username,
+			adapter.Credentials.Password, baseProvider)
+		apiVersion = registrationProvider.ApiVersion
+		aggregatorHealth = &registrationProvider.Health
+	}
 	createBasicRoles(baseProvider)
 	curatorBaseClient := cl.ConfigureCuratorClient()
 	backupProvider := backup.NewBackupProvider(opensearch.Client, curatorBaseClient, opensearchRepoRoot)
-	basePath := fmt.Sprintf("/api/%s/dbaas/adapter/opensearch", registrationProvider.ApiVersion)
+	basePath := fmt.Sprintf("/api/%s/dbaas/adapter/opensearch", apiVersion)
 
 	healthService := health.Health{
 		Status:                common.Up,
 		OpensearchHealth:      opensearch.Health,
-		DbaasAggregatorHealth: &registrationProvider.Health,
+		DbaasAggregatorHealth: aggregatorHealth,
 		Opensearch:            opensearch,
 	}
 
@@ -188,13 +201,20 @@ func Handlers(ctx context.Context, adapter common.Component) http.Handler {
 		handlers.LoggingHandler(os.Stdout, authorizer(backupProvider.DeleteBackupHandler())),
 	).Methods(http.MethodDelete)
 
-	r.Handle(fmt.Sprintf("%s/physical_database", basePath),
-		handlers.LoggingHandler(os.Stdout, authorizer(registrationProvider.GetPhysicalDatabaseHandler())),
-	).Methods(http.MethodGet)
+	if declarativeRegistrationEnabled {
+		r.Handle(physical.DescriptorPath,
+			handlers.LoggingHandler(os.Stdout, authorizer(physical.DescriptorHandler(
+				dbaasAggregatorPhysicalDatabaseId, labelsLocationDir+labelsFilename, baseProvider))),
+		).Methods(http.MethodGet)
+	} else {
+		r.Handle(fmt.Sprintf("%s/physical_database", basePath),
+			handlers.LoggingHandler(os.Stdout, authorizer(registrationProvider.GetPhysicalDatabaseHandler())),
+		).Methods(http.MethodGet)
 
-	r.Handle(fmt.Sprintf("/api/%s/dbaas/adapter/physical_database/force_registration", registrationProvider.ApiVersion),
-		handlers.LoggingHandler(os.Stdout, authorizer(registrationProvider.ForceRegistrationHandler())),
-	).Methods(http.MethodGet)
+		r.Handle(fmt.Sprintf("/api/%s/dbaas/adapter/physical_database/force_registration", apiVersion),
+			handlers.LoggingHandler(os.Stdout, authorizer(registrationProvider.ForceRegistrationHandler())),
+		).Methods(http.MethodGet)
+	}
 
 	r.Handle(fmt.Sprintf("%s/users", basePath),
 		handlers.LoggingHandler(os.Stdout, authorizer(baseProvider.CreateUserHandler())),
@@ -204,7 +224,7 @@ func Handlers(ctx context.Context, adapter common.Component) http.Handler {
 		handlers.LoggingHandler(os.Stdout, authorizer(baseProvider.CreateUserHandler())),
 	).Methods(http.MethodPut)
 
-	if registrationProvider.ApiVersion == common.ApiV2 {
+	if apiVersion == common.ApiV2 {
 		r.Handle(fmt.Sprintf("%s/users/restore-password", basePath),
 			handlers.LoggingHandler(os.Stdout, authorizer(baseProvider.RecoverUsersHandler())),
 		).Methods(http.MethodPost)

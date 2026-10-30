@@ -52,6 +52,8 @@ spec:
               value: {{ .Values.dbaasAdapter.dbaasAggregatorPhysicalDatabaseIdentifier | default .Release.Namespace }}
             - name: REGISTRATION_ENABLED
               value: {{ .Values.dbaasAdapter.registrationEnabled | quote }}
+            - name: DBAAS_DECLARATIVE_REGISTRATION_ENABLED
+              value: {{ include "dbaas.declarativeRegistration.enabled" . | quote }}
             - name: OPENSEARCH_HOST
               value: {{ default (printf "%s.%s" (include "opensearch.fullname" .) .Release.Namespace) (.Values.global.externalOpensearch.enabled | ternary (include "external.opensearch-host" .) .Values.dbaasAdapter.opensearchHost) }}
             - name: OPENSEARCH_PORT

@@ -3870,6 +3870,21 @@
                     "title": "The dbaasAdapter.registrationEnabled schema",
                     "description": "Using the registrationEnabled parameter we can determine whether registration is enabled"
                 },
+                "declarativeRegistration": {
+                    "type": "object",
+                    "$id": "#/properties/dbaasAdapter/properties/declarativeRegistration",
+                    "title": "The dbaasAdapter.declarativeRegistration schema",
+                    "description": "Parameters of declarative physical database registration by DBaaS Operator",
+                    "properties": {
+                        "operatorNamespace": {
+                            "type": "string",
+                            "default": "dbaas",
+                            "$id": "#/properties/dbaasAdapter/properties/declarativeRegistration/properties/operatorNamespace",
+                            "title": "The dbaasAdapter.declarativeRegistration.operatorNamespace schema",
+                            "description": "The namespace where DBaaS Operator is installed"
+                        }
+                    }
+                },
                 "opensearchHost": {
                     "type": "string",
                     "default": "",
