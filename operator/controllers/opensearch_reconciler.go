@@ -1135,12 +1135,7 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(restClient *util.RestCl
 		return nil
 	}
 
-	wantReplicas := int32(1)
-	if sts.Spec.Replicas != nil {
-		wantReplicas = *sts.Spec.Replicas
-	}
-
-	for ordinal := wantReplicas - 1; ordinal >= 0; ordinal-- {
+	for ordinal := *sts.Spec.Replicas - 1; ordinal >= 0; ordinal-- {
 		if err = r.resizeOpenSearchReplicaPVC(restClient, ctx, sts, int(ordinal), desired); err != nil {
 			return err
 		}
