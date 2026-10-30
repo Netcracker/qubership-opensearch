@@ -18,21 +18,23 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/apimachinery/pkg/types"
 	"net/http"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"regexp"
+	"slices"
 	"strings"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"gopkg.in/yaml.v3"
 	v1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/utils/strings/slices"
 
 	opensearchservice "github.com/Netcracker/qubership-opensearch/operator/api/v1"
 	"github.com/Netcracker/qubership-opensearch/operator/util"
@@ -43,20 +45,23 @@ const (
 	opensearchConfigHashName        = "config.opensearch"
 	opensearchRoleMappingsHashName  = "rolemappings"
 	opensearchIndexSettingsHashName = "spec.opensearch.indexSettings"
-	certificateFilePath            = "/certs/crt.pem"
-	healthCheckInterval            = 30 * time.Second
-	healthCheckTimeout             = 5 * time.Minute
-	podCheckInterval               = 1 * time.Minute
-	podCheckTimeout                = 6 * time.Minute
-	rollingUpdateDoneStatus        = "done"
-	rollingUpdateRunningStatus     = "running"
-	flushPath                      = "_flush"
-	clusterHealthPath              = "_cluster/health"
-	clusterSettingsPath            = "_cluster/settings"
-	allAccess                      = "all_access"
-	claimTemplateName              = "pvc"
-	maxResizeAttempts              = 3
-	sleepBetweenResizes            = 30 * time.Second
+	certificateFilePath             = "/certs/crt.pem"
+	healthCheckInterval             = 30 * time.Second
+	healthCheckTimeout              = 5 * time.Minute
+	podCheckInterval                = 1 * time.Minute
+	podCheckTimeout                 = 6 * time.Minute
+	rollingUpdateDoneStatus         = "done"
+	rollingUpdateRunningStatus      = "running"
+	flushPath                       = "_flush"
+	clusterHealthPath               = "_cluster/health"
+	clusterSettingsPath             = "_cluster/settings"
+	allAccess                       = "all_access"
+	claimTemplateName               = "pvc"
+	pvcResizeFinalizer              = "opensearch.netcracker.com/pvc-resize"
+	pvcResizeStateTimeout           = 2 * time.Minute
+	pvcResizeHoldTimeout            = 10 * time.Minute
+	pvcResizePodStopTimeout         = 2 * time.Minute
+	pvcResizeCapacityTimeout        = 30 * time.Second
 )
 
 type OpenSearchHealth struct {
@@ -121,13 +126,21 @@ func NewOpenSearchReconciler(r *OpenSearchServiceReconciler, cr *opensearchservi
 }
 
 func (r OpenSearchReconciler) Reconcile() error {
+	r.logger.Info("Begin OpenSearch Reconcile procedure.")
+
+	restClient, err := r.createRestClientWithOldCreds()
+	if err != nil {
+		r.logger.Error(err, "Error while creating rest client with old creds")
+		return err
+	}
+
 	if len(r.cr.Spec.OpenSearch.StorageSize) > 0 {
 		r.logger.Info("Trying to process opensearch storage size")
 		desired, err := resource.ParseQuantity(r.cr.Spec.OpenSearch.StorageSize)
 		if err != nil {
 			return err
 		}
-		if err = r.reconcileOpenSearchPVCSize(context.Background(), desired); err != nil {
+		if err = r.reconcileOpenSearchPVCSize(restClient, context.Background(), desired); err != nil {
 			return err
 		}
 		r.logger.Info("Storage size successfully processed")
@@ -136,14 +149,6 @@ func (r OpenSearchReconciler) Reconcile() error {
 	if !r.cr.Spec.OpenSearch.RollingUpdate {
 		r.logger.Info("Rolling Update is disabled, so skip reconcile procedure")
 		return nil
-	}
-
-	r.logger.Info("Begin OpenSearch Reconcile procedure.")
-
-	client, err := r.createRestClientWithOldCreds()
-	if err != nil {
-		r.logger.Error(err, "Error while creating rest client with old creds")
-		return err
 	}
 
 	statefulSets, err := r.getStatefulSets()
@@ -157,7 +162,7 @@ func (r OpenSearchReconciler) Reconcile() error {
 		return nil
 	}
 
-	perform, err := r.needToPerformRollingUpdate(client, statefulSets)
+	perform, err := r.needToPerformRollingUpdate(restClient, statefulSets)
 	if err != nil {
 		return err
 	}
@@ -165,14 +170,14 @@ func (r OpenSearchReconciler) Reconcile() error {
 		if err := r.updateRollingUpdateStatus(rollingUpdateDoneStatus); err != nil {
 			return err
 		}
-		if err := r.enableAllocationIfNecessary(client); err != nil {
+		if err := r.enableAllocationIfNecessary(restClient); err != nil {
 			return err
 		}
 		r.logger.Info("End OpenSearch Reconcile procedure")
 		return nil
 	}
 
-	if err = r.runRollingUpdate(client, statefulSets); err != nil {
+	if err = r.runRollingUpdate(restClient, statefulSets); err != nil {
 		return err
 	}
 
@@ -453,7 +458,7 @@ func (r OpenSearchReconciler) runRollingUpdate(client *util.RestClient, stateful
 		}
 	}
 
-	if err := r.restartOpenSearchPods(statefulSets); err != nil {
+	if err := r.restartOpenSearchPods(client, statefulSets); err != nil {
 		r.logger.Error(err, "Error while OpenSearch pods restarting")
 		return err
 	}
@@ -475,7 +480,7 @@ func (r OpenSearchReconciler) runRollingUpdate(client *util.RestClient, stateful
 	return nil
 }
 
-func (r OpenSearchReconciler) restartOpenSearchPods(statefulSets []*v1.StatefulSet) error {
+func (r OpenSearchReconciler) restartOpenSearchPods(client *util.RestClient, statefulSets []*v1.StatefulSet) error {
 	for _, statefulSet := range statefulSets {
 		status, err := r.findStatefulSetStatus(statefulSet)
 		if err != nil {
@@ -483,7 +488,7 @@ func (r OpenSearchReconciler) restartOpenSearchPods(statefulSets []*v1.StatefulS
 		}
 
 		if *statefulSet.Spec.Replicas != statefulSet.Status.UpdatedReplicas {
-			if err := r.restartOpenSearchPod(statefulSet, status); err != nil {
+			if err := r.restartOpenSearchPod(client, statefulSet, status); err != nil {
 				return err
 			}
 		} else {
@@ -525,7 +530,7 @@ func (r OpenSearchReconciler) findStatefulSetStatus(statefulSet *v1.StatefulSet)
 	return newStatus, nil
 }
 
-func (r OpenSearchReconciler) restartOpenSearchPod(statefulSet *v1.StatefulSet, status *opensearchservice.StatefulSetStatus) error {
+func (r OpenSearchReconciler) restartOpenSearchPod(client *util.RestClient, statefulSet *v1.StatefulSet, status *opensearchservice.StatefulSetStatus) error {
 	updatedReplicas, err := r.getUpdatedReplicasSlice(statefulSet, status)
 	if err != nil {
 		return err
@@ -543,6 +548,9 @@ func (r OpenSearchReconciler) restartOpenSearchPod(statefulSet *v1.StatefulSet, 
 		}
 
 		if err := r.waitUntilOpenSearchPodIsReady(podName); err != nil {
+			return err
+		}
+		if err := r.checkOpenSearchHealth(client); err != nil {
 			return err
 		}
 
@@ -1114,7 +1122,7 @@ func (r OpenSearchReconciler) getSnapshotsRepositoryBody() string {
 	return `{"type": "fs", "settings": {"location": "/usr/share/opensearch/snapshots", "compress": true}}`
 }
 
-func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, desired resource.Quantity) error {
+func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(restClient *util.RestClient, ctx context.Context, desired resource.Quantity) error {
 	stsName := strings.TrimSpace(r.cr.Spec.OpenSearch.MasterStsName)
 	if stsName == "" {
 		return nil
@@ -1127,118 +1135,277 @@ func (r OpenSearchReconciler) reconcileOpenSearchPVCSize(ctx context.Context, de
 		return nil
 	}
 
-	pvcNamePattern, err := regexp.Compile(fmt.Sprintf(`^%s-%s-\d+$`, claimTemplateName, sts.Name))
+	for ordinal := *sts.Spec.Replicas - 1; ordinal >= 0; ordinal-- {
+		if err = r.resizeOpenSearchReplicaPVC(restClient, ctx, sts, int(ordinal), desired); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r OpenSearchReconciler) resizeOpenSearchReplicaPVC(restClient *util.RestClient, ctx context.Context, sts *v1.StatefulSet, ordinal int, desired resource.Quantity) error {
+	podName := fmt.Sprintf("%s-%d", sts.Name, ordinal)
+	held, err := r.podHasPVCResizeFinalizer(podName)
 	if err != nil {
 		return err
 	}
 
-	wantReplicas := *sts.Spec.Replicas
-	if sts.Spec.Replicas == nil {
-		wantReplicas = 1
-	}
-
-	var pvcList corev1.PersistentVolumeClaimList
-	if err = r.reconciler.Client.List(ctx, &pvcList, client.InNamespace(sts.Namespace)); err != nil {
+	pvc, err := r.openSearchPVC(ctx, sts, ordinal)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
 		return err
 	}
-
-	pvcs := make([]*corev1.PersistentVolumeClaim, 0, wantReplicas)
-
-	for i := range pvcList.Items {
-		pvc := &pvcList.Items[i]
-		if !pvcNamePattern.MatchString(pvc.Name) {
-			continue
-		}
-		pvcs = append(pvcs, pvc)
-		cur := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
-		if desired.Cmp(cur) < 0 {
-			return fmt.Errorf("PVC shrinking is forbidden, current PVC size is %s, desired is %s", cur.String(), desired.String())
-		}
-		if desired.Cmp(cur) == 0 {
-			r.logger.Info("PVC size didn't change")
-			return nil
-		}
+	current := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
+	if desired.Cmp(current) < 0 {
+		return fmt.Errorf("PVC shrinking is forbidden, current PVC size is %s, desired is %s", current.String(), desired.String())
 	}
-
-	r.logger.Info("Resizing PVCs as desired")
-
-	for _, pvc := range pvcs {
-		old := pvc.DeepCopy()
-		if pvc.Spec.Resources.Requests == nil {
-			pvc.Spec.Resources.Requests = corev1.ResourceList{}
-		}
-		pvc.Spec.Resources.Requests[corev1.ResourceStorage] = desired
-		if err = r.reconciler.Client.Patch(ctx, pvc, client.MergeFrom(old)); err != nil {
-			return err
-		}
-		r.logger.Info("PVC resize request applied",
-			"pvc", pvc.Name,
-			"size", desired.String(),
-		)
-	}
-
-	for attempt := 1; attempt <= maxResizeAttempts; attempt++ {
-		if attempt < maxResizeAttempts {
-			<-time.After(sleepBetweenResizes)
-		}
-		stsStatus, err := r.findStatefulSetStatus(sts)
-		if err != nil {
-			return err
-		}
-		needRestart, err := r.needRestartAfterPVCResize(ctx, sts, desired, int(wantReplicas))
-		if err != nil {
-			return err
-		}
-		if !needRestart {
-			return nil
-		}
-		r.logger.Info("Rolling restart required to finish filesystem resize",
-			"attempt", attempt,
-			"maxAttempts", maxResizeAttempts,
-		)
-		if err := r.restartOpenSearchPod(sts, stsStatus); err != nil {
+	if desired.Cmp(current) > 0 {
+		if err = r.requestPVCStorage(ctx, pvc, desired); err != nil {
 			return err
 		}
 	}
 
-	return fmt.Errorf("filesystem resize still pending after %d restart attempts", maxResizeAttempts)
+	capacity := pvc.Status.Capacity[corev1.ResourceStorage]
+	if capacity.Cmp(desired) >= 0 {
+		return r.finishHeldPVCResize(restClient, podName, held)
+	}
+
+	r.logger.Info("Waiting for PVC resize state", "pvc", pvc.Name, "pod", podName)
+	restartRequired, err := r.waitForOpenSearchPVCResizeState(ctx, sts, ordinal, desired)
+	if err != nil {
+		return err
+	}
+	if !restartRequired {
+		return r.finishHeldPVCResize(restClient, podName, held)
+	}
+	if !held {
+		if err = r.checkOpenSearchHealth(restClient); err != nil {
+			return err
+		}
+	}
+	return r.holdOpenSearchPodForPVCResize(restClient, sts, ordinal, desired)
 }
 
-func (r OpenSearchReconciler) needRestartAfterPVCResize(ctx context.Context, statefulSet *v1.StatefulSet, desired resource.Quantity, wantReplicas int) (bool, error) {
-	prefix := claimTemplateName + "-" + statefulSet.Name + "-"
-	for ordinal := 0; ordinal < wantReplicas; ordinal++ {
-		pvcName := fmt.Sprintf("%s%d", prefix, ordinal)
-		var pvc corev1.PersistentVolumeClaim
-		if err := r.reconciler.Client.Get(ctx, types.NamespacedName{Namespace: statefulSet.Namespace, Name: pvcName}, &pvc); err != nil {
+func (r OpenSearchReconciler) finishHeldPVCResize(restClient *util.RestClient, podName string, held bool) error {
+	if !held {
+		return nil
+	}
+	if err := r.removePVCResizeFinalizer(context.Background(), podName); err != nil {
+		return err
+	}
+	if err := r.waitUntilOpenSearchPodIsReady(podName); err != nil {
+		return err
+	}
+	return r.checkOpenSearchHealth(restClient)
+}
+
+func (r OpenSearchReconciler) waitForOpenSearchPVCResizeState(ctx context.Context, sts *v1.StatefulSet, ordinal int, desired resource.Quantity) (bool, error) {
+	restartRequired := false
+	err := wait.PollUntilContextTimeout(ctx, time.Second, pvcResizeStateTimeout, true, func(c context.Context) (bool, error) {
+		pvc, err := r.openSearchPVC(c, sts, ordinal)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				return false, nil
+			}
 			return false, err
 		}
 		capacity := pvc.Status.Capacity[corev1.ResourceStorage]
 		if capacity.Cmp(desired) >= 0 {
-			continue
-		}
-		if ok, msg := pvcHasResizePending(&pvc); ok {
-			r.logger.Info("PVC resize is pending; rolling restart required",
-				"pvc", pvc.Name,
-				"capacity", capacity.String(),
-				"desired", desired.String(),
-				"message", msg,
-			)
 			return true, nil
 		}
-
-		return false, fmt.Errorf(
-			"PVC %s capacity is below desired but resize is not pending (capacity=%s desired=%s)",
-			pvc.Name, capacity.String(), desired.String(),
-		)
-	}
-	return false, nil
+		if pvcResizePending(pvc) {
+			r.logger.Info("PVC resize is pending", "pvc", pvc.Name)
+			restartRequired = true
+			return true, nil
+		}
+		return false, nil
+	})
+	return restartRequired, err
 }
 
-func pvcHasResizePending(pvc *corev1.PersistentVolumeClaim) (bool, string) {
-	for _, c := range pvc.Status.Conditions {
-		if c.Type == corev1.PersistentVolumeClaimResizing || c.Type == corev1.PersistentVolumeClaimFileSystemResizePending {
-			return true, c.Message
+func (r OpenSearchReconciler) holdOpenSearchPodForPVCResize(restClient *util.RestClient, sts *v1.StatefulSet, ordinal int, desired resource.Quantity) error {
+	podName := fmt.Sprintf("%s-%d", sts.Name, ordinal)
+	ctx, cancel := context.WithTimeout(context.Background(), pvcResizeHoldTimeout)
+	defer cancel()
+	defer func() {
+		if err := r.removePVCResizeFinalizer(context.Background(), podName); err != nil {
+			r.logger.Error(err, "Failed to remove PVC resize finalizer", "pod", podName)
+		}
+	}()
+
+	for attempt := 1; ; attempt++ {
+		if ctx.Err() != nil {
+			return fmt.Errorf("timeout waiting for pod %s PVC resize", podName)
+		}
+		delay := 10 * time.Second * time.Duration(1<<(attempt-1))
+		r.logger.Info("Holding OpenSearch pod down to complete PVC resize", "pod", podName, "attempt", attempt, "delay", delay)
+		if err := r.holdPodForPVCResize(ctx, podName); err != nil {
+			return err
+		}
+		select {
+		case <-time.After(delay):
+		case <-ctx.Done():
+			return fmt.Errorf("timeout waiting for pod %s PVC resize", podName)
+		}
+		if err := r.removePVCResizeFinalizer(ctx, podName); err != nil {
+			return err
+		}
+		resized, err := r.waitForOpenSearchPVCCapacity(sts, ordinal, desired, pvcResizeCapacityTimeout)
+		if err != nil {
+			return err
+		}
+		if !resized {
+			continue
+		}
+		r.logger.Info("OpenSearch PVC resized", "pod", podName, "size", desired.String())
+		if err = r.waitUntilOpenSearchPodIsReady(podName); err != nil {
+			return err
+		}
+		return r.checkOpenSearchHealth(restClient)
+	}
+}
+
+func (r OpenSearchReconciler) holdPodForPVCResize(ctx context.Context, podName string) error {
+	pod, err := r.reconciler.findPod(podName, r.cr.Namespace, r.logger)
+	if err != nil {
+		return err
+	}
+	if err = r.ensurePVCResizeFinalizer(ctx, pod); err != nil {
+		return err
+	}
+	if pod.DeletionTimestamp == nil {
+		if err = r.reconciler.deletePodByName(podName, r.cr.Namespace, r.logger); err != nil {
+			return err
 		}
 	}
-	return false, ""
+	return r.waitUntilPodContainersStopped(ctx, podName)
+}
+
+func (r OpenSearchReconciler) waitUntilPodContainersStopped(ctx context.Context, podName string) error {
+	return wait.PollUntilContextTimeout(ctx, time.Second, pvcResizePodStopTimeout, true, func(context.Context) (bool, error) {
+		pod, err := r.reconciler.findPod(podName, r.cr.Namespace, r.logger)
+		if apierrors.IsNotFound(err) {
+			return false, fmt.Errorf("pod %s disappeared before PVC resize hold completed", podName)
+		}
+		if err != nil {
+			return false, err
+		}
+		return podHeldAndStopped(pod), nil
+	})
+}
+
+func (r OpenSearchReconciler) waitForOpenSearchPVCCapacity(sts *v1.StatefulSet, ordinal int, desired resource.Quantity, timeout time.Duration) (bool, error) {
+	resized := false
+	err := wait.PollUntilContextTimeout(context.Background(), time.Second, timeout, true, func(ctx context.Context) (bool, error) {
+		pvc, err := r.openSearchPVC(ctx, sts, ordinal)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				return false, nil
+			}
+			return false, err
+		}
+		capacity := pvc.Status.Capacity[corev1.ResourceStorage]
+		if capacity.Cmp(desired) >= 0 {
+			resized = true
+			return true, nil
+		}
+		return false, nil
+	})
+	if errors.Is(err, context.DeadlineExceeded) {
+		return false, nil
+	}
+	return resized, err
+}
+
+func (r OpenSearchReconciler) openSearchPVC(ctx context.Context, sts *v1.StatefulSet, ordinal int) (*corev1.PersistentVolumeClaim, error) {
+	pvc := &corev1.PersistentVolumeClaim{}
+	name := fmt.Sprintf("%s-%s-%d", claimTemplateName, sts.Name, ordinal)
+	err := r.reconciler.Client.Get(ctx, types.NamespacedName{Namespace: sts.Namespace, Name: name}, pvc)
+	return pvc, err
+}
+
+func (r OpenSearchReconciler) requestPVCStorage(ctx context.Context, pvc *corev1.PersistentVolumeClaim, desired resource.Quantity) error {
+	old := pvc.DeepCopy()
+	if pvc.Spec.Resources.Requests == nil {
+		pvc.Spec.Resources.Requests = corev1.ResourceList{}
+	}
+	pvc.Spec.Resources.Requests[corev1.ResourceStorage] = desired
+	if err := r.reconciler.Client.Patch(ctx, pvc, client.MergeFrom(old)); err != nil {
+		return err
+	}
+	r.logger.Info("PVC resize request applied", "pvc", pvc.Name, "size", desired.String())
+	return nil
+}
+
+func (r OpenSearchReconciler) podHasPVCResizeFinalizer(podName string) (bool, error) {
+	pod, err := r.reconciler.findPod(podName, r.cr.Namespace, r.logger)
+	if apierrors.IsNotFound(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return slices.Contains(pod.Finalizers, pvcResizeFinalizer), nil
+}
+
+func (r OpenSearchReconciler) ensurePVCResizeFinalizer(ctx context.Context, pod *corev1.Pod) error {
+	if slices.Contains(pod.Finalizers, pvcResizeFinalizer) {
+		return nil
+	}
+	pod.Finalizers = append(pod.Finalizers, pvcResizeFinalizer)
+	return r.reconciler.Client.Update(ctx, pod)
+}
+
+func (r OpenSearchReconciler) removePVCResizeFinalizer(ctx context.Context, podName string) error {
+	var last error
+	for attempt := 0; attempt < 3; attempt++ {
+		hasFinalizer, err := r.podHasPVCResizeFinalizer(podName)
+		if err != nil {
+			return err
+		}
+		if !hasFinalizer {
+			return nil
+		}
+		pod, err := r.reconciler.findPod(podName, r.cr.Namespace, r.logger)
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		pod.Finalizers = slices.DeleteFunc(pod.Finalizers, func(finalizer string) bool {
+			return finalizer == pvcResizeFinalizer
+		})
+		last = r.reconciler.Client.Update(ctx, pod)
+		if last == nil || apierrors.IsNotFound(last) {
+			return nil
+		}
+		if !apierrors.IsConflict(last) {
+			return last
+		}
+	}
+	return last
+}
+
+func pvcResizePending(pvc *corev1.PersistentVolumeClaim) bool {
+	for _, condition := range pvc.Status.Conditions {
+		if condition.Type == corev1.PersistentVolumeClaimResizing || condition.Type == corev1.PersistentVolumeClaimFileSystemResizePending {
+			return true
+		}
+	}
+	return false
+}
+
+func podHeldAndStopped(pod *corev1.Pod) bool {
+	if pod == nil || pod.DeletionTimestamp == nil || len(pod.Status.ContainerStatuses) == 0 {
+		return false
+	}
+	for _, status := range pod.Status.ContainerStatuses {
+		if status.State.Terminated == nil && status.State.Waiting == nil {
+			return false
+		}
+	}
+	return true
 }
