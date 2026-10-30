@@ -1,5 +1,6 @@
 {{- if not .Values.global.externalOpensearch.enabled }}
 {{- if and .Values.dashboards.enabled .Values.dashboards.ingress.enabled -}}
+{{- if contains "legacy-ingress" (include "gateway.type" .) }}
 {{- $serviceName := printf "%s-%s" (include "opensearch.fullname" .) "dashboards" }}
 {{- $servicePort := .Values.dashboards.service.port }}
 {{- if .Capabilities.APIVersions.Has "networking.k8s.io/v1/Ingress" }}
@@ -24,7 +25,9 @@ metadata:
     {{- with .Values.dashboards.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+    {{- if contains "gateway-api-default" (include "gateway.type" .) }}
     gateway-api-converter.netcracker.com/ignore: "true"
+    {{- end }}
 spec:
   {{- if .Values.dashboards.ingress.tls }}
   tls:
@@ -60,5 +63,6 @@ spec:
             {{- end }}
           {{- end }}
     {{- end }}
+{{- end }}
 {{- end }}
 {{- end }}

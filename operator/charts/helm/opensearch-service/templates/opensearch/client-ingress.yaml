@@ -1,5 +1,6 @@
 {{- if not .Values.global.externalOpensearch.enabled }}
 {{- if and (eq (include "opensearch.ingressEnabled" .) "true") .Values.opensearch.client.enabled }}
+{{- if contains "legacy-ingress" (include "gateway.type" .) }}
 {{- $fullName := printf "%s" (include "opensearch.fullname" .) }}
 {{- $ingressPath := .Values.opensearch.client.ingress.path }}
 kind: Ingress
@@ -30,7 +31,9 @@ metadata:
     {{- with .Values.opensearch.client.ingress.annotations }}
     {{ toYaml . | nindent 4 }}
     {{- end }}
+    {{- if contains "gateway-api-default" (include "gateway.type" .) }}
     gateway-api-converter.netcracker.com/ignore: "true"
+    {{- end }}
 spec:
   {{- if and .Values.opensearch.client.ingress.className (.Capabilities.APIVersions.Has "networking.k8s.io/v1/Ingress") }}
   ingressClassName: {{ .Values.opensearch.client.ingress.className }}
