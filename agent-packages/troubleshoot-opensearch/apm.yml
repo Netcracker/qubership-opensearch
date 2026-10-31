@@ -1,0 +1,13 @@
+name: troubleshoot-opensearch
+version: 1.0.0
+description: Diagnose OpenSearch cluster, shard, storage, replication, authentication, and upgrade failures.
+author: Netcracker
+targets:
+  - claude
+  - copilot
+  - cursor
+dependencies:
+  apm: []
+  mcp: []
+includes: auto
+scripts: {}

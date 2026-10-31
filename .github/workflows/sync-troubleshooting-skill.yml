@@ -1,0 +1,61 @@
+name: Sync Troubleshooting Skill
+run-name: "Sync troubleshooting skill #${{ github.run_number }} — triggered by ${{ github.actor }} (${{ github.event_name }})"
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      auto-merge:
+        description: "Automatically enable auto-merge for the created pull request"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Sync troubleshooting docs into skill
+        uses: netcracker/qubership-workflow-hub/actions/sync-files-action@e6afd0a6bcc4f24d73e3e4d5fb9a31ada009e3f1 # v2.8.2
+        with:
+          files: |
+            [
+              { "from": "docs/public/troubleshooting.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/troubleshooting.md" },
+              { "from": "docs/public/alerts.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/alerts.md" },
+              { "from": "docs/public/installation.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/installation.md" },
+              { "from": "docs/public/indices-migration.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/indices-migration.md" },
+              { "from": "docs/public/scenarios/availability_zone_outage.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/availability_zone_outage.md" },
+              { "from": "docs/public/scenarios/availability_zone_shutdown.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/availability_zone_shutdown.md" },
+              { "from": "docs/public/scenarios/cpu_overload.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/cpu_overload.md" },
+              { "from": "docs/public/scenarios/data_files_corrupted_on_primary_and_replica_shards.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_primary_and_replica_shards.md" },
+              { "from": "docs/public/scenarios/data_files_corrupted_on_primary_shard.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_primary_shard.md" },
+              { "from": "docs/public/scenarios/data_files_corrupted_on_replica_shard.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_replica_shard.md" },
+              { "from": "docs/public/scenarios/disk_failure_on_all_nodes.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/disk_failure_on_all_nodes.md" },
+              { "from": "docs/public/scenarios/disk_failure_on_one_node.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/disk_failure_on_one_node.md" },
+              { "from": "docs/public/scenarios/disk_filled_on_all_nodes.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/disk_filled_on_all_nodes.md" },
+              { "from": "docs/public/scenarios/elected_master_is_crashed.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/elected_master_is_crashed.md" },
+              { "from": "docs/public/scenarios/entire_index_corrupted.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/entire_index_corrupted.md" },
+              { "from": "docs/public/scenarios/io_limit.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/io_limit.md" },
+              { "from": "docs/public/scenarios/memory_limit.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/memory_limit.md" },
+              { "from": "docs/public/scenarios/network_connection_failure.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/network_connection_failure.md" },
+              { "from": "docs/public/scenarios/new_master_can_not_be_elected.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/new_master_can_not_be_elected.md" },
+              { "from": "docs/public/scenarios/primary_shard_is_down_during_user_request.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/primary_shard_is_down_during_user_request.md" },
+              { "from": "docs/public/scenarios/problem_during_replication.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/problem_during_replication.md" },
+              { "from": "docs/public/scenarios/translog_is_corrupted.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/translog_is_corrupted.md" },
+              { "from": "docs/data/opensearch-tls-reinit.yaml", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/opensearch-tls-reinit.yaml" }
+            ]
+          title: "chore: sync troubleshooting skill references"
+          commit-message: "chore: sync troubleshooting skill references"
+          auto-merge: ${{ inputs.auto-merge || 'true' }}
+          token: ${{ secrets.GITHUB_TOKEN }}
