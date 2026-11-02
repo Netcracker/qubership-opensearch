@@ -10,8 +10,10 @@ All facts and resolution steps live in `references/`; this file only routes. Use
 - `references/troubleshooting.md` — known failure modes, one `##` section each. Never read it in full.
 - `references/scenarios/<name>.md` — detailed procedures linked from a section's Recommendations.
 - `references/alerts.md` — Prometheus alerts (`./alerts.md#...` links).
-- `references/hwe.md` — hardware requirements (`./installation.md#hwe` links). Other `installation.md` links are not bundled.
+- `references/hwe.md` — hardware requirements.
 - `references/indices-migration.md`, `references/opensearch-tls-reinit.yaml` — linked from the migration and TLS sections.
+
+Local links resolve inside `references/`. GitHub links point to repository docs that are not bundled; mention them to the user instead of fetching them.
 
 Steps:
 

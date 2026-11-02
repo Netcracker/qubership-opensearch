@@ -375,4 +375,3 @@ statusProvisioner:
 </details>
 
 **NOTE:** the following scaling may include additional OpenSearch replicas (universal or data).
-

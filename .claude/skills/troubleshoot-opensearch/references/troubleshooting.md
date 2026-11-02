@@ -1,4 +1,3 @@
-
 ## Cluster Health
 
 ### Description
@@ -9,7 +8,7 @@ For more information on the cluster health API, refer to the official OpenSearch
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -39,7 +38,7 @@ Cluster status is a custom metric that can be found on the **Cluster status** pa
 
 ### Alerts
 
-* [OpenSearchIsDegradedAlert](./alerts.md#opensearchisdegradedalert)
+* [OpenSearchIsDegradedAlert](alerts.md#opensearchisdegradedalert)
 
 ### Stack trace
 
@@ -67,7 +66,7 @@ The main cause is any of the following:
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -97,8 +96,8 @@ curl -XGET http://localhost:9200/_cluster/health
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
-* [OpenSearchIsDegradedAlert](./alerts.md#opensearchisdegradedalert)
+* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
+* [OpenSearchIsDegradedAlert](alerts.md#opensearchisdegradedalert)
 
 ### Stack trace
 
@@ -135,7 +134,7 @@ The last OpenSearch backup has finished with `Failed` status.
 
 ### Alerts
 
-* [OpenSearchLastBackupHasFailedAlert](./alerts.md#opensearchlastbackuphasfailedalert)
+* [OpenSearchLastBackupHasFailedAlert](alerts.md#opensearchlastbackuphasfailedalert)
 
 ### Stack trace
 
@@ -163,9 +162,9 @@ The disk being filled on all nodes
 
 ### Alerts
 
-* [OpenSearchDiskUsageAbove75%Alert](./alerts.md#opensearchdiskusageabove75alert)
-* [OpenSearchDiskUsageAbove85%Alert](./alerts.md#opensearchdiskusageabove85alert)
-* [OpenSearchDiskUsageAbove95%Alert](./alerts.md#opensearchdiskusageabove95alert)
+* [OpenSearchDiskUsageAbove75%Alert](alerts.md#opensearchdiskusageabove75alert)
+* [OpenSearchDiskUsageAbove85%Alert](alerts.md#opensearchdiskusageabove85alert)
+* [OpenSearchDiskUsageAbove95%Alert](alerts.md#opensearchdiskusageabove95alert)
 
 ### Stack trace
 
@@ -193,9 +192,9 @@ Some problems with the OpenSearch cluster can occur due to a lack of CPU, memory
 
 ### Alerts
 
-* [OpenSearchDiskUsageAbove75%Alert](./alerts.md#opensearchdiskusageabove75alert)
-* [OpenSearchDiskUsageAbove85%Alert](./alerts.md#opensearchdiskusageabove85alert)
-* [OpenSearchDiskUsageAbove95%Alert](./alerts.md#opensearchdiskusageabove95alert)
+* [OpenSearchDiskUsageAbove75%Alert](alerts.md#opensearchdiskusageabove75alert)
+* [OpenSearchDiskUsageAbove85%Alert](alerts.md#opensearchdiskusageabove85alert)
+* [OpenSearchDiskUsageAbove95%Alert](alerts.md#opensearchdiskusageabove95alert)
 
 ### Stack trace
 
@@ -207,8 +206,8 @@ Increase OpenSearch resources.
 
 ### Recommendations
 
-For more information, refer to [Memory Limit](/docs/public/scenarios/memory_limit.md), [CPU Overload](/docs/public/scenarios/cpu_overload.md)
-and [I/O Limit](/docs/public/scenarios/io_limit.md).
+For more information, refer to [Memory Limit](scenarios/memory_limit.md), [CPU Overload](scenarios/cpu_overload.md)
+and [I/O Limit](scenarios/io_limit.md).
 
 ## OpenSearch Fails Down with CircuitBreakingException
 
@@ -310,7 +309,7 @@ All data files of the index were corrupted, there is no way to get data from thi
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -337,7 +336,7 @@ If a translog was corrupted, the shards with a corrupted translog will have `Tra
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -427,10 +426,10 @@ OpenSearch uses replica shards to provide failover capabilities, as well as to s
 
 ### Alerts
 
-* [OpenSearchReplicationDegradedAlert](./alerts.md#opensearchreplicationdegradedalert)
-* [OpenSearchReplicationFailedAlert](./alerts.md#opensearchreplicationfailedalert)
-* [OpenSearchReplicationTooHighLagAlert](./alerts.md#opensearchreplicationtoohighlagalert)
-* [OpenSearchReplicationLeaderConnectionLostAlert](./alerts.md#opensearchreplicationleaderconnectionlostalert)
+* [OpenSearchReplicationDegradedAlert](alerts.md#opensearchreplicationdegradedalert)
+* [OpenSearchReplicationFailedAlert](alerts.md#opensearchreplicationfailedalert)
+* [OpenSearchReplicationTooHighLagAlert](alerts.md#opensearchreplicationtoohighlagalert)
+* [OpenSearchReplicationLeaderConnectionLostAlert](alerts.md#opensearchreplicationleaderconnectionlostalert)
 
 ### Stack trace
 
@@ -554,7 +553,7 @@ or problem with environment where OpenSearch has been deployed.
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -577,7 +576,7 @@ Retry this action for all OpenSearch resources which pods have this error.
 
 ### Recommendations
 
-Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](./installation.md#hwe)
+Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](hwe.md)
 
 ## Liveness Probe Failed
 
@@ -588,7 +587,7 @@ or problem with environment where OpenSearch has been deployed.
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -611,7 +610,7 @@ Retry this action for all OpenSearch resources which pods have this error.
 
 ### Recommendations
 
-Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](./installation.md#hwe)
+Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](hwe.md)
 
 ## Max Virtual Memory Is Too Low
 
@@ -621,7 +620,7 @@ This error means the OpenSearch does not have enough virtual memory to start.
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -661,7 +660,7 @@ runAsUser:
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -781,7 +780,7 @@ In the several versions of OpenSearch that certificate was generated with only o
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -812,7 +811,7 @@ If upgrade is not possible and manual fix is required, please follow steps:
 
 1. Manually remove secrets "opensearch-admin-certs" and "opensearch-transport-certs"
    (and "opensearch-rest-certs" if presented) from the OpenSearch namespace.
-2. Edit the template of [opensearch-tls-reinit.yaml](/docs/data/opensearch-tls-reinit.yaml) resources and specify corresponding
+2. Edit the template of [opensearch-tls-reinit.yaml](opensearch-tls-reinit.yaml) resources and specify corresponding
    namespace and OpenSearch docker image (you can take it from working pods) if required.
 3. Apply result template with command `kubectl apply -f opensearch-tls-reinit.yaml` to the namespace with OpenSearch.
 4. Wait until Job execution. There should be `'admin' certificates are generated` output inside.
@@ -843,7 +842,7 @@ with OpenSearch admin credentials and check the necessary DBaaS service user the
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -878,8 +877,8 @@ DBaaS Adapter is not alive.
 
 ### Alerts
 
-* [OpenSearchDBaaS](./alerts.md#opensearchdbaasisdownalert)
-* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchDBaaS](alerts.md#opensearchdbaasisdownalert)
+* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -901,7 +900,7 @@ DBaaS adapter is in `problem` state.
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -945,7 +944,7 @@ Check DBaaS Adapter logs for more information about the problem with OpenSearch.
 
 ### Alerts
 
-* [OpenSearchDBaaS](./alerts.md#opensearchdbaasisdownalert)
+* [OpenSearchDBaaS](alerts.md#opensearchdbaasisdownalert)
 
 ### Stack trace
 
@@ -1128,7 +1127,7 @@ Not applicable
 
 ### Alerts
 
-* [OpenSearchReplicationFailedAlert](./alerts.md#opensearchreplicationfailedalert)
+* [OpenSearchReplicationFailedAlert](alerts.md#opensearchreplicationfailedalert)
 
 ### Stack trace
 
@@ -1318,7 +1317,7 @@ This issue means that opensearch indices migration have failed, you need to chec
 
 ### Alerts
 
-* [OpenSearchLegacyIndicesDetectedAlert](./alerts.md#opensearchlegacyindicesdetectedalert)
+* [OpenSearchLegacyIndicesDetectedAlert](alerts.md#opensearchlegacyindicesdetectedalert)
 
 ### How to solve
 
@@ -1335,7 +1334,7 @@ When the limit is reached, OpenSearch rejects operations that need additional sh
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
 
 ### Stack trace
 

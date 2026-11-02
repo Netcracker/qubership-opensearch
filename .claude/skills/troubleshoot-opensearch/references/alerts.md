@@ -41,7 +41,7 @@ For more information, refer to [CPU Overload](scenarios/cpu_overload.md).
 
 One of OpenSearch pods uses 75% of the disk.
 
-For more information, refer to [Data Nodes are Out of Space](./troubleshooting.md#data-nodes-are-out-of-space).
+For more information, refer to [Data Nodes are Out of Space](troubleshooting.md#data-nodes-are-out-of-space).
 
 ### Possible Causes
 
@@ -74,7 +74,7 @@ For more information, refer to [Data Nodes are Out of Space](./troubleshooting.m
 
 One of OpenSearch pods uses 85% of the disk.
 
-For more information, refer to [Data Nodes are Out of Space](./troubleshooting.md#data-nodes-are-out-of-space).
+For more information, refer to [Data Nodes are Out of Space](troubleshooting.md#data-nodes-are-out-of-space).
 
 ### Possible Causes
 
@@ -108,7 +108,7 @@ For more information, refer to [Data Nodes are Out of Space](./troubleshooting.m
 
 One of OpenSearch pods uses 95% of the disk.
 
-For more information, refer to [Data Nodes are Out of Space](./troubleshooting.md#data-nodes-are-out-of-space).
+For more information, refer to [Data Nodes are Out of Space](troubleshooting.md#data-nodes-are-out-of-space).
 
 ### Possible Causes
 
@@ -175,7 +175,7 @@ For more information, refer to [Memory Limit](scenarios/memory_limit.md).
 
 OpenSearch cluster is degraded, that is, at least one of the nodes have failed, but cluster is able to work.
 
-For more information, refer to [Cluster Status is Failed or Degraded](./troubleshooting.md#cluster-status-is-failed-or-degraded).
+For more information, refer to [Cluster Status is Failed or Degraded](troubleshooting.md#cluster-status-is-failed-or-degraded).
 
 ### Possible Causes
 
@@ -212,7 +212,7 @@ For more information, refer to [Cluster Status is Failed or Degraded](./troubles
 
 OpenSearch cluster is down, and there are no available pods.
 
-For more information, refer to [Cluster Status is N/A](./troubleshooting.md#cluster-status-is-na) and [Cluster Status is Failed or Degraded](./troubleshooting.md#cluster-status-is-failed-or-degraded).
+For more information, refer to [Cluster Status is N/A](troubleshooting.md#cluster-status-is-na) and [Cluster Status is Failed or Degraded](troubleshooting.md#cluster-status-is-failed-or-degraded).
 
 ### Possible Causes
 
@@ -277,7 +277,7 @@ OpenSearch DBaaS adapter is not working.
 
 The last OpenSearch backup has finished with `Failed` status.
 
-For more information, refer to [Last Backup Has Failed](./troubleshooting.md#last-backup-has-failed).
+For more information, refer to [Last Backup Has Failed](troubleshooting.md#last-backup-has-failed).
 
 ### Possible Causes
 
@@ -297,7 +297,7 @@ For more information, refer to [Last Backup Has Failed](./troubleshooting.md#las
 ### Recommended Actions to Resolve Issue
 
 1. Fix issues with backup storage if necessary.
-2. Follow [Last Backup Has Failed](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/troubleshooting.md#last-backup-has-failed) for additional steps.
+2. Follow [Last Backup Has Failed](troubleshooting.md#last-backup-has-failed) for additional steps.
 
 ## OpenSearchLegacyIndicesDetectedAlert
 
@@ -326,7 +326,7 @@ The OpenSearch cluster contains one or more indices that were created on OpenSea
 
 ### Recommended Actions to Resolve Issue
 
-1. Use the pre-upgrade migration tool that is placed inside curator deployment for manual migration before planned upgrade, check [Indices Migration](/docs/public/indices-migration.md)
+1. Use the pre-upgrade migration tool that is placed inside curator deployment for manual migration before planned upgrade, check [Indices Migration](indices-migration.md)
 2. Alternatively, run the migration in dry-run mode first (`migration.enabled: false`) to verify which indices require migration, then enable and run the full migration.
 3. Run the pre-upgrade migration job (indices migration_tool) with `migration.enabled: true` to migrate 1.x indices before or during the upgrade to 3.x.
 
@@ -336,7 +336,7 @@ The OpenSearch cluster contains one or more indices that were created on OpenSea
 
 Execution time of one of index queries in the OpenSearch exceeds the specified threshold.
 
-This threshold can be overridden with parameter `monitoring.thresholds.slowQuerySecondsAlert` described in [OpenSearch monitoring](/docs/public/installation.md#monitoring) parameters.
+This threshold can be overridden with parameter `monitoring.thresholds.slowQuerySecondsAlert` described in [OpenSearch monitoring](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#monitoring) parameters.
 
 ### Possible Causes
 
@@ -361,7 +361,7 @@ This threshold can be overridden with parameter `monitoring.thresholds.slowQuery
 
 Replication between two OpenSearch clusters in Disaster Recovery mode has `degraded` status.
 
-For more information, refer to [OpenSearch Disaster Recovery Health](./troubleshooting.md#opensearch-disaster-recovery-health-has-status-degraded).
+For more information, refer to [OpenSearch Disaster Recovery Health](troubleshooting.md#opensearch-disaster-recovery-health-has-status-degraded).
 
 ### Possible Causes
 
@@ -380,7 +380,7 @@ For more information, refer to [OpenSearch Disaster Recovery Health](./troublesh
 
 ### Recommended Actions to Resolve Issue
 
-1. Check solutions described in [OpenSearch Disaster Recovery Health](./troubleshooting.md#opensearch-disaster-recovery-health-has-status-degraded) section.
+1. Check solutions described in [OpenSearch Disaster Recovery Health](troubleshooting.md#opensearch-disaster-recovery-health-has-status-degraded) section.
 
 ## OpenSearchReplicationFailedAlert
 
@@ -388,7 +388,7 @@ For more information, refer to [OpenSearch Disaster Recovery Health](./troublesh
 
 Replication between two OpenSearch clusters in Disaster Recovery mode has `failed` status.
 
-For more information, refer to [OpenSearch Disaster Recovery Health](./troubleshooting.md#opensearch-disaster-recovery-health-has-status-degraded).
+For more information, refer to [OpenSearch Disaster Recovery Health](troubleshooting.md#opensearch-disaster-recovery-health-has-status-degraded).
 
 ### Possible Causes
 
@@ -407,7 +407,7 @@ For more information, refer to [OpenSearch Disaster Recovery Health](./troublesh
 
 ### Recommended Actions to Resolve Issue
 
-1. Check solutions described in [OpenSearch Disaster Recovery Health](./troubleshooting.md#opensearch-disaster-recovery-health-has-status-degraded) section.
+1. Check solutions described in [OpenSearch Disaster Recovery Health](troubleshooting.md#opensearch-disaster-recovery-health-has-status-degraded) section.
 
 ## OpenSearchReplicationLeaderConnectionLostAlert
 
@@ -441,7 +441,7 @@ For more information, refer to [OpenSearch Disaster Recovery Health](./troublesh
 
 The documents lag of replication between two OpenSearch clusters comes close to the specified limit.
 
-This limit can be overridden with parameter `monitoring.thresholds.lagAlert` described in [OpenSearch monitoring](/docs/public/installation.md#monitoring) parameters.
+This limit can be overridden with parameter `monitoring.thresholds.lagAlert` described in [OpenSearch monitoring](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#monitoring) parameters.
 
 ### Possible Causes
 
