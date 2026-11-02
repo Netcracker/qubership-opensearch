@@ -26,14 +26,25 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Build trimmed skill references
+        run: |
+          set -euo pipefail
+          mkdir -p .skill-sync
+          # Only the HWE section of installation.md is used by the skill.
+          awk '/^## HWE$/{f=1; print; next} f && /^##? /{exit} f' docs/public/installation.md > .skill-sync/hwe.md
+          # Drop the generated TOC block; the skill navigates by section headers.
+          awk '/^<!-- TOC -->$/{n++; next} n!=1' docs/public/troubleshooting.md > .skill-sync/troubleshooting.md
+          grep -q '^### Small' .skill-sync/hwe.md
+          grep -q '^## Cluster Health' .skill-sync/troubleshooting.md
+
       - name: Sync troubleshooting docs into skill
         uses: netcracker/qubership-workflow-hub/actions/sync-files-action@e6afd0a6bcc4f24d73e3e4d5fb9a31ada009e3f1 # v2.8.2
         with:
           files: |
             [
-              { "from": "docs/public/troubleshooting.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/troubleshooting.md" },
+              { "from": ".skill-sync/troubleshooting.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/troubleshooting.md" },
               { "from": "docs/public/alerts.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/alerts.md" },
-              { "from": "docs/public/installation.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/installation.md" },
+              { "from": ".skill-sync/hwe.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/hwe.md" },
               { "from": "docs/public/indices-migration.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/indices-migration.md" },
               { "from": "docs/public/scenarios/availability_zone_outage.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/availability_zone_outage.md" },
               { "from": "docs/public/scenarios/availability_zone_shutdown.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/availability_zone_shutdown.md" },
@@ -53,7 +64,9 @@ jobs:
               { "from": "docs/public/scenarios/primary_shard_is_down_during_user_request.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/primary_shard_is_down_during_user_request.md" },
               { "from": "docs/public/scenarios/problem_during_replication.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/problem_during_replication.md" },
               { "from": "docs/public/scenarios/translog_is_corrupted.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios/translog_is_corrupted.md" },
-              { "from": "docs/data/opensearch-tls-reinit.yaml", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/opensearch-tls-reinit.yaml" }
+              { "from": "docs/data/opensearch-tls-reinit.yaml", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/opensearch-tls-reinit.yaml" },
+              { "from": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch", "to": ".claude/skills/troubleshoot-opensearch" },
+              { "from": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch", "to": ".agents/skills/troubleshoot-opensearch" }
             ]
           title: "chore: sync troubleshooting skill references"
           commit-message: "chore: sync troubleshooting skill references"

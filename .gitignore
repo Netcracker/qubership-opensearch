@@ -17,6 +17,9 @@ testbin/*
 # APM dependencies
 apm_modules/
 
+# Staging for sync-troubleshooting-skill workflow
+.skill-sync/
+
 # Kubernetes Generated files - skip generated files, except for vendored files
 
 !vendor/**/zz_generated.*
