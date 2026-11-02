@@ -1,6 +1,7 @@
 {{- if and (not .Values.global.externalOpensearch.enabled) .Values.dashboards.enabled }}
 {{- if and .Values.dashboards.envoyGateway.enabled .Values.dashboards.ingress.enabled }}
 {{ if and (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1") (eq .Values.PAAS_PLATFORM "KUBERNETES") -}}
+{{- if contains "gateway-api-default" (include "gateway.type" .) }}
 {{- $serviceName := printf "%s-%s" (include "opensearch.fullname" .) "dashboards" }}
 
 apiVersion: gateway.networking.k8s.io/v1
@@ -10,6 +11,8 @@ metadata:
   labels:
     {{- include "opensearch.labels.standard" . | nindent 4 }}
     {{- include "opensearch-service.defaultLabels" . | nindent 4 }}
+    deployment.netcracker.com/ingress-type: 'private-network'
+    deployment.netcracker.com/ingress-audience-type: 'ops-user'
 spec:
   parentRefs:
   {{- include "gateway.parentRefs" (list . .Values.dashboards.envoyGateway.parentRefs) | nindent 4 }}
@@ -34,6 +37,7 @@ spec:
           kind: Service
           port: {{ .Values.dashboards.service.port }}
           weight: 1
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
