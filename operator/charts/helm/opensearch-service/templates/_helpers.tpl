@@ -27,11 +27,7 @@ If release name contains chart name it will be used as a full name.
 Return type for gateway
 */}}
 {{- define "gateway.type" -}}
-{{- if .Values.GATEWAY_SYSTEM_TYPE }}
-    {{- .Values.GATEWAY_SYSTEM_TYPE }}
-{{- else }}
-    {{- "legacy-ingress" }}
-{{- end -}}
+    {{- default "legacy-ingress" .Values.GATEWAY_SYSTEM_TYPE -}}
 {{- end -}}
 
 {{/*
