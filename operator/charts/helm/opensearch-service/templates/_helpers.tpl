@@ -1328,16 +1328,12 @@ otherwise extracts the namespace from API_DBAAS_ADDRESS.
     {{- $explicit -}}
   {{- else -}}
     {{- $address := toString (default "" .Values.API_DBAAS_ADDRESS) -}}
-    {{- $host := first (splitList ":" (last (splitList "://" $address))) -}}
-    {{- $parts := splitList "." $host -}}
-    {{- $namespace := "" -}}
-    {{- if ge (len $parts) 2 -}}
-      {{- $namespace = index $parts 1 -}}
+    {{- $pattern := "^(https?://)?[^.]+\\.([^:/]+).*$" -}}
+    {{- if regexMatch $pattern $address -}}
+      {{- regexReplaceAll $pattern $address "${2}" -}}
+    {{- else -}}
+      {{- fail (printf "API_DBAAS_ADDRESS %q is not a valid aggregator address. Set it to http://<aggregator>.<namespace>:<port> or set dbaasAdapter.declarativeRegistration.operatorNamespace." $address) -}}
     {{- end -}}
-    {{- if or (eq $namespace "") (regexMatch "^[0-9]+$" $namespace) -}}
-      {{- fail (printf "API_DBAAS_ADDRESS %q names no namespace. Set it to http://<aggregator>.<namespace>:<port> or set dbaasAdapter.declarativeRegistration.operatorNamespace." $address) -}}
-    {{- end -}}
-    {{- $namespace -}}
   {{- end -}}
 {{- end -}}
 
