@@ -1038,22 +1038,34 @@ This section lists the configurable parameters of the OpenSearch chart and their
 
 ## Cloud Integration Parameters
 
-| Parameter                              | Type    | Mandatory | Default value | Description                                                                                 |
-|----------------------------------------|---------|-----------|---------------|---------------------------------------------------------------------------------------------|
-| STORAGE_RWO_CLASS                      | string  | yes       | `""`          | This parameter specifies the storage class for OpenSearch nodes (master, arbiter, data).    |
-| STORAGE_RWX_CLASS                      | string  | no        | `""`          | This parameter specifies the name of shared storage class to store OpenSearch snapshots.    |
-| INFRA_OPENSEARCH_REPLICAS              | integer | no        | `3`           | This parameter specifies the number of OpenSearch nodes (master, arbiter, data and client). |
-| DBAAS_ENABLED                          | boolean | no        | `false`       | Whether the installation of OpenSearch DBaaS adapter is to be enabled.                      |
-| API_DBAAS_ADDRESS                      | string  | no        | `""`          | The address of DBaaS aggregator, which should register physical database, in the format `<protocol>://<aggregator>.<namespace>:<port>`. In declarative registration mode, the namespace of the DBaaS Operator is derived from this address when `dbaasAdapter.declarativeRegistration.operatorNamespace` is not set. |
-| DBAAS_CLUSTER_DBA_CREDENTIALS_USERNAME | string  | no        | `""`          | The name of user for DBaaS aggregator's registration API.                                   |
-| DBAAS_CLUSTER_DBA_CREDENTIALS_PASSWORD | string  | no        | `""`          | The password of user for DBaaS aggregator's registration API.                               |
-| INFRA_OPENSEARCH_USERNAME              | string  | yes       | `""`          | The username of the OpenSearch user with `admin` privileges.                                |
-| INFRA_OPENSEARCH_PASSWORD              | string  | yes       | `""`          | The password of the OpenSearch user with `admin` privileges.                                |
-| MONITORING_ENABLED                     | boolean | no        | `true`        | Specifies whether OpenSearch Monitoring component is to be deployed or not.                 |
-| PRODUCTION_MODE                        | boolean | no        | `false`       | Whether OpenSearch client ingress is to be enabled.                                         |
-| SERVER_HOSTNAME                        | string  | no        | `""`          | This parameter specifies OpenSearch client ingress host.                                    |
-| INFRA_OPENSEARCH_FS_GROUP              | string  | no        | `""`          | This parameter specifies fs group for OpenSearch curator.                                   |
-| INFRA_RESTRICTED_ENVIRONMENT           | boolean | no        | `false`       | Specifies whether the OpenSearch service is to be deployed in restricted environment.       |
+| Parameter                              | Type    | Mandatory | Default value     | Description                                                                                 |
+|----------------------------------------|---------|-----------|-------------------|---------------------------------------------------------------------------------------------|
+| STORAGE_RWO_CLASS                      | string  | yes       | `""`              | This parameter specifies the storage class for OpenSearch nodes (master, arbiter, data).    |
+| STORAGE_RWX_CLASS                      | string  | no        | `""`              | This parameter specifies the name of shared storage class to store OpenSearch snapshots.    |
+| INFRA_OPENSEARCH_REPLICAS              | integer | no        | `3`               | This parameter specifies the number of OpenSearch nodes (master, arbiter, data and client). |
+| DBAAS_ENABLED                          | boolean | no        | `false`           | Whether the installation of OpenSearch DBaaS adapter is to be enabled.                      |
+| API_DBAAS_ADDRESS                      | string  | no        | `""`              | The address of DBaaS aggregator, which should register physical database, in the format `<protocol>://<aggregator>.<namespace>:<port>`. In declarative registration mode, the namespace of the DBaaS Operator is derived from this address when `dbaasAdapter.declarativeRegistration.operatorNamespace` is not set. |
+| DBAAS_CLUSTER_DBA_CREDENTIALS_USERNAME | string  | no        | `""`              | The name of user for DBaaS aggregator's registration API.                                   |
+| DBAAS_CLUSTER_DBA_CREDENTIALS_PASSWORD | string  | no        | `""`              | The password of user for DBaaS aggregator's registration API.                               |
+| INFRA_OPENSEARCH_USERNAME              | string  | yes       | `""`              | The username of the OpenSearch user with `admin` privileges.                                |
+| INFRA_OPENSEARCH_PASSWORD              | string  | yes       | `""`              | The password of the OpenSearch user with `admin` privileges.                                |
+| MONITORING_ENABLED                     | boolean | no        | `true`            | Specifies whether OpenSearch Monitoring component is to be deployed or not.                 |
+| PRODUCTION_MODE                        | boolean | no        | `false`           | Whether OpenSearch client ingress is to be enabled.                                         |
+| SERVER_HOSTNAME                        | string  | no        | `""`              | This parameter specifies OpenSearch client ingress host.                                    |
+| INFRA_OPENSEARCH_FS_GROUP              | string  | no        | `""`              | This parameter specifies fs group for OpenSearch curator.                                   |
+| INFRA_RESTRICTED_ENVIRONMENT           | boolean | no        | `false`           | Specifies whether the OpenSearch service is to be deployed in restricted environment.       |
+| GATEWAY_SYSTEM_TYPE                    | string  | no        | `"legacy-ingress"`| Identifies whether to deploy HTTPRoute or Ingress resources, or both.                       |
+
+**Note**: The `GATEWAY_SYSTEM_TYPE` parameter is not defined in the `values.yaml` of the `opensearch-service` chart, because it is
+passed by the deployment tooling at deploy time. If it is not set, `legacy-ingress` is used by default, so only `Ingress`
+resources are created. The parameter defines which resources are created for external access to OpenSearch Dashboards and the OpenSearch client:
+
+| `GATEWAY_SYSTEM_TYPE` value                 | Created resources                                                                                                                                                                                                |
+|---------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Not set (default) or `legacy-ingress`       | Only `Ingress`. `HTTPRoute` resources are not created even if `dashboards.envoyGateway.enabled` or `opensearch.client.envoyGateway.enabled` is `true`.                                                           |
+| `gateway-api-default`                       | Only Gateway API `HTTPRoute`. `Ingress` resources are not created even if `dashboards.ingress.enabled` or `opensearch.client.ingress.enabled` is `true`.                                                         |
+| `legacy-ingress,gateway-api-default`        | Both `Ingress` and `HTTPRoute`. Each `Ingress` gets the `gateway-api-converter.netcracker.com/ignore: "true"` annotation, so the Gateway API converter skips it because a native `HTTPRoute` already exists.     |
+| Any other value                             | Neither `Ingress` nor `HTTPRoute` is created.                                                                                                                                                                    |
 
 ## Global
 
