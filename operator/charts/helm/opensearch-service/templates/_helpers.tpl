@@ -24,6 +24,13 @@ If release name contains chart name it will be used as a full name.
 {{- end -}}
 
 {{/*
+Return type for gateway
+*/}}
+{{- define "gateway.type" -}}
+    {{- default "legacy-ingress" .Values.GATEWAY_SYSTEM_TYPE -}}
+{{- end -}}
+
+{{/*
 Define standard labels for frequently used metadata.
 */}}
 {{- define "opensearch.labels.standard" -}}
