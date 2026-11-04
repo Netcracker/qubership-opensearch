@@ -26,15 +26,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Build skill references
-        run: python3 .github/scripts/build-troubleshooting-skill.py .skill-sync/references
-
       - name: Sync troubleshooting docs into skill
         uses: netcracker/qubership-workflow-hub/actions/sync-files-action@e6afd0a6bcc4f24d73e3e4d5fb9a31ada009e3f1 # v2.8.2
         with:
           files: |
             [
-              { "from": ".skill-sync/references", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references" },
+              { "from": "docs/public/troubleshooting.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/troubleshooting.md" },
+              { "from": "docs/public/alerts.md", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/alerts.md" },
+              { "from": "docs/public/scenarios", "to": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch/references/scenarios" },
               { "from": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch", "to": ".claude/skills/troubleshoot-opensearch" },
               { "from": "agent-packages/troubleshoot-opensearch/.apm/skills/troubleshoot-opensearch", "to": ".agents/skills/troubleshoot-opensearch" }
             ]

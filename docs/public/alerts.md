@@ -326,7 +326,7 @@ The OpenSearch cluster contains one or more indices that were created on OpenSea
 
 ### Recommended Actions to Resolve Issue
 
-1. Use the pre-upgrade migration tool that is placed inside curator deployment for manual migration before planned upgrade, check [Indices Migration](/docs/public/indices-migration.md)
+1. Use the pre-upgrade migration tool that is placed inside curator deployment for manual migration before planned upgrade, check [Indices Migration](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/indices-migration.md)
 2. Alternatively, run the migration in dry-run mode first (`migration.enabled: false`) to verify which indices require migration, then enable and run the full migration.
 3. Run the pre-upgrade migration job (indices migration_tool) with `migration.enabled: true` to migrate 1.x indices before or during the upgrade to 3.x.
 
@@ -336,7 +336,7 @@ The OpenSearch cluster contains one or more indices that were created on OpenSea
 
 Execution time of one of index queries in the OpenSearch exceeds the specified threshold.
 
-This threshold can be overridden with parameter `monitoring.thresholds.slowQuerySecondsAlert` described in [OpenSearch monitoring](/docs/public/installation.md#monitoring) parameters.
+This threshold can be overridden with parameter `monitoring.thresholds.slowQuerySecondsAlert` described in [OpenSearch monitoring](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#monitoring) parameters.
 
 ### Possible Causes
 
@@ -441,7 +441,7 @@ For more information, refer to [OpenSearch Disaster Recovery Health](./troublesh
 
 The documents lag of replication between two OpenSearch clusters comes close to the specified limit.
 
-This limit can be overridden with parameter `monitoring.thresholds.lagAlert` described in [OpenSearch monitoring](/docs/public/installation.md#monitoring) parameters.
+This limit can be overridden with parameter `monitoring.thresholds.lagAlert` described in [OpenSearch monitoring](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#monitoring) parameters.
 
 ### Possible Causes
 

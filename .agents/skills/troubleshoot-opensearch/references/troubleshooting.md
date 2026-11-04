@@ -1,3 +1,224 @@
+<!-- TOC -->
+  * [Cluster Health](#cluster-health)
+    * [Description](#description)
+    * [Alerts](#alerts)
+    * [Stack trace](#stack-trace)
+    * [How to solve](#how-to-solve)
+    * [Recommendations](#recommendations)
+  * [Cluster Status](#cluster-status)
+    * [Description](#description-1)
+    * [Alerts](#alerts-1)
+    * [Stack trace](#stack-trace-1)
+    * [How to solve](#how-to-solve-1)
+    * [Recommendations](#recommendations-1)
+  * [Cluster Status is N/A](#cluster-status-is-na)
+    * [Description](#description-2)
+    * [Alerts](#alerts-2)
+    * [Stack trace](#stack-trace-2)
+    * [How to solve](#how-to-solve-2)
+    * [Recommendations](#recommendations-2)
+  * [Cluster Status is Failed or Degraded](#cluster-status-is-failed-or-degraded)
+    * [Description](#description-3)
+    * [Alerts](#alerts-3)
+    * [Stack trace](#stack-trace-3)
+    * [How to solve](#how-to-solve-3)
+    * [Recommendations](#recommendations-3)
+  * [Last Backup Has Failed](#last-backup-has-failed)
+    * [Description](#description-4)
+    * [Alerts](#alerts-4)
+    * [Stack trace](#stack-trace-4)
+    * [How to solve](#how-to-solve-4)
+    * [Recommendations](#recommendations-4)
+  * [Data Nodes are Out of Space](#data-nodes-are-out-of-space)
+    * [Description](#description-5)
+    * [Alerts](#alerts-5)
+    * [Stack trace](#stack-trace-5)
+    * [How to solve](#how-to-solve-5)
+    * [Recommendations](#recommendations-5)
+  * [Lack of Resources](#lack-of-resources)
+    * [Description](#description-6)
+    * [Alerts](#alerts-6)
+    * [Stack trace](#stack-trace-6)
+    * [How to solve](#how-to-solve-6)
+    * [Recommendations](#recommendations-6)
+  * [OpenSearch Fails Down with CircuitBreakingException](#opensearch-fails-down-with-circuitbreakingexception)
+    * [Description](#description-7)
+    * [Alerts](#alerts-7)
+    * [Stack trace](#stack-trace-7)
+    * [How to solve](#how-to-solve-7)
+    * [Recommendations](#recommendations-7)
+  * [Data Files are Corrupted On Primary Shard](#data-files-are-corrupted-on-primary-shard)
+    * [Description](#description-8)
+    * [Alerts](#alerts-8)
+    * [Stack trace](#stack-trace-8)
+    * [How to solve](#how-to-solve-8)
+    * [Recommendations](#recommendations-8)
+  * [Data Files are Corrupted On Replica Shard](#data-files-are-corrupted-on-replica-shard)
+    * [Description](#description-9)
+    * [Alerts](#alerts-9)
+    * [Stack trace](#stack-trace-9)
+    * [How to solve](#how-to-solve-9)
+    * [Recommendations](#recommendations-9)
+  * [Data Files are Corrupted On Entire Index](#data-files-are-corrupted-on-entire-index)
+    * [Description](#description-10)
+    * [Alerts](#alerts-10)
+    * [Stack trace](#stack-trace-10)
+    * [How to solve](#how-to-solve-10)
+    * [Recommendations](#recommendations-10)
+  * [Translog Corrupted](#translog-corrupted)
+    * [Description](#description-11)
+    * [Alerts](#alerts-11)
+    * [Stack trace](#stack-trace-11)
+    * [How to solve](#how-to-solve-11)
+    * [Recommendations](#recommendations-11)
+  * [New Master Cannot Be Elected](#new-master-cannot-be-elected)
+    * [Description](#description-12)
+    * [Alerts](#alerts-12)
+    * [Stack trace](#stack-trace-12)
+    * [How to solve](#how-to-solve-12)
+    * [Recommendations](#recommendations-12)
+  * [Elected Master Is Crashed](#elected-master-is-crashed)
+    * [Description](#description-13)
+    * [Alerts](#alerts-13)
+    * [Stack trace](#stack-trace-13)
+    * [How to solve](#how-to-solve-13)
+    * [Recommendations](#recommendations-13)
+  * [Problem During Replication](#problem-during-replication)
+    * [Description](#description-14)
+    * [Alerts](#alerts-14)
+    * [Stack trace](#stack-trace-14)
+    * [How to solve](#how-to-solve-14)
+    * [Recommendations](#recommendations-14)
+  * [Primary Shard Is Down During User Request](#primary-shard-is-down-during-user-request)
+    * [Description](#description-15)
+    * [Alerts](#alerts-15)
+    * [Stack trace](#stack-trace-15)
+    * [How to solve](#how-to-solve-15)
+    * [Recommendations](#recommendations-15)
+  * [Network Connection Is Lost and Restored](#network-connection-is-lost-and-restored)
+    * [Description](#description-16)
+    * [Alerts](#alerts-16)
+    * [Stack trace](#stack-trace-16)
+    * [How to solve](#how-to-solve-16)
+    * [Recommendations](#recommendations-16)
+  * [Availability Zone Outage](#availability-zone-outage)
+    * [Description](#description-17)
+    * [Alerts](#alerts-17)
+    * [Stack](#stack)
+    * [How to solve](#how-to-solve-17)
+    * [Recommendations](#recommendations-17)
+  * [Availability Zone Shutdown and Startup](#availability-zone-shutdown-and-startup)
+    * [Description](#description-18)
+    * [Alerts](#alerts-18)
+    * [Stack trace](#stack-trace-17)
+    * [How to solve](#how-to-solve-18)
+    * [Recommendations](#recommendations-18)
+  * [Readiness Probe Failed](#readiness-probe-failed)
+    * [Description](#description-19)
+    * [Alerts](#alerts-19)
+    * [Stack trace](#stack-trace-18)
+    * [How to solve](#how-to-solve-19)
+    * [Recommendations](#recommendations-19)
+  * [Liveness Probe Failed](#liveness-probe-failed)
+    * [Description](#description-20)
+    * [Alerts](#alerts-20)
+    * [Stack trace](#stack-trace-19)
+    * [How to solve](#how-to-solve-20)
+    * [Recommendations](#recommendations-20)
+  * [Max Virtual Memory Is Too Low](#max-virtual-memory-is-too-low)
+    * [Description](#description-21)
+    * [Alerts](#alerts-21)
+    * [Stack trace](#stack-trace-20)
+    * [How to solve](#how-to-solve-21)
+    * [Recommendations](#recommendations-21)
+  * [Container Failed with Error: container has runAsNonRoot and image will run as root](#container-failed-with-error-container-has-runasnonroot-and-image-will-run-as-root)
+    * [Description](#description-22)
+    * [Alerts](#alerts-22)
+    * [Stack trace](#stack-trace-21)
+    * [How to solve](#how-to-solve-22)
+    * [Recommendations](#recommendations-22)
+  * [CRD Creation Failed on OpenShift 3.11](#crd-creation-failed-on-openshift-311)
+    * [Description](#description-23)
+    * [Alerts](#alerts-23)
+    * [Stack trace](#stack-trace-22)
+    * [How to solve](#how-to-solve-23)
+    * [Recommendations](#recommendations-23)
+  * [Operator Fails with Unauthorized Code on OpenSearch Readiness Check](#operator-fails-with-unauthorized-code-on-opensearch-readiness-check)
+    * [Description](#description-24)
+    * [Alerts](#alerts-24)
+    * [Stack trace](#stack-trace-23)
+    * [How to solve](#how-to-solve-24)
+    * [Recommendations](#recommendations-24)
+  * [OpenSearch Does Not Start with "Not yet initialized" Error](#opensearch-does-not-start-with-not-yet-initialized-error)
+    * [Description](#description-25)
+    * [Alerts](#alerts-25)
+    * [Stack trace](#stack-trace-24)
+    * [How to solve](#how-to-solve-25)
+    * [Recommendations](#recommendations-25)
+  * [OpenSearch Starts Failing With TLS Certificate Error](#opensearch-starts-failing-with-tls-certificate-error)
+    * [Description](#description-26)
+    * [Alerts](#alerts-26)
+    * [Stack trace](#stack-trace-25)
+    * [How to solve](#how-to-solve-26)
+    * [Recommendations](#recommendations-26)
+  * [OpenSearch Clients Fail with Authentication Error](#opensearch-clients-fail-with-authentication-error)
+    * [Description](#description-27)
+    * [Alerts](#alerts-27)
+    * [Stack trace](#stack-trace-26)
+    * [How to solve](#how-to-solve-27)
+    * [Recommendations](#recommendations-27)
+  * [DBaaS Adapter.DBaaS Adapter Status Is Down/Warning](#dbaas-adapterdbaas-adapter-status-is-downwarning)
+    * [Description](#description-28)
+    * [Alerts](#alerts-28)
+    * [Stack trace](#stack-trace-27)
+    * [How to solve](#how-to-solve-28)
+    * [Recommendations](#recommendations-28)
+  * [DBaaS Adapter.DBaaS Adapter Status Is Problem](#dbaas-adapterdbaas-adapter-status-is-problem)
+    * [Description](#description-29)
+    * [Alerts](#alerts-29)
+    * [Stack trace](#stack-trace-28)
+    * [How to solve](#how-to-solve-29)
+    * [Recommendations](#recommendations-29)
+  * [OpenSearch Disaster Recovery Health Has Status "DEGRADED"](#opensearch-disaster-recovery-health-has-status-degraded)
+    * [Description](#description-30)
+    * [Alerts](#alerts-30)
+    * [Stack trace](#stack-trace-29)
+    * [How to solve](#how-to-solve-30)
+    * [Recommendations](#recommendations-30)
+  * [ResourceAlreadyExistsException: task with ID {replication:index:test_index} already exist](#resourcealreadyexistsexception-task-with-id-replicationindextest_index-already-exist)
+    * [Description](#description-31)
+    * [Alerts](#alerts-31)
+    * [Stack trace](#stack-trace-30)
+    * [How to solve](#how-to-solve-31)
+    * [Recommendations](#recommendations-31)
+  * [Index Is Not Replicated To Standby Side Without Any Errors](#index-is-not-replicated-to-standby-side-without-any-errors)
+    * [Description](#description-32)
+    * [Alerts](#alerts-32)
+    * [Stack trace](#stack-trace-31)
+    * [How to solve](#how-to-solve-32)
+    * [Recommendations](#recommendations-32)
+  * [No permissions after change password](#no-permissions-after-change-password)
+    * [Description](#description-33)
+    * [Alerts](#alerts-33)
+    * [Stack trace](#stack-trace-32)
+    * [How to solve](#how-to-solve-33)
+  * [Database Cannot be Created Due to Prefix Intersection](#database-cannot-be-created-due-to-prefix-intersection)
+    * [Description](#description-34)
+    * [Alerts](#alerts-34)
+    * [How to solve](#how-to-solve-34)
+  * [Maximum Shards Open Limit Reached](#maximum-shards-open-limit-reached)
+    * [Description](#description-35)
+    * [Alerts](#alerts-35)
+    * [Stack trace](#stack-trace-33)
+    * [How to solve](#how-to-solve-35)
+    * [Recommendations](#recommendations-33)
+  * [Upgrade Failed Due to Pre-Deploy Migration Hook](#upgrade-failed-due-to-pre-deploy-migration-hook)
+    * [Description](#description-36)
+    * [Stack trace](#stack-trace-34)
+    * [How to solve](#how-to-solve-36)
+    * [Recommendations](#recommendations-34)
+<!-- TOC -->
+
 ## Cluster Health
 
 ### Description
@@ -8,7 +229,7 @@ For more information on the cluster health API, refer to the official OpenSearch
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -38,7 +259,7 @@ Cluster status is a custom metric that can be found on the **Cluster status** pa
 
 ### Alerts
 
-* [OpenSearchIsDegradedAlert](alerts.md#opensearchisdegradedalert)
+* [OpenSearchIsDegradedAlert](./alerts.md#opensearchisdegradedalert)
 
 ### Stack trace
 
@@ -66,7 +287,7 @@ The main cause is any of the following:
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -96,8 +317,8 @@ curl -XGET http://localhost:9200/_cluster/health
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
-* [OpenSearchIsDegradedAlert](alerts.md#opensearchisdegradedalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
+* [OpenSearchIsDegradedAlert](./alerts.md#opensearchisdegradedalert)
 
 ### Stack trace
 
@@ -134,7 +355,7 @@ The last OpenSearch backup has finished with `Failed` status.
 
 ### Alerts
 
-* [OpenSearchLastBackupHasFailedAlert](alerts.md#opensearchlastbackuphasfailedalert)
+* [OpenSearchLastBackupHasFailedAlert](./alerts.md#opensearchlastbackuphasfailedalert)
 
 ### Stack trace
 
@@ -162,9 +383,9 @@ The disk being filled on all nodes
 
 ### Alerts
 
-* [OpenSearchDiskUsageAbove75%Alert](alerts.md#opensearchdiskusageabove75alert)
-* [OpenSearchDiskUsageAbove85%Alert](alerts.md#opensearchdiskusageabove85alert)
-* [OpenSearchDiskUsageAbove95%Alert](alerts.md#opensearchdiskusageabove95alert)
+* [OpenSearchDiskUsageAbove75%Alert](./alerts.md#opensearchdiskusageabove75alert)
+* [OpenSearchDiskUsageAbove85%Alert](./alerts.md#opensearchdiskusageabove85alert)
+* [OpenSearchDiskUsageAbove95%Alert](./alerts.md#opensearchdiskusageabove95alert)
 
 ### Stack trace
 
@@ -192,9 +413,9 @@ Some problems with the OpenSearch cluster can occur due to a lack of CPU, memory
 
 ### Alerts
 
-* [OpenSearchDiskUsageAbove75%Alert](alerts.md#opensearchdiskusageabove75alert)
-* [OpenSearchDiskUsageAbove85%Alert](alerts.md#opensearchdiskusageabove85alert)
-* [OpenSearchDiskUsageAbove95%Alert](alerts.md#opensearchdiskusageabove95alert)
+* [OpenSearchDiskUsageAbove75%Alert](./alerts.md#opensearchdiskusageabove75alert)
+* [OpenSearchDiskUsageAbove85%Alert](./alerts.md#opensearchdiskusageabove85alert)
+* [OpenSearchDiskUsageAbove95%Alert](./alerts.md#opensearchdiskusageabove95alert)
 
 ### Stack trace
 
@@ -309,7 +530,7 @@ All data files of the index were corrupted, there is no way to get data from thi
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -336,7 +557,7 @@ If a translog was corrupted, the shards with a corrupted translog will have `Tra
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -426,10 +647,10 @@ OpenSearch uses replica shards to provide failover capabilities, as well as to s
 
 ### Alerts
 
-* [OpenSearchReplicationDegradedAlert](alerts.md#opensearchreplicationdegradedalert)
-* [OpenSearchReplicationFailedAlert](alerts.md#opensearchreplicationfailedalert)
-* [OpenSearchReplicationTooHighLagAlert](alerts.md#opensearchreplicationtoohighlagalert)
-* [OpenSearchReplicationLeaderConnectionLostAlert](alerts.md#opensearchreplicationleaderconnectionlostalert)
+* [OpenSearchReplicationDegradedAlert](./alerts.md#opensearchreplicationdegradedalert)
+* [OpenSearchReplicationFailedAlert](./alerts.md#opensearchreplicationfailedalert)
+* [OpenSearchReplicationTooHighLagAlert](./alerts.md#opensearchreplicationtoohighlagalert)
+* [OpenSearchReplicationLeaderConnectionLostAlert](./alerts.md#opensearchreplicationleaderconnectionlostalert)
 
 ### Stack trace
 
@@ -553,7 +774,7 @@ or problem with environment where OpenSearch has been deployed.
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -576,7 +797,7 @@ Retry this action for all OpenSearch resources which pods have this error.
 
 ### Recommendations
 
-Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](hwe.md)
+Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#hwe)
 
 ## Liveness Probe Failed
 
@@ -587,7 +808,7 @@ or problem with environment where OpenSearch has been deployed.
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -610,7 +831,7 @@ Retry this action for all OpenSearch resources which pods have this error.
 
 ### Recommendations
 
-Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](hwe.md)
+Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#hwe)
 
 ## Max Virtual Memory Is Too Low
 
@@ -620,7 +841,7 @@ This error means the OpenSearch does not have enough virtual memory to start.
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -660,7 +881,7 @@ runAsUser:
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -780,7 +1001,7 @@ In the several versions of OpenSearch that certificate was generated with only o
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -811,7 +1032,7 @@ If upgrade is not possible and manual fix is required, please follow steps:
 
 1. Manually remove secrets "opensearch-admin-certs" and "opensearch-transport-certs"
    (and "opensearch-rest-certs" if presented) from the OpenSearch namespace.
-2. Edit the template of [opensearch-tls-reinit.yaml](opensearch-tls-reinit.yaml) resources and specify corresponding
+2. Edit the template of [opensearch-tls-reinit.yaml](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/data/opensearch-tls-reinit.yaml) resources and specify corresponding
    namespace and OpenSearch docker image (you can take it from working pods) if required.
 3. Apply result template with command `kubectl apply -f opensearch-tls-reinit.yaml` to the namespace with OpenSearch.
 4. Wait until Job execution. There should be `'admin' certificates are generated` output inside.
@@ -842,7 +1063,7 @@ with OpenSearch admin credentials and check the necessary DBaaS service user the
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -877,8 +1098,8 @@ DBaaS Adapter is not alive.
 
 ### Alerts
 
-* [OpenSearchDBaaS](alerts.md#opensearchdbaasisdownalert)
-* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
+* [OpenSearchDBaaS](./alerts.md#opensearchdbaasisdownalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -900,7 +1121,7 @@ DBaaS adapter is in `problem` state.
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -944,7 +1165,7 @@ Check DBaaS Adapter logs for more information about the problem with OpenSearch.
 
 ### Alerts
 
-* [OpenSearchDBaaS](alerts.md#opensearchdbaasisdownalert)
+* [OpenSearchDBaaS](./alerts.md#opensearchdbaasisdownalert)
 
 ### Stack trace
 
@@ -1127,7 +1348,7 @@ Not applicable
 
 ### Alerts
 
-* [OpenSearchReplicationFailedAlert](alerts.md#opensearchreplicationfailedalert)
+* [OpenSearchReplicationFailedAlert](./alerts.md#opensearchreplicationfailedalert)
 
 ### Stack trace
 
@@ -1232,7 +1453,7 @@ curl -X PATCH "https://opensearch:9200/_plugins/_security/api/internalusers/<use
 }
 ]
 '
-   
+```
 
 ### Recommendations
 When command finished, you can check health 
@@ -1317,7 +1538,7 @@ This issue means that opensearch indices migration have failed, you need to chec
 
 ### Alerts
 
-* [OpenSearchLegacyIndicesDetectedAlert](alerts.md#opensearchlegacyindicesdetectedalert)
+* [OpenSearchLegacyIndicesDetectedAlert](./alerts.md#opensearchlegacyindicesdetectedalert)
 
 ### How to solve
 
@@ -1334,7 +1555,7 @@ When the limit is reached, OpenSearch rejects operations that need additional sh
 
 ### Alerts
 
-* [OpenSearchIsDownAlert](alerts.md#opensearchisdownalert)
+* [OpenSearchIsDownAlert](./alerts.md#opensearchisdownalert)
 
 ### Stack trace
 
@@ -1440,9 +1661,9 @@ Error: UPGRADE FAILED: pre-upgrade hooks failed: 1 error occurred:
 
 3. **After identifying and resolving the issue**, retry the upgrade. If using ArgoCD, trigger a new sync. If using Helm directly, re-run the `helm upgrade` command.
 
-4. For detailed information about the index migration process, including how to run the migrator manually in dry-run mode, refer to the [Indices Migration](indices-migration.md) documentation.
+4. For detailed information about the index migration process, including how to run the migrator manually in dry-run mode, refer to the [Indices Migration](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/indices-migration.md) documentation.
 
 ### Recommendations
 
 Before upgrading OpenSearch from 2.x to 3.x, run the migration tool in **dry-run mode** to identify any 1.x indices that would block the upgrade. 
-Review the dry-run output and plan the migration during a maintenance window. See the [Indices Migration](indices-migration.md) guide for the full procedure.
+Review the dry-run output and plan the migration during a maintenance window. See the [Indices Migration](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/indices-migration.md) guide for the full procedure.

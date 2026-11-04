@@ -427,8 +427,8 @@ Increase OpenSearch resources.
 
 ### Recommendations
 
-For more information, refer to [Memory Limit](/docs/public/scenarios/memory_limit.md), [CPU Overload](/docs/public/scenarios/cpu_overload.md)
-and [I/O Limit](/docs/public/scenarios/io_limit.md).
+For more information, refer to [Memory Limit](scenarios/memory_limit.md), [CPU Overload](scenarios/cpu_overload.md)
+and [I/O Limit](scenarios/io_limit.md).
 
 ## OpenSearch Fails Down with CircuitBreakingException
 
@@ -797,7 +797,7 @@ Retry this action for all OpenSearch resources which pods have this error.
 
 ### Recommendations
 
-Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](./installation.md#hwe)
+Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#hwe)
 
 ## Liveness Probe Failed
 
@@ -831,7 +831,7 @@ Retry this action for all OpenSearch resources which pods have this error.
 
 ### Recommendations
 
-Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](./installation.md#hwe)
+Make sure you satisfy minimal HWE for you usage purposes, refer to [HWE](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#hwe)
 
 ## Max Virtual Memory Is Too Low
 
@@ -1032,7 +1032,7 @@ If upgrade is not possible and manual fix is required, please follow steps:
 
 1. Manually remove secrets "opensearch-admin-certs" and "opensearch-transport-certs"
    (and "opensearch-rest-certs" if presented) from the OpenSearch namespace.
-2. Edit the template of [opensearch-tls-reinit.yaml](/docs/data/opensearch-tls-reinit.yaml) resources and specify corresponding
+2. Edit the template of [opensearch-tls-reinit.yaml](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/data/opensearch-tls-reinit.yaml) resources and specify corresponding
    namespace and OpenSearch docker image (you can take it from working pods) if required.
 3. Apply result template with command `kubectl apply -f opensearch-tls-reinit.yaml` to the namespace with OpenSearch.
 4. Wait until Job execution. There should be `'admin' certificates are generated` output inside.
@@ -1453,7 +1453,7 @@ curl -X PATCH "https://opensearch:9200/_plugins/_security/api/internalusers/<use
 }
 ]
 '
-   
+```
 
 ### Recommendations
 When command finished, you can check health 
@@ -1661,9 +1661,9 @@ Error: UPGRADE FAILED: pre-upgrade hooks failed: 1 error occurred:
 
 3. **After identifying and resolving the issue**, retry the upgrade. If using ArgoCD, trigger a new sync. If using Helm directly, re-run the `helm upgrade` command.
 
-4. For detailed information about the index migration process, including how to run the migrator manually in dry-run mode, refer to the [Indices Migration](indices-migration.md) documentation.
+4. For detailed information about the index migration process, including how to run the migrator manually in dry-run mode, refer to the [Indices Migration](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/indices-migration.md) documentation.
 
 ### Recommendations
 
 Before upgrading OpenSearch from 2.x to 3.x, run the migration tool in **dry-run mode** to identify any 1.x indices that would block the upgrade. 
-Review the dry-run output and plan the migration during a maintenance window. See the [Indices Migration](indices-migration.md) guide for the full procedure.
+Review the dry-run output and plan the migration during a maintenance window. See the [Indices Migration](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/indices-migration.md) guide for the full procedure.
