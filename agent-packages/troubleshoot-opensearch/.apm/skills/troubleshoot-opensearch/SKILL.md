@@ -7,11 +7,31 @@ description: Diagnose qubership-opensearch failures in incidents, Jira tickets, 
 
 All facts and resolution steps live in `references/`; this file only routes. Use only the bundled references.
 
-- `references/troubleshooting.md` — known failure modes, one `##` section each. Never read it in full.
-- `references/scenarios/<name>.md` — detailed procedures linked directly from the table below or a section's Recommendations.
-- `references/alerts.md` — Prometheus alerts (`./alerts.md#...` links).
+- [references/troubleshooting.md](./references/troubleshooting.md) — known failure modes, one `##` section each. Never read it in full.
+- [references/alerts.md](./references/alerts.md) — Prometheus alerts linked from troubleshooting sections.
 
-Local links resolve inside `references/`. GitHub links point to repository docs that are not bundled; mention them to the user instead of fetching them.
+Detailed scenarios (open only the one matching the symptom):
+
+- [references/scenarios/availability_zone_outage.md](./references/scenarios/availability_zone_outage.md)
+- [references/scenarios/availability_zone_shutdown.md](./references/scenarios/availability_zone_shutdown.md)
+- [references/scenarios/cpu_overload.md](./references/scenarios/cpu_overload.md)
+- [references/scenarios/data_files_corrupted_on_primary_and_replica_shards.md](./references/scenarios/data_files_corrupted_on_primary_and_replica_shards.md)
+- [references/scenarios/data_files_corrupted_on_primary_shard.md](./references/scenarios/data_files_corrupted_on_primary_shard.md)
+- [references/scenarios/data_files_corrupted_on_replica_shard.md](./references/scenarios/data_files_corrupted_on_replica_shard.md)
+- [references/scenarios/disk_failure_on_all_nodes.md](./references/scenarios/disk_failure_on_all_nodes.md)
+- [references/scenarios/disk_failure_on_one_node.md](./references/scenarios/disk_failure_on_one_node.md)
+- [references/scenarios/disk_filled_on_all_nodes.md](./references/scenarios/disk_filled_on_all_nodes.md)
+- [references/scenarios/elected_master_is_crashed.md](./references/scenarios/elected_master_is_crashed.md)
+- [references/scenarios/entire_index_corrupted.md](./references/scenarios/entire_index_corrupted.md)
+- [references/scenarios/io_limit.md](./references/scenarios/io_limit.md)
+- [references/scenarios/memory_limit.md](./references/scenarios/memory_limit.md)
+- [references/scenarios/network_connection_failure.md](./references/scenarios/network_connection_failure.md)
+- [references/scenarios/new_master_can_not_be_elected.md](./references/scenarios/new_master_can_not_be_elected.md)
+- [references/scenarios/primary_shard_is_down_during_user_request.md](./references/scenarios/primary_shard_is_down_during_user_request.md)
+- [references/scenarios/problem_during_replication.md](./references/scenarios/problem_during_replication.md)
+- [references/scenarios/translog_is_corrupted.md](./references/scenarios/translog_is_corrupted.md)
+
+Local links resolve relative to the file containing them. GitHub links point to repository docs that are not bundled; mention them to the user instead of fetching them.
 
 Steps:
 
@@ -27,28 +47,28 @@ Steps:
 | Grafana status `DEGRADED`/`FAILED` | `OpenSearchIsDegradedAlert` | `## Cluster Status` | - |
 | Monitoring shows `N/A`; OpenSearch unreachable | Monitoring agent down; `OpenSearchIsDownAlert` | `## Cluster Status is N/A` | - |
 | Node left; unassigned shards after a pod restart | Shards not allocated; `OpenSearchIsDegradedAlert` | `## Cluster Status is Failed or Degraded` | - |
-| One node stops reporting disk usage; shards missing or empty | Missing `disk.avail`, truncated disk graph, spikes in relocating shards | `## Cluster Status is Failed or Degraded` | [Disk failure on one node](references/scenarios/disk_failure_on_one_node.md) |
-| Disks fail across all nodes; cluster does not recover after disk repair | Health `red`/`failed`; unassigned shards across the cluster | `## Cluster Status is Failed or Degraded` | [Disk failure on all nodes](references/scenarios/disk_failure_on_all_nodes.md) |
+| One node stops reporting disk usage; shards missing or empty | Missing `disk.avail`, truncated disk graph, spikes in relocating shards | `## Cluster Status is Failed or Degraded` | [Disk failure on one node](./references/scenarios/disk_failure_on_one_node.md) |
+| Disks fail across all nodes; cluster does not recover after disk repair | Health `red`/`failed`; unassigned shards across the cluster | `## Cluster Status is Failed or Degraded` | [Disk failure on all nodes](./references/scenarios/disk_failure_on_all_nodes.md) |
 | Backup/restore or curator job failed | `restore.py ... non zero exit code`; `OpenSearchLastBackupHasFailedAlert` | `## Last Backup Has Failed` | - |
-| Writes rejected; index read-only; PVC full; shards cannot allocate | `cluster_block_exception`, `flood-stage watermark`, `read-only-allow-delete`, low/high disk watermark exceeded; low `fs.total.available_in_bytes` or high `disk.percent` | `## Data Nodes are Out of Space` | [Disk filled on all nodes](references/scenarios/disk_filled_on_all_nodes.md) |
+| Writes rejected; index read-only; PVC full; shards cannot allocate | `cluster_block_exception`, `flood-stage watermark`, `read-only-allow-delete`, low/high disk watermark exceeded; low `fs.total.available_in_bytes` or high `disk.percent` | `## Data Nodes are Out of Space` | [Disk filled on all nodes](./references/scenarios/disk_filled_on_all_nodes.md) |
 | `OOMKilled`, high heap/CPU, long GC, slow queries, I/O wait | `OpenSearchHeapMemoryUsageAlert`, `OpenSearchCPULoadAlert`, `OpenSearchQueryIsTooSlowAlert` | `## Lack of Resources` | - |
-| Sustained CPU growth during heavy searches or indexing | High `os.cpu.percent` and `os.cpu.load_average.*`; inspect `/_nodes/hot_threads` | `## Lack of Resources` | [CPU overload](references/scenarios/cpu_overload.md) |
-| Heap stays nearly full; long GC; sudden aggregate heap drop | `jvm.mem.heap_used_percent`, pools near 100%, growing `jvm.gc.collectors.*.collection_time_in_millis`; heap drops may indicate node departure or restart | `## Lack of Resources` | [Memory limit](references/scenarios/memory_limit.md) |
-| Searches or indexing slow under heavy disk I/O | Rates derived from `fs.io_stats.total.read_operations`, `write_operations`, `read_kilobytes`, `write_kilobytes` show read/write activity | `## Lack of Resources` | [I/O limit](references/scenarios/io_limit.md) |
+| Sustained CPU growth during heavy searches or indexing | High `os.cpu.percent` and `os.cpu.load_average.*`; inspect `/_nodes/hot_threads` | `## Lack of Resources` | [CPU overload](./references/scenarios/cpu_overload.md) |
+| Heap stays nearly full; long GC; sudden aggregate heap drop | `jvm.mem.heap_used_percent`, pools near 100%, growing `jvm.gc.collectors.*.collection_time_in_millis`; heap drops may indicate node departure or restart | `## Lack of Resources` | [Memory limit](./references/scenarios/memory_limit.md) |
+| Searches or indexing slow under heavy disk I/O | Rates derived from `fs.io_stats.total.read_operations`, `write_operations`, `read_kilobytes`, `write_kilobytes` show read/write activity | `## Lack of Resources` | [I/O limit](./references/scenarios/io_limit.md) |
 | HTTP `429`; reads and writes fail | `CircuitBreakingException`, `Data too large` | `## OpenSearch Fails Down with CircuitBreakingException` | - |
-| Primary shard cannot start; updates fail with `504` without replicas; intermittent updates fail with replicas | `CorruptIndexException`, `ALLOCATION_FAILED`, primary `UNASSIGNED`; with replicas, `read past EOF: MMapIndexInput` can occur while shards remain `STARTED` | `## Data Files are Corrupted On Primary Shard` | [Primary shard corruption](references/scenarios/data_files_corrupted_on_primary_shard.md) |
-| Initial queries fail or return incomplete data; replicas relocate | Replica corruption may leave health unchanged until a read; shards relocate or are already relocated | `## Data Files are Corrupted On Replica Shard` | [Replica shard corruption](references/scenarios/data_files_corrupted_on_replica_shard.md) |
-| Red indices with both primary and corresponding replica copies corrupted | Matching primary/replica pairs unassigned; no healthy copy for affected shards | - | [Primary and replica corruption](references/scenarios/data_files_corrupted_on_primary_and_replica_shards.md) |
-| All queries to an index fail; all its shard copies corrupted | All index shards `UNASSIGNED`; primary `ALLOCATION_FAILED` with `CorruptIndexException`, replicas `PRIMARY_FAILED` | `## Data Files are Corrupted On Entire Index` | [Entire index corruption](references/scenarios/entire_index_corrupted.md) |
-| Shard recovery fails after unclean shutdown | `ALLOCATION_FAILED`, `RecoveryFailedException`, `TranslogCorruptedException` in `unassigned.details` | `## Translog Corrupted` | [Translog corruption](references/scenarios/translog_is_corrupted.md) |
-| No master after several pods restarted | `master not discovered or elected yet`, `ClusterFormationFailureHelper`; missing master-eligible nodes, possibly `nodes.count.master` reduced to zero | `## New Master Cannot Be Elected` | [New master cannot be elected](references/scenarios/new_master_can_not_be_elected.md) |
-| Master pod crashed or rescheduled | Master gone; other nodes communicating; reduced `nodes.count.total`/`nodes.count.master` | `## Elected Master Is Crashed` | [Elected master crashed](references/scenarios/elected_master_is_crashed.md) |
-| Replica writes fail within the cluster, even in a successful response; cluster stays red with stale copies | HTTP `200` with `_shards.failed` and `primary: false`, `index_failed_engine_exception`, `no_such_file_exception`; no in-sync copy available for promotion | `## Problem During Replication` | [Shard replication](references/scenarios/problem_during_replication.md) |
+| Primary shard cannot start; updates fail with `504` without replicas; intermittent updates fail with replicas | `CorruptIndexException`, `ALLOCATION_FAILED`, primary `UNASSIGNED`; with replicas, `read past EOF: MMapIndexInput` can occur while shards remain `STARTED` | `## Data Files are Corrupted On Primary Shard` | [Primary shard corruption](./references/scenarios/data_files_corrupted_on_primary_shard.md) |
+| Initial queries fail or return incomplete data; replicas relocate | Replica corruption may leave health unchanged until a read; shards relocate or are already relocated | `## Data Files are Corrupted On Replica Shard` | [Replica shard corruption](./references/scenarios/data_files_corrupted_on_replica_shard.md) |
+| Red indices with both primary and corresponding replica copies corrupted | Matching primary/replica pairs unassigned; no healthy copy for affected shards | - | [Primary and replica corruption](./references/scenarios/data_files_corrupted_on_primary_and_replica_shards.md) |
+| All queries to an index fail; all its shard copies corrupted | All index shards `UNASSIGNED`; primary `ALLOCATION_FAILED` with `CorruptIndexException`, replicas `PRIMARY_FAILED` | `## Data Files are Corrupted On Entire Index` | [Entire index corruption](./references/scenarios/entire_index_corrupted.md) |
+| Shard recovery fails after unclean shutdown | `ALLOCATION_FAILED`, `RecoveryFailedException`, `TranslogCorruptedException` in `unassigned.details` | `## Translog Corrupted` | [Translog corruption](./references/scenarios/translog_is_corrupted.md) |
+| No master after several pods restarted | `master not discovered or elected yet`, `ClusterFormationFailureHelper`; missing master-eligible nodes, possibly `nodes.count.master` reduced to zero | `## New Master Cannot Be Elected` | [New master cannot be elected](./references/scenarios/new_master_can_not_be_elected.md) |
+| Master pod crashed or rescheduled | Master gone; other nodes communicating; reduced `nodes.count.total`/`nodes.count.master` | `## Elected Master Is Crashed` | [Elected master crashed](./references/scenarios/elected_master_is_crashed.md) |
+| Replica writes fail within the cluster, even in a successful response; cluster stays red with stale copies | HTTP `200` with `_shards.failed` and `primary: false`, `index_failed_engine_exception`, `no_such_file_exception`; no in-sync copy available for promotion | `## Problem During Replication` | [Shard replication](./references/scenarios/problem_during_replication.md) |
 | Cross-cluster replication lags or stops; standby unhealthy | `OpenSearchReplication*Alert`; inspect DR health and index replication status, not intra-cluster replica failures | `## OpenSearch Disaster Recovery Health Has Status "DEGRADED"` | - |
-| Request reports failed shards while a node restarts, even with status `201` | `_shards.failed`, `node_disconnected_exception`; inspect shard failures rather than only the outer status | `## Primary Shard Is Down During User Request` | [Node down during request](references/scenarios/primary_shard_is_down_during_user_request.md) |
-| Nodes leave/rejoin after a network incident | Connection loss between nodes, health `yellow`/`red`, master election after communication loss | `## Network Connection Is Lost and Restored` | [Network connection failure](references/scenarios/network_connection_failure.md) |
-| Several nodes disappear in one AZ; pods stopped or nodes `NotReady` | Fewer nodes in `/_cat/nodes`; unassigned shards with `NODE_LEFT`; confirm zone outage with infrastructure evidence | `## Availability Zone Outage` | [Availability zone outage](references/scenarios/availability_zone_outage.md) |
-| Planned zone maintenance; health not green after restart | Planned stop/start; check running nodes, unassigned shards, and post-start cluster health | `## Availability Zone Shutdown and Startup` | [Availability zone shutdown/startup](references/scenarios/availability_zone_shutdown.md) |
+| Request reports failed shards while a node restarts, even with status `201` | `_shards.failed`, `node_disconnected_exception`; inspect shard failures rather than only the outer status | `## Primary Shard Is Down During User Request` | [Node down during request](./references/scenarios/primary_shard_is_down_during_user_request.md) |
+| Nodes leave/rejoin after a network incident | Connection loss between nodes, health `yellow`/`red`, master election after communication loss | `## Network Connection Is Lost and Restored` | [Network connection failure](./references/scenarios/network_connection_failure.md) |
+| Several nodes disappear in one AZ; pods stopped or nodes `NotReady` | Fewer nodes in `/_cat/nodes`; unassigned shards with `NODE_LEFT`; confirm zone outage with infrastructure evidence | `## Availability Zone Outage` | [Availability zone outage](./references/scenarios/availability_zone_outage.md) |
+| Planned zone maintenance; health not green after restart | Planned stop/start; check running nodes, unassigned shards, and post-start cluster health | `## Availability Zone Shutdown and Startup` | [Availability zone shutdown/startup](./references/scenarios/availability_zone_shutdown.md) |
 | Pod `Running` but `0/1`; `CrashLoopBackOff` | `Readiness probe failed` | `## Readiness Probe Failed` | - |
 | Restart counter grows | `Liveness probe failed` | `## Liveness Probe Failed` | - |
 | Pod exits at start on a new Kubernetes node | `vm.max_map_count [65530] is too low` | `## Max Virtual Memory Is Too Low` | - |
