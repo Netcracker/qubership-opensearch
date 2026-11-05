@@ -55,7 +55,7 @@ dependencies:
   - .github/instructions/troubleshoot-opensearch.instructions.md
   deployed_file_hashes:
     .agents/skills/troubleshoot-opensearch/SKILL.md: sha256:890748563a02b112378b746309bf3973a06464c925bb0db087ebabf8f5e6331b
-    .agents/skills/troubleshoot-opensearch/references/alerts.md: sha256:809abf3a709284490ab123722325b2e4550f7c11d89da22f14d3c6ebcd599ecd
+    .agents/skills/troubleshoot-opensearch/references/alerts.md: sha256:86c56505b00f6058a4072c259685cbe06d844fb699bbc200c723575ad643598c
     .agents/skills/troubleshoot-opensearch/references/scenarios/availability_zone_outage.md: sha256:d9e50c91f631b31eb3a5c4e27e5ecc88274397d31cd98a589283221e24bb6a24
     .agents/skills/troubleshoot-opensearch/references/scenarios/availability_zone_shutdown.md: sha256:f5db07fb19d27181c991f85e98d9ea1de680cca2a8defe3401263ba6458a3853
     .agents/skills/troubleshoot-opensearch/references/scenarios/cpu_overload.md: sha256:32be6d6f65ee824e91874175b44fb810238a820c1ab99e77782d119d2dbd7895
@@ -74,10 +74,10 @@ dependencies:
     .agents/skills/troubleshoot-opensearch/references/scenarios/primary_shard_is_down_during_user_request.md: sha256:cb512ca6c2872104f7ff59ef927941545426d6d602261027a72a092b757a904d
     .agents/skills/troubleshoot-opensearch/references/scenarios/problem_during_replication.md: sha256:103b03276be9117d0a49c4c4ba44c64b4ecdc1b7242a129ef3233f4e595f6d1f
     .agents/skills/troubleshoot-opensearch/references/scenarios/translog_is_corrupted.md: sha256:b77298ded3fa8382cc951dd325ab5800a22ae771aaaf4bacaeb6818b201bfde8
-    .agents/skills/troubleshoot-opensearch/references/troubleshooting.md: sha256:5b547024e1f9964307e93423585c831b21a7655f46464ff2366cd75dc2c05838
+    .agents/skills/troubleshoot-opensearch/references/troubleshooting.md: sha256:6ca3563e4ef52e3cd0dbccf6fcbe562f39adf153a1ffcbfe13d1098389aa763e
     .claude/rules/troubleshoot-opensearch.md: sha256:a307a55847378357a1856717202de4192bbf56ae07e84331f09ab0898f83f76e
     .claude/skills/troubleshoot-opensearch/SKILL.md: sha256:890748563a02b112378b746309bf3973a06464c925bb0db087ebabf8f5e6331b
-    .claude/skills/troubleshoot-opensearch/references/alerts.md: sha256:809abf3a709284490ab123722325b2e4550f7c11d89da22f14d3c6ebcd599ecd
+    .claude/skills/troubleshoot-opensearch/references/alerts.md: sha256:86c56505b00f6058a4072c259685cbe06d844fb699bbc200c723575ad643598c
     .claude/skills/troubleshoot-opensearch/references/scenarios/availability_zone_outage.md: sha256:d9e50c91f631b31eb3a5c4e27e5ecc88274397d31cd98a589283221e24bb6a24
     .claude/skills/troubleshoot-opensearch/references/scenarios/availability_zone_shutdown.md: sha256:f5db07fb19d27181c991f85e98d9ea1de680cca2a8defe3401263ba6458a3853
     .claude/skills/troubleshoot-opensearch/references/scenarios/cpu_overload.md: sha256:32be6d6f65ee824e91874175b44fb810238a820c1ab99e77782d119d2dbd7895
@@ -96,12 +96,12 @@ dependencies:
     .claude/skills/troubleshoot-opensearch/references/scenarios/primary_shard_is_down_during_user_request.md: sha256:cb512ca6c2872104f7ff59ef927941545426d6d602261027a72a092b757a904d
     .claude/skills/troubleshoot-opensearch/references/scenarios/problem_during_replication.md: sha256:103b03276be9117d0a49c4c4ba44c64b4ecdc1b7242a129ef3233f4e595f6d1f
     .claude/skills/troubleshoot-opensearch/references/scenarios/translog_is_corrupted.md: sha256:b77298ded3fa8382cc951dd325ab5800a22ae771aaaf4bacaeb6818b201bfde8
-    .claude/skills/troubleshoot-opensearch/references/troubleshooting.md: sha256:5b547024e1f9964307e93423585c831b21a7655f46464ff2366cd75dc2c05838
+    .claude/skills/troubleshoot-opensearch/references/troubleshooting.md: sha256:6ca3563e4ef52e3cd0dbccf6fcbe562f39adf153a1ffcbfe13d1098389aa763e
     .cursor/rules/troubleshoot-opensearch.mdc: sha256:d195f363a35d235fde5cd015cfef7702ccd116a827e1d74f57993816f8c8cbac
     .github/instructions/troubleshoot-opensearch.instructions.md: sha256:b744b0c9824262415515b5b8722bc2fc92632b47246a0fe8b131d3cf01615190
   source: local
   local_path: ./agent-packages/troubleshoot-opensearch/
-  content_hash: sha256:9c540086f1432cbbd2af3b8bd391fb7872068f0feb205d6b8863fd51ec76f54b
+  content_hash: sha256:bae3f0d2939d425887f62dd49cdcd6ace36f5046ed89a8f059f9e55d6ef37c62
   is_dev: true
 deployments:
 - kind: project-relative
@@ -139,7 +139,7 @@ deployments:
   owners:
   - ./agent-packages/troubleshoot-opensearch/
   active_owner: ./agent-packages/troubleshoot-opensearch/
-  content_hash: sha256:809abf3a709284490ab123722325b2e4550f7c11d89da22f14d3c6ebcd599ecd
+  content_hash: sha256:86c56505b00f6058a4072c259685cbe06d844fb699bbc200c723575ad643598c
 - kind: project-relative
   target: claude
   value: .claude/skills/troubleshoot-opensearch/references/scenarios/availability_zone_outage.md
@@ -310,7 +310,7 @@ deployments:
   owners:
   - ./agent-packages/troubleshoot-opensearch/
   active_owner: ./agent-packages/troubleshoot-opensearch/
-  content_hash: sha256:5b547024e1f9964307e93423585c831b21a7655f46464ff2366cd75dc2c05838
+  content_hash: sha256:6ca3563e4ef52e3cd0dbccf6fcbe562f39adf153a1ffcbfe13d1098389aa763e
 - kind: project-relative
   target: copilot
   value: .agents/skills/troubleshoot-opensearch
@@ -337,7 +337,7 @@ deployments:
   owners:
   - ./agent-packages/troubleshoot-opensearch/
   active_owner: ./agent-packages/troubleshoot-opensearch/
-  content_hash: sha256:809abf3a709284490ab123722325b2e4550f7c11d89da22f14d3c6ebcd599ecd
+  content_hash: sha256:86c56505b00f6058a4072c259685cbe06d844fb699bbc200c723575ad643598c
 - kind: project-relative
   target: copilot
   value: .agents/skills/troubleshoot-opensearch/references/scenarios/availability_zone_outage.md
@@ -508,7 +508,7 @@ deployments:
   owners:
   - ./agent-packages/troubleshoot-opensearch/
   active_owner: ./agent-packages/troubleshoot-opensearch/
-  content_hash: sha256:5b547024e1f9964307e93423585c831b21a7655f46464ff2366cd75dc2c05838
+  content_hash: sha256:6ca3563e4ef52e3cd0dbccf6fcbe562f39adf153a1ffcbfe13d1098389aa763e
 - kind: project-relative
   target: copilot
   value: .github/instructions/troubleshoot-opensearch.instructions.md

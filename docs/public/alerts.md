@@ -336,7 +336,8 @@ The OpenSearch cluster contains one or more indices that were created on OpenSea
 
 Execution time of one of index queries in the OpenSearch exceeds the specified threshold.
 
-This threshold can be overridden with parameter `monitoring.thresholds.slowQuerySecondsAlert` described in [OpenSearch monitoring](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#monitoring) parameters.
+This threshold can be overridden with parameter `monitoring.thresholds.slowQuerySecondsAlert` described in
+[OpenSearch monitoring](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#monitoring) parameters.
 
 ### Possible Causes
 
@@ -441,7 +442,8 @@ For more information, refer to [OpenSearch Disaster Recovery Health](./troublesh
 
 The documents lag of replication between two OpenSearch clusters comes close to the specified limit.
 
-This limit can be overridden with parameter `monitoring.thresholds.lagAlert` described in [OpenSearch monitoring](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#monitoring) parameters.
+This limit can be overridden with parameter `monitoring.thresholds.lagAlert` described in
+[OpenSearch monitoring](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/installation.md#monitoring) parameters.
 
 ### Possible Causes
 

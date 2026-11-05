@@ -1456,6 +1456,7 @@ curl -X PATCH "https://opensearch:9200/_plugins/_security/api/internalusers/<use
 ```
 
 ### Recommendations
+
 When command finished, you can check health 
 
 ```text
@@ -1661,9 +1662,11 @@ Error: UPGRADE FAILED: pre-upgrade hooks failed: 1 error occurred:
 
 3. **After identifying and resolving the issue**, retry the upgrade. If using ArgoCD, trigger a new sync. If using Helm directly, re-run the `helm upgrade` command.
 
-4. For detailed information about the index migration process, including how to run the migrator manually in dry-run mode, refer to the [Indices Migration](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/indices-migration.md) documentation.
+4. For detailed information about the index migration process, including how to run the migrator manually in dry-run mode,
+   refer to the [Indices Migration](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/indices-migration.md) documentation.
 
 ### Recommendations
 
 Before upgrading OpenSearch from 2.x to 3.x, run the migration tool in **dry-run mode** to identify any 1.x indices that would block the upgrade. 
-Review the dry-run output and plan the migration during a maintenance window. See the [Indices Migration](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/indices-migration.md) guide for the full procedure.
+Review the dry-run output and plan the migration during a maintenance window.
+See the [Indices Migration](https://github.com/Netcracker/qubership-opensearch/blob/main/docs/public/indices-migration.md) guide for the full procedure.
