@@ -1,0 +1,12 @@
+---
+description: >-
+  Diagnostic playbook for OpenSearch cluster, shard, storage, replication,
+  authentication, and upgrade failures. Never invoke automatically — only
+  when explicitly requested by the user.
+applyTo: "**/*"
+---
+
+When diagnosing an OpenSearch problem — a degraded or down cluster, full data
+nodes, shard or translog corruption, a master election failure, replication or
+disaster recovery issues, probe failures, TLS or authentication errors, or a
+failed migration — apply the `troubleshoot-opensearch` skill.

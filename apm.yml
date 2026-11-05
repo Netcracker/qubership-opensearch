@@ -1,0 +1,15 @@
+name: qubership-opensearch
+version: 1.0.0
+description: APM project for qubership-opensearch
+targets:
+  - claude
+  - copilot
+  - cursor
+dependencies:
+  apm: []
+  mcp: []
+includes: auto
+scripts: {}
+devDependencies:
+  apm:
+    - ./agent-packages/troubleshoot-opensearch/

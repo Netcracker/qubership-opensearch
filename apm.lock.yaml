@@ -1,0 +1,529 @@
+lockfile_version: '1'
+apm_version: 0.35.0
+dependencies:
+- repo_url: _local/troubleshoot-opensearch
+  name: troubleshoot-opensearch
+  version: 1.0.0
+  package_type: apm_package
+  deployed_files:
+  - .agents/skills/troubleshoot-opensearch
+  - .agents/skills/troubleshoot-opensearch/SKILL.md
+  - .agents/skills/troubleshoot-opensearch/references/alerts.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/availability_zone_outage.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/availability_zone_shutdown.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/cpu_overload.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_primary_and_replica_shards.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_primary_shard.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_replica_shard.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/disk_failure_on_all_nodes.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/disk_failure_on_one_node.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/disk_filled_on_all_nodes.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/elected_master_is_crashed.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/entire_index_corrupted.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/io_limit.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/memory_limit.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/network_connection_failure.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/new_master_can_not_be_elected.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/primary_shard_is_down_during_user_request.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/problem_during_replication.md
+  - .agents/skills/troubleshoot-opensearch/references/scenarios/translog_is_corrupted.md
+  - .agents/skills/troubleshoot-opensearch/references/troubleshooting.md
+  - .claude/rules/troubleshoot-opensearch.md
+  - .claude/skills/troubleshoot-opensearch
+  - .claude/skills/troubleshoot-opensearch/SKILL.md
+  - .claude/skills/troubleshoot-opensearch/references/alerts.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/availability_zone_outage.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/availability_zone_shutdown.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/cpu_overload.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_primary_and_replica_shards.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_primary_shard.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_replica_shard.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/disk_failure_on_all_nodes.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/disk_failure_on_one_node.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/disk_filled_on_all_nodes.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/elected_master_is_crashed.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/entire_index_corrupted.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/io_limit.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/memory_limit.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/network_connection_failure.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/new_master_can_not_be_elected.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/primary_shard_is_down_during_user_request.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/problem_during_replication.md
+  - .claude/skills/troubleshoot-opensearch/references/scenarios/translog_is_corrupted.md
+  - .claude/skills/troubleshoot-opensearch/references/troubleshooting.md
+  - .cursor/rules/troubleshoot-opensearch.mdc
+  - .github/instructions/troubleshoot-opensearch.instructions.md
+  deployed_file_hashes:
+    .agents/skills/troubleshoot-opensearch/SKILL.md: sha256:890748563a02b112378b746309bf3973a06464c925bb0db087ebabf8f5e6331b
+    .agents/skills/troubleshoot-opensearch/references/alerts.md: sha256:86c56505b00f6058a4072c259685cbe06d844fb699bbc200c723575ad643598c
+    .agents/skills/troubleshoot-opensearch/references/scenarios/availability_zone_outage.md: sha256:d9e50c91f631b31eb3a5c4e27e5ecc88274397d31cd98a589283221e24bb6a24
+    .agents/skills/troubleshoot-opensearch/references/scenarios/availability_zone_shutdown.md: sha256:f5db07fb19d27181c991f85e98d9ea1de680cca2a8defe3401263ba6458a3853
+    .agents/skills/troubleshoot-opensearch/references/scenarios/cpu_overload.md: sha256:32be6d6f65ee824e91874175b44fb810238a820c1ab99e77782d119d2dbd7895
+    .agents/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_primary_and_replica_shards.md: sha256:b3463fe30ed9a25a52574ff9c1ad11824f4fad6f084291f6750aabbd9a399e0a
+    .agents/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_primary_shard.md: sha256:6de401ac9c6a0eebe7a3f430406a28d8dc2aa7239304996ef5ce9a1c6dac8c20
+    .agents/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_replica_shard.md: sha256:3dd127f9e267f4f689a5bc9534af462d9ce48048277723ad800a7341d3eaa49c
+    .agents/skills/troubleshoot-opensearch/references/scenarios/disk_failure_on_all_nodes.md: sha256:0fd82fb8a8fa6231bddcc75983f06c8b7cfe67b27d19a3abe64d9f4a9a3fc385
+    .agents/skills/troubleshoot-opensearch/references/scenarios/disk_failure_on_one_node.md: sha256:b723e762f79e6f8925ccc2f46bcd989d58611c989af206df1cac975c4783fad5
+    .agents/skills/troubleshoot-opensearch/references/scenarios/disk_filled_on_all_nodes.md: sha256:77418217eec42b688bc0bd7933bf8fffb1ebb003b9e3bd08ac864ef461bb09cf
+    .agents/skills/troubleshoot-opensearch/references/scenarios/elected_master_is_crashed.md: sha256:aef5cfced2d59723bd1c0cfb9a80ca8a820bd316ca45b9cb09c3996ec3dd3099
+    .agents/skills/troubleshoot-opensearch/references/scenarios/entire_index_corrupted.md: sha256:8c2d4f3c57bbdf5a4d63859f3c2d96b8505c607c07016f0969ccf5dde939f9c4
+    .agents/skills/troubleshoot-opensearch/references/scenarios/io_limit.md: sha256:e3a11966ac9aa826ca6589f5f7d033fe34d368d22daa355d6fc77b40e238a2b2
+    .agents/skills/troubleshoot-opensearch/references/scenarios/memory_limit.md: sha256:96df51f46691c7fb4d7f6eae728c1a87c8e210be901cbe5fc9a9729d651dd122
+    .agents/skills/troubleshoot-opensearch/references/scenarios/network_connection_failure.md: sha256:e50f83616bee1116b3282f3a519a9338bfe3fe62621a83297dd39bd7598866e5
+    .agents/skills/troubleshoot-opensearch/references/scenarios/new_master_can_not_be_elected.md: sha256:bd73a7a59449262c99d8fd2939f956e8450b7dbe2a9594007b9ae591a6497926
+    .agents/skills/troubleshoot-opensearch/references/scenarios/primary_shard_is_down_during_user_request.md: sha256:cb512ca6c2872104f7ff59ef927941545426d6d602261027a72a092b757a904d
+    .agents/skills/troubleshoot-opensearch/references/scenarios/problem_during_replication.md: sha256:103b03276be9117d0a49c4c4ba44c64b4ecdc1b7242a129ef3233f4e595f6d1f
+    .agents/skills/troubleshoot-opensearch/references/scenarios/translog_is_corrupted.md: sha256:b77298ded3fa8382cc951dd325ab5800a22ae771aaaf4bacaeb6818b201bfde8
+    .agents/skills/troubleshoot-opensearch/references/troubleshooting.md: sha256:6ca3563e4ef52e3cd0dbccf6fcbe562f39adf153a1ffcbfe13d1098389aa763e
+    .claude/rules/troubleshoot-opensearch.md: sha256:a307a55847378357a1856717202de4192bbf56ae07e84331f09ab0898f83f76e
+    .claude/skills/troubleshoot-opensearch/SKILL.md: sha256:890748563a02b112378b746309bf3973a06464c925bb0db087ebabf8f5e6331b
+    .claude/skills/troubleshoot-opensearch/references/alerts.md: sha256:86c56505b00f6058a4072c259685cbe06d844fb699bbc200c723575ad643598c
+    .claude/skills/troubleshoot-opensearch/references/scenarios/availability_zone_outage.md: sha256:d9e50c91f631b31eb3a5c4e27e5ecc88274397d31cd98a589283221e24bb6a24
+    .claude/skills/troubleshoot-opensearch/references/scenarios/availability_zone_shutdown.md: sha256:f5db07fb19d27181c991f85e98d9ea1de680cca2a8defe3401263ba6458a3853
+    .claude/skills/troubleshoot-opensearch/references/scenarios/cpu_overload.md: sha256:32be6d6f65ee824e91874175b44fb810238a820c1ab99e77782d119d2dbd7895
+    .claude/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_primary_and_replica_shards.md: sha256:b3463fe30ed9a25a52574ff9c1ad11824f4fad6f084291f6750aabbd9a399e0a
+    .claude/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_primary_shard.md: sha256:6de401ac9c6a0eebe7a3f430406a28d8dc2aa7239304996ef5ce9a1c6dac8c20
+    .claude/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_replica_shard.md: sha256:3dd127f9e267f4f689a5bc9534af462d9ce48048277723ad800a7341d3eaa49c
+    .claude/skills/troubleshoot-opensearch/references/scenarios/disk_failure_on_all_nodes.md: sha256:0fd82fb8a8fa6231bddcc75983f06c8b7cfe67b27d19a3abe64d9f4a9a3fc385
+    .claude/skills/troubleshoot-opensearch/references/scenarios/disk_failure_on_one_node.md: sha256:b723e762f79e6f8925ccc2f46bcd989d58611c989af206df1cac975c4783fad5
+    .claude/skills/troubleshoot-opensearch/references/scenarios/disk_filled_on_all_nodes.md: sha256:77418217eec42b688bc0bd7933bf8fffb1ebb003b9e3bd08ac864ef461bb09cf
+    .claude/skills/troubleshoot-opensearch/references/scenarios/elected_master_is_crashed.md: sha256:aef5cfced2d59723bd1c0cfb9a80ca8a820bd316ca45b9cb09c3996ec3dd3099
+    .claude/skills/troubleshoot-opensearch/references/scenarios/entire_index_corrupted.md: sha256:8c2d4f3c57bbdf5a4d63859f3c2d96b8505c607c07016f0969ccf5dde939f9c4
+    .claude/skills/troubleshoot-opensearch/references/scenarios/io_limit.md: sha256:e3a11966ac9aa826ca6589f5f7d033fe34d368d22daa355d6fc77b40e238a2b2
+    .claude/skills/troubleshoot-opensearch/references/scenarios/memory_limit.md: sha256:96df51f46691c7fb4d7f6eae728c1a87c8e210be901cbe5fc9a9729d651dd122
+    .claude/skills/troubleshoot-opensearch/references/scenarios/network_connection_failure.md: sha256:e50f83616bee1116b3282f3a519a9338bfe3fe62621a83297dd39bd7598866e5
+    .claude/skills/troubleshoot-opensearch/references/scenarios/new_master_can_not_be_elected.md: sha256:bd73a7a59449262c99d8fd2939f956e8450b7dbe2a9594007b9ae591a6497926
+    .claude/skills/troubleshoot-opensearch/references/scenarios/primary_shard_is_down_during_user_request.md: sha256:cb512ca6c2872104f7ff59ef927941545426d6d602261027a72a092b757a904d
+    .claude/skills/troubleshoot-opensearch/references/scenarios/problem_during_replication.md: sha256:103b03276be9117d0a49c4c4ba44c64b4ecdc1b7242a129ef3233f4e595f6d1f
+    .claude/skills/troubleshoot-opensearch/references/scenarios/translog_is_corrupted.md: sha256:b77298ded3fa8382cc951dd325ab5800a22ae771aaaf4bacaeb6818b201bfde8
+    .claude/skills/troubleshoot-opensearch/references/troubleshooting.md: sha256:6ca3563e4ef52e3cd0dbccf6fcbe562f39adf153a1ffcbfe13d1098389aa763e
+    .cursor/rules/troubleshoot-opensearch.mdc: sha256:d195f363a35d235fde5cd015cfef7702ccd116a827e1d74f57993816f8c8cbac
+    .github/instructions/troubleshoot-opensearch.instructions.md: sha256:b744b0c9824262415515b5b8722bc2fc92632b47246a0fe8b131d3cf01615190
+  source: local
+  local_path: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:bae3f0d2939d425887f62dd49cdcd6ace36f5046ed89a8f059f9e55d6ef37c62
+  is_dev: true
+deployments:
+- kind: project-relative
+  target: claude
+  value: .claude/rules/troubleshoot-opensearch.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:a307a55847378357a1856717202de4192bbf56ae07e84331f09ab0898f83f76e
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:890748563a02b112378b746309bf3973a06464c925bb0db087ebabf8f5e6331b
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/alerts.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:86c56505b00f6058a4072c259685cbe06d844fb699bbc200c723575ad643598c
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/availability_zone_outage.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:d9e50c91f631b31eb3a5c4e27e5ecc88274397d31cd98a589283221e24bb6a24
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/availability_zone_shutdown.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:f5db07fb19d27181c991f85e98d9ea1de680cca2a8defe3401263ba6458a3853
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/cpu_overload.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:32be6d6f65ee824e91874175b44fb810238a820c1ab99e77782d119d2dbd7895
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_primary_and_replica_shards.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:b3463fe30ed9a25a52574ff9c1ad11824f4fad6f084291f6750aabbd9a399e0a
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_primary_shard.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:6de401ac9c6a0eebe7a3f430406a28d8dc2aa7239304996ef5ce9a1c6dac8c20
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_replica_shard.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:3dd127f9e267f4f689a5bc9534af462d9ce48048277723ad800a7341d3eaa49c
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/disk_failure_on_all_nodes.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:0fd82fb8a8fa6231bddcc75983f06c8b7cfe67b27d19a3abe64d9f4a9a3fc385
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/disk_failure_on_one_node.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:b723e762f79e6f8925ccc2f46bcd989d58611c989af206df1cac975c4783fad5
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/disk_filled_on_all_nodes.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:77418217eec42b688bc0bd7933bf8fffb1ebb003b9e3bd08ac864ef461bb09cf
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/elected_master_is_crashed.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:aef5cfced2d59723bd1c0cfb9a80ca8a820bd316ca45b9cb09c3996ec3dd3099
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/entire_index_corrupted.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:8c2d4f3c57bbdf5a4d63859f3c2d96b8505c607c07016f0969ccf5dde939f9c4
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/io_limit.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:e3a11966ac9aa826ca6589f5f7d033fe34d368d22daa355d6fc77b40e238a2b2
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/memory_limit.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:96df51f46691c7fb4d7f6eae728c1a87c8e210be901cbe5fc9a9729d651dd122
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/network_connection_failure.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:e50f83616bee1116b3282f3a519a9338bfe3fe62621a83297dd39bd7598866e5
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/new_master_can_not_be_elected.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:bd73a7a59449262c99d8fd2939f956e8450b7dbe2a9594007b9ae591a6497926
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/primary_shard_is_down_during_user_request.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:cb512ca6c2872104f7ff59ef927941545426d6d602261027a72a092b757a904d
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/problem_during_replication.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:103b03276be9117d0a49c4c4ba44c64b4ecdc1b7242a129ef3233f4e595f6d1f
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/scenarios/translog_is_corrupted.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:b77298ded3fa8382cc951dd325ab5800a22ae771aaaf4bacaeb6818b201bfde8
+- kind: project-relative
+  target: claude
+  value: .claude/skills/troubleshoot-opensearch/references/troubleshooting.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:6ca3563e4ef52e3cd0dbccf6fcbe562f39adf153a1ffcbfe13d1098389aa763e
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: null
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:890748563a02b112378b746309bf3973a06464c925bb0db087ebabf8f5e6331b
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/alerts.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:86c56505b00f6058a4072c259685cbe06d844fb699bbc200c723575ad643598c
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/availability_zone_outage.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:d9e50c91f631b31eb3a5c4e27e5ecc88274397d31cd98a589283221e24bb6a24
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/availability_zone_shutdown.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:f5db07fb19d27181c991f85e98d9ea1de680cca2a8defe3401263ba6458a3853
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/cpu_overload.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:32be6d6f65ee824e91874175b44fb810238a820c1ab99e77782d119d2dbd7895
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_primary_and_replica_shards.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:b3463fe30ed9a25a52574ff9c1ad11824f4fad6f084291f6750aabbd9a399e0a
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_primary_shard.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:6de401ac9c6a0eebe7a3f430406a28d8dc2aa7239304996ef5ce9a1c6dac8c20
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/data_files_corrupted_on_replica_shard.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:3dd127f9e267f4f689a5bc9534af462d9ce48048277723ad800a7341d3eaa49c
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/disk_failure_on_all_nodes.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:0fd82fb8a8fa6231bddcc75983f06c8b7cfe67b27d19a3abe64d9f4a9a3fc385
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/disk_failure_on_one_node.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:b723e762f79e6f8925ccc2f46bcd989d58611c989af206df1cac975c4783fad5
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/disk_filled_on_all_nodes.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:77418217eec42b688bc0bd7933bf8fffb1ebb003b9e3bd08ac864ef461bb09cf
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/elected_master_is_crashed.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:aef5cfced2d59723bd1c0cfb9a80ca8a820bd316ca45b9cb09c3996ec3dd3099
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/entire_index_corrupted.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:8c2d4f3c57bbdf5a4d63859f3c2d96b8505c607c07016f0969ccf5dde939f9c4
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/io_limit.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:e3a11966ac9aa826ca6589f5f7d033fe34d368d22daa355d6fc77b40e238a2b2
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/memory_limit.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:96df51f46691c7fb4d7f6eae728c1a87c8e210be901cbe5fc9a9729d651dd122
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/network_connection_failure.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:e50f83616bee1116b3282f3a519a9338bfe3fe62621a83297dd39bd7598866e5
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/new_master_can_not_be_elected.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:bd73a7a59449262c99d8fd2939f956e8450b7dbe2a9594007b9ae591a6497926
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/primary_shard_is_down_during_user_request.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:cb512ca6c2872104f7ff59ef927941545426d6d602261027a72a092b757a904d
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/problem_during_replication.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:103b03276be9117d0a49c4c4ba44c64b4ecdc1b7242a129ef3233f4e595f6d1f
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/scenarios/translog_is_corrupted.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:b77298ded3fa8382cc951dd325ab5800a22ae771aaaf4bacaeb6818b201bfde8
+- kind: project-relative
+  target: copilot
+  value: .agents/skills/troubleshoot-opensearch/references/troubleshooting.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:6ca3563e4ef52e3cd0dbccf6fcbe562f39adf153a1ffcbfe13d1098389aa763e
+- kind: project-relative
+  target: copilot
+  value: .github/instructions/troubleshoot-opensearch.instructions.md
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:b744b0c9824262415515b5b8722bc2fc92632b47246a0fe8b131d3cf01615190
+- kind: project-relative
+  target: cursor
+  value: .cursor/rules/troubleshoot-opensearch.mdc
+  runtime: null
+  scope: project
+  owners:
+  - ./agent-packages/troubleshoot-opensearch/
+  active_owner: ./agent-packages/troubleshoot-opensearch/
+  content_hash: sha256:d195f363a35d235fde5cd015cfef7702ccd116a827e1d74f57993816f8c8cbac
