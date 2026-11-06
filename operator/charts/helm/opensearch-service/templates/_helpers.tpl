@@ -1325,6 +1325,26 @@ DBaaS registration URL from various places.
 {{- end -}}
 
 {{/*
+DBaaS Operator namespace for declarative registration.
+Uses explicitly configured dbaasAdapter.declarativeRegistration.operatorNamespace if set,
+otherwise extracts the namespace from API_DBAAS_ADDRESS.
+*/}}
+{{- define "dbaas.operatorNamespace" -}}
+  {{- $explicit := .Values.dbaasAdapter.declarativeRegistration.operatorNamespace -}}
+  {{- if and (ne ($explicit | toString) "<nil>") (ne ($explicit | toString) "") -}}
+    {{- $explicit -}}
+  {{- else -}}
+    {{- $address := toString (default "" .Values.API_DBAAS_ADDRESS) -}}
+    {{- $pattern := "^(https?://)?[^.]+\\.([^:/]+).*$" -}}
+    {{- if regexMatch $pattern $address -}}
+      {{- regexReplaceAll $pattern $address "${2}" -}}
+    {{- else -}}
+      {{- fail (printf "API_DBAAS_ADDRESS %q is not a valid aggregator address. Set it to http://<aggregator>.<namespace>:<port> or set dbaasAdapter.declarativeRegistration.operatorNamespace." $address) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
 Whether physical database is registered declaratively by DBaaS Operator using PhysicalDatabase custom resource.
 It is true when DBaaS adapter is installed and PhysicalDatabase CRD is available in the cluster.
 */}}

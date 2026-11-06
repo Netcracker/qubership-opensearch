@@ -5,7 +5,7 @@ metadata:
   name: {{ .Release.Name }}-physical-db
   namespace: {{ .Release.Namespace }}
 spec:
-  operatorNamespace: {{ required "DBaaS Operator namespace is required" .Values.dbaasAdapter.declarativeRegistration.operatorNamespace | quote }}
+  operatorNamespace: {{ include "dbaas.operatorNamespace" . | quote }}
   adapterAddress: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (include "dbaas-adapter.address" .) | quote }}
   credentialsSecretRef:
     name: {{ template "dbaas-adapter.name" . }}-secret

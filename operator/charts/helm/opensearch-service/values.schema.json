@@ -3878,10 +3878,10 @@
                     "properties": {
                         "operatorNamespace": {
                             "type": "string",
-                            "default": "dbaas",
+                            "default": "",
                             "$id": "#/properties/dbaasAdapter/properties/declarativeRegistration/properties/operatorNamespace",
                             "title": "The dbaasAdapter.declarativeRegistration.operatorNamespace schema",
-                            "description": "The namespace where DBaaS Operator is installed"
+                            "description": "The namespace where DBaaS Operator is installed. Defaults to the namespace extracted from API_DBAAS_ADDRESS."
                         }
                     }
                 },
