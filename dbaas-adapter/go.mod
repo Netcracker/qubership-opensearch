@@ -9,7 +9,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/opensearch-project/opensearch-go v1.1.0
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
-	github.com/sethvargo/go-password v0.3.1
+	github.com/sethvargo/go-password v0.4.0
 	github.com/stretchr/testify v1.12.1
 	go.uber.org/zap v1.27.0
 	k8s.io/apimachinery v0.33.2
