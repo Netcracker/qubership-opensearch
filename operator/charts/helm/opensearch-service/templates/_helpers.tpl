@@ -24,6 +24,13 @@ If release name contains chart name it will be used as a full name.
 {{- end -}}
 
 {{/*
+Return type for gateway
+*/}}
+{{- define "gateway.type" -}}
+    {{- default "legacy-ingress" .Values.GATEWAY_SYSTEM_TYPE -}}
+{{- end -}}
+
+{{/*
 Define standard labels for frequently used metadata.
 */}}
 {{- define "opensearch.labels.standard" -}}
@@ -1314,6 +1321,26 @@ DBaaS registration URL from various places.
     {{- .Values.API_DBAAS_ADDRESS -}}
   {{- else -}}
     {{- .Values.dbaasAdapter.dbaasAggregatorRegistrationAddress -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+DBaaS Operator namespace for declarative registration.
+Uses explicitly configured dbaasAdapter.declarativeRegistration.operatorNamespace if set,
+otherwise extracts the namespace from API_DBAAS_ADDRESS.
+*/}}
+{{- define "dbaas.operatorNamespace" -}}
+  {{- $explicit := .Values.dbaasAdapter.declarativeRegistration.operatorNamespace -}}
+  {{- if and (ne ($explicit | toString) "<nil>") (ne ($explicit | toString) "") -}}
+    {{- $explicit -}}
+  {{- else -}}
+    {{- $address := toString (default "" .Values.API_DBAAS_ADDRESS) -}}
+    {{- $pattern := "^(https?://)?[^.]+\\.([^:/]+).*$" -}}
+    {{- if regexMatch $pattern $address -}}
+      {{- regexReplaceAll $pattern $address "${2}" -}}
+    {{- else -}}
+      {{- fail (printf "API_DBAAS_ADDRESS %q is not a valid aggregator address. Set it to http://<aggregator>.<namespace>:<port> or set dbaasAdapter.declarativeRegistration.operatorNamespace." $address) -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 
