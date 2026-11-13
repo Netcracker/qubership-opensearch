@@ -1,6 +1,6 @@
 ---
 name: troubleshoot-opensearch
-description: Diagnose and resolve OpenSearch failures in clusters managed by the `opensearch-service` operator (`operator/charts/helm/opensearch-service` chart). Use when a cluster is degraded or down, pods are OOMKilled, in CrashLoopBackOff or not ready, indices are read-only or the disk is full, shards are unassigned or corrupted, requests fail with CircuitBreakingException, 401/403 or TLS errors, master election or cross-cluster replication fails, a backup or migration fails, or the ticket touches master/data/arbiter/client roles, JVM heap, index buffers, thread pools, or any `opensearch.yml` setting.
+description: Diagnose and resolve OpenSearch failures in clusters managed by the `opensearch-service` operator. Use when a cluster is degraded or down, pods are OOMKilled, in CrashLoopBackOff or not ready, indices are read-only or the disk is full, shards are unassigned or corrupted, requests fail with CircuitBreakingException, 401/403 or TLS errors, master election or cross-cluster replication fails, a backup or migration fails, or the issue touches master/data/arbiter/client roles, JVM heap, index buffers, thread pools, or any `opensearch.yml` setting.
 ---
 
 # Troubleshoot OpenSearch
