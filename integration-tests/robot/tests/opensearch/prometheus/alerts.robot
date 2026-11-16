@@ -3,7 +3,7 @@ ${OPENSEARCH_IS_DEGRADED_ALERT_NAME}  OpenSearchIsDegradedAlert
 ${OPENSEARCH_IS_DOWN_ALERT_NAME}      OpenSearchIsDownAlert
 ${ALERT_RETRY_TIME}                   5min
 ${ALERT_RETRY_INTERVAL}               10s
-${CHECK_RESULT_RETRY_COUNT}           15x
+${CHECK_RESULT_RETRY_TIME}            3m
 ${CHECK_RESULT_RETRY_INTERVAL}        5s
 ${SLEEP_TIME}                         10s
 
@@ -32,7 +32,7 @@ Scale Up Master Stateful Set
     Sleep  ${SLEEP_TIME}
     ${result}=  Check Service Of Stateful Sets Is Scaled  ${OPENSEARCH_MASTER_NODES_NAME}  ${OPENSEARCH_NAMESPACE}
     Should Be True  ${result}
-    Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_COUNT}  ${CHECK_RESULT_RETRY_INTERVAL}
+    Wait Until Keyword Succeeds  ${CHECK_RESULT_RETRY_TIME}  ${CHECK_RESULT_RETRY_INTERVAL}
     ...  Check OpenSearch Is Green
 
 *** Test Cases ***
