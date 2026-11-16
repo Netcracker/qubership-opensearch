@@ -26,7 +26,6 @@ import (
 	"github.com/Netcracker/dbaas-opensearch-adapter/cluster"
 	"github.com/Netcracker/dbaas-opensearch-adapter/common"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
-	"golang.org/x/sync/errgroup"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -53,7 +52,7 @@ var (
 	opensearchDeployments        = common.GetEnv("OPENSEARCH_DEPLOYMENT_NAMES", "")
 	opensearchOperatorDeployment = common.GetEnv("OPENSEARCH_OPERATOR_DEPLOYMENT_NAME", "")
 	opensearchClientServiceName  = common.GetEnv("OPENSEARCH_CLIENT_SERVICE_NAME", "")
-	opensearchMasterNodesName   = common.GetEnv("OPENSEARCH_MASTER_NODES_NAME", "")
+	opensearchMasterNodesName    = common.GetEnv("OPENSEARCH_MASTER_NODES_NAME", "")
 	opensearchSecurityAdminPath  = common.GetEnv("OPENSEARCH_SECURITY_ADMIN_PATH", "/usr/share/opensearch/plugins/opensearch-security/tools/securityadmin.sh")
 	opensearchConfigPath         = common.GetEnv("OPENSEARCH_CONFIG_PATH", "/usr/share/opensearch/config")
 	log                          = common.GetLogger()
@@ -68,12 +67,12 @@ const (
 	adapterReadyTimeout  = 240
 	adapterReadyInterval = 10
 
-	dbaasAdapterAPIVersion   = "v2"
+	dbaasAdapterAPIVersion    = "v2"
 	dbaasAggregatorAPIVersion = "v3"
-	RecoveryIdleState        = "idle"
-	RecoveryRunningState = "running"
-	RecoveryFailedState  = "failed"
-	RecoveryDoneState    = "done"
+	RecoveryIdleState         = "idle"
+	RecoveryRunningState      = "running"
+	RecoveryFailedState       = "failed"
+	RecoveryDoneState         = "done"
 
 	doRetryAttempts = 5
 	doRetryInterval = 3 * time.Second
@@ -149,8 +148,8 @@ type reindexAsyncResp struct {
 
 type taskGetResp struct {
 	Completed bool `json:"completed"`
-	Error     any `json:"error,omitempty"`
-	Response  any `json:"response,omitempty"`
+	Error     any  `json:"error,omitempty"`
+	Response  any  `json:"response,omitempty"`
 }
 
 type PerfSnapshot struct {
@@ -235,7 +234,7 @@ func run(dryRun, skipSecurity, skipBackup bool) error {
 		} else {
 			log.Info("Skipping backup (--skip-backup)")
 		}
-		if err = m.MigrateAll(ctx, oneXAll,skipBackup); err != nil {
+		if err = m.MigrateAll(ctx, oneXAll, skipBackup); err != nil {
 			log.Error(fmt.Sprintf("Step2 failed: %v", err))
 			return err
 		}
@@ -1289,17 +1288,16 @@ func restartOpenSearchWorkloads(ctx context.Context) error {
 }
 
 func deleteAllPodsOfSTS(ctx context.Context, stsName string) error {
-	out, err := runKubectl(ctx,
-		"get", "pods",
-		"-o", "json",
-	)
+	out, err := runKubectl(ctx, "get", "pods", "-o", "json")
 	if err != nil {
 		return err
 	}
+
 	var podList struct {
 		Items []struct {
 			Metadata struct {
 				Name            string `json:"name"`
+				UID             string `json:"uid"`
 				OwnerReferences []struct {
 					Kind string `json:"kind"`
 					Name string `json:"name"`
@@ -1310,22 +1308,61 @@ func deleteAllPodsOfSTS(ctx context.Context, stsName string) error {
 	if err := json.Unmarshal([]byte(out), &podList); err != nil {
 		return err
 	}
-	var g errgroup.Group
-	for _, pod := range podList.Items {
-		for _, owner := range pod.Metadata.OwnerReferences {
-			if owner.Kind == "StatefulSet" && owner.Name == stsName {
-				podName := pod.Metadata.Name
-				g.Go(func() error {
-					_, err := runKubectl(ctx,
-						"delete", "pod", podName,
-						"--wait=false",
-					)
-					return err
-				})
+
+	type podInfo struct {
+		name    string
+		uid     string
+		ordinal int
+	}
+	var pods []podInfo
+	for _, p := range podList.Items {
+		for _, o := range p.Metadata.OwnerReferences {
+			if o.Kind != "StatefulSet" || o.Name != stsName {
+				continue
 			}
+			idx := strings.LastIndex(p.Metadata.Name, "-")
+			ord, convErr := strconv.Atoi(p.Metadata.Name[idx+1:])
+			if convErr != nil {
+				return fmt.Errorf("cannot parse ordinal from pod %s: %w", p.Metadata.Name, convErr)
+			}
+			pods = append(pods, podInfo{p.Metadata.Name, p.Metadata.UID, ord})
 		}
 	}
-	return g.Wait()
+
+	// Highest ordinal first, same as the StatefulSet controller does.
+	sort.Slice(pods, func(i, j int) bool { return pods[i].ordinal > pods[j].ordinal })
+
+	for _, p := range pods {
+		// Default --wait=true: returns only once the old pod is fully gone,
+		// so its volume has been unmounted/detached before the new pod starts.
+		if _, err := runKubectl(ctx, "delete", "pod", p.name, "--timeout=5m"); err != nil {
+			return fmt.Errorf("delete %s: %w", p.name, err)
+		}
+		if err := waitForNewPodReady(ctx, p.name, p.uid, 10*time.Minute); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Waits until a pod with the same name but a different UID exists and is Ready.
+func waitForNewPodReady(ctx context.Context, name, oldUID string, timeout time.Duration) error {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	for {
+		uid, err := runKubectl(ctx, "get", "pod", name, "-o", "jsonpath={.metadata.uid}")
+		if err == nil && strings.TrimSpace(uid) != "" && strings.TrimSpace(uid) != oldUID {
+			if _, err := runKubectl(ctx, "wait", "--for=condition=Ready", "pod/"+name, "--timeout=10m"); err == nil {
+				return nil
+			}
+		}
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("pod %s did not become Ready in time: %w", name, ctx.Err())
+		case <-time.After(3 * time.Second):
+		}
+	}
 }
 
 func getFirstOpenSearchPodName(ctx context.Context) (string, error) {
