@@ -4,6 +4,8 @@ kind: PhysicalDatabase
 metadata:
   name: {{ .Release.Name }}-physical-db
   namespace: {{ .Release.Namespace }}
+  labels:
+    deployer.cleanup/allow: "true"
 spec:
   operatorNamespace: {{ include "dbaas.operatorNamespace" . | quote }}
   adapterAddress: {{ .Values.dbaasAdapter.dbaasAdapterAddress | default (include "dbaas-adapter.address" .) | quote }}

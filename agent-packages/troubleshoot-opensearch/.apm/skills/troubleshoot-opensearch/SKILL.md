@@ -19,8 +19,8 @@ Use this skill when investigating issues related to:
 - **Disaster recovery** (cross-cluster replication, switchover, standby health)
 - **Upgrades** (indices migration, pre-deploy migration hooks, shard limits)
 - **Log analysis** — `grep` of attached OpenSearch pod, operator, and
-  pre-upgrade Job logs against the documented error signatures
-  (`Log Analysis Tips`).
+    pre-upgrade Job logs against the documented error signatures
+    (`Log Analysis Tips`).
 
 Failure-mode facts and resolution steps live in `references/`; this file provides routing and deployment-configuration guardrails. Use only the bundled references.
 
@@ -40,7 +40,7 @@ Key components:
 
 ### Critical configuration paths
 
-opensearch-service App.
+Helm chart: `operator/charts/helm/opensearch-service/`.
 
 | Helm value | Purpose |
 | --- | --- |
