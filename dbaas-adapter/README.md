@@ -19,9 +19,15 @@ This section provides information about REST API of the DBaaS OpenSearch adapter
     - [Drop Created Resources](#drop-created-resources)
     - [Drop Created Resources v2](#drop-created-resources-v2)
     - [Collect Backup](#collect-backup)
+    - [Collect Backup v2](#collect-backup-v2)
     - [Track Backup](#track-backup)
+    - [Track Backup v2](#track-backup-v2)
+    - [Delete Backup v2](#delete-backup-v2)
     - [Restore Backup](#restore-backup)
+    - [Restore Backup v2](#restore-backup-v2)
     - [Track Restore From Track ID](#track-restore-from-track-id)
+    - [Track Restore v2](#track-restore-v2)
+    - [Delete Restore v2](#delete-restore-v2)
     - [Track Restore From Indices](#track-restore-from-indices)
 - [Definitions](#definitions)
     - [RegistrationPhysicalRequest](#registrationphysicalrequest)
@@ -40,6 +46,16 @@ This section provides information about REST API of the DBaaS OpenSearch adapter
     - [DBResourceDeleteStatus](#dbresourcedeletestatus)
     - [ActionTrack](#actiontrack)
     - [Details](#details)
+    - [BackupRequest v2](#backuprequest-v2)
+    - [BackupDatabaseInfo](#backupdatabaseinfo)
+    - [BackupResponse v2](#backupresponse-v2)
+    - [LogicalDatabaseBackup](#logicaldatabasebackup)
+    - [RestoreRequest v2](#restorerequest-v2)
+    - [RestoreMapping](#restoremapping)
+    - [RestoreResponse v2](#restoreresponse-v2)
+    - [LogicalDatabaseRestore](#logicaldatabaserestore)
+    - [BadRequestResponse](#badrequestresponse)
+    - [ServerErrorResponse](#servererrorresponse)
 
 # Introduction
 
@@ -999,6 +1015,306 @@ Response:
 [{"kind":"role","name":"test-newsty-role","status":"DELETED","errorMessage":""},{"kind":"user","name":"dbaas_c71f1a63193c40328281e4901efb647f","status":"DELETED","errorMessage":""},{"kind":"user","name":"prefix-user","status":"DELETED","errorMessage":""},{"kind":"role","name":"prefix-role","status":"DELETED","errorMessage":""}]
 ```
 
+## Collect Backup v2
+
+```text
+POST /api/v2/dbaas/adapter/opensearch/backups/backup
+```
+
+### Description
+
+This API requests to collect backup for specified databases (resource prefixes) and store it in the specified storage by the specified path. The backup is performed asynchronously, use
+[Track Backup v2](#track-backup-v2) API with returned `backupId` to get the backup status.
+
+### Parameters
+
+| Type     | Name                              | Description                                 | Schema                                |
+|----------|-----------------------------------|---------------------------------------------|---------------------------------------|
+| **Body** | **backupRequest**  <br>*required* | Storage, path and list of databases to back up | [BackupRequest v2](#backuprequest-v2) |
+
+### Responses
+
+| HTTP Code | Description                                                    | Schema                                        |
+|-----------|----------------------------------------------------------------|-----------------------------------------------|
+| **202**   | Backup is started                                              | [BackupResponse v2](#backupresponse-v2)       |
+| **400**   | Request body is not valid or required fields are missing       | [BadRequestResponse](#badrequestresponse)     |
+| **404**   | Backup daemon responded that requested databases are not found | string                                        |
+| **500**   | Error occurred while collecting backup                         | [ServerErrorResponse](#servererrorresponse)   |
+
+### Example
+
+Request:
+
+```text
+curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/backup -d'{
+  "storageName": "default",
+  "blobPath": "/backup-storage/v2",
+  "databases": [
+    {
+      "databaseName": "test-service_test-namespace_115500463160424"
+    }
+  ]
+}'
+```
+
+Response:
+
+```text
+{
+  "status": "notStarted",
+  "backupId": "20251116T101500",
+  "creationTime": "2025-11-16T10:15:00Z",
+  "storageName": "default",
+  "blobPath": "/backup-storage/v2",
+  "databases": [
+    {
+      "databaseName": "test-service_test-namespace_115500463160424",
+      "status": "notStarted"
+    }
+  ]
+}
+```
+
+## Track Backup v2
+
+```text
+GET /api/v2/dbaas/adapter/opensearch/backups/backup/{backupId}?blobPath={blobPath}
+```
+
+### Description
+
+This API provides information about requested backup and its status for each database.
+
+### Parameters
+
+| Type      | Name                         | Description                                          | Schema |
+|-----------|------------------------------|------------------------------------------------------|--------|
+| **Path**  | **backupId**  <br>*required* | Identifier of backup returned by [Collect Backup v2](#collect-backup-v2) | string |
+| **Query** | **blobPath**  <br>*required* | Path in the storage where the backup is stored       | string |
+
+### Responses
+
+| HTTP Code | Description                                 | Schema                                      |
+|-----------|---------------------------------------------|---------------------------------------------|
+| **200**   | Information about backup                    | [BackupResponse v2](#backupresponse-v2)     |
+| **400**   | Query parameter `blobPath` is not specified | [BadRequestResponse](#badrequestresponse)   |
+| **404**   | Backup is not found                         | string                                      |
+| **500**   | Error occurred while tracking backup        | [ServerErrorResponse](#servererrorresponse) |
+
+### Example
+
+Request:
+
+```text
+curl -u <username>:<password> -XGET "http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/backup/20251116T101500?blobPath=/backup-storage/v2"
+```
+
+Response:
+
+```text
+{
+  "status": "completed",
+  "backupId": "20251116T101500",
+  "creationTime": "2025-11-16T10:15:00Z",
+  "completionTime": "2025-11-16T10:15:42Z",
+  "storageName": "default",
+  "blobPath": "/backup-storage/v2",
+  "databases": [
+    {
+      "databaseName": "test-service_test-namespace_115500463160424",
+      "status": "completed"
+    }
+  ]
+}
+```
+
+## Delete Backup v2
+
+```text
+DELETE /api/v2/dbaas/adapter/opensearch/backups/backup/{backupId}?blobPath={blobPath}
+```
+
+### Description
+
+This API deletes the backup from the storage.
+
+### Parameters
+
+| Type      | Name                         | Description                                    | Schema |
+|-----------|------------------------------|------------------------------------------------|--------|
+| **Path**  | **backupId**  <br>*required* | Identifier of backup to delete                 | string |
+| **Query** | **blobPath**  <br>*required* | Path in the storage where the backup is stored | string |
+
+### Responses
+
+| HTTP Code | Description                                 | Schema                                      |
+|-----------|---------------------------------------------|---------------------------------------------|
+| **204**   | Backup is successfully deleted              | No Content                                  |
+| **400**   | Query parameter `blobPath` is not specified | [BadRequestResponse](#badrequestresponse)   |
+| **404**   | Backup is not found                         | string                                      |
+| **500**   | Error occurred while deleting backup        | [ServerErrorResponse](#servererrorresponse) |
+
+### Example
+
+Request:
+
+```text
+curl -u <username>:<password> -XDELETE "http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/backup/20251116T101500?blobPath=/backup-storage/v2"
+```
+
+## Restore Backup v2
+
+```text
+POST /api/v2/dbaas/adapter/opensearch/backups/backup/{backupId}/restore
+```
+
+### Description
+
+This API requests to restore specified databases from the backup. The databases are restored under the same names as in the backup, users recovery is skipped. The restore is performed
+asynchronously, use [Track Restore v2](#track-restore-v2) API with returned `restoreId` to get the restore status.
+
+### Parameters
+
+| Type      | Name                               | Description                                                                                       | Schema                                  |
+|-----------|------------------------------------|---------------------------------------------------------------------------------------------------|-----------------------------------------|
+| **Path**  | **backupId**  <br>*required*       | Identifier of backup to restore                                                                   | string                                  |
+| **Query** | **dryRun**  <br>*optional*         | Whether to only validate the restore without applying any changes to OpenSearch. Default is `false` | boolean                                 |
+| **Body**  | **restoreRequest**  <br>*required* | Storage, path and list of databases to restore                                                    | [RestoreRequest v2](#restorerequest-v2) |
+
+### Responses
+
+| HTTP Code | Description                                              | Schema                                      |
+|-----------|----------------------------------------------------------|---------------------------------------------|
+| **202**   | Restore is started                                       | [RestoreResponse v2](#restoreresponse-v2)   |
+| **400**   | Request body is not valid or required fields are missing | [BadRequestResponse](#badrequestresponse)   |
+| **404**   | Backup is not found                                      | string                                      |
+| **500**   | Error occurred while restoring backup                    | [ServerErrorResponse](#servererrorresponse) |
+
+### Example
+
+Request:
+
+```text
+curl -u <username>:<password> -XPOST http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/backup/20251116T101500/restore -d'{
+  "storageName": "default",
+  "blobPath": "/backup-storage/v2",
+  "databases": [
+    {
+      "microserviceName": "test-service",
+      "namespace": "test-namespace",
+      "databaseName": "test-service_test-namespace_115500463160424"
+    }
+  ]
+}'
+```
+
+Response:
+
+```text
+{
+  "status": "notStarted",
+  "restoreId": "20251116T103000",
+  "creationTime": "2025-11-16T10:30:00Z",
+  "storageName": "default",
+  "blobPath": "/backup-storage/v2",
+  "databases": [
+    {
+      "previousDatabaseName": "test-service_test-namespace_115500463160424",
+      "databaseName": "test-service_test-namespace_115500463160424",
+      "status": "notStarted"
+    }
+  ]
+}
+```
+
+## Track Restore v2
+
+```text
+GET /api/v2/dbaas/adapter/opensearch/backups/restore/{restoreId}?blobPath={blobPath}
+```
+
+### Description
+
+This API provides information about requested restore and its status for each database.
+
+### Parameters
+
+| Type      | Name                          | Description                                                                 | Schema |
+|-----------|-------------------------------|-----------------------------------------------------------------------------|--------|
+| **Path**  | **restoreId**  <br>*required* | Identifier of restore returned by [Restore Backup v2](#restore-backup-v2) | string |
+| **Query** | **blobPath**  <br>*required*  | Path in the storage where the backup is stored                              | string |
+
+### Responses
+
+| HTTP Code | Description                                 | Schema                                      |
+|-----------|---------------------------------------------|---------------------------------------------|
+| **200**   | Information about restore                   | [RestoreResponse v2](#restoreresponse-v2)   |
+| **400**   | Query parameter `blobPath` is not specified | [BadRequestResponse](#badrequestresponse)   |
+| **404**   | Restore is not found                        | string                                      |
+| **500**   | Error occurred while tracking restore       | [ServerErrorResponse](#servererrorresponse) |
+
+### Example
+
+Request:
+
+```text
+curl -u <username>:<password> -XGET "http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/restore/20251116T103000?blobPath=/backup-storage/v2"
+```
+
+Response:
+
+```text
+{
+  "status": "completed",
+  "restoreId": "20251116T103000",
+  "creationTime": "2025-11-16T10:30:00Z",
+  "completionTime": "2025-11-16T10:30:25Z",
+  "storageName": "default",
+  "blobPath": "/backup-storage/v2",
+  "databases": [
+    {
+      "previousDatabaseName": "test-service_test-namespace_115500463160424",
+      "databaseName": "test-service_test-namespace_115500463160424",
+      "status": "completed"
+    }
+  ]
+}
+```
+
+## Delete Restore v2
+
+```text
+DELETE /api/v2/dbaas/adapter/opensearch/backups/restore/{restoreId}?blobPath={blobPath}
+```
+
+### Description
+
+This API deletes information about the restore procedure from the backup daemon. Restored data in OpenSearch is not affected.
+
+### Parameters
+
+| Type      | Name                          | Description                                    | Schema |
+|-----------|-------------------------------|------------------------------------------------|--------|
+| **Path**  | **restoreId**  <br>*required* | Identifier of restore to delete                | string |
+| **Query** | **blobPath**  <br>*required*  | Path in the storage where the backup is stored | string |
+
+### Responses
+
+| HTTP Code | Description                                 | Schema                                      |
+|-----------|---------------------------------------------|---------------------------------------------|
+| **204**   | Restore is successfully deleted             | No Content                                  |
+| **400**   | Query parameter `blobPath` is not specified | [BadRequestResponse](#badrequestresponse)   |
+| **404**   | Restore is not found                        | string                                      |
+| **500**   | Error occurred while deleting restore       | [ServerErrorResponse](#servererrorresponse) |
+
+### Example
+
+Request:
+
+```text
+curl -u <username>:<password> -XDELETE "http://dbaas-opensearch-adapter:8080/api/v2/dbaas/adapter/opensearch/backups/restore/20251116T103000?blobPath=/backup-storage/v2"
+```
+
 ## Definitions
 
 ## RegistrationPhysicalRequest
@@ -1137,3 +1453,107 @@ Response:
 | Name                       | Description                    | Schema |
 |----------------------------|--------------------------------|--------|
 | **localId** <br>*optional* | Identifier of backup procedure | string |
+
+## BackupRequest v2
+
+| Name                             | Description                                                                | Schema                                          |
+|----------------------------------|----------------------------------------------------------------------------|-------------------------------------------------|
+| **storageName**  <br>*required*  | Name of the storage (S3 alias) where the backup is to be stored            | string                                          |
+| **blobPath**  <br>*required*     | Path in the storage where the backup is to be stored                       | string                                          |
+| **databases**  <br>*required*    | List of databases to back up                                               | list<[BackupDatabaseInfo](#backupdatabaseinfo)> |
+
+## BackupDatabaseInfo
+
+| Name                             | Description                                     | Schema |
+|----------------------------------|-------------------------------------------------|--------|
+| **databaseName**  <br>*required* | Name of database (resource prefix) to back up   | string |
+
+## BackupResponse v2
+
+| Name                               | Description                                                                                         | Schema                                                |
+|------------------------------------|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------|
+| **status**  <br>*required*         | Status of backup. The possible values are as follows: `notStarted`, `inProgress`, `completed`, `failed` | string                                                |
+| **errorMessage**  <br>*optional*   | Message of error occurred during backup                                                             | string                                                |
+| **backupId**  <br>*required*       | Identifier of backup                                                                                | string                                                |
+| **creationTime**  <br>*required*   | Time when backup was created                                                                        | string                                                |
+| **completionTime**  <br>*optional* | Time when backup was completed                                                                      | string                                                |
+| **storageName**  <br>*required*    | Name of the storage where the backup is stored                                                      | string                                                |
+| **blobPath**  <br>*required*       | Path in the storage where the backup is stored                                                      | string                                                |
+| **databases**  <br>*required*      | Status of backup for each database                                                                  | list<[LogicalDatabaseBackup](#logicaldatabasebackup)> |
+
+## LogicalDatabaseBackup
+
+| Name                             | Description                                                                                                       | Schema         |
+|----------------------------------|-------------------------------------------------------------------------------------------------------------------|----------------|
+| **databaseName**  <br>*required* | Name of backed up database                                                                                        | string         |
+| **status**  <br>*required*       | Status of database backup. The possible values are as follows: `notStarted`, `inProgress`, `completed`, `failed` | string         |
+| **size**  <br>*optional*         | Size of database backup                                                                                           | integer(int64) |
+| **duration**  <br>*optional*     | Duration of database backup                                                                                       | integer(int32) |
+| **path**  <br>*optional*         | Path to database backup in the storage                                                                            | string         |
+| **errorMessage**  <br>*optional* | Message of error occurred during database backup                                                                  | string         |
+| **creationTime**  <br>*optional* | Time when database backup was created                                                                             | string         |
+
+## RestoreRequest v2
+
+| Name                            | Description                                         | Schema                                  |
+|---------------------------------|-----------------------------------------------------|-----------------------------------------|
+| **storageName**  <br>*required* | Name of the storage (S3 alias) where the backup is stored | string                                  |
+| **blobPath**  <br>*required*    | Path in the storage where the backup is stored      | string                                  |
+| **databases**  <br>*required*   | List of databases to restore                        | list<[RestoreMapping](#restoremapping)> |
+
+## RestoreMapping
+
+| Name                                 | Description                                         | Schema |
+|--------------------------------------|-----------------------------------------------------|--------|
+| **microserviceName**  <br>*required* | Name of microservice which owns the database        | string |
+| **namespace**  <br>*required*        | Namespace of microservice which owns the database   | string |
+| **databaseName**  <br>*required*     | Name of database (resource prefix) to restore       | string |
+| **prefix**  <br>*optional*           | Prefix of database                                  | string |
+
+## RestoreResponse v2
+
+| Name                               | Description                                                                                          | Schema                                                  |
+|------------------------------------|------------------------------------------------------------------------------------------------------|---------------------------------------------------------|
+| **status**  <br>*required*         | Status of restore. The possible values are as follows: `notStarted`, `inProgress`, `completed`, `failed` | string                                                  |
+| **errorMessage**  <br>*optional*   | Message of error occurred during restore                                                             | string                                                  |
+| **restoreId**  <br>*required*      | Identifier of restore                                                                                | string                                                  |
+| **creationTime**  <br>*required*   | Time when restore was created                                                                        | string                                                  |
+| **completionTime**  <br>*optional* | Time when restore was completed                                                                      | string                                                  |
+| **storageName**  <br>*required*    | Name of the storage where the backup is stored                                                       | string                                                  |
+| **blobPath**  <br>*required*       | Path in the storage where the backup is stored                                                       | string                                                  |
+| **databases**  <br>*required*      | Status of restore for each database                                                                  | list<[LogicalDatabaseRestore](#logicaldatabaserestore)> |
+
+## LogicalDatabaseRestore
+
+| Name                                     | Description                                                                                                        | Schema         |
+|------------------------------------------|--------------------------------------------------------------------------------------------------------------------|----------------|
+| **microserviceName**  <br>*optional*     | Name of microservice which owns the database                                                                       | string         |
+| **namespace**  <br>*optional*            | Namespace of microservice which owns the database                                                                  | string         |
+| **prefix**  <br>*optional*               | Prefix of database                                                                                                 | string         |
+| **previousDatabaseName**  <br>*optional* | Name of database in the backup                                                                                     | string         |
+| **databaseName**  <br>*required*         | Name of restored database                                                                                          | string         |
+| **status**  <br>*required*               | Status of database restore. The possible values are as follows: `notStarted`, `inProgress`, `completed`, `failed` | string         |
+| **duration**  <br>*optional*             | Duration of database restore                                                                                       | integer(int32) |
+| **path**  <br>*optional*                 | Path to database backup in the storage                                                                             | string         |
+| **errorMessage**  <br>*optional*         | Message of error occurred during database restore                                                                  | string         |
+| **creationTime**  <br>*optional*         | Time when database restore was created                                                                             | string         |
+
+## BadRequestResponse
+
+| Name                        | Description                                  | Schema       |
+|-----------------------------|----------------------------------------------|--------------|
+| **error**  <br>*required*   | Error message, `Invalid request parameters`  | string       |
+| **details**  <br>*optional* | List of validation errors                    | list<string> |
+
+For example:
+
+```text
+{"error":"Invalid request parameters","details":["Field 'CreateBackupRequest.StorageName' failed validation: required"]}
+```
+
+## ServerErrorResponse
+
+| Name                          | Description                                      | Schema |
+|-------------------------------|--------------------------------------------------|--------|
+| **error**  <br>*required*     | Error message                                    | string |
+| **requestId**  <br>*required* | Identifier of request to find it in adapter logs | string |
