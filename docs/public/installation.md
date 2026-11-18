@@ -4,6 +4,11 @@ This chapter describes the installation and configuration procedures of OpenSear
 The following topics are covered in this chapter:
 
 <!-- TOC -->
+* [Deployment Structure](#deployment-structure)
+  * [Deployment Units](#deployment-units)
+  * [Main app: opensearch-service](#main-app-opensearch-service)
+  * [CRD app: opensearch-crd](#crd-app-opensearch-crd)
+  * [Installation and Upgrade Order](#installation-and-upgrade-order)
 * [Prerequisites](#prerequisites)
   * [Common](#common)
     * [Custom Resource Definitions](#custom-resource-definitions)
@@ -32,6 +37,15 @@ The following topics are covered in this chapter:
     * [Small](#small)
     * [Medium](#medium)
     * [Large](#large)
+* [Configure OpenSearch and Dashboards](#configure-opensearch-and-dashboards)
+  * [Configure OpenSearch](#configure-opensearch)
+    * [OpenSearch Properties](#opensearch-properties)
+    * [Logging and JVM](#logging-and-jvm)
+    * [Index Settings](#index-settings)
+    * [What Not to Do](#what-not-to-do)
+  * [Configure OpenSearch Dashboards](#configure-opensearch-dashboards)
+    * [Dashboards Properties](#dashboards-properties)
+    * [What Not to Do](#what-not-to-do-1)
 * [Parameters](#parameters)
   * [Cloud Integration Parameters](#cloud-integration-parameters)
   * [Global](#global)
@@ -91,6 +105,7 @@ The following topics are covered in this chapter:
       * [Migrate From Elasticsearch 6.8 Service](#migrate-from-elasticsearch-68-service)
         * [Migrate Elasticsearch 6.8 Persistent Volumes](#migrate-elasticsearch-68-persistent-volumes)
         * [Manual Migration From Elasticsearch 6.8](#manual-migration-from-elasticsearch-68)
+    * [Declarative Physical Database Registration](#declarative-physical-database-registration)
     * [DBaaS Adapter Migration](#dbaas-adapter-migration)
   * [Rollback](#rollback)
 * [Additional Features](#additional-features)
@@ -100,6 +115,115 @@ The following topics are covered in this chapter:
       * [Replicas More Than Availability Zones](#replicas-more-than-availability-zones)
 <!-- TOC -->
 <!-- #GFCFilterMarkerEnd# -->
+
+# Deployment Structure
+
+OpenSearch is delivered as two **applications** (deployment units): one carries the Custom Resource Definition,
+one carries the workload. Each application is built, versioned and promoted separately by the CI pipeline,
+and is installed separately — with its own set of deployment parameters and its own set of rights required from the deployment user.
+
+## Deployment Units
+
+OpenSearch is delivered with the following applications:
+
+- Main app: `opensearch-service`
+- CRD app: `opensearch-crd`
+
+| Application          | Type     | Contents                                                                                                                              | Custom resource     | Service account           | Deploy user rights                        |
+|----------------------|----------|---------------------------------------------------------------------------------------------------------------------------------------|---------------------|---------------------------|-------------------------------------------|
+| `opensearch-service` | Main app | OpenSearch operator, OpenSearch nodes, OpenSearch Dashboards, the supplementary services listed below, and the `OpenSearchService` CR | `OpenSearchService` | `<name>-service-operator` | Namespace `admin` / project-level Role    |
+| `opensearch-crd`     | CRD app  | `OpenSearchService` CRD (`opensearchservices.netcracker.com`)                                                                         | n/a                 | n/a                       | Cluster administrator (CRD create/update) |
+
+Definitions of the deployment unit types:
+
+- **Main app** — the primary deployment unit of the product. It installs the operator and the product's own workloads
+  (OpenSearch pods, services, secrets, config maps, PVCs) into a single namespace. This is the unit you redeploy when
+  you change OpenSearch configuration. OpenSearch keeps the core cluster and the supplementary services in a single main
+  application: they are installed, upgraded and scaled together in one namespace.
+- **CRD app** — a deployment unit that contains only the Custom Resource Definitions of the main app. CRDs are
+  cluster-scoped objects, so creating or updating them requires cluster administrator rights that a namespace-level
+  deployment user normally does not have. Splitting the CRDs into their own application lets the cluster
+  administrator install and upgrade them independently of (and before) the namespace deployments that consume them.
+  The CRD app installs nothing into the product namespace.
+
+**Note**: The main app ships its CRD in the `crds/` folder of the chart, so a plain `helm install`/`helm upgrade`
+creates the `OpenSearchService` CRD together with the rest of the release. In environments where the deployment user
+has no cluster-wide rights, the CRD is not created by Helm — it is installed by the `opensearch-crd`
+application, or applied out-of-band by a cluster administrator. See
+[Custom Resource Definitions](#custom-resource-definitions), [Deployment Permissions](#deployment-permissions),
+[CRD Upgrade](#crd-upgrade) and [Automatic CRD Upgrade](#automatic-crd-upgrade).
+
+## Main app: opensearch-service
+
+The `opensearch-service` application installs the OpenSearch cluster and the operator that manages it. It consists
+of the following components:
+
+| Component                     | Deployment parameter | Purpose                                                                                                                                                                                                                                                                                                                     |
+|-------------------------------|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `OpenSearch Service operator` | always installed     | Kubernetes operator that reconciles the `OpenSearchService` custom resource: manages the node pods, services, secrets and config maps, performs rolling updates, applies index settings and manages Disaster Recovery replication.                                                                                          |
+| `OpenSearch master nodes`     | `opensearch.master`  | The cluster manager nodes that hold the cluster metadata. In [joint](#joint) mode they also serve index data.                                                                                                                                                                                                               |
+| `OpenSearch data nodes`       | `opensearch.data`    | The nodes that store and serve index data.                                                                                                                                                                                                                                                                                  |
+| `OpenSearch client nodes`     | `opensearch.client`  | The edge nodes that accept client REST and transport traffic.                                                                                                                                                                                                                                                               |
+| `OpenSearch arbiter nodes`    | `opensearch.arbiter` | Optional cluster manager vote nodes that stabilize the cluster if the `master` nodes go down; they are installed on Kubernetes nodes different from the `master` nodes.                                                                                                                                                     |
+| `tls-init` job                | `global.tls`         | Pre-deploy job (Helm `pre-install`/`pre-upgrade` hook) that generates the development TLS certificates when `global.tls.generateCerts` is enabled and `cert-manager` is not used.                                                                                                                                           |
+| Pre-deploy migration jobs     |                      | Pre-deploy hook jobs that prepare an existing cluster before the new release: the owner-reference migrator (`groupMigration.enabled`), the resource migrator that syncs the StatefulSet PVC annotations on upgrade (`resourceMigration.enabled`) and the 1.x indices migrator for the upgrade to 3.x (`migration.enabled`). |
+
+In addition to the core components, the same application ships the following supplementary services. Each one has its
+own `enabled` flag, so a deployment enables only the services it needs:
+
+| Service                  | Deployment parameter      | Purpose                                                                                                                                                                                                                                              | `enabled` default |
+|--------------------------|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|
+| OpenSearch Dashboards    | `dashboards`              | Web UI for browsing indices, searching documents and monitoring the cluster. Exposed through Ingress or Gateway API `HTTPRoute`.                                                                                                                     | `false`           |
+| Monitoring               | `monitoring`              | Collects OpenSearch metrics and ships them to the monitoring stack. Ships the Grafana dashboards and Prometheus rules.                                                                                                                               | `false`           |
+| Pod Scheduler            | `podScheduler`            | Custom Kubernetes pod scheduler that assigns OpenSearch pods to the nodes that hold their `hostPath` persistent volumes. Required when `persistentVolumes` and `nodes` are specified for `master` or `data` persistence.                             | `true`            |
+| OpenSearch DBaaS Adapter | `dbaasAdapter`            | Connects DBaaS-managed applications to OpenSearch with per-index credentials and the necessary grants.                                                                                                                                               | `false`           |
+| Curator                  | `curator`                 | Creates snapshots on a schedule and removes old snapshots according to the retention policies.                                                                                                                                                       | `false`           |
+| Indices Cleaner          | `curator`                 | Removes old indices according to the retention policies.                                                                                                                                                                                             | `false`           |
+| Status Provisioner       | `statusProvisioner`       | Waits for the OpenSearch cluster to become ready and publishes the deployment status to the deployment tooling. It must stay enabled when the service is delivered by a App Deployer job — disabling it makes the deployment job fail.               | `true`            |
+| Integration tests        | `integrationTests`        | Integration test suite executed during installation or upgrade to verify the deployment.                                                                                                                                                             | `false`           |
+| Disaster Recovery        | `global.disasterRecovery` | Setting the mode to `active` or `standby` enables cross-cluster replication between the sites and the `SiteManager` custom resource for DR switchover; the Replication Watcher can additionally check that the `standby` replication runs correctly. | `false`           |
+
+**Note**: The `enabled` column lists the defaults of the `opensearch-service` chart. In cloud environments the
+deployment tooling resolves the flags from the cloud parameters, which may override the chart defaults — for example,
+the `MONITORING_ENABLED` cloud parameter is `true` by default, so monitoring is enabled by default in the cloud even
+though the chart default of `monitoring.enabled` is `false`.
+
+For the deployment parameters of each service, see the [Parameters](#parameters) section.
+
+## CRD app: opensearch-crd
+
+Installs the `OpenSearchService` CRD (`opensearchservices.netcracker.com`) only. Deploying it has no effect in the
+product namespace.
+
+## Installation and Upgrade Order
+
+Install and upgrade the applications in this order:
+
+1. `opensearch-crd` — the `OpenSearchService` CRD must be in place before the main app. The other CRDs listed
+   in [Custom Resource Definitions](#custom-resource-definitions) are provided by their own products (the monitoring
+   stack, Site Manager) and are installed by them. See [CRD Upgrade](#crd-upgrade).
+2. `opensearch-service` — wait for all nodes to be ready before you continue:
+
+    ```bash
+    kubectl -n <namespace> get pods --selector role in (master,data,client,arbiter)
+    ```
+
+    All node pods — `opensearch.master.replicas` master nodes, `opensearch.data.replicas` data nodes and
+    `opensearch.client.replicas` client nodes — should be `Running` and `1/1 Ready`.
+
+The CRD and the application that uses it must be the same version. A version mismatch makes the operator send a CR
+that the installed schema rejects, which surfaces as CR apply and validation errors.
+
+Two deviations from this order are supported:
+
+- For an externally managed OpenSearch, the nodes are not installed at all. Set `global.externalOpensearch.enabled` to
+  `true` together with `global.externalOpensearch.url`, `username` and `password`, and the chart installs the operator,
+  Dashboards and the supplementary services against the existing cluster. See the [Global](#global) parameters.
+- In environments without cluster-wide permissions, the CRD is created out-of-band by a cluster administrator instead
+  of by the CRD app. See [Custom Resource Definitions](#custom-resource-definitions).
+
+To change OpenSearch or OpenSearch Dashboards configuration of an installed cluster, see
+[Configure OpenSearch and Dashboards](#configure-opensearch-and-dashboards).
 
 # Prerequisites
 
@@ -1026,6 +1150,152 @@ statusProvisioner:
 
 **NOTE:** the following scaling may include additional OpenSearch replicas (universal or data).
 
+# Configure OpenSearch and Dashboards
+
+OpenSearch node configuration and OpenSearch Dashboards configuration are delivered through the values of the
+**`opensearch-service`** Helm chart: OpenSearch properties are the values of the `opensearch` section,
+Dashboards properties are the values of the `dashboards` section. Use this section when the change has to survive
+redeploys — that is, in any environment delivered through the deployment pipeline (App Deployer, deployment tooling)
+or through plain `helm upgrade`.
+
+## Configure OpenSearch
+
+### OpenSearch Properties
+
+OpenSearch node properties — discovery, cluster settings, thread pools, index defaults and similar — are set through
+the `opensearch.config` value. The value is a map: each key is the exact property name from the
+[OpenSearch YAML configuration reference](https://opensearch.org/docs/latest/install-and-configure/configuring-opensearch/index/),
+each value is a scalar.
+
+Example — disable automatic index creation and cap the number of shards per node:
+
+```yaml
+opensearch:
+  config:
+    action.auto_create_index: false
+    cluster.max_shards_per_node: 40
+```
+
+Keep in mind the following:
+
+* Write property names exactly as in the OpenSearch documentation.
+* `opensearch.config` is rendered into the `opensearch.yml` file of every OpenSearch pod, so only the properties that
+  OpenSearch accepts in `opensearch.yml` belong here.
+
+After editing the deployment parameters, redeploy the `opensearch-service` chart through your delivery mechanism, for
+example, `helm upgrade`. The chart renders the map into the `opensearch.yml` file, stores it in the
+`<name>-config` Secret, and every pod reads the new properties after restart due to `opensearch/config-checksum` annotation change.
+
+### Logging and JVM
+
+Logging and JVM properties are set through dedicated values, each delivered to the pods together with the other node
+configuration files through the same `<name>-config` Secret:
+
+| Value                        | Delivered as                                    | Purpose                                                                                                            |
+|------------------------------|-------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| `opensearch.loggingConfig`   | the `logging.yml` file                          | OpenSearch logging configuration (log levels, loggers).                                                            |
+| `opensearch.log4jConfig`     | the `log4j2.properties` file                    | Log4j2 properties.                                                                                                 |
+| `opensearch.<role>.javaOpts` | the `OPENSEARCH_JAVA_OPTS` environment variable | The Java options of the pods of the role (`master`, `arbiter`, `data`, `client`), for example `-Xms718m -Xmx718m`. |
+
+Example — raise the JVM heap of the data nodes:
+
+```yaml
+opensearch:
+  data:
+    javaOpts: "-Xms4g -Xmx4g"
+```
+
+The same `opensearch/config-checksum` annotation rolls the node pods when `logging.yml` or `log4j2.properties`
+change, and a change of `javaOpts` updates the pod template as well, so the pods of the corresponding role are
+restarted.
+
+**Note**: Keep the `-Xms` and `-Xmx` values of `javaOpts` equal, as the OpenSearch documentation recommends for the
+JVM heap.
+
+### Index Settings
+
+`opensearch.indexSettings` applies index settings to the already created indices without a cluster restart. The value
+is a list of entries; each entry has a `pattern` and a `settings` map of index setting keys to values:
+
+```yaml
+opensearch:
+  indexSettings:
+    - pattern: "*data*"
+      settings:
+        index.refresh_interval: "30s"
+```
+
+The operator applies the entries to all matching non-system indices periodically, every 300 seconds, without restarting the nodes.
+Entries are applied in order; later entries override earlier ones for overlapping indices.
+
+**Important**: `opensearch.indexSettings` is separate from `opensearch.yml` — it changes the per-index settings of the
+existing indices, not the node-level properties. Removing a key from `settings` does not reset it in OpenSearch:
+set the value to `null` to reset it to the OpenSearch default, for example `index.translog.sync_interval: null`.
+
+### What Not to Do
+
+The following do not survive redeploys and must not be used to change OpenSearch parameters in deployed environments:
+
+- **Direct changes of the cluster settings** via the OpenSearch REST API (`PUT /_cluster/settings` with `persistent`
+  or `transient`). Such changes live only in the cluster state and are not reflected in the values of the
+  `opensearch-service` chart. The chart values are the single source of truth of the deployment: they are what every
+  deployment run and `helm upgrade` renders, so the running configuration silently drifts from the deployed one. Set
+  the property through [OpenSearch Properties](#opensearch-properties) instead.
+- **Editing `opensearch.yml`, `logging.yml` or the other configuration files inside a node pod.** The files are
+  mounted from the `<name>-config` Secret, which is rendered from the chart values: whenever the pod is replaced
+  (rolling update, scaling, configuration change), the files come back in the state of the deployed values, and the
+  manual edit is lost.
+- **Ad-hoc `kubectl edit opensearchservices ...`** against a managed cluster *as a way to change deploy-time
+  configuration*. The edit lives only in the live custom resource and drifts on the next deployment run or
+  `helm upgrade` of the `opensearch-service` chart.
+
+## Configure OpenSearch Dashboards
+
+### Dashboards Properties
+
+Dashboards properties — the connection to OpenSearch, the server host and port, TLS, telemetry and similar — are set
+through the `dashboards.config` value of the `opensearch-service` chart. The value is a map of configuration file
+names to their content; the `opensearch_dashboards.yml` entry is the main Dashboards configuration file, with the
+property names of the [OpenSearch Dashboards configuration reference](https://opensearch.org/docs/latest/dashboards/configuration/).
+
+Example — point Dashboards at the cluster over TLS with the credential placeholders:
+
+```yaml
+dashboards:
+  enabled: true
+  config:
+    opensearch_dashboards.yml:
+      server:
+        host: 0.0.0.0
+      opensearch:
+        hosts: ["https://<name>-internal:9200"]
+        username: __OPENSEARCH_USERNAME__
+        password: __OPENSEARCH_PASSWORD__
+        ssl:
+          verificationMode: full
+```
+
+If `dashboards.config` is not set, the chart renders a default `opensearch_dashboards.yml` into the same ConfigMap.
+The entries support the credential placeholders `__OPENSEARCH_USERNAME__`, `__OPENSEARCH_PASSWORD__`, `__COOKIE_PASS__`
+and `__KEY_PASSPHRASE__`, which the Dashboards entrypoint replaces with the values of the corresponding pod secrets
+on every pod start.
+
+After editing the deployment parameters, redeploy the `opensearch-service` chart through your delivery mechanism, for
+example, `helm upgrade`. The chart renders the map into the `<name>-dashboards-config` ConfigMap, which is mounted
+read-only into the Dashboards pod; the Dashboards pod reads the new configuration after restart due to `configchecksum`
+annotation change.
+
+### What Not to Do
+
+The following do not survive redeploys and must not be used to change Dashboards parameters in deployed environments:
+
+- **Editing `opensearch_dashboards.yml` inside the Dashboards pod.** The file is rebuilt from the
+  `<name>-dashboards-config` ConfigMap on every pod start, and the ConfigMap is rendered from the `dashboards` chart
+  values on every deployment, so a manual edit is lost on the next pod restart or `helm upgrade`.
+- **Ad-hoc `kubectl edit opensearchservices ...`** against a managed cluster *as a way to change deploy-time
+  configuration*. The edit lives only in the live custom resource and drifts on the next deployment run or
+  `helm upgrade` of the `opensearch-service` chart.
+
 # Parameters
 
 This section lists the configurable parameters of the OpenSearch chart and their default values.
@@ -1038,23 +1308,23 @@ This section lists the configurable parameters of the OpenSearch chart and their
 
 ## Cloud Integration Parameters
 
-| Parameter                              | Type    | Mandatory | Default value     | Description                                                                                 |
-|----------------------------------------|---------|-----------|-------------------|---------------------------------------------------------------------------------------------|
-| STORAGE_RWO_CLASS                      | string  | yes       | `""`              | This parameter specifies the storage class for OpenSearch nodes (master, arbiter, data).    |
-| STORAGE_RWX_CLASS                      | string  | no        | `""`              | This parameter specifies the name of shared storage class to store OpenSearch snapshots.    |
-| INFRA_OPENSEARCH_REPLICAS              | integer | no        | `3`               | This parameter specifies the number of OpenSearch nodes (master, arbiter, data and client). |
-| DBAAS_ENABLED                          | boolean | no        | `false`           | Whether the installation of OpenSearch DBaaS adapter is to be enabled.                      |
-| API_DBAAS_ADDRESS                      | string  | no        | `""`              | The address of DBaaS aggregator, which should register physical database, in the format `<protocol>://<aggregator>.<namespace>:<port>`.|
-| DBAAS_CLUSTER_DBA_CREDENTIALS_USERNAME | string  | no        | `""`              | The name of user for DBaaS aggregator's registration API.                                   |
-| DBAAS_CLUSTER_DBA_CREDENTIALS_PASSWORD | string  | no        | `""`              | The password of user for DBaaS aggregator's registration API.                               |
-| INFRA_OPENSEARCH_USERNAME              | string  | yes       | `""`              | The username of the OpenSearch user with `admin` privileges.                                |
-| INFRA_OPENSEARCH_PASSWORD              | string  | yes       | `""`              | The password of the OpenSearch user with `admin` privileges.                                |
-| MONITORING_ENABLED                     | boolean | no        | `true`            | Specifies whether OpenSearch Monitoring component is to be deployed or not.                 |
-| PRODUCTION_MODE                        | boolean | no        | `false`           | Whether OpenSearch client ingress is to be enabled.                                         |
-| SERVER_HOSTNAME                        | string  | no        | `""`              | This parameter specifies OpenSearch client ingress host.                                    |
-| INFRA_OPENSEARCH_FS_GROUP              | string  | no        | `""`              | This parameter specifies fs group for OpenSearch curator.                                   |
-| INFRA_RESTRICTED_ENVIRONMENT           | boolean | no        | `false`           | Specifies whether the OpenSearch service is to be deployed in restricted environment.       |
-| GATEWAY_SYSTEM_TYPE                    | string  | no        | `"legacy-ingress"`| Identifies whether to deploy HTTPRoute or Ingress resources, or both.                       |
+| Parameter                              | Type    | Mandatory | Default value      | Description                                                                                                                             |
+|----------------------------------------|---------|-----------|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| STORAGE_RWO_CLASS                      | string  | yes       | `""`               | This parameter specifies the storage class for OpenSearch nodes (master, arbiter, data).                                                |
+| STORAGE_RWX_CLASS                      | string  | no        | `""`               | This parameter specifies the name of shared storage class to store OpenSearch snapshots.                                                |
+| INFRA_OPENSEARCH_REPLICAS              | integer | no        | `3`                | This parameter specifies the number of OpenSearch nodes (master, arbiter, data and client).                                             |
+| DBAAS_ENABLED                          | boolean | no        | `false`            | Whether the installation of OpenSearch DBaaS adapter is to be enabled.                                                                  |
+| API_DBAAS_ADDRESS                      | string  | no        | `""`               | The address of DBaaS aggregator, which should register physical database, in the format `<protocol>://<aggregator>.<namespace>:<port>`. |
+| DBAAS_CLUSTER_DBA_CREDENTIALS_USERNAME | string  | no        | `""`               | The name of user for DBaaS aggregator's registration API.                                                                               |
+| DBAAS_CLUSTER_DBA_CREDENTIALS_PASSWORD | string  | no        | `""`               | The password of user for DBaaS aggregator's registration API.                                                                           |
+| INFRA_OPENSEARCH_USERNAME              | string  | yes       | `""`               | The username of the OpenSearch user with `admin` privileges.                                                                            |
+| INFRA_OPENSEARCH_PASSWORD              | string  | yes       | `""`               | The password of the OpenSearch user with `admin` privileges.                                                                            |
+| MONITORING_ENABLED                     | boolean | no        | `true`             | Specifies whether OpenSearch Monitoring component is to be deployed or not.                                                             |
+| PRODUCTION_MODE                        | boolean | no        | `false`            | Whether OpenSearch client ingress is to be enabled.                                                                                     |
+| SERVER_HOSTNAME                        | string  | no        | `""`               | This parameter specifies OpenSearch client ingress host.                                                                                |
+| INFRA_OPENSEARCH_FS_GROUP              | string  | no        | `""`               | This parameter specifies fs group for OpenSearch curator.                                                                               |
+| INFRA_RESTRICTED_ENVIRONMENT           | boolean | no        | `false`            | Specifies whether the OpenSearch service is to be deployed in restricted environment.                                                   |
+| GATEWAY_SYSTEM_TYPE                    | string  | no        | `"legacy-ingress"` | Identifies whether to deploy HTTPRoute or Ingress resources, or both.                                                                   |
 
 **Note**: The `GATEWAY_SYSTEM_TYPE` parameter is not defined in the `values.yaml` of the `opensearch-service` chart, because it is
 passed by the deployment tooling at deploy time. If it is not set, `legacy-ingress` is used by default, so only `Ingress`
@@ -1967,7 +2237,7 @@ ESCAPE_SEQUENCE: true
 
 ### DR Scheme
 
-Refer to the [OpenSearch Disaster Recovery](/docs/public/disaster-recovery.md) section in the _Cloud Platform Disaster Recovery Guide_.
+Refer to the [OpenSearch Disaster Recovery](/docs/public/disaster-recovery.md) section in the *Cloud Platform Disaster Recovery Guide*.
 
 ## Google Cloud Examples
 
@@ -2048,7 +2318,7 @@ ESCAPE_SEQUENCE: true
 
 ### DR Scheme
 
-Refer to Google Kubernetes Engine in the [OpenSearch Disaster Recovery](/docs/public/disaster-recovery.md#google-kubernetes-engine-features) section in the _Cloud Platform Disaster Recovery Guide_.
+Refer to Google Kubernetes Engine in the [OpenSearch Disaster Recovery](/docs/public/disaster-recovery.md#google-kubernetes-engine-features) section in the *Cloud Platform Disaster Recovery Guide*.
 
 ## AWS Examples
 
