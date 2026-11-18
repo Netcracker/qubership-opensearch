@@ -1,4 +1,4 @@
-{{- if and (eq (include "opensearch.enableDisasterRecovery" .) "true") (and .Values.global.disasterRecovery.httpAuth.enabled (not .Values.global.disasterRecovery.httpAuth.restrictedEnvironment)) }}
+{{- if and (eq (include "opensearch.enableDisasterRecovery" .) "true") .Values.global.disasterRecovery.httpAuth.enabled (not .Values.global.disasterRecovery.httpAuth.restrictedEnvironment) (not .Values.global.restrictedEnvironment) }}
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
