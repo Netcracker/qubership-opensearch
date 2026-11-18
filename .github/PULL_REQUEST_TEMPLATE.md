@@ -1,43 +1,46 @@
-## What type of PR is this? (check all applicable)
+## Change
 
-- [ ] Refactor
-- [ ] Feature
-- [ ] Bug Fix
-- [ ] Optimization
-- [ ] Documentation Update
+**Why:**
 
-## Description
+<!-- What problem does it solve? -->
 
-TDB
+**What:**
 
-## Related Tickets & Documents
+<!-- What does this PR change? -->
+
+**Issue / ticket:** <!-- Link, ID, or N/A -->
+
+## Self-Validation
 
 <!--
-For pull requests that relate or close an issue, please include them
-below.
+Check all applicable items.
+If an item is not applicable, leave it unchecked and explain why below.
+Applicable requirements must be satisfied before merge.
 -->
 
-- Related Issue #
-- Closes #
+- [ ] **Backward Compatibility — API** is preserved.
+- [ ] **Backward Compatibility — CRD** is preserved.
+- [ ] **Backward Compatibility — Deployment Parameters** (Helm/configurations/environments) is preserved.
+- [ ] **Upgrade** requires no client-side or existing configuration changes.
+- [ ] **Tests** for new or changed functionality are added/updated.
+- [ ] **Documentation** and **Skills** are updated.
+- [ ] **OpenSpec** is updated.
+- [ ] Implemented **OpenSpec** change is archived.
 
-## QA Instructions, Screenshots, Recordings
+**N/A reasons (if any):**
 
-_Please replace this line with instructions on how to test your changes, a note
-on the devices and browsers this has been tested on, as well as any relevant
-images for UI changes._
+<!-- List unchecked items and explain why they do not apply. -->
 
-### Breaking Change checklist
-_If your PR includes any deployment or processing changes, please utilize this checklist:_
-- [ ] Does it change any deployment parameters, logic of their working or rename them?
-- [ ] Did update from previous version tested with the same set of deployment parameters?
+## Test Plan and Verification
 
-## Added/updated tests?
+<!--
+Describe tests executed and their results.
+Required for all PRs except minor documentation or typo fixes.
+-->
 
-- [ ] Yes
-- [ ] No, and this is why: _please replace this line with details on why tests
-      have not been included_
-- [ ] I need help with writing tests
+## Points of Attention (optional)
 
-## [optional] Are there any things to highlight or double check? 
-
-## [optional] What gif best describes this PR or how it makes you feel?
+<!--
+Anything worth highlighting: risky logic, design decisions,
+known limitations, or follow-ups.
+-->
