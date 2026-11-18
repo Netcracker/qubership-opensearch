@@ -36,9 +36,7 @@ spec:
     compatibilityModeEnabled: {{ .Values.opensearch.compatibilityModeEnabled }}
     rollingUpdate: {{ .Values.opensearch.rollingUpdate }}
     readinessTimeout: {{ .Values.opensearch.readinessTimeout | default "800s" }}
-    {{- if .Values.opensearch.rollingUpdate }}
     statefulSetNames: "{{ trim (include "opensearch.statefulsetNames" .) }}"
-    {{ end }}
     masterStsName: "{{ (include "master-nodes" .) }}"
     imageVariant: "{{ include "opensearch.imageVariant" . }}"
     {{- if .Values.opensearch.snapshots.enabled }}

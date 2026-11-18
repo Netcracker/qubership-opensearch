@@ -54,6 +54,7 @@ const (
 	rollingUpdateRunningStatus      = "running"
 	flushPath                       = "_flush"
 	clusterHealthPath               = "_cluster/health"
+	clusterNodesPath                = "_cat/nodes?h=name&format=json"
 	clusterSettingsPath             = "_cluster/settings"
 	allAccess                       = "all_access"
 	claimTemplateName               = "pvc"
@@ -66,6 +67,10 @@ const (
 
 type OpenSearchHealth struct {
 	Status string `json:"status"`
+}
+
+type OpenSearchNode struct {
+	Name string `json:"name"`
 }
 
 type FlushResult struct {
@@ -203,6 +208,11 @@ func (r OpenSearchReconciler) getStatefulSets() ([]*v1.StatefulSet, error) {
 func (r OpenSearchReconciler) isOpenSearchHealthy(restClient *util.RestClient) (bool, error) {
 	r.logger.Info("Check OpenSearch health...")
 
+	joined, err := r.areAllOpenSearchNodesJoined(restClient)
+	if err != nil || !joined {
+		return false, err
+	}
+
 	responseBody, err := restClient.SendRequestWithStatusCodeCheck(http.MethodGet, clusterHealthPath, nil)
 	if err != nil {
 		r.logger.Error(err, "Error while getting OpenSearch health status")
@@ -220,6 +230,53 @@ func (r OpenSearchReconciler) isOpenSearchHealthy(restClient *util.RestClient) (
 	return health.Status == "green", nil
 }
 
+// areAllOpenSearchNodesJoined reports whether every OpenSearch stateful set pod has joined the cluster.
+func (r OpenSearchReconciler) areAllOpenSearchNodesJoined(restClient *util.RestClient) (bool, error) {
+	expected, err := r.getOpenSearchNodes()
+	if err != nil {
+		return false, err
+	}
+	responseBody, err := restClient.SendRequestWithStatusCodeCheck(http.MethodGet, clusterNodesPath, nil)
+	if err != nil {
+		return false, err
+	}
+	var nodes []OpenSearchNode
+	if err = json.Unmarshal(responseBody, &nodes); err != nil {
+		return false, err
+	}
+	joined := make([]string, 0, len(nodes))
+	for _, node := range nodes {
+		joined = append(joined, node.Name)
+	}
+	if missing := util.Difference(expected, joined); len(missing) > 0 {
+		r.logger.Info(fmt.Sprintf("OpenSearch nodes have not joined the cluster yet: %v", missing))
+		return false, nil
+	}
+	return true, nil
+}
+
+// getOpenSearchNodes returns pod names of all OpenSearch stateful sets; pod name is used as node name.
+func (r OpenSearchReconciler) getOpenSearchNodes() ([]string, error) {
+	var names []string
+	stsNames := r.cr.Spec.OpenSearch.StatefulSetNames
+	if stsNames == "" {
+		stsNames = r.cr.Spec.OpenSearch.MasterStsName
+	}
+	if stsNames == "" {
+		return names, nil
+	}
+	for _, stsName := range strings.Split(stsNames, ",") {
+		sts, err := r.reconciler.findStatefulSet(stsName, r.cr.Namespace, r.logger)
+		if err != nil {
+			return nil, err
+		}
+		for i := int32(0); i < *sts.Spec.Replicas; i++ {
+			names = append(names, fmt.Sprintf("%s-%d", stsName, i))
+		}
+	}
+	return names, nil
+}
+
 func (r OpenSearchReconciler) checkOpenSearchHealth(restClient *util.RestClient) error {
 	r.logger.Info("Checking OpenSearch Health with retries...")
 
@@ -235,7 +292,7 @@ func (r OpenSearchReconciler) checkOpenSearchHealth(restClient *util.RestClient)
 		return false, nil
 	})
 	if err != nil {
-		r.logger.Info(fmt.Sprintf("OpenSearch is not healthy. The last error: %o", lastError))
+		r.logger.Info(fmt.Sprintf("OpenSearch is not healthy. The last error: %v", lastError))
 		return err
 	}
 
