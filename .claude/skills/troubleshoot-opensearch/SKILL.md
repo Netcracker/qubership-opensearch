@@ -1,6 +1,6 @@
 ---
 name: troubleshoot-opensearch
-description: Diagnose and resolve OpenSearch failures in clusters managed by the `opensearch-service` operator (`operator/charts/helm/opensearch-service` chart). Use when a cluster is degraded or down, pods are OOMKilled, in CrashLoopBackOff or not ready, indices are read-only or the disk is full, shards are unassigned or corrupted, requests fail with CircuitBreakingException, 401/403 or TLS errors, master election or cross-cluster replication fails, a backup or migration fails, or the ticket touches master/data/arbiter/client roles, JVM heap, index buffers, thread pools, or any `opensearch.yml` setting.
+description: Diagnose and resolve OpenSearch failures in clusters managed by the `opensearch-service` operator. Use when a cluster is degraded or down, pods are OOMKilled, in CrashLoopBackOff or not ready, indices are read-only or the disk is full, shards are unassigned or corrupted, requests fail with CircuitBreakingException, 401/403 or TLS errors, master election or cross-cluster replication fails, a backup or migration fails, or the issue touches master/data/arbiter/client roles, JVM heap, index buffers, thread pools, or any `opensearch.yml` setting.
 ---
 
 # Troubleshoot OpenSearch
@@ -18,6 +18,9 @@ Use this skill when investigating issues related to:
 - **OpenSearch Curator** (snapshot backup/restore, indices cleaner)
 - **Disaster recovery** (cross-cluster replication, switchover, standby health)
 - **Upgrades** (indices migration, pre-deploy migration hooks, shard limits)
+- **Log analysis** — `grep` of attached OpenSearch pod, operator, and
+    pre-upgrade Job logs against the documented error signatures
+    (`Log Analysis Tips`).
 
 Failure-mode facts and resolution steps live in `references/`; this file provides routing and deployment-configuration guardrails. Use only the bundled references.
 
@@ -206,7 +209,12 @@ If no row matches (for example, `Pending` or `Evicted`), say the reference does 
 
 ## Log Analysis Tips
 
-Use `<fullname>` from the release (default `opensearch`). Run read-only commands only.
+- If logs are attached, analyze them first: search them for the signatures below and the `Signal` column of the failure table. Do not ask for logs that were already provided.
+- If no logs are attached, ask the user to run the matching commands below and share the output. Request only the logs needed for the suspected symptom.
+- Replace `<namespace>`, `<opensearch-pod>`, and `<fullname>` (the release full name, default `opensearch`) with values from the ticket or the user.
+- For restarted or `CrashLoopBackOff` pods, also request `kubectl logs --previous`; the current container may not contain the failure.
+- Quote the matched log lines, with timestamps and pod names, as evidence in the assessment. If no signature matches, say so; do not treat missing matches as proof that a failure did not happen.
+- Run or suggest read-only commands only. The commands in this section do not change cluster state.
 
 ### Operator logs
 
