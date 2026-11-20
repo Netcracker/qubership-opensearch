@@ -66,7 +66,14 @@ const (
 )
 
 type OpenSearchHealth struct {
-	Status string `json:"status"`
+	Status             string `json:"status"`
+	Nodes              int    `json:"number_of_nodes"`
+	DataNodes          int    `json:"number_of_data_nodes"`
+	Master             bool   `json:"discovered_master"`
+	Manager            bool   `json:"discovered_cluster_manager"`
+	RelocatingShards   int    `json:"relocating_shards"`
+	InitializingShards int    `json:"initializing_shards"`
+	UnassignedShards   int    `json:"unassigned_shards"`
 }
 
 type OpenSearchNode struct {
@@ -221,7 +228,7 @@ func (r OpenSearchReconciler) isOpenSearchHealthy(restClient *util.RestClient) (
 		return false, err
 	}
 
-	r.logger.Info(fmt.Sprintf("OpenSearch status: %s", health.Status))
+	r.logger.Info(fmt.Sprintf("OpenSearch status: %+v", health))
 	if health.Status != "green" {
 		return false, nil
 	}
@@ -231,6 +238,7 @@ func (r OpenSearchReconciler) isOpenSearchHealthy(restClient *util.RestClient) (
 // areAllOpenSearchNodesJoined reports whether every OpenSearch stateful set pod has joined the cluster.
 func (r OpenSearchReconciler) areAllOpenSearchNodesJoined(restClient *util.RestClient) (bool, error) {
 	expected, err := r.getOpenSearchNodes()
+	r.logger.Info(fmt.Sprintf("Expected OpenSearch nodes: %+v", expected))
 	if err != nil {
 		return false, err
 	}
@@ -242,6 +250,7 @@ func (r OpenSearchReconciler) areAllOpenSearchNodesJoined(restClient *util.RestC
 	if err = json.Unmarshal(responseBody, &nodes); err != nil {
 		return false, err
 	}
+	r.logger.Info(fmt.Sprintf("Actual OpenSearch nodes: %+v", nodes))
 	joined := make([]string, 0, len(nodes))
 	for _, node := range nodes {
 		joined = append(joined, node.Name)
