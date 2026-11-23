@@ -81,9 +81,6 @@ spec:
   {{- if (eq (include "monitoring.enabled" .) "true") }}
   monitoring:
     name: {{ template "opensearch.fullname" . }}-monitoring
-    {{- if eq .Values.monitoring.monitoringType "influxdb" }}
-    secretName: {{ template "opensearch.fullname" . }}-monitoring-secret
-    {{- end }}
     {{- if and (not .Values.global.externalOpensearch.enabled) .Values.monitoring.slowQueries.enabled }}
     slowQueries:
       indicesPattern: "{{ .Values.monitoring.slowQueries.indicesPattern | default "*" }}"

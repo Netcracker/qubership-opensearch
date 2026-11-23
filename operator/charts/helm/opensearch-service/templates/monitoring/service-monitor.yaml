@@ -1,4 +1,4 @@
-{{- if (and (eq (include "monitoring.enabled" .) "true") (ne .Values.monitoring.monitoringType "influxdb")) }}
+{{- if (eq (include "monitoring.enabled" .) "true") }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
