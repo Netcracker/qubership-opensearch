@@ -41,6 +41,15 @@ func FilterSlice(slice []string, f func(string) bool) []string {
 	return filtered
 }
 
+// Difference returns elements of first slice that are absent in second slice.
+func Difference(first, second []string) []string {
+	present := make(map[string]bool, len(second))
+	for _, v := range second {
+		present[v] = true
+	}
+	return FilterSlice(first, func(v string) bool { return !present[v] })
+}
+
 func ArrayContains(slice []int32, searchElement int32) bool {
 	for _, element := range slice {
 		if element == searchElement {
