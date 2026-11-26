@@ -15,7 +15,9 @@ Monorepo. `go.mod` files live under `operator/`, `dbaas-adapter/` and
 - `/operator` — Kubebuilder v3 operator (`projectName: opensearch-service`,
   domain `netcracker.com`). Single binary that reconciles one
   `OpenSearchService` CR (`netcracker.com/v1`) per namespace
-  (`WATCH_NAMESPACE`).
+  (`WATCH_NAMESPACE`). OpenSearch workloads (StatefulSets, Deployments) are
+  rendered by the Helm chart; the operator manages configuration,
+  credentials, DR and replication on top of them.
 - `/operator/charts/helm/opensearch-service` — The only Helm chart. Installs
   the operator, an `OpenSearchService` CR, the OpenSearch cluster
   (master/data/arbiter/client roles), and optional components (dashboards,
@@ -33,21 +35,26 @@ Monorepo. `go.mod` files live under `operator/`, `dbaas-adapter/` and
   (`exec-scripts/*_metric.py`, unit tests alongside as `test_*.py`); Grafana
   dashboards and Prometheus alert rules are shipped in the chart under
   `operator/charts/helm/opensearch-service/monitoring`.
-- `/docker-opensearch` — Custom OpenSearch images with security plugin,
-  health checks and Prometheus exporter. Subdirs `2x/` and `3x/` build
+- `/docker-opensearch` — Custom OpenSearch images on top of
+  `opensearchproject/opensearch`: extra plugins (repository-s3/gcs,
+  analysis-icu/kuromoji) and helper scripts (health checks,
+  reconfiguration, shard relocation). Subdirs `2x/` and `3x/` build
   OpenSearch 2.x and 3.x.
 - `/docker-opensearch-dashboard` — OpenSearch Dashboards images (`2x/`,
-  `3x/`).
+  `3x/`). In both image folders a change usually has to be applied to
+  `2x/` and `3x/`.
 - `/tls-init` — Job image that generates TLS certificates.
 - `/docker-transfer` — `FROM scratch` image used to ship charts and docs.
 - `/integration-tests` — Robot Framework suites at `robot/tests/opensearch/`.
 - `/demo` — Legacy Docker Compose stacks (curator demo, monitoring demo).
   Not usable for running the integration tests.
-- `/openspec` — OpenSpec change proposals and specs.
+- `/openspec` — OpenSpec change proposals (`changes/`).
 - `/agent-packages`, `apm.yml` — APM packages for AI agents (the
   `troubleshoot-opensearch` skill).
 - `/docs/public` — User-facing documentation (architecture, installation,
   troubleshooting, security, TLS, disaster recovery, etc.).
+- `/docs/internal` — Developer documentation (`developing.md`,
+  `operator-guide.md`, `argocd.md`).
 - `/operator/Makefile` — Drives operator codegen and tests (`make generate`,
   `make manifests`, `make unit-test`).
 
@@ -93,14 +100,17 @@ All changes MUST be backward compatible.
   values files.
 - Document every new parameter in `docs/public/installation.md` and keep
   `values.schema.json` in sync (`operator/dev-kit/make_json_schema.sh`).
-- Reuse shared templates in `templates/_helpers.tpl` for labels,
-  annotations, images and security contexts.
-- Every change must be tested with `helm template`.
+- Reuse shared templates in `templates/_helpers.tpl` for labels, images
+  and security contexts.
+- Every change must be tested with `helm template` (e.g. with the chart's
+  `example.yaml` or `external.yaml` values files).
 
 ## Dev-Kit (Operator Code Generation)
 
 Use the dev-kit when `operator-sdk` is not installed locally. It runs
-`operator-sdk:v1.42` in Docker with the project mounted.
+`operator-sdk:v1.42` in Docker with `operator/` mounted as the working
+directory (`/opensearch-service-operator`). `terminal.sh` uses `winpty`
+(Git Bash on Windows).
 
 ```sh
 cd operator/dev-kit
@@ -114,14 +124,20 @@ make unit-test       # Run operator unit tests (go test -tags unit)
 
 Robot Framework suites at `integration-tests/robot/tests/opensearch/`
 (`smoke`, `authentication`, `backup`, `dbaas`, `ha`, `prometheus`,
-`image_tests`). They run against a deployed OpenSearch in Kubernetes: the
-chart deploys them as a pod (`templates/integration-tests`), and CI runs
-them via `.github/workflows/run_tests.yaml` (Netcracker/qubership-test-pipelines).
+`image_tests`, tagged `opensearch_images`). They run against a deployed
+OpenSearch in Kubernetes: the chart deploys them as a pod
+(`templates/integration-tests`) that runs the tags from the
+`integrationTests.tags` value (default `smoke`), and CI runs them via
+`.github/workflows/run_tests.yaml` (Netcracker/qubership-test-pipelines).
 
 ### Mandatory – every change must be tested
 
 - Any change in docker folders where Dockerfiles are placed must be tested
-  with Docker build.
+  with Docker build. Use the build context from
+  `.qubership/docker-build-config.cfg`: the curator image is built from the
+  repository root (`indices_migration_tool` references `dbaas-adapter`
+  via a `replace` directive), the other images from their own top-level
+  folder.
 - Any code change must be covered with unit tests (`go test` for
   `operator` and `dbaas-adapter`, Python `unittest` for `curator` and
   `monitoring/exec-scripts`).
@@ -132,12 +148,20 @@ them via `.github/workflows/run_tests.yaml` (Netcracker/qubership-test-pipelines
   `dbaas` tagged suites.
 
 ```sh
-cd operator && make unit-test
+cd operator && make unit-test          # tests need -tags unit; plain go test ./... runs none
 cd dbaas-adapter && go test ./...
 cd monitoring/exec-scripts && python -m unittest discover -p "test_*.py"
 cd curator/docker/backup-docker/scripts && python -m unittest curator_tests
-robot -i smokeORbackupORdbaas ./tests   # inside the integration-tests pod
+cd curator/opensearch_indices_cleaner/scripts && python -m unittest indices_cleaner_tests
+robot -i smokeORbackupORdbaas ./tests   # inside the integration-tests pod, from ${ROBOT_HOME}
 ```
 
-See [integration-tests/README.md](integration-tests/README.md) for the
-full environment reference (environment variables, tags, deployment).
+Go unit tests also run during `docker build` of the operator and
+dbaas-adapter images, so they are checked in CI. Python unit tests are not
+run in CI — run them locally (dependencies: `monitoring/docker/config/requirements.txt`,
+`curator/opensearch_indices_cleaner/docker/requirements.txt`, and the pip
+packages pinned in `curator/docker/backup-docker/Dockerfile`).
+
+See the "Integration Tests" section of
+[docs/public/installation.md](docs/public/installation.md#integration-tests)
+for parameters, tags and deployment.
