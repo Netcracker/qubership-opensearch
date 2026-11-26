@@ -1,8 +1,9 @@
-{{- if .Values.opensearch.client.envoyGateway.enabled }}
-{{- if and .Values.opensearch.client.enabled (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1") (eq .Values.PAAS_PLATFORM "KUBERNETES") -}}
+{{- if and (not .Values.global.externalOpensearch.enabled) .Values.opensearch.client.enabled }}
+{{- if or .Values.opensearch.client.envoyGateway.enabled .Values.opensearch.client.ingress.enabled }}
+{{ if  and (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1") (eq .Values.PAAS_PLATFORM "KUBERNETES") -}}
 {{- if contains "gateway-api-default" (include "gateway.type" .) }}
-{{- if not .Values.global.externalOpensearch.enabled }}
 {{- $fullName := printf "%s" (include "opensearch.fullname" .) }}
+{{- $ingressHosts := include "opensearch.ingressHost" . | fromYamlArray }}
 
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -21,7 +22,7 @@ spec:
   {{- if .Values.opensearch.client.envoyGateway.host }}
     - {{ .Values.opensearch.client.envoyGateway.host | quote }}
   {{- else }}
-  {{- range .Values.opensearch.client.ingress.hosts }}
+  {{- range $ingressHosts }}
     - {{ . | quote }}
   {{- end }}
   {{- end }}
@@ -56,8 +57,8 @@ spec:
   validation:
     {{- if .Values.opensearch.client.envoyGateway.host }}
     hostname: {{ .Values.opensearch.client.envoyGateway.host | quote }}
-    {{- else if .Values.opensearch.client.ingress.hosts }}
-    {{- $first := index .Values.opensearch.client.ingress.hosts 0 }}
+    {{- else if $ingressHosts }}
+    {{- $first := index $ingressHosts 0 }}
     hostname: {{ $first | quote }}
     {{- end }}
 
