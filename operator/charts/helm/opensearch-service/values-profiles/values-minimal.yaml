@@ -1,0 +1,14 @@
+opensearch:
+  securityConfig:
+    authc:
+      basic:
+        username: admin
+        password: admin
+podScheduler:
+  enabled: false
+statusProvisioner:
+  enabled: false
+resourceMigration:
+  enabled: false
+groupMigration:
+  enabled: false

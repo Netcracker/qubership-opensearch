@@ -1,0 +1,66 @@
+DEPLOY_W_HELM: true
+DBAAS_ENABLED: true
+DBAAS_CLUSTER_DBA_CREDENTIALS_USERNAME: username
+DBAAS_CLUSTER_DBA_CREDENTIALS_PASSWORD: password
+API_DBAAS_ADDRESS: http://dbaas-aggregator.dbaas-infra:8080
+monitoring:
+  enabled: true
+opensearch:
+  tls:
+    enabled: false
+  securityConfig:
+    authc:
+      basic:
+        username: admin
+        password: admin
+  fixMount:
+    enabled: true
+    securityContext:
+      runAsUser: 1000
+  securityContextCustom:
+    fsGroup: 1000
+  master:
+    replicas: 3
+    javaOpts: "-Xms718m -Xmx718m"
+    resources:
+      requests:
+        memory: 1536Mi
+        cpu: 200m
+      limits:
+        memory: 1536Mi
+        cpu: 800m
+    persistence:
+      size: 2Gi
+      storageClass: default
+  client:
+    ingress:
+      enabled: true
+      hosts:
+        - opensearch.example.com
+dbaasAdapter:
+  enabled: true
+  dbaasUsername: dbaas-aggregator
+  dbaasPassword: dbaas-aggregator
+  dbaasAggregatorRegistrationAddress: http://dbaas-aggregator.dbaas-infra:8080
+  dbaasAdapterAddress: http://dbaas-opensearch-adapter.opensearch-ci:8080
+  dbaasAggregatorPhysicalDatabaseIdentifier: opensearch-ci
+  elasticsearchInstallationMode: joint
+  elasticsearchRepo: snapshots
+  elasticsearchRepoRoot: /usr/share/elasticsearch/snapshots
+  elasticsearchHost: elasticsearch
+  elasticsearchPort: "9200"
+  elasticsearchNodesCount: 3
+  registrationAuthUsername: username
+  registrationAuthPassword: password
+  elasticsearchUsername: admin
+  elasticsearchPassword: admin
+  requests:
+    memory: 32Mi
+    cpu: 200m
+  limits:
+    memory: 32Mi
+    cpu: 200m
+statusProvisioner:
+  enabled: true
+  lifetimeAfterCompletion: 1000
+
