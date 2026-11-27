@@ -1,0 +1,66 @@
+---
+name: "Pre-check: Helm Template"
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches: ["**"]
+    paths:
+      - "operator/charts/**"
+      - ".github/workflows/helm-template-checker.yaml"
+
+env:
+  CHART_DIR: operator/charts/helm/opensearch-service
+
+jobs:
+  discover-profiles:
+    name: Discover values profiles
+    runs-on: ubuntu-latest
+    outputs:
+      profiles: ${{ steps.list.outputs.profiles }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: List values profiles
+        id: list
+        run: |
+          # Every *.yaml / *.yml file in values-profiles/ is a profile.
+          profiles=$(find "${CHART_DIR}/values-profiles" -maxdepth 1 -type f \
+              \( -name '*.yaml' -o -name '*.yml' \) -printf '%f\n' \
+            | sort \
+            | jq -R -s -c 'split("\n") | map(select(length > 0))')
+
+          echo "Found profiles: ${profiles}"
+          echo "profiles=${profiles}" >> "${GITHUB_OUTPUT}"
+
+  helm-template:
+    name: Helm Template (${{ matrix.profile }})
+    needs: discover-profiles
+    # An empty matrix is an error in GitHub Actions, so skip when there are no profiles.
+    if: needs.discover-profiles.outputs.profiles != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      # Render every profile even if one fails, so all failures are visible.
+      # Any failed profile still fails the pipeline.
+      fail-fast: false
+      matrix:
+        profile: ${{ fromJSON(needs.discover-profiles.outputs.profiles) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Run helm template
+        env:
+          PROFILE: ${{ matrix.profile }}
+        run: |
+          helm template opensearch "${CHART_DIR}" \
+            -f "${CHART_DIR}/values-profiles/${PROFILE}" \
+            --api-versions gateway.networking.k8s.io/v1 \
+            > /dev/null
