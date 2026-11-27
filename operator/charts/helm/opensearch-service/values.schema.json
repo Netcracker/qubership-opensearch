@@ -232,7 +232,7 @@
                     "properties": {
                         "enabled": {
                             "type": "boolean",
-                            "default": false,
+                            "default": true,
                             "$id": "#/properties/dashboards/properties/envoyGateway/properties/enabled",
                             "title": "The dashboards.envoyGateway.enabled schema",
                             "description": "Enables creation of a Gateway API HTTPRoute resource to expose OpenSearch Dashboards through Envoy Gateway"
