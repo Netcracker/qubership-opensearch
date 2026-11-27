@@ -1,0 +1,171 @@
+global:
+  psp:
+    create: true
+  tls:
+    enabled: true
+    generateCerts:
+      enabled: true
+      certProvider: cert-manager
+  disasterRecovery:
+    mode: active
+    siteManagerEnabled: true
+    remoteCluster: opensearch.opensearch-remote.svc.cluster.local:9300
+    httpAuth:
+      enabled: true
+    tls:
+      enabled: true
+    serviceExport:
+      enabled: true
+      region: region-1
+dashboards:
+  enabled: true
+  ingress:
+    enabled: true
+    hosts:
+      - host: dashboards.example.com
+        paths:
+          - path: /
+  envoyGateway:
+    enabled: true
+opensearch:
+  rollingUpdate: true
+  securityConfig:
+    authc:
+      basic:
+        username: admin
+        password: admin
+      oidc:
+        openid_connect_url: https://idp.example.com/.well-known/openid-configuration
+    config:
+      securityConfigSecret: opensearch-security-config
+      data:
+        tenants.yml: |
+          _meta:
+            type: "tenants"
+            config_version: 2
+    ldap:
+      enabled: true
+      host: ldap.example.com:389
+      managerDn: cn=admin,dc=example,dc=com
+      managerPassword: example-password
+      trustedCerts:
+        ldap-ca.pem: ZmFrZS1jYQ==
+      search:
+        base: dc=example,dc=com
+        filter: (uid={0})
+      rolemappings:
+        - role_name: all_access
+          backend_roles:
+            - admins
+  master:
+    replicas: 3
+    persistence:
+      persistentVolumes:
+        - pv-opensearch-master-1
+        - pv-opensearch-master-2
+        - pv-opensearch-master-3
+      nodes:
+        - node-1
+        - node-2
+        - node-3
+    podDisruptionBudget:
+      enabled: true
+  arbiter:
+    enabled: true
+    replicas: 1
+    persistence:
+      persistentVolumes:
+        - pv-opensearch-arbiter-1
+      nodes:
+        - node-4
+  data:
+    dedicatedPod:
+      enabled: true
+    replicas: 3
+    persistence:
+      persistentVolumes:
+        - pv-opensearch-data-1
+        - pv-opensearch-data-2
+        - pv-opensearch-data-3
+      nodes:
+        - node-5
+        - node-6
+        - node-7
+    podDisruptionBudget:
+      enabled: true
+  client:
+    dedicatedPod:
+      enabled: true
+    ingress:
+      enabled: true
+      hosts:
+        - opensearch.example.com
+    envoyGateway:
+      enabled: true
+    podDisruptionBudget:
+      enabled: true
+  snapshots:
+    enabled: true
+    s3:
+      enabled: true
+      url: https://s3.example.com
+      bucket: opensearch-backups
+      keyId: example-key-id
+      keySecret: example-key-secret
+      sslSecretName: opensearch-s3-tls
+      sslCert: ZmFrZS1zMy1jYQ==
+    s3Aliases:
+      - name: secondary
+        spec:
+          default: true
+          storageProvider: aws
+          storageServerUrl: https://s3-secondary.example.com
+          storageBucket: opensearch-backups-secondary
+          storageRegion: region-1
+          storageUsername: example-key-id
+        secretContent:
+          storagePassword: example-key-secret
+monitoring:
+  enabled: true
+  includeIndices: true
+  slowQueries:
+    enabled: true
+  thresholds:
+    lagAlert: 1000
+dbaasAdapter:
+  enabled: true
+  dbaasAggregatorRegistrationAddress: https://dbaas-aggregator.dbaas:8443
+  dbaasUsername: dbaas-adapter
+  dbaasPassword: example-password
+  registrationAuthUsername: aggregator
+  registrationAuthPassword: example-password
+curator:
+  enabled: true
+  username: curator
+  password: example-password
+  storage:
+    storageClass: standard
+  indicesCleanerConfiguration:
+    - name: example
+      filter_kind: prefix
+      filter_value: example
+      filter_direction: older
+      filter_unit: days
+      filter_unit_count: 1
+podScheduler:
+  enabled: true
+integrationTests:
+  enabled: true
+  atpReport:
+    enabled: true
+statusProvisioner:
+  enabled: true
+  cleanupEnabled: true
+resourceMigration:
+  enabled: true
+groupMigration:
+  enabled: true
+API_DBAAS_ADDRESS: http://dbaas-aggregator.dbaas:8080
+GATEWAY_SYSTEM_TYPE: legacy-ingress,gateway-api-default
+PAAS_PLATFORM: KUBERNETES
+ENABLE_PRIVILEGED_PSS: true
