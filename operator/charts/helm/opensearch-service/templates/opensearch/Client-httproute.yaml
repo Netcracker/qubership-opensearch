@@ -1,5 +1,5 @@
 {{- if and (not .Values.global.externalOpensearch.enabled) .Values.opensearch.client.enabled }}
-{{- if or .Values.opensearch.client.envoyGateway.enabled .Values.opensearch.client.ingress.enabled }}
+{{- if .Values.opensearch.client.envoyGateway.enabled }}
 {{ if  and (.Capabilities.APIVersions.Has "gateway.networking.k8s.io/v1") (eq .Values.PAAS_PLATFORM "KUBERNETES") -}}
 {{- if contains "gateway-api-default" (include "gateway.type" .) }}
 {{- $fullName := printf "%s" (include "opensearch.fullname" .) }}
