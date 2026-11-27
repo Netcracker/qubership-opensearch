@@ -20,11 +20,9 @@ spec:
     - name: opensearch-monitoring-udp
       port: 8092
       protocol: UDP
-    {{- if (ne .Values.monitoring.monitoringType "influxdb") }}
     - name: prometheus-cli
       port: 8096
       protocol: TCP
-    {{- end }}
   selector:
     name: {{ template "opensearch.fullname" . }}-monitoring
     component: opensearch-monitoring

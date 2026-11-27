@@ -196,7 +196,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "exemplar": true,
           "expr": "max(opensearch_cluster_health_status_code{namespace=\"$namespace\",cluster=\"$cluster\",status=\"\"})",
           "groupBy": [
@@ -392,7 +392,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "min(opensearch_cluster_health_number_of_nodes{namespace=\"$namespace\",cluster=\"$cluster\"})",
           "groupBy": [
             {
@@ -446,7 +446,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "scalar(opensearch_cluster_health_total_number_of_nodes{cluster=\"$cluster\",namespace=\"$namespace\"}) - min(opensearch_cluster_health_number_of_nodes{namespace=\"$namespace\",cluster=\"$cluster\"})",
           "groupBy": [
             {
@@ -1121,7 +1121,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "opensearch_cluster_health_active_primary_shards{cluster=\"$cluster\",namespace=\"$namespace\"}",
           "groupBy": [
             {
@@ -1245,7 +1245,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "opensearch_cluster_health_active_shards{cluster=\"$cluster\",namespace=\"$namespace\"}",
           "groupBy": [
             {
@@ -1368,7 +1368,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "opensearch_cluster_health_initializing_shards{cluster=\"$cluster\",namespace=\"$namespace\"}",
           "groupBy": [
             {
@@ -1491,7 +1491,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "opensearch_cluster_health_relocating_shards{cluster=\"$cluster\",namespace=\"$namespace\"}",
           "groupBy": [
             {
@@ -1614,7 +1614,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "max(opensearch_cluster_health_unassigned_shards{cluster=\"$cluster\",namespace=\"$namespace\"})",
           "groupBy": [
             {
@@ -2013,7 +2013,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "max(opensearch_transport_server_open{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -2157,7 +2157,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "max(opensearch_http_current_open{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -2317,7 +2317,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(irate(opensearch_transport_rx_size_in_bytes{namespace=\"$namespace\",node_name=~\"^$node_name*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
           "groupBy": [
             {
@@ -2374,7 +2374,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "exemplar": true,
           "expr": "sum(irate(opensearch_transport_tx_size_in_bytes{namespace=\"$namespace\",node_name=~\"^$node_name*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
           "groupBy": [
@@ -2571,7 +2571,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_jvm_mem_heap_used_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -2737,7 +2737,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_jvm_mem_heap_used_percent{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -2903,7 +2903,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_jvm_mem_non_heap_used_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -3047,7 +3047,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(irate(opensearch_jvm_gc_collectors_old_collection_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}[$__interval])) by (node_name)",
           "groupBy": [
             {
@@ -3260,7 +3260,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(container_memory_usage_bytes{namespace=\"$namespace\",pod=~\"$node_name\",container!=\"\",image!=\"\",cluster=\"$cluster\"}) by (pod)",
           "groupBy": [
             {
@@ -3315,7 +3315,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(kube_pod_container_resource_limits_memory_bytes{exported_namespace=\"$namespace\",exported_pod=~\"$node_name\",cluster=\"$cluster\"}) by (exported_pod)",
           "groupBy": [
             {
@@ -3694,7 +3694,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "100 * (((sum(opensearch_fs_total_total_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)) - (sum(opensearch_fs_total_free_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name))) / sum(opensearch_fs_total_total_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)) ",
           "groupBy": [
             {
@@ -3863,7 +3863,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_fs_total_total_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -3919,7 +3919,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "exemplar": true,
           "expr": "sum(opensearch_fs_total_total_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name) - sum(opensearch_fs_total_available_in_bytes{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
@@ -4066,7 +4066,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(irate(opensearch_fs_io_stats_total_write_operations{namespace=\"$namespace\",node_name=~\"^$node_name*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
           "groupBy": [
             {
@@ -4231,7 +4231,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(irate(opensearch_fs_io_stats_total_read_kilobytes{namespace=\"$namespace\",node_name=~\"^$node_name*\",cluster=\"$cluster\"}[$__interval])) by (node_name, node_host)",
           "groupBy": [
             {
@@ -4530,7 +4530,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_os_cpu_load_average_5m{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name, node_host)",
           "groupBy": [
             {
@@ -4676,7 +4676,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_process_cpu_percent{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name, node_host)",
           "groupBy": [
             {
@@ -4846,7 +4846,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "(sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$node_name\",container!=\"\",image!=\"\",cluster=\"$cluster\"}[5m])) by (pod)) * 1000",
           "groupBy": [
             {
@@ -4901,7 +4901,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "(sum(kube_pod_container_resource_limits_cpu_cores{exported_namespace=\"$namespace\",exported_pod=~\"$node_name\",cluster=\"$cluster\"}) by (exported_pod)) * 1000",
           "groupBy": [
             {
@@ -5070,7 +5070,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_indices_flush_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "interval": "",
           "legendFormat": "{{node_name}}:flush",
@@ -5846,7 +5846,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_indices_merges_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -6805,7 +6805,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_indices_docs_count{node_name=~\"^$node_name$\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -6950,7 +6950,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_indices_store_size_in_bytes{node_name=~\"^$node_name$\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -7229,7 +7229,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_indices_indexing_index_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name) / sum(opensearch_indices_indexing_index_total{node_name=~\"^$node_name*\",namespace=\"$namespace\"}) by (node_name)",
           "groupBy": [
             {
@@ -7285,7 +7285,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_indices_flush_total_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name) / sum(opensearch_indices_flush_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -7340,7 +7340,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_indices_get_exists_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name) / sum(opensearch_indices_get_exists_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -7394,7 +7394,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_indices_search_query_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name) / sum(opensearch_indices_search_query_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -7448,7 +7448,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_indices_search_fetch_time_in_millis{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name) / sum(opensearch_indices_search_fetch_total{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -7591,7 +7591,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "max(opensearch_thread_pool_write_rejected{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -7793,7 +7793,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "max(opensearch_thread_pool_write_queue{node_name=~\"^$node_name*\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (node_name)",
           "groupBy": [
             {
@@ -9286,7 +9286,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_fs_total_total_in_bytes{namespace=\"$namespace\",cluster=\"$cluster\"})",
           "groupBy": [
             {
@@ -9342,7 +9342,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_fs_total_total_in_bytes{namespace=\"$namespace\",cluster=\"$cluster\"}) - sum(opensearch_fs_total_free_in_bytes{namespace=\"$namespace\",cluster=\"$cluster\"})",
           "groupBy": [
             {
@@ -9487,7 +9487,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "sum(opensearch_backups_metric_last_backup_time_spent{namespace=\"$namespace\",cluster=\"$cluster\"})",
           "groupBy": [
             {
@@ -9952,7 +9952,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "opensearch_dbaas_health_status{namespace=\"$namespace\",cluster=\"$cluster\"}",
           "groupBy": [
             {
@@ -10110,7 +10110,7 @@
             "9": "c",
             "10": "e"
           },
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "expr": "opensearch_dbaas_health_elastic_cluster_status{namespace=\"$namespace\",cluster=\"$cluster\"}",
           "groupBy": [
             {

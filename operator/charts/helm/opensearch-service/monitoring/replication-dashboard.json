@@ -152,7 +152,7 @@
       "targets": [
         {
           "datasource": "$datasource",
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "editorMode": "code",
           "exemplar": true,
           "expr": "max(opensearch_replication_metric_status{namespace=\"$namespace\",cluster=\"$cluster\"})",
@@ -265,7 +265,7 @@
       "targets": [
         {
           "datasource": "$datasource",
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "editorMode": "code",
           "expr": "opensearch_replication_metric_syncing_indices{cluster=\"$cluster\",namespace=\"$namespace\"}",
           "groupBy": [
@@ -377,7 +377,7 @@
       "targets": [
         {
           "datasource": "$datasource",
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "editorMode": "code",
           "expr": "opensearch_replication_metric_bootstrapping_indices{cluster=\"$cluster\",namespace=\"$namespace\"}",
           "groupBy": [
@@ -489,7 +489,7 @@
       "targets": [
         {
           "datasource": "$datasource",
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "editorMode": "code",
           "expr": "opensearch_replication_metric_paused_indices{cluster=\"$cluster\",namespace=\"$namespace\"}",
           "groupBy": [
@@ -601,7 +601,7 @@
       "targets": [
         {
           "datasource": "$datasource",
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "editorMode": "code",
           "expr": "opensearch_replication_metric_failed_indices{cluster=\"$cluster\",namespace=\"$namespace\"}",
           "groupBy": [
@@ -853,7 +853,7 @@
         {
           "alias": "UP",
           "datasource": "$datasource",
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "editorMode": "code",
           "exemplar": false,
           "expr": "opensearch_replication_metric_index_status{namespace=\"$namespace\",cluster=\"$cluster\", index=~\"$index\"}",
@@ -1124,7 +1124,7 @@
         {
           "alias": "$tag_node_name",
           "datasource": "$datasource",
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "editorMode": "code",
           "expr": "max(opensearch_replication_metric_index_lag{index=~\"$index\",namespace=\"$namespace\",cluster=\"$cluster\"}) by (index)",
           "groupBy": [
@@ -1258,7 +1258,7 @@
         {
           "alias": "$tag_node_name.$col",
           "datasource": "$datasource",
-          "dsType": "influxdb",
+          "dsType": "prometheus",
           "editorMode": "code",
           "expr": "max(abs(rate(opensearch_replication_metric_index_operations_written{index=~\"$index\",namespace=\"$namespace\",cluster=\"$cluster\"}[5m]))) by (index)",
           "groupBy": [

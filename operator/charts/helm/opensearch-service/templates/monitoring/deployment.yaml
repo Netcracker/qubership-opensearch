@@ -70,12 +70,6 @@ spec:
               {{ else }}
               value: "http"
               {{ end }}
-          {{- if (eq .Values.monitoring.monitoringType "influxdb") }}
-            - name: SM_DB_HOST
-              value: {{ .Values.monitoring.smDbHost }}
-            - name: SM_DB_NAME
-              value: {{ .Values.monitoring.smDbName }}
-          {{- end }}
             - name: OPENSEARCH_MONITORING_SECRETS_DIR
               value: {{ $monitoringPodSecretsMount | quote }}
             - name: MONITORING_LOGS
@@ -113,32 +107,8 @@ spec:
               containerPort: 8094
             - protocol: UDP
               containerPort: 8092
-          {{- if (ne .Values.monitoring.monitoringType "influxdb") }}
             - protocol: TCP
               containerPort: 8096
-          {{- end }}
-      {{- if eq .Values.monitoring.monitoringType "influxdb" }}
-          livenessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - 'pgrep -x telegraf > /dev/null'
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 5
-          readinessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - 'pgrep -x telegraf > /dev/null'
-            initialDelaySeconds: 60
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 5
-      {{- else }}
           livenessProbe:
             tcpSocket:
               port: 8096
@@ -155,7 +125,6 @@ spec:
             periodSeconds: 10
             successThreshold: 1
             failureThreshold: 5
-      {{- end }}
       volumes:
         - name: tmp
           emptyDir:
@@ -177,15 +146,6 @@ spec:
                       path: ELASTICSEARCH_USERNAME
                     - key: password
                       path: ELASTICSEARCH_PASSWORD
-              {{- if (eq .Values.monitoring.monitoringType "influxdb") }}
-              - secret:
-                  name: {{ template "opensearch.fullname" . }}-monitoring-secret
-                  items:
-                    - key: sm-db-username
-                      path: sm_db_username
-                    - key: sm-db-password
-                      path: sm_db_password
-              {{- end }}
         {{- if eq (include "opensearch.tlsEnabled" .) "true" }}
         - name: opensearch-certs
           secret:

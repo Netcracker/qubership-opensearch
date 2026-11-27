@@ -24,7 +24,7 @@ List of ports used by OpenSearch and other Services.
 | 8125 | OpenSearch Monitoring    | Port used for StatsD monitoring in OpenSearch.                                                                                    |
 | 8094 | OpenSearch Monitoring    | Port used for TCP monitoring in OpenSearch.                                                                                       |
 | 8092 | OpenSearch Monitoring    | Port used for UDP monitoring in OpenSearch.                                                                                       |
-| 8096 | OpenSearch Monitoring    | Port used for monitoring if `monitoring.monitoringType` is not `influxdb`.                                                        |
+| 8096 | OpenSearch Monitoring    | Port used for Prometheus metrics whenever OpenSearch monitoring is enabled.                                                       |
 | 8443 | DRD                      | If TLS for Disaster Recovery is enabled the HTTPS protocol and port 8443 is used for API requests to ensure secure communication. |
 | 8080 | DRD                      | Port used for SiteManager endpoints.                                                                                              |
 | 8080 | Integration-tests        | Exposes the container's port to the network. It allows access to the application running in the container.                        |

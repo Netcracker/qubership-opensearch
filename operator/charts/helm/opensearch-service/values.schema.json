@@ -3504,7 +3504,7 @@
                     "default": "prometheus",
                     "$id": "#/properties/monitoring/properties/monitoringType",
                     "title": "The monitoring.monitoringType schema",
-                    "description": "The type of output plugin that is used for OpenSearch monitoring"
+                    "description": "The monitoring output is Prometheus. The value influxdb is accepted for compatibility and ignored"
                 },
                 "installDashboard": {
                     "type": "boolean",
@@ -3518,28 +3518,28 @@
                     "default": "",
                     "$id": "#/properties/monitoring/properties/smDbHost",
                     "title": "The monitoring.smDbHost schema",
-                    "description": "The host of the System Monitoring database"
+                    "description": "Accepted for compatibility and ignored. Kept so existing values files still validate"
                 },
                 "smDbName": {
                     "type": "string",
                     "default": "",
                     "$id": "#/properties/monitoring/properties/smDbName",
                     "title": "The monitoring.smDbName schema",
-                    "description": "The name of the database in System Monitoring"
+                    "description": "Accepted for compatibility and ignored. Kept so existing values files still validate. Previously the System Monitoring database name"
                 },
                 "smDbUsername": {
                     "type": "string",
                     "default": "",
                     "$id": "#/properties/monitoring/properties/smDbUsername",
                     "title": "The monitoring.smDbUsername schema",
-                    "description": "The name of the database user in System Monitoring"
+                    "description": "Accepted for compatibility and ignored. Kept so existing values files still validate. Previously the System Monitoring database user"
                 },
                 "smDbPassword": {
                     "type": "string",
                     "default": "",
                     "$id": "#/properties/monitoring/properties/smDbPassword",
                     "title": "The monitoring.smDbPassword schema",
-                    "description": "The password of the database user in System Monitoring"
+                    "description": "Accepted for compatibility and ignored. Kept so existing values files still validate. Previously the System Monitoring database password"
                 },
                 "includeIndices": {
                     "type": "boolean",
