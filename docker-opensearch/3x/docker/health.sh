@@ -48,7 +48,7 @@ readiness_probe() {
         fi
         log "http status code: [$http_status_code]"
 
-        if [ -z "$http_status_code" ]; then
+        if [ -z "$http_status_code" ] || [ "$http_status_code" = "000" ]; then
             log "Error: localhost is not available, because received http status code is unknown!"
             exit 1
         fi
