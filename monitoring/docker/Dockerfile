@@ -1,4 +1,4 @@
-FROM telegraf:1.40-alpine
+FROM telegraf:1.40-alpine@sha256:cf86d98a43dc341ef551f0ed9e7d0e77363ef8be1de2fb6de4fb4103fb415da1
 
 ENV ELASTICSEARCH_MONITORING_HOME=/opt/elasticsearch-monitoring \
     MONITORING_LOGS=/tmp/monitoring/logs
